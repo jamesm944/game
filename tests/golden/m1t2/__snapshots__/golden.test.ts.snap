@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m1t2 > golden digests match the recorded fixture 1`] = `
+[
+  {
+    "digest": "fnv1a64:f831dd442da1ca60",
+    "tick": 30,
+  },
+  {
+    "digest": "fnv1a64:06535a22228d7441",
+    "tick": 60,
+  },
+  {
+    "digest": "fnv1a64:f5e7ce65a95fe1e3",
+    "tick": 90,
+  },
+]
+`;

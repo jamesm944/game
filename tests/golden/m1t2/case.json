@@ -1,0 +1,17 @@
+{
+  "name": "m1t2",
+  "description": "First deterministic-core fixture: 10 entities carrying float components (mass, position), a seeded prng drift system, ping commands at ticks 5/30/31, digests recorded every 30th tick plus final.",
+  "seed": 20260821,
+  "ticks": 90,
+  "milestoneEvery": 30,
+  "entityCount": 10,
+  "components": [
+    { "name": "mass", "arity": 1 },
+    { "name": "position", "arity": 2 }
+  ],
+  "commands": [
+    { "kind": "ping", "targetTick": 5, "data": { "eid": 3, "amount": 10 } },
+    { "kind": "ping", "targetTick": 30, "data": { "eid": 7, "amount": -2.5 } },
+    { "kind": "ping", "targetTick": 31, "data": { "eid": 3, "amount": 0.125 } }
+  ]
+}
