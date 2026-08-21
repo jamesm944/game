@@ -1,0 +1,102 @@
+{
+  "name": "m1t4",
+  "description": "Sim-side movement fixture: 32\u00d732 map generated from the pinned m1t3 seed bytes; two clusters of six Pops receive groupMove commands at ticks 10 and 30; digests are recorded every 30th tick plus final and arrival positions are asserted against dealt formation slots.",
+  "seed": 424242,
+  "size": 32,
+  "ticks": 300,
+  "milestoneEvery": 30,
+  "spawns": [
+    {
+      "eid": 1,
+      "x": 6.7,
+      "y": 26.5
+    },
+    {
+      "eid": 2,
+      "x": 7.7,
+      "y": 26.4
+    },
+    {
+      "eid": 3,
+      "x": 6.1,
+      "y": 27.5
+    },
+    {
+      "eid": 4,
+      "x": 7.6,
+      "y": 27.6
+    },
+    {
+      "eid": 5,
+      "x": 6.4,
+      "y": 28.5
+    },
+    {
+      "eid": 6,
+      "x": 7.8,
+      "y": 28.4
+    },
+    {
+      "eid": 7,
+      "x": 10.4,
+      "y": 23.5
+    },
+    {
+      "eid": 8,
+      "x": 11.5,
+      "y": 23.4
+    },
+    {
+      "eid": 9,
+      "x": 10.3,
+      "y": 24.5
+    },
+    {
+      "eid": 10,
+      "x": 11.6,
+      "y": 24.6
+    },
+    {
+      "eid": 11,
+      "x": 10.5,
+      "y": 25.5
+    },
+    {
+      "eid": 12,
+      "x": 11.5,
+      "y": 25.4
+    }
+  ],
+  "commands": [
+    {
+      "kind": "groupMove",
+      "targetTick": 10,
+      "data": {
+        "entityIds": [1, 2, 3, 4, 5, 6],
+        "x": 12.5,
+        "y": 27.5
+      }
+    },
+    {
+      "kind": "groupMove",
+      "targetTick": 30,
+      "data": {
+        "entityIds": [7, 8, 9, 10, 11, 12],
+        "x": 14.5,
+        "y": 21.5
+      }
+    }
+  ],
+  "groups": [
+    {
+      "entityIds": [1, 2, 3, 4, 5, 6],
+      "x": 12.5,
+      "y": 27.5
+    },
+    {
+      "entityIds": [7, 8, 9, 10, 11, 12],
+      "x": 14.5,
+      "y": 21.5
+    }
+  ]
+}

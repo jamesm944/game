@@ -48,6 +48,12 @@ export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
 export interface CreateWorldOptions {
   /** Grid edge length in tiles; defaults to DEFAULT_MAP_SIZE (120). */
   readonly size?: number | undefined;
+  /**
+   * Pre-built world layers overriding seed-driven mapgen. Tests use
+   * this to author hand-built passability grids; production callers
+   * leave it unset so the map is a pure function of the seed.
+   */
+  readonly layers?: WorldLayers | undefined;
 }
 
 export function createWorld(
@@ -66,7 +72,8 @@ export function createWorld(
     tick: 0,
     systems: [],
     rowsByComponentId: new Map(),
-    layers: generateMap(seed, options.size ?? DEFAULT_MAP_SIZE),
+    layers:
+      options.layers ?? generateMap(seed, options.size ?? DEFAULT_MAP_SIZE),
   };
 }
 
