@@ -130,6 +130,36 @@ The full graph of buildings, units, technologies and their prerequisites.
 The JSON record for one unit/building/technology/recipe: costs, stats, Armor classes, bonuses, prerequisites, asset refs. All rules are Entity definitions + shared systems.
 _Avoid_: Config, blueprint
 
+### Schedules & social life
+
+**Day/night cycle**:
+The 24-hour sim clock driving work, sleep, and leisure windows; rendered as lighting tint only.
+_Avoid_: Time of day (bare), circadian system
+
+**Schedule**:
+A Pop's recurring daily pattern of work window, sleep window at its Household home, and free leisure time.
+_Avoid_: Routine, timetable
+
+**Leisure activity**:
+A personality-scored off-work choice (tavern, brothel, visiting friends/family, shrine, study) paid for in gold or time and returning morale or bond effects.
+_Avoid_: Recreation, hobby
+
+**Social bond**:
+A pairwise Relationship value between two Pops, built by visits and shared events; strong bonds buffer morale shocks.
+_Avoid_: Friendship level
+
+**Venue**:
+A building type hosting Leisure activities (Tavern, Brothel, Shrine, School-library).
+_Avoid_: Hotspot, hangout
+
+**Rest day**:
+Sunday of the 7-day week: work windows close (essential roles only) and the community attends Mass if a Church stands.
+_Avoid_: Weekend, holiday
+
+**Mass**:
+The communal Sunday morning gathering at a Church — broad morale buff and Social-bond reinforcement across attendees.
+_Avoid_: Service (bare)
+
 ### Victory
 
 **Victory path**:
