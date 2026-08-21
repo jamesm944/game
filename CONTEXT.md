@@ -66,6 +66,44 @@ _Avoid_: Crafting rule
 **Farm re-seeding**:
 Rebuilding a depleted Farm for a wood cost so it continues producing Food indefinitely.
 
+### Delegated management
+
+**Workplace**:
+A production building plus its associated work area — the unit a Foreman manages.
+_Avoid_: Job site, facility
+
+**Foreman**:
+A Pop appointed to run one Workplace: fills its slots from the labor pool, rotates tired workers, handles re-seeding and rebuilds. Quality derives from the individual's traits and Management skill.
+_Avoid_: Overseer, boss
+
+**Manager**:
+A Pop appointed over one resource domain (Food, Wood, Stone·Clay, Metal, Crafted) who redistributes workers across its workplaces per player-set strategy weights.
+_Avoid_: Governor, administrator
+
+**Staffing rule**:
+Player appoints Foremen/Managers only on directly-owned Workplaces; a Branch is staffed exclusively by its Company — no player appointment or veto there.
+_Avoid_: Veto power
+
+**Strategy weight**:
+The player-set priority slider a Manager obeys when reallocating workers within their domain.
+_Avoid_: Priority flag
+
+**Company**:
+A player-chartered organization owning Workplaces as Branches, holding a treasury from a share of branch output, and proposing new branches autonomously.
+_Avoid_: Corporation, business (bare)
+
+**Branch**:
+A Workplace owned by a Company rather than directly by the player.
+_Avoid_: Franchise, office
+
+**Treasury**:
+A Company's virtual credit ledger, funded by its Branches' output share; spendable only on the Company's own proposals.
+_Avoid_: Bank, fund
+
+**Charter**:
+A Company's founding focus and rules: name, sector, expansion approval mode.
+_Avoid_: License
+
 ### Combat & progression
 
 **Armor class**:
