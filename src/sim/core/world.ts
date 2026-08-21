@@ -12,6 +12,7 @@ import { CommandInbox, type SimCommand } from "./inbox";
 import { createPrng, type Prng } from "./prng";
 import { ComponentRegistry } from "./registry";
 import { generateMap } from "../mapgen/generate";
+import type { PathScheduler } from "../path/scheduler";
 import type { WorldLayers } from "../world/layers";
 
 export const TICK_HZ = 30;
@@ -41,6 +42,13 @@ export interface World {
    * untouched by creation and the tick stream stays replay-stable.
    */
   readonly layers: WorldLayers;
+  /**
+   * Optional path scheduler (M1-T5): consulted at every tick boundary
+   * BEFORE any state advances. While a due response is missing, step()
+   * holds the tick entirely — no increment, no command drain, no
+   * systems — and retries the same boundary next frame (ADR-0003).
+   */
+  readonly pathScheduler: PathScheduler | undefined;
 }
 
 export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
@@ -54,6 +62,12 @@ export interface CreateWorldOptions {
    * leave it unset so the map is a pure function of the seed.
    */
   readonly layers?: WorldLayers | undefined;
+  /**
+   * Path scheduler enforcing the dueTick/blocking worker contract.
+   * Required once any system issues path requests; worlds without one
+   * behave exactly as before M1-T5.
+   */
+  readonly pathScheduler?: PathScheduler | undefined;
 }
 
 export function createWorld(
@@ -74,6 +88,7 @@ export function createWorld(
     rowsByComponentId: new Map(),
     layers:
       options.layers ?? generateMap(seed, options.size ?? DEFAULT_MAP_SIZE),
+    pathScheduler: options.pathScheduler,
   };
 }
 
@@ -135,11 +150,21 @@ export function registerSystem(world: World, system: SimSystem): void {
 }
 
 /**
- * Advance exactly one fixed 30 Hz tick: consume commands whose absolute
- * target tick is now, then run systems. Commands can only ever be seen
- * on their target tick because late inbox submissions throw.
+ * Advance exactly one fixed 30 Hz tick. With a path scheduler attached,
+ * its pump runs first: due responses apply ascending-id BEFORE systems
+ * (movement consumes fresh paths this same tick), and a late response
+ * holds the whole tick — no increment, no command drain — so commands
+ * and world state stay exactly where the blocked boundary left them.
+ * Commands can only ever be seen on their target tick because late
+ * inbox submissions throw.
  */
 export function step(world: World): void {
+  if (
+    world.pathScheduler !== undefined &&
+    !world.pathScheduler.pump(world.tick + 1)
+  ) {
+    return; // tick held on a late path response; retry next frame
+  }
   world.tick += 1;
   const commands = world.inbox.drainDue(world.tick);
   for (const system of world.systems) system(world, commands);

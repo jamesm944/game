@@ -6,7 +6,14 @@
  * fixed ticks, the SPEC §7 state digest is recorded at every 30th tick
  * plus final into a vitest snapshot, arrival positions are asserted
  * against the dealt formation slots, and the whole run executes twice
- * as an extended determinism canary. Milestones regenerate only through
+ * as an extended determinism canary.
+ *
+ * Since M1-T5 every search flows through the path scheduler, so the
+ * scenario runs in BOTH transports: the zero-async synchronous fallback
+ * and a scripted worker mock whose deliveries interleave out of order
+ * across ticks and sometimes land LATE (exercising tick holding). The
+ * two modes must produce byte-identical replays — the determinism
+ * canary across the async boundary. Milestones regenerate only through
  * `npm run golden:record`; hand-edited digests fail every normal run.
  */
 import { readFileSync } from "node:fs";
@@ -23,13 +30,18 @@ import {
   getPosition,
   spawnUnit,
 } from "../../../src/sim/components";
+import { MockPathWorker } from "../../helpers/mock-path-worker";
+import { installSimPurityShims } from "../../helpers/sim-purity-shims";
+import {
+  PathScheduler,
+  createSynchronousPathTransport,
+} from "../../../src/sim/path/scheduler";
 import {
   createMovementDiagnostics,
   createMovementSystem,
   formationSlotOffset,
   type MovementDiagnostics,
 } from "../../../src/sim/systems/movement";
-import { installSimPurityShims } from "../../helpers/sim-purity-shims";
 
 interface GoldenSpawn {
   readonly eid: number;
@@ -147,6 +159,33 @@ export interface ScenarioRun {
   readonly diagnostics: MovementDiagnostics;
   /** True when every unit ends the run on a passable tile. */
   readonly allOnPassableTiles: boolean;
+  /** Ticks held waiting on late path responses (worker-mock mode). */
+  readonly blockedTicks: number;
+  readonly finalTick: number;
+}
+
+/** Which transport feeds the scheduler for a scenario run. */
+export type RunMode = "sync-fallback" | "worker-mock";
+
+/**
+ * Worker-mock delivery script: delay `d` per request id (cycling
+ * 0,1,2,0,…). Delays 0/1 land within PATH_LATENCY; delay 2 is late and
+ * makes step() hold ticks — replay-exactness must survive both.
+ */
+const MOCK_DELAY_SCRIPT = (requestId: number): number => (requestId - 1) % 3;
+
+function buildScheduler(mode: RunMode): {
+  scheduler: PathScheduler;
+  advanceMock?: () => void;
+} {
+  if (mode === "sync-fallback") {
+    return { scheduler: new PathScheduler(createSynchronousPathTransport()) };
+  }
+  const worker = new MockPathWorker(MOCK_DELAY_SCRIPT);
+  return {
+    scheduler: new PathScheduler(worker.transport),
+    advanceMock: () => worker.advanceFrame(),
+  };
 }
 
 /**
@@ -189,11 +228,15 @@ function expectedSlotPoints(
   return expected;
 }
 
-function runScenario(fixture: GoldenCase): ScenarioRun {
-  const world = createWorld(fixture.seed, { size: fixture.size });
+function runScenario(fixture: GoldenCase, mode: RunMode): ScenarioRun {
+  const { scheduler, advanceMock } = buildScheduler(mode);
+  const world = createWorld(fixture.seed, {
+    size: fixture.size,
+    pathScheduler: scheduler,
+  });
   const comps = defineMovementComponents(world);
   const diagnostics = createMovementDiagnostics();
-  registerSystem(world, createMovementSystem(comps, diagnostics));
+  registerSystem(world, createMovementSystem(comps, scheduler, diagnostics));
 
   for (const spawn of fixture.spawns) {
     const eid = spawnUnit(world, comps, spawn.x, spawn.y);
@@ -206,9 +249,25 @@ function runScenario(fixture: GoldenCase): ScenarioRun {
 
   for (const command of fixture.commands) world.inbox.submit(command);
 
+  // Held ticks retry the same boundary next frame, so the loop runs
+  // until the sim actually reaches the final tick; the cap only guards
+  // against a transport that never answers.
   const digests: MilestoneDigest[] = [];
-  for (let t = 1; t <= fixture.ticks; t++) {
+  let iterations = 0;
+  const iterationCap = fixture.ticks * 20;
+  while (world.tick < fixture.ticks) {
+    const before = world.tick;
+    advanceMock?.();
     step(world);
+    iterations += 1;
+    if (iterations > iterationCap) {
+      throw new Error(
+        `scenario failed to reach tick ${String(fixture.ticks)} within ${String(iterationCap)} frames`,
+      );
+    }
+    // Held ticks retry the same boundary and must not double-record.
+    if (world.tick === before) continue;
+    const t = world.tick;
     if (t % fixture.milestoneEvery === 0 || t === fixture.ticks) {
       digests.push({ tick: t, digest: computeWorldDigest(world) });
     }
@@ -234,7 +293,14 @@ function runScenario(fixture: GoldenCase): ScenarioRun {
     }
   }
 
-  return { digests, positions, diagnostics, allOnPassableTiles };
+  return {
+    digests,
+    positions,
+    diagnostics,
+    allOnPassableTiles,
+    blockedTicks: scheduler.blockedTicks,
+    finalTick: world.tick,
+  };
 }
 
 installSimPurityShims();
@@ -252,7 +318,7 @@ describe("golden harness m1t4", () => {
   const CENTROID_TOLERANCE = 0.6;
 
   it("records milestone digests at every 30th tick plus final", () => {
-    const run = runScenario(fixture);
+    const run = runScenario(fixture, "sync-fallback");
 
     const expectedTicks = Array.from(
       { length: Math.floor(fixture.ticks / fixture.milestoneEvery) },
@@ -269,7 +335,7 @@ describe("golden harness m1t4", () => {
   });
 
   it("both groups arrive within tolerance of their dealt formation slots", () => {
-    const run = runScenario(fixture);
+    const run = runScenario(fixture, "sync-fallback");
     const expected = expectedSlotPoints(fixture);
 
     expect(run.diagnostics.groupMoves).toBe(fixture.groups.length);
@@ -320,12 +386,33 @@ describe("golden harness m1t4", () => {
   });
 
   it("extended double-run canary: identical digests, positions and diagnostics", () => {
-    const first = runScenario(fixture);
-    const second = runScenario(fixture);
+    const first = runScenario(fixture, "sync-fallback");
+    const second = runScenario(fixture, "sync-fallback");
     expect(second.digests).toEqual(first.digests);
     expect(second.diagnostics).toEqual(first.diagnostics);
     expect([...second.positions.entries()]).toEqual([
       ...first.positions.entries(),
     ]);
+  });
+
+  it("canary across the async boundary: worker-mock replays byte-identically to sync fallback", () => {
+    // The scripted mock interleaves out-of-order deliveries and lands
+    // some responses LATE (delay 2 > PATH_LATENCY−1), so the sim must
+    // hold ticks; digests/positions/diagnostics still match the
+    // synchronous fallback byte-for-byte (ADR-0003 blocking contract).
+    const sync = runScenario(fixture, "sync-fallback");
+    const mocked = runScenario(fixture, "worker-mock");
+
+    expect(mocked.finalTick).toBe(sync.finalTick);
+    expect(mocked.digests).toEqual(sync.digests);
+    expect(mocked.diagnostics).toEqual(sync.diagnostics);
+    expect([...mocked.positions.entries()]).toEqual([
+      ...sync.positions.entries(),
+    ]);
+    expect(mocked.allOnPassableTiles).toBe(true);
+
+    // The run genuinely exercised both async regimes.
+    expect(sync.blockedTicks).toBe(0);
+    expect(mocked.blockedTicks).toBeGreaterThan(0);
   });
 });

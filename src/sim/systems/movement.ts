@@ -2,7 +2,10 @@
  * Movement system — SPEC §2.2 / ADR-0003 phase 1 (sim-side).
  *
  * Per 30 Hz tick, ascending eid:
- *   1. consume `groupMove` commands → leader A* + formation slot dealing
+ *   0. apply due path responses through the PathScheduler (ascending-id,
+ *      dueTick-gated — handled by world.step() just before this system)
+ *   1. consume `groupMove` commands → ONE leader A* request through the
+ *      FIFO path worker; slots are dealt when the response lands
  *   2. activity-queue steering: turn-rate-limited heading arcs, ease-in
  *      acceleration, sqrt braking near arrival, waypoint consumption
  *   3. steering layer: per-tick spatial hash (2-tile cells) driving boid
@@ -12,9 +15,14 @@
  *      individual re-path) / Parked (idle, or propagated backward through
  *      contact after ~0.7 s stalled against a parked unit)
  *
- * Determinism: all randomness comes from the world PRNG stream, trig
- * from core/trig (IEEE basic ops only), iteration order is pinned, and
- * every constant below is a documented tuning value.
+ * All searches flow through the injected PathScheduler (worker or
+ * synchronous fallback — byte-identical results either way). While a
+ * path is in flight the affected Pops hold position deterministically.
+ *
+ * Determinism: all randomness comes from the world PRNG stream plus
+ * pure per-request seeds derived from (worldSeed, tiles, issueTick),
+ * trig from core/trig (IEEE basic ops only), iteration order is pinned,
+ * and every constant below is a documented tuning value.
  */
 
 import {
@@ -42,7 +50,8 @@ import {
 } from "../core/trig";
 import { TICK_HZ, type SimSystem, type World } from "../core/world";
 import type { SimCommand } from "../core/inbox";
-import { findPath, hasLineOfSight } from "../path/astar";
+import { hasLineOfSight } from "../path/astar";
+import type { PathScheduler } from "../path/scheduler";
 
 /** Seconds per sim tick. */
 const TICK_DT = 1 / TICK_HZ;
@@ -249,6 +258,32 @@ export function createMovementDiagnostics(): MovementDiagnostics {
   return { sidesteps: 0, repaths: 0, groupMoves: 0 };
 }
 
+// ---- Path request seeding ---------------------------------------------------
+
+/**
+ * Pure child seed for one path request, mixed from the world seed, the
+ * tile indices and the issuing tick (splitmix32-style avalanche, same
+ * shape as component defaultTurnRate). Drawing nothing from the world
+ * PRNG keeps the tick stream untouched by path traffic.
+ */
+function derivePathSeed(
+  worldSeed: number,
+  startTile: number,
+  goalTile: number,
+  issueTick: number,
+): number {
+  let z =
+    (worldSeed ^
+      Math.imul(startTile, 0x85ebca6b) ^
+      Math.imul(goalTile, 0xc2b2ae35) ^
+      Math.imul(issueTick, 0x27d4eb2f)) >>>
+    0;
+  if (z === 0) z = 0x1;
+  z = Math.imul(z ^ (z >>> 16), 0x21f0aaad) >>> 0;
+  z = Math.imul(z ^ (z >>> 15), 0x735a2d97) >>> 0;
+  return (z ^ (z >>> 15)) >>> 0;
+}
+
 // ---- groupMove command handling ---------------------------------------------
 
 interface GroupMoveData {
@@ -312,15 +347,24 @@ function nearestPassableTile(
 
 /**
  * Apply one group-move order: pick the leader nearest the centroid
- * (ascending-eid tiebreak), run ONE octile A* for the leader, deal
- * concentric-ring slots to every Pop sorted ascending-eid (leader on
- * slot 0), and enqueue per-Pop Move activities whose final waypoint is
- * the slot-adjusted destination.
+ * (ascending-eid tiebreak), resolve start/goal tiles, then issue ONE
+ * octile A* request through the path scheduler. When its response
+ * applies (ascending-id, dueTick ≤ tick), deal concentric-ring slots to
+ * every Pop sorted ascending-eid (leader on slot 0) and enqueue per-Pop
+ * Move activities whose final waypoint is the slot-adjusted
+ * destination.
+ *
+ * Member positions are captured at ISSUE time and reused at
+ * application: between the two, this continuation is the only writer of
+ * the members' queues, so both modes (worker and synchronous fallback)
+ * observe identical inputs regardless of what the Pops were still doing
+ * from an earlier order during the latency window.
  */
 function handleGroupMove(
   world: World,
   comps: MovementComponents,
   diagnostics: MovementDiagnostics,
+  paths: PathScheduler,
   data: Readonly<Record<string, unknown>>,
 ): void {
   const parsed = parseGroupMoveData(data);
@@ -372,80 +416,105 @@ function handleGroupMove(
     Math.floor(y),
   );
   if (!goal) return;
-  const path = findPath({
-    passability,
-    width: size,
-    startX: startTileX,
-    startY: startTileY,
-    goalX: goal.x,
-    goalY: goal.y,
-  });
-  if (!path) return; // unreachable destination: command is a no-op
-
-  diagnostics.groupMoves += 1;
-  // Pulled waypoints are tile indices; activities steer in continuous
-  // coordinates, so convert every pair to its tile center first.
-  const sharedWaypoints: number[] = [];
-  for (let k = 0; k < path.waypoints.length; k += 2) {
-    sharedWaypoints.push(
-      path.waypoints[k]! + 0.5,
-      path.waypoints[k + 1]! + 0.5,
-    );
-  }
 
   // Deal slots: leader on the center slot, remaining Pops ascending.
   const ordered = [leader, ...members.filter((member) => member !== leader)];
-  for (let slotIndex = 0; slotIndex < ordered.length; slotIndex++) {
-    const member = ordered[slotIndex]!;
-    const offset = formationSlotOffset(slotIndex);
-    const finalX = x + offset.dx;
-    const finalY = y + offset.dy;
-    const velRow = world.rowsByComponentId
-      .get(comps.velocityId)
-      ?.get(member.eid);
-    if (!velRow) continue;
-    // A fresh order clears all steering-FSM bookkeeping.
-    velRow[V_STALLED_TICKS] = 0;
-    velRow[V_PARK_CONTACT_TICKS] = 0;
-    velRow[V_CLOSE_TICKS] = 0;
-    velRow[V_PROPAGATION_PARKED] = 0;
-    // String-pull per member: a clear straight line to the slot skips
-    // the leader's route entirely; otherwise reuse the shared centers.
-    let waypoints: number[];
-    if (
-      slotIndex > 0 &&
-      hasLineOfSight(
-        passability,
-        size,
-        Math.floor(member.x),
-        Math.floor(member.y),
-        Math.floor(finalX),
-        Math.floor(finalY),
-      )
-    ) {
-      waypoints = [finalX, finalY];
-    } else {
-      waypoints = [...sharedWaypoints.slice(0, -2), finalX, finalY];
-    }
-    writeActivityQueue(world, comps, member.eid, [moveActivity(waypoints)]);
-    setMoveTarget(world, comps, member.eid, finalX, finalY);
-  }
+
+  paths.requestPath(
+    {
+      startX: startTileX,
+      startY: startTileY,
+      goalX: goal.x,
+      goalY: goal.y,
+    },
+    {
+      issueTick: world.tick,
+      seed: derivePathSeed(
+        world.seed,
+        startTileY * size + startTileX,
+        goal.y * size + goal.x,
+        world.tick,
+      ),
+      passability,
+      onApply: (response): void => {
+        if (!response.ok) return; // unreachable destination: command is a no-op
+
+        diagnostics.groupMoves += 1;
+        // Pulled waypoints are tile indices; activities steer in continuous
+        // coordinates, so convert every pair to its tile center first.
+        const sharedWaypoints: number[] = [];
+        for (let k = 0; k < response.waypoints.length; k += 2) {
+          sharedWaypoints.push(
+            response.waypoints[k]! + 0.5,
+            response.waypoints[k + 1]! + 0.5,
+          );
+        }
+
+        for (let slotIndex = 0; slotIndex < ordered.length; slotIndex++) {
+          const member = ordered[slotIndex]!;
+          const offset = formationSlotOffset(slotIndex);
+          const finalX = x + offset.dx;
+          const finalY = y + offset.dy;
+          const velRow = world.rowsByComponentId
+            .get(comps.velocityId)
+            ?.get(member.eid);
+          if (!velRow) continue;
+          // A fresh order clears all steering-FSM bookkeeping.
+          velRow[V_STALLED_TICKS] = 0;
+          velRow[V_PARK_CONTACT_TICKS] = 0;
+          velRow[V_CLOSE_TICKS] = 0;
+          velRow[V_PROPAGATION_PARKED] = 0;
+          // String-pull per member: a clear straight line to the slot skips
+          // the leader's route entirely; otherwise reuse the shared centers.
+          let waypoints: number[];
+          if (
+            slotIndex > 0 &&
+            hasLineOfSight(
+              passability,
+              size,
+              Math.floor(member.x),
+              Math.floor(member.y),
+              Math.floor(finalX),
+              Math.floor(finalY),
+            )
+          ) {
+            waypoints = [finalX, finalY];
+          } else {
+            waypoints = [...sharedWaypoints.slice(0, -2), finalX, finalY];
+          }
+          writeActivityQueue(world, comps, member.eid, [
+            moveActivity(waypoints),
+          ]);
+          setMoveTarget(world, comps, member.eid, finalX, finalY);
+        }
+      },
+    },
+  );
 }
 
 // ---- The system -------------------------------------------------------------
 
 /**
- * Build the movement SimSystem. Pass a diagnostics sink to observe
- * sidesteps/re-paths/group moves from tests or telemetry.
+ * Build the movement SimSystem. Every search is issued through the
+ * injected path scheduler (worker transport in production, synchronous
+ * fallback in headless tests — byte-identical results). Pass a
+ * diagnostics sink to observe sidesteps/re-paths/group moves from tests
+ * or telemetry.
  */
 export function createMovementSystem(
   comps: MovementComponents,
+  paths: PathScheduler,
   diagnostics: MovementDiagnostics = createMovementDiagnostics(),
 ): SimSystem {
   return (world: World, commands: readonly SimCommand[]): void => {
     const dt = TICK_DT;
     const size = world.layers.size;
     const passability = world.layers.derivedPassability;
+
+    // 0) Apply responses that became due for THIS tick boundary before
+    // any steering runs (pump already gated/block-checked in step()).
+    // Continuations registered below fire from inside pump, so fresh
+    // paths land here and are consumed immediately by this system.
 
     // 1) Commands consumed exactly on their target tick boundary.
     for (const command of commands) {
@@ -455,7 +524,7 @@ export function createMovementSystem(
         );
       }
       if (!command.data) throw new Error("groupMove requires command data");
-      handleGroupMove(world, comps, diagnostics, command.data);
+      handleGroupMove(world, comps, diagnostics, paths, command.data);
     }
 
     // Collect live units in ascending-eid order with decoded queues.
@@ -520,48 +589,87 @@ export function createMovementSystem(
       }
     };
 
+    // Entity ids with an individual re-path request in flight. While
+    // awaiting a response the unit holds position deterministically.
+    const awaitRepath = new Set<number>();
+
     /**
-     * Individual re-path from the unit's current tile to its slot-
-     * adjusted MoveTarget. Replaces the remaining waypoints of the head
-     * Move activity, or cancels it when no route exists any more.
+     * Issue an individual async re-path from the unit's current tile to
+     * its slot-adjusted MoveTarget. When the response applies, the
+     * remaining waypoints of the head Move activity are replaced — or
+     * the activity cancelled when no route exists any more. The order
+     * is re-validated on application: a newer command that replaced the
+     * destination voids this stale response.
      */
-    const repathUnit = (unit: UnitState): void => {
+    const requestRepath = (unit: UnitState): void => {
       diagnostics.repaths += 1;
       const dest = getMoveTarget(world, comps, unit.eid);
       const current = peekActivity(unit.queue);
       if (!dest || !current || current.kind !== "move") return;
-      const path = findPath({
-        passability,
-        width: size,
-        startX: Math.floor(unit.x),
-        startY: Math.floor(unit.y),
-        goalX: Math.floor(dest.x),
-        goalY: Math.floor(dest.y),
-      });
-      if (!path) {
-        cancelActivities(unit.queue);
-        unit.queueDirty = true;
-        return;
-      }
-      // Skip the start-tile pair: the unit's own position must never
-      // become a steering target (zero-length segments steer into float
-      // noise). Convert remaining tiles to centers; the last point is
-      // the exact destination.
-      const waypoints: number[] = [];
-      for (let k = 2; k < path.waypoints.length; k += 2) {
-        waypoints.push(path.waypoints[k]! + 0.5, path.waypoints[k + 1]! + 0.5);
-      }
-      if (waypoints.length < 2) {
-        // Already inside the goal tile: steer straight onto the slot.
-        waypoints.push(dest.x, dest.y);
-      } else {
-        waypoints[waypoints.length - 2] = dest.x;
-        waypoints[waypoints.length - 1] = dest.y;
-      }
-      current.waypoints = waypoints;
-      current.cursor = 0;
-      unit.queueDirty = true;
-      unit.velRow[V_CLOSE_TICKS] = 0;
+      const eid = unit.eid;
+      const startX = Math.floor(unit.x);
+      const startY = Math.floor(unit.y);
+      const goalX = Math.floor(dest.x);
+      const goalY = Math.floor(dest.y);
+      awaitRepath.add(eid);
+      paths.requestPath(
+        { startX, startY, goalX, goalY },
+        {
+          issueTick: world.tick,
+          seed: derivePathSeed(
+            world.seed,
+            startY * size + startX,
+            goalY * size + goalX,
+            world.tick,
+          ),
+          passability,
+          onApply: (response): void => {
+            awaitRepath.delete(eid);
+            // A newer order owns this unit now; the response is void.
+            const destNow = getMoveTarget(world, comps, eid);
+            if (
+              destNow === undefined ||
+              destNow.x !== dest.x ||
+              destNow.y !== dest.y
+            ) {
+              return;
+            }
+            const queue = readActivityQueue(world, comps, eid);
+            const head = peekActivity(queue);
+            if (!head || head.kind !== "move") return;
+            if (!response.ok) {
+              cancelActivities(queue);
+              writeActivityQueue(world, comps, eid, queue);
+              return;
+            }
+            // Skip the start-tile pair: the unit's own position must never
+            // become a steering target (zero-length segments steer into float
+            // noise). Convert remaining tiles to centers; the last point is
+            // the exact destination.
+            const waypoints: number[] = [];
+            for (let k = 2; k < response.waypoints.length; k += 2) {
+              waypoints.push(
+                response.waypoints[k]! + 0.5,
+                response.waypoints[k + 1]! + 0.5,
+              );
+            }
+            if (waypoints.length < 2) {
+              // Already inside the goal tile: steer straight onto the slot.
+              waypoints.push(dest.x, dest.y);
+            } else {
+              waypoints[waypoints.length - 2] = dest.x;
+              waypoints[waypoints.length - 1] = dest.y;
+            }
+            head.waypoints = waypoints;
+            head.cursor = 0;
+            writeActivityQueue(world, comps, eid, queue);
+            const velRow = world.rowsByComponentId
+              .get(comps.velocityId)
+              ?.get(eid);
+            if (velRow) velRow[V_CLOSE_TICKS] = 0;
+          },
+        },
+      );
     };
 
     /** Seeded sidestep nudge, then an individual re-path. */
@@ -600,7 +708,7 @@ export function createMovementSystem(
         unit.velRow[V_AVOID_TICKS_LEFT] = AVOIDANCE_COMMIT_TICKS;
         break;
       }
-      repathUnit(unit);
+      requestRepath(unit);
     };
 
     /**
@@ -644,6 +752,14 @@ export function createMovementSystem(
       if (unit.velRow[V_PROPAGATION_PARKED] !== 0) {
         // Propagated-Parked keeps its Move activity but halts cleanly.
         unit.speed = 0;
+        continue;
+      }
+
+      if (awaitRepath.has(unit.eid)) {
+        // Awaiting an async re-path response: hold position this tick
+        // (the fresh route lands at a tick boundary via the scheduler).
+        unit.speed = 0;
+        unit.velRow[V_SPEED] = 0;
         continue;
       }
 
@@ -698,7 +814,8 @@ export function createMovementSystem(
       }
 
       // Segment validity raycast against LIVE passability (ADR-0003):
-      // a newly-blocked next segment re-paths immediately.
+      // a newly-blocked next segment issues an async re-path; the unit
+      // holds position until the fresh route applies.
       if (
         !hasLineOfSight(
           passability,
@@ -709,7 +826,7 @@ export function createMovementSystem(
           Math.floor(targetY),
         )
       ) {
-        repathUnit(unit);
+        requestRepath(unit);
         continue;
       }
 
@@ -929,6 +1046,9 @@ export function createMovementSystem(
         unit.velRow[V_PARK_CONTACT_TICKS] = 0;
         unit.velRow[V_CLOSE_TICKS] = 0;
         unit.velRow[V_PROPAGATION_PARKED] = 0;
+      } else if (awaitRepath.has(unit.eid)) {
+        // Held for an in-flight re-path: counters stay frozen so a
+        // two-tick path latency never trips the stall ladder.
       } else if (unit.velRow[V_PROPAGATION_PARKED] !== 0) {
         if (!unit.contactWithParked) {
           // Released from the halted chain: resume steering next tick.

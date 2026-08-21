@@ -4,7 +4,9 @@
  * Hand-authored 16×16 grids exercise: single-unit arrival, crowd
  * separation (no interpenetration), wall detours, the stalled →
  * sidestep → re-path ladder, and Parked propagation through contact.
- * Everything runs under the sim purity shims.
+ * Paths flow through the scheduler in its zero-async synchronous
+ * fallback mode (byte-identical results to worker mode; see the m1t4
+ * golden canary). Everything runs under the sim purity shims.
  */
 import { describe, expect, it } from "vitest";
 import { peekActivity, type Activity } from "../../src/sim/activities";
@@ -17,6 +19,10 @@ import {
   DEFAULT_UNIT_RADIUS,
   type MovementComponents,
 } from "../../src/sim/components";
+import {
+  PathScheduler,
+  createSynchronousPathTransport,
+} from "../../src/sim/path/scheduler";
 import {
   createMovementDiagnostics,
   createMovementSystem,
@@ -42,7 +48,11 @@ const OPEN_16: readonly string[] = Array.from({ length: 16 }, () =>
 );
 
 /** '#' tiles become water (impassable); everything else grass. */
-function worldFromAscii(rows: readonly string[], seed = 424242): World {
+function worldFromAscii(
+  rows: readonly string[],
+  seed: number,
+  pathScheduler?: PathScheduler,
+): World {
   const size = rows.length;
   if (rows.some((row) => row.length !== size))
     throw new Error("grid must be square");
@@ -56,6 +66,7 @@ function worldFromAscii(rows: readonly string[], seed = 424242): World {
   return createWorld(seed, {
     layers: buildLayers(terrainType, new Uint8Array(size * size)),
     size,
+    pathScheduler,
   });
 }
 
@@ -66,10 +77,11 @@ interface Harness {
 }
 
 function harness(rows: readonly string[], seed = 424242): Harness {
-  const world = worldFromAscii(rows, seed);
+  const paths = new PathScheduler(createSynchronousPathTransport());
+  const world = worldFromAscii(rows, seed, paths);
   const comps = defineMovementComponents(world);
   const diagnostics = createMovementDiagnostics();
-  registerSystem(world, createMovementSystem(comps, diagnostics));
+  registerSystem(world, createMovementSystem(comps, paths, diagnostics));
   return { world, comps, diagnostics };
 }
 
