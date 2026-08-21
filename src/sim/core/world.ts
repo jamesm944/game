@@ -11,9 +11,13 @@ import { computeDigest, type DigestComponentSource } from "./digest";
 import { CommandInbox, type SimCommand } from "./inbox";
 import { createPrng, type Prng } from "./prng";
 import { ComponentRegistry } from "./registry";
+import { generateMap } from "../mapgen/generate";
+import type { WorldLayers } from "../world/layers";
 
 export const TICK_HZ = 30;
 export const TICK_DT_MS = 1000 / TICK_HZ;
+/** Default skirmish grid: 120×120 tiles (SPEC §2.1 / ADR-0002). */
+export const DEFAULT_MAP_SIZE = 120;
 
 /** Per-entity component values, keyed by ascending entity id. */
 export type ComponentRows = Map<number, number[]>;
@@ -31,11 +35,25 @@ export interface World {
   readonly systems: SimSystem[];
   /** Row map per registered component, indexed by component id. */
   readonly rowsByComponentId: Map<number, ComponentRows>;
+  /**
+   * Tile-grid world layers generated from the seed (SPEC §2.1). Mapgen
+   * runs on its own sfc32 stream inside generateMap, so world.prng is
+   * untouched by creation and the tick stream stays replay-stable.
+   */
+  readonly layers: WorldLayers;
 }
 
 export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
 
-export function createWorld(seed: number): World {
+export interface CreateWorldOptions {
+  /** Grid edge length in tiles; defaults to DEFAULT_MAP_SIZE (120). */
+  readonly size?: number | undefined;
+}
+
+export function createWorld(
+  seed: number,
+  options: CreateWorldOptions = {},
+): World {
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
     throw new Error(`world seed must be a u32 integer, got ${String(seed)}`);
   }
@@ -48,6 +66,7 @@ export function createWorld(seed: number): World {
     tick: 0,
     systems: [],
     rowsByComponentId: new Map(),
+    layers: generateMap(seed, options.size ?? DEFAULT_MAP_SIZE),
   };
 }
 

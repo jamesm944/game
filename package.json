@@ -13,7 +13,8 @@
     "golden:record": "vitest run -t 'golden' --update"
   },
   "dependencies": {
-    "bitecs": "^0.4.0"
+    "bitecs": "^0.4.0",
+    "simplex-noise": "^4.0.3"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

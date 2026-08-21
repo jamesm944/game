@@ -1,0 +1,6 @@
+{
+  "name": "m1t3",
+  "description": "Tile-grid world fixture: 32×32 map generated from a pinned seed via seeded simplex mapgen; milestones record the FNV-1a-64 map hash, the reload-from-bytes hash, an elevation histogram and the full terrain grid for review.",
+  "seed": 424242,
+  "size": 32
+}

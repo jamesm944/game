@@ -193,8 +193,6 @@ The `prototype/command-control` prototype was built and user-approved ("much bet
 - **GPU acceleration guarantees:** all hot-path visual work runs on GPU — vertex-shader animation playback for instanced billboard units (zero CPU animation cost), instanced building meshes, fog DataTexture blending in terrain/unit shaders, splat-shaded terrain. CPU per-frame cost is bounded to mirror writes ≤2 ms @500 instances (§7). No CPU canvas compositing or per-unit matrix math in the frame loop.
 - **Banished-style work presentation:** Pops visibly DO their jobs — activity-matched looping animations (axe swings at trees, pick strikes in mines, hammering on construction sites), tools rendered in-hand during the matching activity, and **visible carried cargo** (log bundles, ore sacks, food baskets) as attached props while returning to drop-off. Requires: `activityAnims` map + `toolProp`/`cargoProp` refs in unit Entity definitions; a cargo-prop instanced overlay draw keyed to carry state; bake pipeline emits tool/cargo/gather clips alongside locomotion.
 
-
-
 - **Format:** JSON per entity family under `src/data/definitions/{units,buildings,techs,recipes}/*.json`; **Zod schemas** in `src/data/schema.ts` generate TS types (`z.infer`). Load discipline = Factorio three-round prototype stage: parse all → validate all → fail loudly listing every error.
 - **Kind discriminator:** every definition carries `kind: 'unit' | 'building' | 'tech' | 'recipe'`.
 - **Common fields:** `id` (stable slug), `name`, `costs` (resource map), `buildTime`/`trainTime`/`researchTime` (ticks), `ageGate`, `techPrereqs[]`.
