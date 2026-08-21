@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+  PROTOTYPE (throwaway) - issue #8
+  Question: what does an AoE2-style command & control layer need to feel right in a browser?
+  Plain HTML/JS/CSS, no engine, no build step. Open index.html directly.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROTOTYPE: Command &amp; Control UX mock</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="topbar">
+  <span class="res">🪵 <b id="resWood">200</b></span>
+  <span class="res">🪙 <b id="resGold">100</b></span>
+  <span class="res">👥 <b id="popCount">0</b></span>
+  <span class="proto-tag">PROTOTYPE — throwaway UX mock</span>
+</div>
+
+<div id="hotkeys" class="panel">
+  <h3>Hotkeys</h3>
+  <table>
+    <tr><td>L-drag</td><td>box select</td></tr>
+    <tr><td>Shift</td><td>add to select</td></tr>
+    <tr><td>Dbl-click</td><td>select same type</td></tr>
+    <tr><td>R-click</td><td>move / attack / gather</td></tr>
+    <tr><td>A + L-click</td><td>attack-move</td></tr>
+    <tr><td>S</td><td>stop</td></tr>
+    <tr><td>F</td><td>focus selection</td></tr>
+    <tr><td>Ctrl+1..4</td><td>store group</td></tr>
+    <tr><td>1..4</td><td>recall group</td></tr>
+    <tr><td>1..4 ×2</td><td>center on group</td></tr>
+    <tr><td>B</td><td>pulse build menu</td></tr>
+    <tr><td>Esc</td><td>cancel / deselect</td></tr>
+    <tr><td>↑↓←→</td><td>pan camera</td></tr>
+    <tr><td>MM click</td><td>move camera</td></tr>
+  </table>
+</div>
+
+<div id="log" class="panel"><h3>Orders</h3><ul id="logList"></ul></div>
+
+<div id="buildMenu" class="panel">
+  <h3>Build</h3>
+  <div id="buildGrid"></div>
+</div>
+
+<div id="groupBar"></div>
+
+<div id="rightColumn">
+  <div id="infoCard" class="panel"></div>
+  <div id="minimapWrap" class="panel"><canvas id="minimap" width="190" height="190"></canvas></div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
