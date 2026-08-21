@@ -160,6 +160,14 @@ _Avoid_: Weekend, holiday
 The communal Sunday morning gathering at a Church — broad morale buff and Social-bond reinforcement across attendees.
 _Avoid_: Service (bare)
 
+**Work activity**:
+The visible, looping task a Pop performs at a work slot — axe swings at trees, pick strikes in mines, hammering on sites — matched to an animation clip and tool prop.
+_Avoid_: Job (the assignment), chore
+
+**Cargo prop**:
+The visible bundle (logs, ore sack, food basket) rendered attached to a Pop while carrying resources back to a Drop-off point.
+_Avoid_: Backpack, load mesh
+
 ### Victory
 
 **Victory path**:

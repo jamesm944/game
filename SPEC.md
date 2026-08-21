@@ -187,14 +187,18 @@ The `prototype/command-control` prototype was built and user-approved ("much bet
 - **Locomotion feel (validated iteration):** turn-rate-limited headings (smooth arcs, never snapping), ease-in/out along polyline routes sliding around obstacles, damped crowd separation, purposeful idle strolling, group wedge slots preserving bearing, gather rhythm (walk out, rhythmic bob at node, clean return line), per-unit pace/turn personality variance.
 - **UI implementation stance:** vanilla TS + DOM/CSS (framework-free), matching the prototype; picking = ray-to-ground-plane + spatial-hash query against sim coords, never mesh raycasts.
 
----
+### 2.14 Threading & Acceleration (standing requirements)
 
-## 3. Data Schema Overview
+- **Threading posture:** the game is multi-threaded at the architecture level; the deterministic 30 Hz sim tick stays single-threaded BY DESIGN — replay-exactness and golden fixtures depend on it, so parallelizing sim systems is forbidden without a new ADR. Off-main-thread work: pathfinding FIFO worker (§2.2), seeded mapgen (workerized if gen exceeds ~50 ms), fflate save compression in async mode, atlas bake (build-time process). Every worker obeys the path-worker contract: pure function of request contents + seed, deterministic tie-breaking.
+- **GPU acceleration guarantees:** all hot-path visual work runs on GPU — vertex-shader animation playback for instanced billboard units (zero CPU animation cost), instanced building meshes, fog DataTexture blending in terrain/unit shaders, splat-shaded terrain. CPU per-frame cost is bounded to mirror writes ≤2 ms @500 instances (§7). No CPU canvas compositing or per-unit matrix math in the frame loop.
+- **Banished-style work presentation:** Pops visibly DO their jobs — activity-matched looping animations (axe swings at trees, pick strikes in mines, hammering on construction sites), tools rendered in-hand during the matching activity, and **visible carried cargo** (log bundles, ore sacks, food baskets) as attached props while returning to drop-off. Requires: `activityAnims` map + `toolProp`/`cargoProp` refs in unit Entity definitions; a cargo-prop instanced overlay draw keyed to carry state; bake pipeline emits tool/cargo/gather clips alongside locomotion.
+
+
 
 - **Format:** JSON per entity family under `src/data/definitions/{units,buildings,techs,recipes}/*.json`; **Zod schemas** in `src/data/schema.ts` generate TS types (`z.infer`). Load discipline = Factorio three-round prototype stage: parse all → validate all → fail loudly listing every error.
 - **Kind discriminator:** every definition carries `kind: 'unit' | 'building' | 'tech' | 'recipe'`.
 - **Common fields:** `id` (stable slug), `name`, `costs` (resource map), `buildTime`/`trainTime`/`researchTime` (ticks), `ageGate`, `techPrereqs[]`.
-- **Units:** `hp`, `speed`, `carryCapacity`, `attack`, `armorClasses[]` (tags), `attackBonuses[{armorClass, mult}]`, `sightRadius`, `lineOfSight` defaults, `equipmentSlots`, anim set ref.
+- **Units:** `hp`, `speed`, `carryCapacity`, `attack`, `armorClasses[]` (tags), `attackBonuses[{armorClass, mult}]`, `sightRadius`, `lineOfSight` defaults, `equipmentSlots`, `activityAnims` (activity → clip id), `toolProp`/`cargoProp` asset refs (§2.14).
 - **Buildings:** `footprint` (tiles), `hp`, `workSlots` count, `dropoffFilters[]`, `acceptsRoles[]`, `sightRadius`, `ageStages[]` (asset refs per evolution stage), venue fields where applicable.
 - **Techs:** effect descriptors (stat modifiers, multiplier traits à la OpenRA condition/multiplier pattern), targets, cost, prereqs.
 - **Recipes:** `{id, buildingId, inputs[], output, ticks, techGate?}`.
