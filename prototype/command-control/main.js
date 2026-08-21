@@ -49,10 +49,23 @@ const SKILL_NAMES = ["Farming", "Mining", "Woodcutting", "Combat", "Building"];
 
 function makeUnit(type, x, y) {
   const r = mulberry32(nextId * 7919);
+  const paceRoll = r();
   const u = {
     id: nextId++, type, x, y, hp: 100,
     sel: false, dead: false, fade: 1, flashT: 0, hitT: 0,
-    order: { kind: "idle" }, wx: x, wy: y, wanderT: r() * 4,
+    order: { kind: "idle" }, wx: x, wy: y,
+    // --- locomotion state ---
+    heading: r() * Math.PI * 2, spd: 0,
+    speedMul: 0.92 + r() * 0.16,
+    turnRate: 5.5 + r() * 3,
+    pace: paceRoll < 0.25 ? "brisk" : paceRoll < 0.6 ? "steady" : "leisurely",
+    route: null, routeGoal: null, routeIdx: 0, stuckT: 0, progD: null, progT: 0,
+    avoidSide: 1, avoidT: 0,
+    idleT: 3 + r() * 6, fidgetT: 2 + r() * 4, gaze: null, gazeT: 0,
+    stroll: null, strollPause: 0, strollDeadline: 0, micro: null,
+    fleeT: 0, __resumeOrder: null,
+    working: false, phase: r() * Math.PI * 2, stepPhase: r() * Math.PI * 2,
+    // --- economy / combat state ---
     carrying: 0, carryType: null, gatherT: 0, attackCd: 0,
     speed: type === "soldier" ? 82 : type === "enemy" ? 66 : 72,
     dmg: type === "soldier" ? 12 : type === "enemy" ? 8 : 4,
@@ -186,29 +199,43 @@ function afterSelectionChange() {
   log("SEL", n ? `${n} selected` : "deselected");
 }
 
-function formationOffsets(n) {
+// Slots stretched along the travel direction: reads as a loose wedge/column
+// on the move and settles into a rough ring around the destination.
+function formationOffsets(n, ang = 0) {
   const pts = [];
+  const ca = Math.cos(ang), sa = Math.sin(ang);
   for (let i = 0; i < n; i++) {
-    const r = 12 * Math.sqrt(i), a = i * 2.399963;
-    pts.push([Math.cos(a) * r, Math.sin(a) * r]);
+    const r = 13 * Math.sqrt(i), a = i * 2.399963;
+    let lx = Math.cos(a) * r * 1.35; // elongated along travel axis
+    let ly = Math.sin(a) * r * 0.75;
+    pts.push([lx * ca - ly * sa, lx * sa + ly * ca]);
   }
   return pts;
 }
 
 function issueMove(list, tx, ty, kind = "move") {
-  const offs = formationOffsets(list.length);
-  list.forEach((u, i) => {
-    u.order = { kind, tx: tx + offs[i][0], ty: ty + offs[i][1], target: null };
-    if (kind === "amove") u.order.tx = tx + offs[i][0];
+  if (!list.length) return;
+  const cx = list.reduce((s, u) => s + u.x, 0) / list.length;
+  const cy = list.reduce((s, u) => s + u.y, 0) / list.length;
+  const ang = Math.atan2(ty - cy, tx - cx);
+  const offs = formationOffsets(list.length, ang);
+  // assign slots so units keep their neighbours: sort both by bearing
+  const order = list.map(u => ({ u, b: Math.atan2(u.y - cy, u.x - cx) }))
+    .sort((a, b) => a.b - b.b);
+  const slotOrder = offs.map(p => ({ p, b: Math.atan2(p[1], p[0]) }))
+    .sort((a, b) => a.b - b.b);
+  order.forEach((entry, i) => {
+    const s = slotOrder[i].p;
+    setOrder(entry.u, { kind, tx: tx + s[0], ty: ty + s[1], target: null });
   });
   markers.push({ type: kind === "amove" ? "amove" : "move", x: tx, y: ty, t: 0, dur: 0.7 });
 }
 function issueAttack(list, target) {
-  list.forEach(u => { u.order = { kind: "attack", target }; });
+  list.forEach(u => setOrder(u, { kind: "attack", target }));
   markers.push({ type: "attack", target, t: 0, dur: 0.9 });
 }
 function issueGather(villagers, res, resKind) {
-  villagers.forEach(u => { u.order = { kind: "gather", target: res, resKind }; u.gatherT = 0; });
+  villagers.forEach(u => { setOrder(u, { kind: "gather", target: res, resKind }); u.gatherT = 0; });
   markers.push({ type: "gather", x: res.x, y: res.y, t: 0, dur: 0.8 });
 }
 
@@ -312,7 +339,7 @@ window.addEventListener("keydown", e => {
       break;
     case "s": {
       const l = selectedUnits();
-      l.forEach(u => { u.order = { kind: "idle" }; });
+      l.forEach(u => { setOrder(u, { kind: "idle" }); u.spd = 0; u.wx = u.x; u.wy = u.y; });
       if (l.length) log("STOP", `${l.length} units halted`);
       break;
     }
@@ -423,6 +450,269 @@ function injuryFactor(u) {
   return 1;
 }
 
+// ---------------------------------------------------------------------------
+// Locomotion: people, not bacteria.
+// Orders state INTENT; this layer turns intent into human-looking motion:
+// planned polyline routes, ease-in/ease-out speed, capped turn rate (arcs,
+// never snaps), gentle obstacle sliding, damped crowd separation.
+// ---------------------------------------------------------------------------
+
+const OBST_PAD = 16;          // clearance kept around obstacles when routing
+const SEP_R = 15;             // personal-space radius
+const LOOK_AHEAD = 30;        // base lookahead for local avoidance
+
+let OBSTACLES = [];
+function rebuildObstacles() {
+  OBSTACLES.length = 0;
+  for (const t of trees) OBSTACLES.push({ x: t.x, y: t.y, r: 12, ref: t });
+  for (const g of golds) OBSTACLES.push({ x: g.x, y: g.y, r: 11, ref: g });
+  for (const b of buildings)
+    OBSTACLES.push({ x: b.x + b.w / 2, y: b.y + b.h / 2, r: Math.max(b.w, b.h) * 0.62, ref: b });
+}
+
+function angNorm(a) {
+  while (a > Math.PI) a -= Math.PI * 2;
+  while (a < -Math.PI) a += Math.PI * 2;
+  return a;
+}
+
+function segPointT(ax, ay, bx, by, px, py) {
+  const dx = bx - ax, dy = by - ay;
+  const L2 = dx * dx + dy * dy;
+  const t = L2 ? ((px - ax) * dx + (py - ay) * dy) / L2 : 0;
+  return Math.max(0, Math.min(1, t));
+}
+
+// First obstacle blocking segment a→b (ignoring `ignoreRef`, e.g. your target).
+function firstBlocker(ax, ay, bx, by, ignoreRef) {
+  let best = null, bestT = Infinity;
+  for (const ob of OBSTACLES) {
+    if (ob.ref === ignoreRef) continue;
+    const rr = ob.r + OBST_PAD;
+    const t = segPointT(ax, ay, bx, by, ob.x, ob.y);
+    if (Math.hypot(ob.x - (ax + (bx - ax) * t), ob.y - (ay + (by - ay) * t)) < rr && t < bestT) {
+      bestT = t; best = { ob, t };
+    }
+  }
+  return best;
+}
+
+// Clean polyline route from a to b, detouring around blockers (depth-limited).
+function computeRoute(ax, ay, bx, by, ignoreRef) {
+  const pts = [];
+  (function rec(ax, ay, bx, by, depth) {
+    const hit = depth > 0 ? firstBlocker(ax, ay, bx, by, ignoreRef) : null;
+    if (!hit) { pts.push([bx, by]); return; }
+    const tt = Math.max(0.1, Math.min(0.9, hit.t));
+    const px = ax + (bx - ax) * tt, py = ay + (by - ay) * tt;
+    let nx = px - hit.ob.x, ny = py - hit.ob.y;
+    let nl = Math.hypot(nx, ny);
+    if (nl < 1) { nx = -(by - ay); ny = bx - ax; nl = Math.hypot(nx, ny) || 1; }
+    const off = hit.ob.r + OBST_PAD + 8;
+    const wx = hit.ob.x + (nx / nl) * off, wy = hit.ob.y + (ny / nl) * off;
+    rec(ax, ay, wx, wy, depth - 1);
+    rec(wx, wy, bx, by, depth - 1);
+  })(ax, ay, bx, by, 4);
+  const out = [];
+  for (const p of pts) {
+    const q = out[out.length - 1];
+    if (!q || Math.hypot(q[0] - p[0], q[1] - p[1]) > 2) out.push(p);
+  }
+  return out;
+}
+
+function turnToward(u, px, py, dt, mult = 1) {
+  const want = Math.atan2(py - u.y, px - u.x);
+  const mt = u.turnRate * mult * dt;
+  u.heading += Math.max(-mt, Math.min(mt, angNorm(want - u.heading)));
+}
+
+// Move unit toward goal (null goal = decelerate to a stop). Returns true once
+// "arrived" (within stop distance, or gave up on an unreachable spot).
+function stepLocomotion(u, dt, goal, opts = {}) {
+  const vmax = (opts.maxSpeed ?? u.speed) * u.speedMul * injuryFactor(u) *
+    (u.pace === "brisk" ? 1.08 : u.pace === "leisurely" ? 0.92 : 1) * (opts.rush ?? 1);
+
+  if (!goal) {
+    u.stuckT = 0;
+    u.spd = Math.max(0, u.spd - (260 + u.spd * 4) * dt);
+    if (u.spd > 1) {
+      u.x += Math.cos(u.heading) * u.spd * dt;
+      u.y += Math.sin(u.heading) * u.spd * dt;
+    } else u.spd = 0;
+    return false;
+  }
+
+  const gd = Math.hypot(goal[0] - u.x, goal[1] - u.y);
+  const stop = opts.stop ?? 5;
+  if (gd <= stop) {
+    u.stuckT = 0;
+    u.spd = Math.max(0, u.spd - 340 * dt);
+    if (u.spd > 1) {
+      u.x += Math.cos(u.heading) * u.spd * dt;
+      u.y += Math.sin(u.heading) * u.spd * dt;
+    } else u.spd = 0;
+    return true;
+  }
+
+  // Panic flight skips route planning entirely.
+  let dirX, dirY, vBrake = Infinity;
+  if (opts.direct) {
+    dirX = (goal[0] - u.x) / gd; dirY = (goal[1] - u.y) / gd;
+  } else {
+    if (!u.route || !u.routeGoal ||
+        Math.hypot(u.routeGoal[0] - goal[0], u.routeGoal[1] - goal[1]) > 24) {
+      u.route = computeRoute(u.x, u.y, goal[0], goal[1], opts.ignore ?? null);
+      u.routeGoal = [goal[0], goal[1]];
+      u.routeIdx = 0;
+      u.progD = null; u.progT = 0;
+    }
+    // advance the route: waypoint reached, or line-of-sight to a later one
+    const wpDist = () => Math.hypot(u.route[u.routeIdx][0] - u.x, u.route[u.routeIdx][1] - u.y);
+    while (u.routeIdx < u.route.length - 1 && wpDist() < 20) u.routeIdx++;
+    while (u.routeIdx + 1 < u.route.length &&
+           !firstBlocker(u.x, u.y, u.route[u.routeIdx + 1][0], u.route[u.routeIdx + 1][1], opts.ignore ?? null))
+      u.routeIdx++;
+    const wp = u.route[Math.min(u.routeIdx, u.route.length - 1)];
+    dirX = wp[0] - u.x; dirY = wp[1] - u.y;
+    const dl = Math.hypot(dirX, dirY) || 1;
+    dirX /= dl; dirY /= dl;
+
+    // remaining route length → braking curve
+    let rem = dl;
+    for (let i = u.routeIdx; i < u.route.length - 1; i++)
+      rem += Math.hypot(u.route[i + 1][0] - u.route[i][0], u.route[i + 1][1] - u.route[i][1]);
+
+    // progress watchdog: measured along the ROUTE (straight-line distance
+    // stagnates on legitimate detour arcs). Sticky waypoint (hugging a
+    // cluttered corner) → skip it; no headway anywhere → give up gracefully.
+    if (u.progD == null || rem < u.progD - 4) { u.progD = rem; u.progT = 0; }
+    else if ((u.progT += dt) > 1.2 && u.routeIdx < u.route.length - 1 && wpDist() < 48) {
+      u.routeIdx++; u.progD = null; u.progT = 0;
+    } else if (u.progT > 2.5 && rem > stop + 12) {
+      u.progD = null; u.progT = 0; u.stuckT = 0; u.route = null;
+      return true;
+    }
+
+    // local avoidance: slide around anything suddenly in front of us
+    const lookD = LOOK_AHEAD + u.spd * 0.25;
+    const lx = u.x + Math.cos(u.heading) * lookD, ly = u.y + Math.sin(u.heading) * lookD;
+    if (u.avoidT > 0) u.avoidT -= dt;
+    for (const ob of OBSTACLES) {
+      if (ob.ref === (opts.ignore ?? null)) continue;
+      const rr = ob.r + 10;
+      const du = Math.hypot(ob.x - u.x, ob.y - u.y);
+      if (du < rr) { // spawned/bumped inside: walk straight out
+        dirX = (u.x - ob.x) / (du || 1); dirY = (u.y - ob.y) / (du || 1);
+        break;
+      }
+      if (Math.hypot(ob.x - lx, ob.y - ly) < rr) {
+        if (u.avoidT <= 0) { // pick a side and commit briefly (no flip-flop buzz)
+          u.avoidSide = Math.sign(dirX * (ob.y - u.y) - dirY * (ob.x - u.x)) || 1;
+          u.avoidT = 0.7;
+        }
+        const px = -dirY * u.avoidSide, py = dirX * u.avoidSide;
+        const str = 0.55;
+        dirX += px * str; dirY += py * str;
+        break;
+      }
+    }
+    vBrake = Math.sqrt(2 * 130 * Math.max(0, rem - stop * 0.5));
+  }
+
+  const desired = Math.atan2(dirY, dirX);
+  const diff = angNorm(desired - u.heading);
+  turnToward(u, u.x + dirX, u.y + dirY, dt, u.spd < 25 ? 1.7 : 1);
+
+  let vTarget = vmax;
+  if (Math.abs(diff) > 0.5) vTarget *= 0.45;               // slow down to pivot
+  if (!opts.direct) {
+    vTarget = Math.min(vTarget, vBrake);                    // decelerate to stop
+    if (gd < 16) vTarget = Math.min(vTarget, 34);           // final creep
+  }
+  const acc = u.spd < vTarget ? 300 + vTarget : 520;
+  u.spd += Math.max(-acc * dt, Math.min(acc * dt, vTarget - u.spd));
+  u.spd = Math.max(0, u.spd);
+
+  u.x += Math.cos(u.heading) * u.spd * dt;
+  u.y += Math.sin(u.heading) * u.spd * dt;
+
+  // stuck watchdog: blocked too long while far from goal → give up gracefully
+  if (u.spd < 6) u.stuckT += dt; else u.stuckT = 0;
+  if (u.stuckT > 1.4) { u.stuckT = 0; u.route = null; return true; }
+  return false;
+}
+
+// Damped crowd separation: small nudges with a deadzone so groups settle into
+// loose clumps instead of buzzing.
+function separation(dt) {
+  const n = units.length;
+  for (let i = 0; i < n; i++) {
+    const a = units[i];
+    if (a.dead) continue;
+    for (let j = i + 1; j < n; j++) {
+      const b = units[j];
+      if (b.dead) continue;
+      let dx = b.x - a.x, dy = b.y - a.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 >= SEP_R * SEP_R || d2 === 0) continue;
+      const d = Math.sqrt(d2);
+      const overlap = (SEP_R - d) / SEP_R;
+      if (overlap < 0.14) continue; // deadzone: relaxed crowds
+      dx /= d; dy /= d;
+      const push = 24 * overlap * dt;
+      const aShare = b.spd > 8 ? 0.5 : 0.8; // movers yield to standers
+      const bShare = a.spd > 8 ? 0.5 : 0.8;
+      a.x -= dx * push * aShare; a.y -= dy * push * aShare;
+      b.x += dx * push * bShare; b.y += dy * push * bShare;
+    }
+  }
+}
+
+// Purposeful idle strolls: nearby point of interest, not random noise.
+function nearbyPOI(u) {
+  const cands = [];
+  const ring = (x, y, w) => ({ x, y, w });
+  for (const t of trees) {
+    const d = Math.hypot(t.x - u.x, t.y - u.y);
+    if (d > 50 && d < 300) {
+      const a = Math.random() * Math.PI * 2;
+      cands.push(ring(t.x + Math.cos(a) * 26, t.y + Math.sin(a) * 26, 160 / (30 + d)));
+    }
+  }
+  for (const g of golds) {
+    const d = Math.hypot(g.x - u.x, g.y - u.y);
+    if (d > 50 && d < 300) {
+      const a = Math.random() * Math.PI * 2;
+      cands.push(ring(g.x + Math.cos(a) * 24, g.y + Math.sin(a) * 24, 130 / (30 + d)));
+    }
+  }
+  for (const b of buildings) {
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const bx = b.x + b.w / 2 + side * (b.w / 2 + 18);
+    const by = b.y + 8 + Math.random() * (b.h - 16);
+    const d = Math.hypot(bx - u.x, by - u.y);
+    if (d > 40 && d < 360) cands.push(ring(bx, by, 140 / (30 + d)));
+  }
+  if (!cands.length) return null;
+  let tot = 0;
+  for (const c of cands) tot += c.w;
+  let roll = Math.random() * tot;
+  for (const c of cands) {
+    roll -= c.w;
+    if (roll <= 0) return { x: c.x, y: c.y };
+  }
+  return { x: cands[0].x, y: cands[0].y };
+}
+
+function setOrder(u, o) {
+  u.order = o;
+  u.stroll = null; u.strollPause = 0; u.micro = null;
+  u.route = null; u.routeGoal = null; u.stuckT = 0;
+  u.progD = null; u.progT = 0;
+}
+
+
 function update(dt) {
   const PAN = 620;
   if (panKeys.has("up")) cam.y -= PAN * dt;
@@ -435,50 +725,96 @@ function update(dt) {
   for (let i = markers.length - 1; i >= 0; i--) if (markers[i].t > markers[i].dur) markers.splice(i, 1);
   for (const b of buildings) if (b.flagT > 0) b.flagT -= dt;
 
+  rebuildObstacles();
+
   for (const u of units) {
     if (u.flashT > 0) u.flashT -= dt;
     if (u.hitT > 0) u.hitT -= dt;
     if (u.attackCd > 0) u.attackCd -= dt;
     if (u.dead) { u.fade -= dt * 1.5; continue; }
 
-    const sp = u.speed * injuryFactor(u);
-    const o = u.order;
-    let dest = null;
+    // animation clocks: breathing always; step cadence while moving
+    u.phase += dt * 1.7;
+    if (u.spd > 4) u.stepPhase += dt * (4 + u.spd * 0.085);
+    u.working = false;
 
-    if (o.kind === "move" || o.kind === "amove") {
-      dest = [o.tx, o.ty];
-      if (Math.hypot(dest[0] - u.x, dest[1] - u.y) < 5) u.order = { kind: "idle" };
+    const o = u.order;
+
+    if (u.fleeT > 0) {
+      // FLEEING (lite): panic sprint away from last attacker, orders resume after.
+      u.fleeT -= dt;
+      const a = u.__lastAttacker;
+      if (a && !a.dead) {
+        const dx = u.x - a.x, dy = u.y - a.y, d = Math.hypot(dx, dy) || 1;
+        stepLocomotion(u, dt, [u.x + dx / d * 80, u.y + dy / d * 80], { direct: true, rush: 1.22 });
+      } else {
+        u.fleeT = Math.min(u.fleeT, 0.3);
+        stepLocomotion(u, dt, null);
+      }
+      if (u.fleeT <= 0) { u.fleeT = 0; u.route = null; }
+
+    } else if (o.kind === "move" || o.kind === "amove") {
+      // TRAVELING along a clean route toward an assigned slot.
       if (o.kind === "amove") {
         const near = units.find(en => en.type === "enemy" && !en.dead && Math.hypot(en.x - u.x, en.y - u.y) < 130);
-        if (near) { u.order = { kind: "attack", target: near }; dest = null; }
+        if (near) setOrder(u, { kind: "attack", target: near });
       }
+      if (u.order.kind === "move" || u.order.kind === "amove") {
+        if (stepLocomotion(u, dt, [u.order.tx, u.order.ty])) {
+          setOrder(u, { kind: "idle" });
+          u.wx = u.x; u.wy = u.y;
+          u.idleT = 4 + Math.random() * 6;
+        }
+      }
+
     } else if (o.kind === "attack") {
+      // ATTACKING: close distance, then stand and swing (lunge drawn in draw()).
       const t = o.target;
-      if (!t || t.dead) u.order = { kind: "idle" };
+      if (!t || t.dead) { setOrder(u, { kind: "idle" }); u.wx = u.x; u.wy = u.y; }
       else {
         const d = Math.hypot(t.x - u.x, t.y - u.y);
-        if (d > u.range) dest = [t.x, t.y];
-        else if (u.attackCd <= 0) {
-          u.attackCd = 0.9; u.hitT = 0.25;
-          t.hp -= u.dmg; t.flashT = 0.2; t.__lastAttacker = u;
-          markers.push({ type: "hit", x: t.x, y: t.y, t: 0, dur: 0.3 });
-          if (t.hp <= 0) {
-            t.dead = true; t.sel = false;
-            log("KILL", `${u.name} killed ${t.name} #${t.id}`);
+        if (d > u.range) {
+          stepLocomotion(u, dt, [t.x, t.y], { stop: u.range * 0.8 });
+        } else {
+          stepLocomotion(u, dt, null);
+          turnToward(u, t.x, t.y, dt, 1.4);
+          u.working = true;
+          u.phase += dt * 9;
+          if (u.attackCd <= 0) {
+            u.attackCd = 0.9; u.hitT = 0.25;
+            t.hp -= u.dmg; t.flashT = 0.2; t.__lastAttacker = u;
+            markers.push({ type: "hit", x: t.x, y: t.y, t: 0, dur: 0.3 });
+            if (t.hp <= 0) {
+              t.dead = true; t.sel = false;
+              log("KILL", `${u.name} killed ${t.name} #${t.id}`);
+            } else if (t.type === "villager") {
+              t.fleeT = 1.6; // flee-if-attacked lite; order resumes afterwards
+              t.route = null;
+            }
           }
         }
       }
+
     } else if (o.kind === "gather") {
+      // WORKING: walk TO the resource, bob rhythmically at the node, carry back.
       const r = o.target;
       if (!r || r.amount <= 0 || u.carrying >= 20) {
         if (u.carrying > 0) {
           if (r && r.amount > 0) u.__lastResource = r;
-          u.order = { kind: "deposit" };
-        } else u.order = { kind: "idle" };
+          setOrder(u, { kind: "deposit" });
+        } else {
+          setOrder(u, { kind: "idle" });
+          u.wx = u.x; u.wy = u.y;
+        }
       } else {
         const d = Math.hypot(r.x - u.x, r.y - u.y);
-        if (d > 22) dest = [r.x, r.y];
-        else {
+        if (d > 22) {
+          stepLocomotion(u, dt, [r.x, r.y], { stop: 19, ignore: r });
+        } else {
+          stepLocomotion(u, dt, null);
+          turnToward(u, r.x, r.y, dt);
+          u.working = true;
+          u.phase += dt * 9;
           u.gatherT += dt;
           if (u.gatherT > 0.9) {
             u.gatherT = 0;
@@ -489,47 +825,89 @@ function update(dt) {
           }
         }
       }
+
     } else if (o.kind === "deposit") {
+      // Clean return line to the drop-off door.
       const b = nearestDropoff(u);
-      if (!b) u.order = { kind: "idle" };
+      if (!b) setOrder(u, { kind: "idle" });
       else {
-        const d = Math.hypot(b.x + b.w / 2 - u.x, b.y + b.h - u.y);
-        if (d > 30) dest = [b.x + b.w / 2, b.y + b.h + 14];
-        else {
+        const dx = b.x + b.w / 2, dy = b.y + b.h + 14;
+        if (Math.hypot(dx - u.x, dy - u.y) > 10) {
+          stepLocomotion(u, dt, [dx, dy], { stop: 8, ignore: b });
+        } else {
           stock[u.carryType] += u.carrying;
           u.carrying = 0;
           const src = u.__lastResource;
-          if (src && src.amount > 0) u.order = { kind: "gather", target: src, resKind: u.carryType };
-          else u.order = { kind: "idle" };
+          if (src && src.amount > 0) setOrder(u, { kind: "gather", target: src, resKind: u.carryType });
+          else { setOrder(u, { kind: "idle" }); u.wx = u.x; u.wy = u.y; }
         }
       }
+
     } else if (u.type === "enemy") {
+      // Raiders hold ground until provoked (unchanged behavior).
+      stepLocomotion(u, dt, null);
       const atk = u.__lastAttacker;
       if (atk && !atk.dead && Math.hypot(atk.x - u.x, atk.y - u.y) < 240)
-        u.order = { kind: "attack", target: atk };
+        setOrder(u, { kind: "attack", target: atk });
+
     } else {
-      u.wanderT -= dt;
-      if (u.wanderT <= 0) {
-        u.wanderT = 3 + Math.random() * 5;
-        u.__wanderDest = [u.wx + Math.random() * 140 - 70, u.wy + Math.random() * 140 - 70];
+      // IDLE with intent: stand still (breathing only), then occasionally a
+      // purposeful stroll to a nearby point of interest, glances, micro-steps.
+      if (u.stroll) {
+        if (u.strollPause > 0) {
+          u.strollPause -= dt;
+          stepLocomotion(u, dt, null);
+          u.gazeT -= dt;
+          if (u.gazeT <= 0) { u.gaze = Math.random() * Math.PI * 2; u.gazeT = 1 + Math.random() * 2; }
+        } else {
+          u.strollDeadline -= dt;
+          if (stepLocomotion(u, dt, [u.stroll.x, u.stroll.y], { stop: 6 }) || u.strollDeadline <= 0) {
+            u.stroll = null;
+            u.strollPause = 2 + Math.random() * 3.5;
+            u.gaze = Math.random() * Math.PI * 2; u.gazeT = 1 + Math.random();
+            u.wx = u.x; u.wy = u.y;
+          }
+        }
+      } else {
+        u.idleT -= dt;
+        stepLocomotion(u, dt, null);
+        if (u.idleT <= 0) {
+          u.idleT = 5 + Math.random() * 7;
+          const poi = nearbyPOI(u);
+          if (poi) { u.stroll = poi; u.strollDeadline = 16; }
+        }
+        u.fidgetT -= dt;
+        if (u.fidgetT <= 0) {
+          u.fidgetT = 4 + Math.random() * 6;
+          if (Math.random() < 0.25) {
+            const a = Math.random() * Math.PI * 2;
+            u.micro = { sx: u.x, sy: u.y, x: u.x + Math.cos(a) * 11, y: u.y + Math.sin(a) * 11, t: 0.7, dur: 0.7 };
+          } else {
+            u.gaze = u.heading + (Math.random() - 0.5) * 2.2;
+          }
+        }
       }
-      if (u.__wanderDest) {
-        const [ax, ay] = u.__wanderDest;
-        if (Math.hypot(ax - u.x, ay - u.y) > 4) dest = [ax, ay];
-        else u.__wanderDest = null;
+      if (u.micro) {
+        u.micro.t -= dt;
+        const p = 1 - Math.max(0, u.micro.t) / u.micro.dur;
+        const k = p * p * (3 - 2 * p); // smoothstep ease in/out
+        turnToward(u, u.micro.x, u.micro.y, dt);
+        u.x = u.micro.sx + (u.micro.x - u.micro.sx) * k;
+        u.y = u.micro.sy + (u.micro.y - u.micro.sy) * k;
+        if (u.micro.t <= 0) { u.wx = u.x; u.wy = u.y; u.micro = null; }
+      }
+      if (u.gaze != null) {
+        const mt = u.turnRate * 0.8 * dt;
+        u.heading += Math.max(-mt, Math.min(mt, angNorm(u.gaze - u.heading)));
+        if (Math.abs(angNorm(u.gaze - u.heading)) < 0.03) u.gaze = null;
       }
     }
 
-    if (dest) {
-      const dx = dest[0] - u.x, dy = dest[1] - u.y, d = Math.hypot(dx, dy);
-      const step = Math.min(sp * dt, d);
-      u.x += (dx / d) * step; u.y += (dy / d) * step;
-      u.__heading = Math.atan2(dy, dx);
-    }
     u.x = Math.max(8, Math.min(WORLD - 8, u.x));
     u.y = Math.max(8, Math.min(WORLD - 8, u.y));
   }
 
+  separation(dt);
   for (let i = units.length - 1; i >= 0; i--) {
     const u = units[i];
     if (u.dead && u.fade <= 0) {
@@ -623,6 +1001,26 @@ function draw() {
   for (const u of sorted) {
     if (u.dead && u.fade <= 0) continue;
     ctx.globalAlpha = u.dead ? Math.max(0, u.fade) : 1;
+
+    // --- purely visual body motion (gameplay position stays grounded) ---
+    let ox = 0, oy = 0;
+    if (!u.dead) {
+      if (u.spd > 4) {
+        oy = -Math.abs(Math.sin(u.stepPhase)) * 1.5;   // walking bounce
+        ox = Math.sin(u.stepPhase * 0.5) * 0.9;        // slight sway
+      } else if (u.working) {
+        oy = Math.sin(u.phase) * 1.7;                  // rhythmic work bob
+      } else {
+        oy = Math.sin(u.phase * 0.6) * 0.5;            // idle breathing
+      }
+      if (u.hitT > 0) {                                // attack lunge toward target
+        const lunge = Math.sin((0.25 - u.hitT) / 0.25 * Math.PI) * 6;
+        ox += Math.cos(u.heading) * lunge;
+        oy += Math.sin(u.heading) * lunge;
+      }
+    }
+    const px = u.x + ox, py = u.y + oy;
+
     ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.beginPath(); ctx.ellipse(u.x, u.y + 6, 7, 3, 0, 0, 7); ctx.fill();
 
@@ -634,24 +1032,24 @@ function draw() {
       u.type === "enemy" ? "#b03a30" :
       u.type === "soldier" ? "#4a6da7" : "#c9a06a";
     ctx.fillStyle = body;
-    ctx.beginPath(); ctx.arc(u.x, u.y, u.type === "soldier" || u.type === "enemy" ? 7.5 : 6.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, u.type === "soldier" || u.type === "enemy" ? 7.5 : 6.5, 0, 7); ctx.fill();
     ctx.strokeStyle = "rgba(0,0,0,0.4)"; ctx.lineWidth = 1; ctx.stroke();
 
-    const hx = Math.cos(u.__heading || 0) * 4, hy = Math.sin(u.__heading || 0) * 4;
+    const hx = Math.cos(u.heading) * 4, hy = Math.sin(u.heading) * 4;
     ctx.fillStyle = u.type === "enemy" ? "#5e1f18" : "#2b3a55";
-    ctx.beginPath(); ctx.arc(u.x + hx, u.y + hy, 2.4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(px + hx, py + hy, 2.4, 0, 7); ctx.fill();
 
     if (u.carrying > 0) {
       ctx.fillStyle = u.carryType === "gold" ? "#e8c84a" : "#8a6440";
-      ctx.fillRect(u.x - 3, u.y - 17, 6, 5);
+      ctx.fillRect(px - 3, py - 17, 6, 5);
     }
     if (u.flashT > 0) {
       ctx.fillStyle = `rgba(255,80,60,${u.flashT * 2})`;
-      ctx.beginPath(); ctx.arc(u.x, u.y, 8, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(px, py, 8, 0, 7); ctx.fill();
     }
     if (u.order.kind === "gather") {
       ctx.strokeStyle = "#e8c84a"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(u.x, u.y, 11, -Math.PI / 2, -Math.PI / 2 + (u.gatherT / 0.9) * 6.28); ctx.stroke();
+      ctx.beginPath(); ctx.arc(px, py, 11, -Math.PI / 2, -Math.PI / 2 + (u.gatherT / 0.9) * 6.28); ctx.stroke();
     }
     if (u.hp < 100 || u.sel) {
       const w = 18, r = u.hp / (u.type === "enemy" ? 80 : 100);
