@@ -1,69 +1,103 @@
 # Age of Empires-like RTS
 
-A browser-based, single-player real-time strategy game recreating the Age of Empires 2 model: economy, base-building, age progression, and combat, rendered with Three.js.
+A browser-based, single-player real-time strategy game that uses Age of Empires 2 as its base model and deliberately exceeds it: extra resources and production chains, Dwarf-Fortress-style individually simulated Pops with generational lifecycle, RPG-flavored per-Pop combat growth, and Civilization-style multiple victory paths. Personal-use only.
 
 ## Language
 
+### Pops
+
+**Pop**:
+An individually simulated person — the atomic unit of economy, combat, and society. Has age, family, skills, traits, health, and a job.
+_Avoid_: Unit (for workers), citizen, villager-as-individual
+
+**Villager role**:
+The labor assignment a working-age Pop holds (gatherer, builder, farmer). A job, not an identity — Pops cycle through roles.
+_Avoid_: Villager (when meaning the individual)
+
+**Child**:
+A young Pop; cannot work or fight, acquires traits at School, becomes an adult at the age gate.
+_Avoid_: Kid
+
+**Elder**:
+A Pop past working age; light duties only, carries accumulated knowledge bonuses where modeled.
+
+**Lifecycle**:
+Birth → childhood → adulthood → elderhood → death. Aging advances in sim time; death is permanent and individual.
+
+**Family / Household**:
+The unit binding related Pops (parents, children) to a home. Drives household formation, morale, and birth rates.
+
+**Skill**:
+A trained capability of a Pop (mining, archery, melee…) that improves with use and decays without practice.
+_Avoid_: Level (bare), stat
+
+**Trait**:
+A stable characteristic of a Pop — some innate/random at birth, some acquired at School — modifying work speed, combat behavior, or needs.
+_Avoid_: Perk, feature
+
+**Injury**:
+Damage to a specific Pop that persists across ticks: impairs work/combat while present, heals over time or maims permanently.
+
+**School**:
+The building where Children spend childhood gaining traits and early skills before entering the workforce.
+
 ### Economy
 
-**Villager**:
-The economic unit that gathers resources, constructs buildings, and farms. The backbone of the economy; also trains from the Town Center.
-_Avoid_: Worker, peasant, citizen
-
 **Resource**:
-One of Food, Wood, Gold, Stone — the four stockpiled currencies every cost is paid in.
+A gatherable raw material. Base four: Food, Wood, Gold, Stone — plus the expanded set decided in tickets (iron, coal, clay class).
 _Avoid_: Material, currency
 
 **Carry capacity**:
-The maximum amount of one resource a Villager holds before it must deposit at a Drop-off point.
+The maximum amount of one Resource a Pop holds before depositing at a Drop-off point.
 _Avoid_: Load, inventory
 
 **Drop-off point**:
-A building where a Villager deposits carried resources into the player's stockpile (Town Center, Mill, Lumber Camp, Mining Camp, Dock).
-_Avoid_: Depot, return site
+A building where a Pop deposits carried Resources into the stockpile.
+_Avoid_: Depot
+
+**Commodity**:
+A crafted good produced from Resources via a Recipe (planks, bricks, tools, weapons, armor, meals). Not gathered — made.
+_Avoid_: Product, item
+
+**Recipe**:
+The data definition turning input Resources/Commodities into an output Commodity at a required building, gated by techs.
+_Avoid_: Crafting rule
 
 **Farm re-seeding**:
-Rebuilding a depleted Farm for a wood cost so it continues producing food indefinitely.
+Rebuilding a depleted Farm for a wood cost so it continues producing Food indefinitely.
 
-### Progression
-
-**Age advancement**:
-Moving the whole settlement up one of the four ages — Dark, Feudal, Castle, Imperial — by paying a cost at an advancing building. Gates units, buildings, and techs.
-_Avoid_: Era, level up, epoch
-
-**Tech tree**:
-The full graph of buildings, units, and technologies, each gated by Age advancement and prerequisites.
-
-**Technology**:
-A purchasable, permanent modifier to a unit, building, or the whole civilization (e.g. +infantry attack).
-_Avoid_: Upgrade (ambiguous), research (that's the act of buying)
-
-### Combat
+### Combat & progression
 
 **Armor class**:
-A tag on a unit or building (e.g. infantry, cavalry, archer, siege, building) that Attack bonuses key off. The mechanism behind counters.
+A tag on units/buildings (infantry, cavalry, archer, siege, building…) that Attack bonuses key off.
 _Avoid_: Type, category
 
 **Attack bonus**:
-Extra damage a unit deals against a specific Armor class, defined per-unit in data. Creates the counter triangle.
-_Avoid_: Multiplier, strength vs
+Extra damage vs a specific Armor class, defined in data. Creates the counter triangle.
 
 **Counter triangle**:
-The emergent rock-paper-scissors between infantry → archer → cavalry → infantry (plus siege → buildings), arising from Armor classes and Attack bonuses.
+Emergent infantry → archer → cavalry → infantry loop (plus siege → buildings).
 
-### Rules data
+**Age advancement**:
+Moving the settlement up Dark → Feudal → Castle → Imperial by paying at an advancing building; gates units, buildings, techs.
+_Avoid_: Era, level up
+
+**Technology**:
+A purchasable permanent modifier to units, buildings, or civilization. Bought via the Tech tree.
+
+**Tech tree**:
+The full graph of buildings, units, technologies and their prerequisites.
 
 **Entity definition**:
-The JSON record specifying one unit, building, or technology: costs, stats, Armor classes, Attack bonuses, prerequisites, asset references. All game rules are Entity definitions plus shared systems.
-_Avoid_: Config, blueprint (overloaded with building placement), card
+The JSON record for one unit/building/technology/recipe: costs, stats, Armor classes, bonuses, prerequisites, asset refs. All rules are Entity definitions + shared systems.
+_Avoid_: Config, blueprint
 
 ### Victory
 
-**Conquest victory**:
-Winning by destroying every enemy military production building (standard AoE2 conquest).
+**Victory path**:
+One of several alternative win routes (Civ-style): Conquest plus knowledge/culture/economic/diplomatic-style paths as decided in design tickets.
+_Avoid_: Win condition (when listing them all)
 
-**Wonder victory**:
-Winning by completing a Wonder and holding it through its countdown timer.
-
-**Relic victory**:
-Winning by collecting all Relics and holding them through the countdown timer.
+**Conquest victory**: destroy enemy military production capacity (standard).
+**Wonder victory**: complete a Wonder, hold through timer.
+**Relic victory**: hold all Relics through timer.
