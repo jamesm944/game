@@ -1,6 +1,6 @@
 # Unit movement, pathfinding & crowd handling (hybrid A* → flow fields)
 
-Pops need to move AoE2-style: click, walk, converge on a lumber camp without merging into a conga line, and queue move → gather → return. We decided on a **phased hybrid**: **Phase 1 ships grid A\* (8-directional, octile) computed per move-order *group leader* in a Web Worker, string-pulled into waypoints, with boid separation + positional push-apart + a Moving/Stalled/Parked FSM underneath. Phase 2 adds flow fields per destination when group-move cost bites. Portal-graph sector tiling is deferred until maps exceed ~256².** Command queuing follows OpenRA's Activity model: each Pop owns an activity queue consumed on tick boundaries.
+Pops need to move AoE2-style: click, walk, converge on a lumber camp without merging into a conga line, and queue move → gather → return. We decided on a **phased hybrid**: **Phase 1 ships grid A\* (8-directional, octile) computed per move-order _group leader_ in a Web Worker, string-pulled into waypoints, with boid separation + positional push-apart + a Moving/Stalled/Parked FSM underneath. Phase 2 adds flow fields per destination when group-move cost bites. Portal-graph sector tiling is deferred until maps exceed ~256².** Command queuing follows OpenRA's Activity model: each Pop owns an activity queue consumed on tick boundaries.
 
 ## The decision in detail
 
@@ -18,19 +18,23 @@ Single dedicated path worker, strictly FIFO. Requests carry everything needed to
 ```ts
 // main → worker
 type PathRequest = {
-  kind: 'path';
-  id: number;              // monotonic, assigned in issue order
-  dueTick: number;         // issueTick + PATH_LATENCY (=2 ticks)
-  startX: number; startY: number;
-  goalX: number; goalY: number;
-  passable: Uint8Array;    // snapshot, transferred; worker transfers back
+  kind: "path";
+  id: number; // monotonic, assigned in issue order
+  dueTick: number; // issueTick + PATH_LATENCY (=2 ticks)
+  startX: number;
+  startY: number;
+  goalX: number;
+  goalY: number;
+  passable: Uint8Array; // snapshot, transferred; worker transfers back
   passableVersion: number;
-  seed: number;            // child of the sim PRNG stream
+  seed: number; // child of the sim PRNG stream
 };
 // worker → main
 type PathResult = {
-  kind: 'path'; id: number; ok: boolean;
-  waypoints: Int16Array;   // flat [x0,y0,x1,y1,…] after string-pull
+  kind: "path";
+  id: number;
+  ok: boolean;
+  waypoints: Int16Array; // flat [x0,y0,x1,y1,…] after string-pull
   cost: number;
 };
 ```
@@ -51,7 +55,7 @@ Resource-node entities expose **work slots**: the passable tiles adjacent to the
 
 - **Boid separation**: repulsion from Pops within ~1 tile via a spatial hash rebuilt each tick (cell = 2 tiles).
 - **Positional resolution**: after integration, overlapping pairs split apart symmetrically; hard clamp against impassable tiles.
-- **FSM**: *Moving* → normal steering; *Stalled* (blocked > N ticks) → seeded sidestep jitter, then individual re-path; *Parked* (idle/working/gathered-in) → acts as a soft obstacle others flow around, and Parked status propagates backwards through contact so columns behind a saturated camp halt cleanly instead of shoving eternally.
+- **FSM**: _Moving_ → normal steering; _Stalled_ (blocked > N ticks) → seeded sidestep jitter, then individual re-path; _Parked_ (idle/working/gathered-in) → acts as a soft obstacle others flow around, and Parked status propagates backwards through contact so columns behind a saturated camp halt cleanly instead of shoving eternally.
 
 ### Repath & invalidation
 
