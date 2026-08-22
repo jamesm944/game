@@ -1,0 +1,16 @@
+{
+  "id": "barracks",
+  "name": "Barracks",
+  "kind": "building",
+  "costs": { "wood": 175 },
+  "ageGate": 1,
+  "techPrereqs": [],
+  "buildTime": 1500,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 1200,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 5,
+  "populationCap": 0
+}

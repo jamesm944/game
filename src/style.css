@@ -161,3 +161,142 @@ canvas {
   border-radius: 6px;
   cursor: crosshair;
 }
+
+/* Build menu — bottom-left grid (M1-T10, §2.13). */
+#build-menu {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 10px 10px;
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border-radius: 6px;
+  user-select: none;
+}
+
+#build-menu h3 {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa3c7;
+}
+
+.build-grid {
+  display: flex;
+  gap: 8px;
+}
+
+.build-button {
+  min-width: 92px;
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: inherit;
+  color: #cfd6e4;
+  text-align: left;
+  background: rgb(32 40 56 / 0.85);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.build-button:hover:not(:disabled) {
+  border-color: rgb(255 255 255 / 0.5);
+}
+
+.build-button.armed {
+  border-color: #f0b429;
+  box-shadow: 0 0 0 1px #f0b429;
+}
+
+.build-button.unaffordable {
+  opacity: 0.45;
+}
+
+.build-button:disabled {
+  cursor: not-allowed;
+}
+
+.build-name {
+  font-weight: 700;
+  color: #fff;
+}
+
+.build-cost {
+  color: #f0d9a0;
+}
+
+.build-size {
+  color: #8fa3c7;
+}
+
+/* Building selection panel — above the build menu (M1-T10). */
+#building-panel {
+  position: fixed;
+  left: 12px;
+  bottom: 118px;
+  width: 320px;
+  padding: 6px 10px 10px;
+  font:
+    12px/1.5 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border-radius: 6px;
+  user-select: none;
+}
+
+#building-panel h3 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.panel-bar {
+  height: 8px;
+  margin: 4px 0;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.12);
+  border-radius: 4px;
+}
+
+.panel-bar-fill {
+  height: 100%;
+  background: #f0b429;
+}
+
+.panel-meta {
+  color: #8fa3c7;
+}
+
+.panel-queue {
+  margin-top: 2px;
+  color: #f0d9a0;
+}
+
+.panel-train {
+  margin-top: 6px;
+  padding: 5px 10px;
+  font: inherit;
+  font-weight: 700;
+  color: #10141c;
+  background: #7ec46f;
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.panel-train:disabled {
+  background: rgb(255 255 255 / 0.2);
+  color: #8fa3c7;
+  cursor: not-allowed;
+}
+
+.order-kind-build {
+  background: #e08a4a;
+}

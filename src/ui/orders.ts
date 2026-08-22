@@ -23,6 +23,8 @@ import type { CommandInbox, SimCommand } from "../sim/core/inbox";
 export const GROUP_MOVE_KIND = "groupMove";
 /** Gather command kind (M1-T9). */
 export const GATHER_KIND = "gather";
+/** Build (assign villagers to a construction site) kind (M1-T10). */
+export const BUILD_KIND = "build";
 
 /**
  * Validate, canonicalize (dedupe + ascending sort), and submit one
@@ -105,9 +107,52 @@ export function issueGather(
   return command;
 }
 
+/**
+ * Validate, canonicalize (dedupe + ascending sort), and submit one
+ * build order sending villagers to construct `siteEid`, delivered
+ * exactly on `currentTick + 1`. Same canonical-payload discipline as
+ * issueGroupMove.
+ */
+export function issueBuild(
+  inbox: CommandInbox,
+  currentTick: number,
+  entityIds: readonly number[],
+  siteEid: number,
+): SimCommand {
+  if (
+    typeof siteEid !== "number" ||
+    !Number.isInteger(siteEid) ||
+    siteEid < 1
+  ) {
+    throw new Error(
+      `build site id must be a positive integer, got ${String(siteEid)}`,
+    );
+  }
+  const ids: number[] = [];
+  for (const id of entityIds) {
+    if (typeof id !== "number" || !Number.isInteger(id) || id < 1) {
+      throw new Error(
+        `build entity id must be a positive integer, got ${String(id)}`,
+      );
+    }
+    if (!ids.includes(id)) ids.push(id);
+  }
+  if (ids.length === 0) {
+    throw new Error("build requires at least one entity");
+  }
+  ids.sort((a, b) => a - b);
+  const command: SimCommand = {
+    kind: BUILD_KIND,
+    targetTick: currentTick + 1,
+    data: { entityIds: ids, siteEid },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 // ---- Order log (capped, newest-first) ---------------------------------------
 
-export type OrderKind = "move" | "gather";
+export type OrderKind = "move" | "gather" | "build";
 
 export interface OrderLogEntry {
   readonly seq: number;
@@ -156,6 +201,11 @@ export function formatGatherLabel(unitCount: number, nodeId: number): string {
   return `${unitCount} ${unitCount === 1 ? "unit" : "units"} → node ${String(nodeId)}`;
 }
 
+/** "BUILD · tick 42 · 3 units → site 41" style line. */
+export function formatBuildLabel(unitCount: number, siteEid: number): string {
+  return `${unitCount} ${unitCount === 1 ? "unit" : "units"} → site ${String(siteEid)}`;
+}
+
 // ---- Input wiring (browser-only) ---------------------------------------------
 
 export interface OrderInputDeps {
@@ -180,6 +230,12 @@ export interface OrderInputDeps {
    * When provided and hit, right-clicks become gather orders.
    */
   nodeAt?(x: number, y: number): number | undefined;
+  /**
+   * Construction-site entity under a world point, or undefined
+   * (M1-T10). When hit with a live selection, right-clicks become
+   * build orders (priority over ground moves, below gather).
+   */
+  siteAt?(x: number, y: number): number | undefined;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
@@ -205,8 +261,17 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       const item = document.createElement("li");
       const kind = document.createElement("span");
       kind.className =
-        entry.kind === "gather" ? "order-kind order-kind-gather" : "order-kind";
-      kind.textContent = entry.kind === "gather" ? "GTH" : "MOV";
+        entry.kind === "gather"
+          ? "order-kind order-kind-gather"
+          : entry.kind === "build"
+            ? "order-kind order-kind-build"
+            : "order-kind";
+      kind.textContent =
+        entry.kind === "gather"
+          ? "GTH"
+          : entry.kind === "build"
+            ? "BLD"
+            : "MOV";
       const text = document.createElement("span");
       text.textContent = entry.label;
       item.append(kind, text);
@@ -220,7 +285,8 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     if (!ground || deps.selectionCount() === 0) return;
     const selection = deps.selection();
 
-    // Contextual dispatch: node under cursor → gather, else ground move.
+    // Contextual dispatch: node → gather, construction site → build,
+    // otherwise ground move.
     const nodeId = deps.nodeAt?.(ground.x, ground.y);
     if (nodeId !== undefined) {
       const command = issueGather(
@@ -234,6 +300,24 @@ export function wireOrderInput(deps: OrderInputDeps): void {
         label:
           `tick ${String(command.targetTick)} · ` +
           formatGatherLabel(selection.length, nodeId),
+      });
+      renderList();
+      return;
+    }
+
+    const siteId = deps.siteAt?.(ground.x, ground.y);
+    if (siteId !== undefined) {
+      const command = issueBuild(
+        deps.inbox,
+        deps.currentTick(),
+        selection,
+        siteId,
+      );
+      log.push(command.targetTick, {
+        kind: "build",
+        label:
+          `tick ${String(command.targetTick)} · ` +
+          formatBuildLabel(selection.length, siteId),
       });
       renderList();
       return;

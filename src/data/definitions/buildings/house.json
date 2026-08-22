@@ -1,0 +1,16 @@
+{
+  "id": "house",
+  "name": "House",
+  "kind": "building",
+  "costs": { "wood": 30 },
+  "ageGate": 1,
+  "techPrereqs": [],
+  "buildTime": 750,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 550,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 5,
+  "populationCap": 5
+}

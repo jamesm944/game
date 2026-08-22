@@ -113,6 +113,12 @@ export interface SelectionInputDeps {
   worldPerPixel(): number;
   /** Exact viewport test used by double-click's on-screen filter. */
   isOnScreen(x: number, y: number): boolean;
+  /**
+   * Building/construction-site entity under a world point, or
+   * undefined (M1-T10). Consulted when the unit hash misses, so single
+   * clicks can select buildings as well as Pops.
+   */
+  buildingAt?(x: number, y: number): number | undefined;
 }
 
 interface MarqueeRect {
@@ -301,7 +307,15 @@ export function wireSelectionInput(deps: SelectionInputDeps): void {
       );
       return;
     }
-    const hit = hitTest(event.clientX, event.clientY);
+    const unitHit = hitTest(event.clientX, event.clientY);
+    let hit = unitHit;
+    if (!unitHit) {
+      // Unit hash missed: fall back to building/site footprint picking.
+      const ground = deps.groundPointAt(event.clientX, event.clientY);
+      const buildingEid =
+        ground !== null ? deps.buildingAt?.(ground.x, ground.y) : undefined;
+      if (buildingEid !== undefined) hit = { eid: buildingEid };
+    }
     if (hit) {
       if (shiftDown) toggleSelection(hit.eid);
       else setSelection([hit.eid]);

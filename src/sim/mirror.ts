@@ -13,6 +13,10 @@
  */
 
 import type { MovementComponents } from "./components";
+import type { SimComponents } from "./components";
+import { getBuildingRow, getBuildingSiteRow } from "./components/buildings";
+import { buildingDefOf, buildingIdOfCode } from "../data/definitions";
+import { WORK_MILLI_SCALE } from "./systems/construction";
 import type { World } from "./core/world";
 
 /** One post-step frame of unit state, ready for the double buffer. */
@@ -100,4 +104,103 @@ export function captureSimSnapshot(
   }
 
   return { tick: world.tick, count, eids, positions, headings };
+}
+
+/**
+ * One post-step frame of building state (M1-T10): construction sites
+ * AND finished buildings, ascending eid. Pure — same seam discipline
+ * as captureSimSnapshot; render reads this, never component rows.
+ */
+export interface BuildingSnapshotFrame {
+  /** Live buildings/sites copied; arrays valid up to this count. */
+  readonly count: number;
+  readonly eids: Int32Array;
+  /** Footprint origin tiles packed x,y per index. */
+  readonly origins: Float32Array;
+  /** Footprint width,height in tiles packed per index. */
+  readonly sizes: Float32Array;
+  /** 0 = construction site, 1 = finished building. */
+  readonly states: Uint8Array;
+  /** Build progress clamped to [0,1]; finished buildings report 1. */
+  readonly progress: Float32Array;
+}
+
+export interface CaptureBuildingOptions {
+  readonly reusable?: BuildingSnapshotFrame | undefined;
+}
+
+export function captureBuildingSnapshot(
+  world: World,
+  comps: SimComponents,
+  options: CaptureBuildingOptions = {},
+): BuildingSnapshotFrame {
+  const entityCount = world.entities.length;
+  const grow = (array: Float32Array, stride: number): Float32Array => {
+    const needed = entityCount * stride;
+    if (array.length >= Math.max(needed, 1)) return array;
+    let capacity = Math.max(array.length, 64 * stride);
+    while (capacity < needed) capacity *= 2;
+    const grown = new Float32Array(capacity);
+    grown.set(array);
+    return grown;
+  };
+  let eids = (() => {
+    const needed = Math.max(entityCount, 1);
+    let array = options.reusable?.eids ?? new Int32Array(0);
+    if (array.length >= needed) return array;
+    let capacity = Math.max(array.length, 64);
+    while (capacity < needed) capacity *= 2;
+    const grown = new Int32Array(capacity);
+    grown.set(array);
+    return grown;
+  })();
+  let origins = grow(options.reusable?.origins ?? new Float32Array(0), 2);
+  let sizes = grow(options.reusable?.sizes ?? new Float32Array(0), 2);
+  let states = (() => {
+    const needed = Math.max(entityCount, 1);
+    let array = options.reusable?.states ?? new Uint8Array(0);
+    if (array.length >= needed) return array;
+    return new Uint8Array(Math.max(needed, 64));
+  })();
+  let progress = grow(options.reusable?.progress ?? new Float32Array(0), 1);
+
+  let count = 0;
+  for (let i = 0; i < entityCount; i++) {
+    const eid = world.entities[i]!;
+    const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+    if (!posRow) continue;
+    const site = getBuildingSiteRow(world, comps, eid);
+    const built = getBuildingRow(world, comps, eid);
+    if (!site && !built) continue;
+    const defCode = (site ?? built)![1]!;
+    const def = buildingDefOf(buildingIdOfCode(defCode));
+    const centerX = posRow[0]!;
+    const centerY = posRow[1]!;
+    const w = def.footprint.width;
+    const h = def.footprint.height;
+
+    eids[count] = eid;
+    origins[count * 2] = centerX - w / 2;
+    origins[count * 2 + 1] = centerY - h / 2;
+    sizes[count * 2] = w;
+    sizes[count * 2 + 1] = h;
+    if (built) {
+      states[count] = 1;
+      progress[count] = 1;
+    } else {
+      states[count] = 0;
+      const total = def.buildTime * WORK_MILLI_SCALE;
+      progress[count] = Math.min(1, Math.max(0, site![2]! / total));
+    }
+    count++;
+  }
+
+  return {
+    count,
+    eids: eids.subarray(0, Math.max(count, 1)),
+    origins,
+    sizes,
+    states: states.subarray(0, Math.max(count, 1)),
+    progress,
+  };
 }

@@ -1,0 +1,323 @@
+/**
+ * Building placement system — SPEC §2.6/§2.13 / M1-T10.
+ *
+ * Consumes `{kind:"placeBuilding", data:{defId, tileX, tileY}}`
+ * commands at their absolute target tick and, when the footprint is
+ * valid, performs the whole AoE2-faithful placement event:
+ *
+ *   1. validate footprint — in-bounds, every tile passable (not
+ *      water), no overlapping building/site, no resource node
+ *      (explored-stub always true in M1)
+ *   2. pay the FULL definition cost up front from the owner's
+ *      stockpile row (escrow model: money leaves the bank at
+ *      placement, never at completion)
+ *   3. create the construction-site entity (components/buildings.ts)
+ *   4. block the footprint tiles IMMEDIATELY and bump the path
+ *      scheduler's passabilityVersion — AoE2 blocks at placement, so
+ *      mid-path villagers repath the same tick the site appears
+ *      (ADR-0003 invalidation). Completion later changes NO passability
+ *      and therefore performs no further bump.
+ *
+ * Invalid commands THROW loudly (matching gather-command discipline):
+ * the build menu gates what the player can issue, so a rejection here
+ * means a caller bypassed the shared validity function below.
+ */
+
+import {
+  footprintTiles,
+  rectsOverlap,
+  siteRectOf,
+  buildingRectOf,
+  spawnBuildingSite,
+  completeBuilding,
+  type FootprintRect,
+} from "../components/buildings";
+import type { SimComponents } from "../components";
+import { getResourceNodeRow } from "../components/economy";
+import { buildingDefOf } from "../../data/definitions";
+import { canAffordCosts, payCosts } from "./costs";
+import { IMPASSABLE, isWaterTerrain } from "../world/layers";
+import type { SimCommand } from "../core/inbox";
+import type { SimSystem, World } from "../core/world";
+
+/** Command kind owned by this system. */
+export const PLACE_BUILDING_KIND = "placeBuilding";
+
+/** Why a placement was rejected — surfaced verbatim by the ghost UI. */
+export type PlacementRejection =
+  "unknown-def" | "out-of-bounds" | "water" | "blocked-tile" | "occupied";
+
+export interface PlacementCheck {
+  readonly ok: boolean;
+  readonly reason?: PlacementRejection;
+  readonly rect?: FootprintRect;
+}
+
+export interface PlacementDiagnostics {
+  /** placeBuilding commands applied. */
+  commandsApplied: number;
+}
+
+export function createPlacementDiagnostics(): PlacementDiagnostics {
+  return { commandsApplied: 0 };
+}
+
+function parsePlaceData(data: Readonly<Record<string, unknown>>): {
+  defId: string;
+  tileX: number;
+  tileY: number;
+  playerId: number;
+} {
+  const defId = data.defId;
+  if (typeof defId !== "string" || defId.length === 0) {
+    throw new Error("placeBuilding requires a non-empty defId string");
+  }
+  const tileX = data.tileX;
+  const tileY = data.tileY;
+  if (
+    typeof tileX !== "number" ||
+    !Number.isInteger(tileX) ||
+    typeof tileY !== "number" ||
+    !Number.isInteger(tileY)
+  ) {
+    throw new Error("placeBuilding requires integer tileX/tileY coordinates");
+  }
+  const rawPlayer = data.playerId ?? 0;
+  if (
+    typeof rawPlayer !== "number" ||
+    !Number.isInteger(rawPlayer) ||
+    rawPlayer < 0
+  ) {
+    throw new Error("placeBuilding playerId must be a non-negative integer");
+  }
+  return { defId, tileX, tileY, playerId: rawPlayer };
+}
+
+/** True when any resource node sits on one of the candidate tiles. */
+function nodeOnAnyTile(
+  world: World,
+  comps: SimComponents,
+  tiles: readonly { x: number; y: number }[],
+): boolean {
+  const nodeRows = world.rowsByComponentId.get(comps.resourceNodeId);
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  if (!nodeRows || !posRows) return false;
+  for (const [eid] of nodeRows) {
+    if ((getResourceNodeRow(world, comps, eid)?.[1] ?? 0) <= 0) continue;
+    const pos = posRows.get(eid);
+    if (!pos) continue;
+    const nx = Math.floor(pos[0]!);
+    const ny = Math.floor(pos[1]!);
+    if (tiles.some((tile) => tile.x === nx && tile.y === ny)) return true;
+  }
+  return false;
+}
+
+/** True when any existing site/building overlaps the candidate rect. */
+function buildingOverlap(
+  world: World,
+  comps: SimComponents,
+  rect: FootprintRect,
+): boolean {
+  for (const eid of world.entities) {
+    const other =
+      siteRectOf(world, comps, eid) ?? buildingRectOf(world, comps, eid);
+    if (other && rectsOverlap(rect, other)) return true;
+  }
+  return false;
+}
+
+/**
+ * Shared placement-validity function — ONE source of truth consumed by
+ * the command handler AND the green/red ghost overlay, so the UI can
+ * never offer what the sim would reject. Pure: reads rows/layers only.
+ */
+export function validatePlacement(
+  world: World,
+  comps: SimComponents,
+  defId: string,
+  tileX: number,
+  tileY: number,
+): PlacementCheck {
+  let def;
+  try {
+    def = buildingDefOf(defId);
+  } catch {
+    return { ok: false, reason: "unknown-def" };
+  }
+  const rect: FootprintRect = {
+    x: tileX,
+    y: tileY,
+    width: def.footprint.width,
+    height: def.footprint.height,
+  };
+  // 1) Pure geometry first.
+  const size = world.layers.size;
+  for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
+    if (tile.x < 0 || tile.y < 0 || tile.x >= size || tile.y >= size) {
+      return { ok: false, reason: "out-of-bounds", rect };
+    }
+  }
+  // 2) Occupancy next (buildings/sites/nodes): overlapping an existing
+  // footprint always also hits its blocked tiles, and "occupied" is the
+  // more actionable verdict for the ghost UI.
+  if (
+    nodeOnAnyTile(
+      world,
+      comps,
+      footprintTiles(tileX, tileY, rect.width, rect.height),
+    ) ||
+    buildingOverlap(world, comps, rect)
+  ) {
+    return { ok: false, reason: "occupied", rect };
+  }
+  // 3) Passability last: remaining blockers are terrain.
+  const terrain = world.layers.terrainType;
+  const passability = world.layers.derivedPassability;
+  for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
+    const index = tile.y * size + tile.x;
+    if (passability[index] !== 1) {
+      return {
+        ok: false,
+        reason: isWaterTerrain(terrain[index]!) ? "water" : "blocked-tile",
+        rect,
+      };
+    }
+  }
+  // Fog explored-stub: M1 ships an all-visible provider (SPEC M1), so
+  // the explored requirement is trivially satisfied everywhere.
+  return { ok: true, rect };
+}
+
+/** True when the owner's stockpile can cover the full definition cost. */
+export function canAfford(
+  world: World,
+  comps: Pick<SimComponents, "stockpileId">,
+  playerId: number,
+  defId: string,
+): boolean {
+  const def = buildingDefOf(defId);
+  return canAffordCosts(world, comps, playerId, def.costs);
+}
+
+/**
+ * Atomically debit the full definition cost from the owner's stockpile
+ * row — the escrow model: resources leave the bank at PLACEMENT, never
+ * at completion (AoE2-faithful; SPEC §2.6 core loop).
+ */
+function payCostUpFront(
+  world: World,
+  comps: Pick<SimComponents, "stockpileId">,
+  playerId: number,
+  defId: string,
+): void {
+  const def = buildingDefOf(defId);
+  payCosts(world, comps, playerId, def.costs, `placement of ${def.id}`);
+}
+
+function applyPlaceCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: PlacementDiagnostics,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  const parsed = parsePlaceData(data);
+  const check = validatePlacement(
+    world,
+    comps,
+    parsed.defId,
+    parsed.tileX,
+    parsed.tileY,
+  );
+  if (!check.ok) {
+    throw new Error(
+      `placeBuilding rejected (${check.reason ?? "invalid"}): ${parsed.defId} @ (${String(parsed.tileX)}, ${String(parsed.tileY)})`,
+    );
+  }
+  payCostUpFront(world, comps, parsed.playerId, parsed.defId);
+  spawnBuildingSite(world, comps, parsed.defId, parsed.tileX, parsed.tileY, {
+    playerId: parsed.playerId,
+  });
+  // Block the footprint immediately and invalidate in-flight paths
+  // (SPEC §2.2 invalidation rule). Units standing underneath are pushed
+  // clear by steering; nobody is trapped because every perimeter tile
+  // was checked reachable-adjacent by validity above.
+  const size = world.layers.size;
+  const passability = world.layers.derivedPassability;
+  const rect = check.rect!;
+  for (const tile of footprintTiles(rect.x, rect.y, rect.width, rect.height)) {
+    passability[tile.y * size + tile.x] = IMPASSABLE;
+  }
+  const scheduler = world.pathScheduler;
+  scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
+  diagnostics.commandsApplied += 1;
+}
+
+/**
+ * Bootstrap-only helper: validate, block passability (+version bump),
+ * spawn AND immediately complete one building WITHOUT paying costs or
+ * advancing construction. Scenario editors and test fixtures use this
+ * to stand up a live town-center/house in one call; gameplay commands
+ * must go through placeBuilding commands instead.
+ */
+export function stampFinishedBuilding(
+  world: World,
+  comps: SimComponents,
+  defId: string,
+  tileX: number,
+  tileY: number,
+  options: { readonly playerId?: number | undefined } = {},
+): number {
+  const parsed = parsePlaceData({ defId, tileX, tileY });
+  const check = validatePlacement(
+    world,
+    comps,
+    defId,
+    parsed.tileX,
+    parsed.tileY,
+  );
+  if (!check.ok || !check.rect) {
+    throw new Error(
+      `stampFinishedBuilding rejected (${check.reason ?? "invalid"}): ${defId} @ (${String(tileX)}, ${String(tileY)})`,
+    );
+  }
+  const size = world.layers.size;
+  const passability = world.layers.derivedPassability;
+  for (const tile of footprintTiles(
+    check.rect.x,
+    check.rect.y,
+    check.rect.width,
+    check.rect.height,
+  )) {
+    passability[tile.y * size + tile.x] = IMPASSABLE;
+  }
+  const scheduler = world.pathScheduler;
+  scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
+  const eid = spawnBuildingSite(
+    world,
+    comps,
+    defId,
+    parsed.tileX,
+    parsed.tileY,
+    options,
+  );
+  completeBuilding(world, comps, eid);
+  return eid;
+}
+
+/**
+ * Build the placement SimSystem. Registered AFTER gather/movement so a
+ * same-tick repath sees the new passability on its next LOS raycast.
+ */
+export function createPlacementSystem(
+  comps: SimComponents,
+  diagnostics: PlacementDiagnostics = createPlacementDiagnostics(),
+): SimSystem {
+  return (world: World, commands: readonly SimCommand[]): void => {
+    for (const command of commands) {
+      if (command.kind !== PLACE_BUILDING_KIND) continue;
+      if (!command.data) throw new Error("placeBuilding requires command data");
+      applyPlaceCommand(world, comps, diagnostics, command.data);
+    }
+  };
+}

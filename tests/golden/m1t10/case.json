@@ -1,0 +1,172 @@
+{
+  "name": "m1t10",
+  "description": "Place-build-train fixture on the pinned m1t3 seed map: eight villagers construct a Town Center, two houses and a Barracks from escrowed wood while later placements land mid-corridor and force individual re-paths; once the TC completes it trains four villagers against the raised population cap (three spawn inside the window, the fourth stays queued). Milestone digests every 30th tick plus final; doubles as the determinism canary.",
+  "seed": 424242,
+  "size": 32,
+  "ticks": 5520,
+  "milestoneEvery": 30,
+  "stockpile": {
+    "food": 600,
+    "wood": 700,
+    "gold": 100,
+    "stone": 0
+  },
+  "spawns": [
+    {
+      "eid": 1,
+      "x": 6.5,
+      "y": 19.5
+    },
+    {
+      "eid": 2,
+      "x": 7.5,
+      "y": 19.5
+    },
+    {
+      "eid": 3,
+      "x": 8.5,
+      "y": 19.5
+    },
+    {
+      "eid": 4,
+      "x": 6.5,
+      "y": 20.5
+    },
+    {
+      "eid": 5,
+      "x": 7.5,
+      "y": 20.5
+    },
+    {
+      "eid": 6,
+      "x": 8.5,
+      "y": 20.5
+    },
+    {
+      "eid": 7,
+      "x": 6.5,
+      "y": 21.5
+    },
+    {
+      "eid": 8,
+      "x": 7.5,
+      "y": 21.5
+    }
+  ],
+  "nodes": [
+    {
+      "tileX": 11,
+      "tileY": 16,
+      "resource": "wood",
+      "amount": 120
+    },
+    {
+      "tileX": 12,
+      "tileY": 15,
+      "resource": "wood",
+      "amount": 90
+    },
+    {
+      "tileX": 20,
+      "tileY": 20,
+      "resource": "gold",
+      "amount": 80
+    }
+  ],
+  "dropOffs": [
+    {
+      "x": 10.5,
+      "y": 24.5
+    }
+  ],
+  "commands": [
+    {
+      "kind": "placeBuilding",
+      "targetTick": 5,
+      "data": {
+        "defId": "town-center",
+        "tileX": 13,
+        "tileY": 13
+      }
+    },
+    {
+      "kind": "build",
+      "targetTick": 6,
+      "data": {
+        "entityIds": [1, 2, 3],
+        "siteEid": 14
+      }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 8,
+      "data": {
+        "defId": "house",
+        "tileX": 20,
+        "tileY": 17
+      }
+    },
+    {
+      "kind": "build",
+      "targetTick": 9,
+      "data": {
+        "entityIds": [4, 5],
+        "siteEid": 15
+      }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 11,
+      "data": {
+        "defId": "barracks",
+        "tileX": 13,
+        "tileY": 18
+      }
+    },
+    {
+      "kind": "build",
+      "targetTick": 12,
+      "data": {
+        "entityIds": [6],
+        "siteEid": 16
+      }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 14,
+      "data": {
+        "defId": "house",
+        "tileX": 18,
+        "tileY": 19
+      }
+    },
+    {
+      "kind": "build",
+      "targetTick": 15,
+      "data": {
+        "entityIds": [7, 8],
+        "siteEid": 17
+      }
+    },
+    {
+      "kind": "trainVillager",
+      "targetTick": 2600,
+      "data": {}
+    },
+    {
+      "kind": "trainVillager",
+      "targetTick": 2700,
+      "data": {}
+    },
+    {
+      "kind": "trainVillager",
+      "targetTick": 2800,
+      "data": {}
+    },
+    {
+      "kind": "trainVillager",
+      "targetTick": 2900,
+      "data": {}
+    }
+  ]
+}

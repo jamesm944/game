@@ -1,0 +1,16 @@
+{
+  "id": "villager",
+  "name": "Villager",
+  "kind": "unit",
+  "costs": { "food": 50 },
+  "ageGate": 1,
+  "techPrereqs": [],
+  "trainTime": 750,
+  "hp": 25,
+  "speed": 1.0,
+  "carryCapacity": 10,
+  "attack": 3,
+  "armorClasses": ["civilian"],
+  "attackBonuses": [],
+  "sightRadius": 5
+}

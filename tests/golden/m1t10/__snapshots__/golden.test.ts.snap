@@ -1,0 +1,742 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m1t10 > records milestone digests at every 30th tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:d688dc6841e75286",
+    "tick": 30,
+  },
+  {
+    "digest": "fnv1a64:9fcc9ed90798bc33",
+    "tick": 60,
+  },
+  {
+    "digest": "fnv1a64:79c1e5529afda4b7",
+    "tick": 90,
+  },
+  {
+    "digest": "fnv1a64:4079af9921ad378b",
+    "tick": 120,
+  },
+  {
+    "digest": "fnv1a64:37aa084fb48bea56",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:137d962ba1967d44",
+    "tick": 180,
+  },
+  {
+    "digest": "fnv1a64:674e0ce891dfffae",
+    "tick": 210,
+  },
+  {
+    "digest": "fnv1a64:64fcc3afdb2cee3d",
+    "tick": 240,
+  },
+  {
+    "digest": "fnv1a64:aa7d23c676396cd2",
+    "tick": 270,
+  },
+  {
+    "digest": "fnv1a64:70fb5817e2ae405c",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:fa7476409d37f374",
+    "tick": 330,
+  },
+  {
+    "digest": "fnv1a64:b993d24b122a5edc",
+    "tick": 360,
+  },
+  {
+    "digest": "fnv1a64:bbf2ad5098be4a52",
+    "tick": 390,
+  },
+  {
+    "digest": "fnv1a64:7e6994a3cc896436",
+    "tick": 420,
+  },
+  {
+    "digest": "fnv1a64:ef2c9fb616685620",
+    "tick": 450,
+  },
+  {
+    "digest": "fnv1a64:2a76297d73229d44",
+    "tick": 480,
+  },
+  {
+    "digest": "fnv1a64:75c9be41c3e4758b",
+    "tick": 510,
+  },
+  {
+    "digest": "fnv1a64:724abbf0f8870218",
+    "tick": 540,
+  },
+  {
+    "digest": "fnv1a64:ac32eb8ce7f44a81",
+    "tick": 570,
+  },
+  {
+    "digest": "fnv1a64:2210506a82eb016c",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:416565640f9130a1",
+    "tick": 630,
+  },
+  {
+    "digest": "fnv1a64:41e07373cc5f59e8",
+    "tick": 660,
+  },
+  {
+    "digest": "fnv1a64:156778a1f1ef1580",
+    "tick": 690,
+  },
+  {
+    "digest": "fnv1a64:f1ec8b1f25374549",
+    "tick": 720,
+  },
+  {
+    "digest": "fnv1a64:305a1edacb8aac8c",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:10cbf6fea540001e",
+    "tick": 780,
+  },
+  {
+    "digest": "fnv1a64:80fc15d59fd22da6",
+    "tick": 810,
+  },
+  {
+    "digest": "fnv1a64:4ea6b97c91ef3449",
+    "tick": 840,
+  },
+  {
+    "digest": "fnv1a64:c116aff78086962f",
+    "tick": 870,
+  },
+  {
+    "digest": "fnv1a64:1b740e735151ade9",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:29669b5396e0c6d4",
+    "tick": 930,
+  },
+  {
+    "digest": "fnv1a64:36b4457ac09b48b0",
+    "tick": 960,
+  },
+  {
+    "digest": "fnv1a64:6384ffc327a0ea41",
+    "tick": 990,
+  },
+  {
+    "digest": "fnv1a64:d53f0ed97436fc9c",
+    "tick": 1020,
+  },
+  {
+    "digest": "fnv1a64:2e0ec20ebdd01c03",
+    "tick": 1050,
+  },
+  {
+    "digest": "fnv1a64:e17ed1afdff8ab22",
+    "tick": 1080,
+  },
+  {
+    "digest": "fnv1a64:67592e8349da7c30",
+    "tick": 1110,
+  },
+  {
+    "digest": "fnv1a64:b60be676c6badeac",
+    "tick": 1140,
+  },
+  {
+    "digest": "fnv1a64:e5acd62404d364a0",
+    "tick": 1170,
+  },
+  {
+    "digest": "fnv1a64:99ee7f3715a77afc",
+    "tick": 1200,
+  },
+  {
+    "digest": "fnv1a64:b6ebece4a631e9ae",
+    "tick": 1230,
+  },
+  {
+    "digest": "fnv1a64:25e2bf3570a661a8",
+    "tick": 1260,
+  },
+  {
+    "digest": "fnv1a64:29e6398cf56445df",
+    "tick": 1290,
+  },
+  {
+    "digest": "fnv1a64:62d4d892440814c4",
+    "tick": 1320,
+  },
+  {
+    "digest": "fnv1a64:eab230617013666b",
+    "tick": 1350,
+  },
+  {
+    "digest": "fnv1a64:b6f8eaa17eb8733b",
+    "tick": 1380,
+  },
+  {
+    "digest": "fnv1a64:ecd18622fd5b2d60",
+    "tick": 1410,
+  },
+  {
+    "digest": "fnv1a64:ac26d1af9527361c",
+    "tick": 1440,
+  },
+  {
+    "digest": "fnv1a64:8f7019fc9efd7c2e",
+    "tick": 1470,
+  },
+  {
+    "digest": "fnv1a64:199c031a196d3b7a",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:3d66afd8b281e284",
+    "tick": 1530,
+  },
+  {
+    "digest": "fnv1a64:d4acc144aa671cb9",
+    "tick": 1560,
+  },
+  {
+    "digest": "fnv1a64:0797de8b3d4dfa1f",
+    "tick": 1590,
+  },
+  {
+    "digest": "fnv1a64:4e376672f936c9f5",
+    "tick": 1620,
+  },
+  {
+    "digest": "fnv1a64:8f959baba3330c45",
+    "tick": 1650,
+  },
+  {
+    "digest": "fnv1a64:6548d85661c3edcc",
+    "tick": 1680,
+  },
+  {
+    "digest": "fnv1a64:2a68b63960571428",
+    "tick": 1710,
+  },
+  {
+    "digest": "fnv1a64:0af461c986c69bdd",
+    "tick": 1740,
+  },
+  {
+    "digest": "fnv1a64:24df20b1b0304a32",
+    "tick": 1770,
+  },
+  {
+    "digest": "fnv1a64:0397ed5de8a16899",
+    "tick": 1800,
+  },
+  {
+    "digest": "fnv1a64:afb842f5a1844c90",
+    "tick": 1830,
+  },
+  {
+    "digest": "fnv1a64:e87f5fffcbaf114d",
+    "tick": 1860,
+  },
+  {
+    "digest": "fnv1a64:da5cefd153c11f5e",
+    "tick": 1890,
+  },
+  {
+    "digest": "fnv1a64:aa3ef62f2e4c8396",
+    "tick": 1920,
+  },
+  {
+    "digest": "fnv1a64:aad7df1577559aa2",
+    "tick": 1950,
+  },
+  {
+    "digest": "fnv1a64:5473c20227c9a46b",
+    "tick": 1980,
+  },
+  {
+    "digest": "fnv1a64:03845013e7bd0c84",
+    "tick": 2010,
+  },
+  {
+    "digest": "fnv1a64:ee10dc28f91cbb4f",
+    "tick": 2040,
+  },
+  {
+    "digest": "fnv1a64:9b627d66fbcfe69b",
+    "tick": 2070,
+  },
+  {
+    "digest": "fnv1a64:8a12267782bf5137",
+    "tick": 2100,
+  },
+  {
+    "digest": "fnv1a64:d52aafd0f94c579f",
+    "tick": 2130,
+  },
+  {
+    "digest": "fnv1a64:4fcc3d9508ab377e",
+    "tick": 2160,
+  },
+  {
+    "digest": "fnv1a64:292b781265ee7b84",
+    "tick": 2190,
+  },
+  {
+    "digest": "fnv1a64:1584897e15b61172",
+    "tick": 2220,
+  },
+  {
+    "digest": "fnv1a64:0d1e1356da8f109b",
+    "tick": 2250,
+  },
+  {
+    "digest": "fnv1a64:a281d416f0b36b78",
+    "tick": 2280,
+  },
+  {
+    "digest": "fnv1a64:e3a09f9ef7dd9f25",
+    "tick": 2310,
+  },
+  {
+    "digest": "fnv1a64:bc6a2e9812fb16f1",
+    "tick": 2340,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2370,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2400,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2430,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2460,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2490,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2520,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2550,
+  },
+  {
+    "digest": "fnv1a64:352166d3d4ab8af1",
+    "tick": 2580,
+  },
+  {
+    "digest": "fnv1a64:85f8214dbb3a2ef7",
+    "tick": 2610,
+  },
+  {
+    "digest": "fnv1a64:7a3401700521db62",
+    "tick": 2640,
+  },
+  {
+    "digest": "fnv1a64:309a1dcf60036229",
+    "tick": 2670,
+  },
+  {
+    "digest": "fnv1a64:4879324e9658e6ab",
+    "tick": 2700,
+  },
+  {
+    "digest": "fnv1a64:97af6ed5a5ab87ac",
+    "tick": 2730,
+  },
+  {
+    "digest": "fnv1a64:deca3b86891239e1",
+    "tick": 2760,
+  },
+  {
+    "digest": "fnv1a64:2268c7f1a158b72a",
+    "tick": 2790,
+  },
+  {
+    "digest": "fnv1a64:319b6979c8d0f5ec",
+    "tick": 2820,
+  },
+  {
+    "digest": "fnv1a64:728e3d31e30046f3",
+    "tick": 2850,
+  },
+  {
+    "digest": "fnv1a64:3d7e392930a084c5",
+    "tick": 2880,
+  },
+  {
+    "digest": "fnv1a64:dc847cd09c7a282a",
+    "tick": 2910,
+  },
+  {
+    "digest": "fnv1a64:fde0da937db7b1fc",
+    "tick": 2940,
+  },
+  {
+    "digest": "fnv1a64:c2c061b49ff58766",
+    "tick": 2970,
+  },
+  {
+    "digest": "fnv1a64:5d1246b241d973f8",
+    "tick": 3000,
+  },
+  {
+    "digest": "fnv1a64:57499820330d4672",
+    "tick": 3030,
+  },
+  {
+    "digest": "fnv1a64:f4312370027d5bbf",
+    "tick": 3060,
+  },
+  {
+    "digest": "fnv1a64:08c5a9c47c4760f9",
+    "tick": 3090,
+  },
+  {
+    "digest": "fnv1a64:7155758ae14cc765",
+    "tick": 3120,
+  },
+  {
+    "digest": "fnv1a64:7c3774d6852d9af1",
+    "tick": 3150,
+  },
+  {
+    "digest": "fnv1a64:62306b46b4916a58",
+    "tick": 3180,
+  },
+  {
+    "digest": "fnv1a64:53b7cab8b0ac2b04",
+    "tick": 3210,
+  },
+  {
+    "digest": "fnv1a64:e88752c6b5ce4e1a",
+    "tick": 3240,
+  },
+  {
+    "digest": "fnv1a64:7cf2d750a09bd642",
+    "tick": 3270,
+  },
+  {
+    "digest": "fnv1a64:b89a62041c14a6b1",
+    "tick": 3300,
+  },
+  {
+    "digest": "fnv1a64:49da5c1f9c4da262",
+    "tick": 3330,
+  },
+  {
+    "digest": "fnv1a64:c337ea448ce75642",
+    "tick": 3360,
+  },
+  {
+    "digest": "fnv1a64:9eeff036ef84692f",
+    "tick": 3390,
+  },
+  {
+    "digest": "fnv1a64:295296b59a3f3ca4",
+    "tick": 3420,
+  },
+  {
+    "digest": "fnv1a64:319302c46360d159",
+    "tick": 3450,
+  },
+  {
+    "digest": "fnv1a64:25dffe0d4ccaf91e",
+    "tick": 3480,
+  },
+  {
+    "digest": "fnv1a64:a23452a2b2c5e9ab",
+    "tick": 3510,
+  },
+  {
+    "digest": "fnv1a64:fe05ae563ecb9180",
+    "tick": 3540,
+  },
+  {
+    "digest": "fnv1a64:c60f95fb2118e6b5",
+    "tick": 3570,
+  },
+  {
+    "digest": "fnv1a64:425077eeb61883e2",
+    "tick": 3600,
+  },
+  {
+    "digest": "fnv1a64:1f9fa2f55eb437d4",
+    "tick": 3630,
+  },
+  {
+    "digest": "fnv1a64:694729ef77602dce",
+    "tick": 3660,
+  },
+  {
+    "digest": "fnv1a64:25cb223849b09860",
+    "tick": 3690,
+  },
+  {
+    "digest": "fnv1a64:0f827f5373bf383a",
+    "tick": 3720,
+  },
+  {
+    "digest": "fnv1a64:e5e4cfe9650d778c",
+    "tick": 3750,
+  },
+  {
+    "digest": "fnv1a64:5aaea04ed3bb4a46",
+    "tick": 3780,
+  },
+  {
+    "digest": "fnv1a64:02d0dbe946a4b3a3",
+    "tick": 3810,
+  },
+  {
+    "digest": "fnv1a64:2186ccfb8757c03d",
+    "tick": 3840,
+  },
+  {
+    "digest": "fnv1a64:22a516de5ea03a09",
+    "tick": 3870,
+  },
+  {
+    "digest": "fnv1a64:e9584a22a4c03625",
+    "tick": 3900,
+  },
+  {
+    "digest": "fnv1a64:6449ec56301f93ec",
+    "tick": 3930,
+  },
+  {
+    "digest": "fnv1a64:b0a995c3e48421d8",
+    "tick": 3960,
+  },
+  {
+    "digest": "fnv1a64:9616787c9ec0643e",
+    "tick": 3990,
+  },
+  {
+    "digest": "fnv1a64:a8357f370235e2f6",
+    "tick": 4020,
+  },
+  {
+    "digest": "fnv1a64:ac51a3d1292e42e5",
+    "tick": 4050,
+  },
+  {
+    "digest": "fnv1a64:281b98f26cdcaa96",
+    "tick": 4080,
+  },
+  {
+    "digest": "fnv1a64:397a10b434c57555",
+    "tick": 4110,
+  },
+  {
+    "digest": "fnv1a64:793863860a736614",
+    "tick": 4140,
+  },
+  {
+    "digest": "fnv1a64:464eeeeb190bb2b3",
+    "tick": 4170,
+  },
+  {
+    "digest": "fnv1a64:057118e6b5ca495a",
+    "tick": 4200,
+  },
+  {
+    "digest": "fnv1a64:ce7538e7b489f4f9",
+    "tick": 4230,
+  },
+  {
+    "digest": "fnv1a64:8700a5270d209a28",
+    "tick": 4260,
+  },
+  {
+    "digest": "fnv1a64:8c928ed29a4c6e27",
+    "tick": 4290,
+  },
+  {
+    "digest": "fnv1a64:1c3ba78f9d2bf91e",
+    "tick": 4320,
+  },
+  {
+    "digest": "fnv1a64:0ee0c58990e05695",
+    "tick": 4350,
+  },
+  {
+    "digest": "fnv1a64:a71273b53278f4f3",
+    "tick": 4380,
+  },
+  {
+    "digest": "fnv1a64:f3163ec3dabe1889",
+    "tick": 4410,
+  },
+  {
+    "digest": "fnv1a64:70a25a6b632a3ee7",
+    "tick": 4440,
+  },
+  {
+    "digest": "fnv1a64:138e1f4c7621c60d",
+    "tick": 4470,
+  },
+  {
+    "digest": "fnv1a64:30c023337b010a0b",
+    "tick": 4500,
+  },
+  {
+    "digest": "fnv1a64:1895d0d5901b48c1",
+    "tick": 4530,
+  },
+  {
+    "digest": "fnv1a64:11ebb4444c6204c0",
+    "tick": 4560,
+  },
+  {
+    "digest": "fnv1a64:dea192a49b455986",
+    "tick": 4590,
+  },
+  {
+    "digest": "fnv1a64:ec467336bffa54ba",
+    "tick": 4620,
+  },
+  {
+    "digest": "fnv1a64:08152e269f7ff18e",
+    "tick": 4650,
+  },
+  {
+    "digest": "fnv1a64:35416a405b7fb60b",
+    "tick": 4680,
+  },
+  {
+    "digest": "fnv1a64:7efaed67796a033f",
+    "tick": 4710,
+  },
+  {
+    "digest": "fnv1a64:fb61bee8d0e55d79",
+    "tick": 4740,
+  },
+  {
+    "digest": "fnv1a64:2d2f4f880facd971",
+    "tick": 4770,
+  },
+  {
+    "digest": "fnv1a64:d4b9cd2086e8b44e",
+    "tick": 4800,
+  },
+  {
+    "digest": "fnv1a64:eb24e484ddf87bd1",
+    "tick": 4830,
+  },
+  {
+    "digest": "fnv1a64:07467fdf1eb4b55a",
+    "tick": 4860,
+  },
+  {
+    "digest": "fnv1a64:c77a46a0997b267b",
+    "tick": 4890,
+  },
+  {
+    "digest": "fnv1a64:14a312adb895ff80",
+    "tick": 4920,
+  },
+  {
+    "digest": "fnv1a64:41cf024749fe17f9",
+    "tick": 4950,
+  },
+  {
+    "digest": "fnv1a64:f99e38889d8cc76e",
+    "tick": 4980,
+  },
+  {
+    "digest": "fnv1a64:a95a399c8be02bef",
+    "tick": 5010,
+  },
+  {
+    "digest": "fnv1a64:7be372a165a20f54",
+    "tick": 5040,
+  },
+  {
+    "digest": "fnv1a64:9c0440de4339139d",
+    "tick": 5070,
+  },
+  {
+    "digest": "fnv1a64:9affd7464163b67a",
+    "tick": 5100,
+  },
+  {
+    "digest": "fnv1a64:e9069057fa7e6560",
+    "tick": 5130,
+  },
+  {
+    "digest": "fnv1a64:e1159fc62833a11e",
+    "tick": 5160,
+  },
+  {
+    "digest": "fnv1a64:28e4ab6e273bbc74",
+    "tick": 5190,
+  },
+  {
+    "digest": "fnv1a64:57a6ea7f12eb21a2",
+    "tick": 5220,
+  },
+  {
+    "digest": "fnv1a64:f0fac8b63c960b48",
+    "tick": 5250,
+  },
+  {
+    "digest": "fnv1a64:b92fa7072621bfe6",
+    "tick": 5280,
+  },
+  {
+    "digest": "fnv1a64:92de9fdfdb3e4af7",
+    "tick": 5310,
+  },
+  {
+    "digest": "fnv1a64:ce64f62750697cf5",
+    "tick": 5340,
+  },
+  {
+    "digest": "fnv1a64:8e897c474808a659",
+    "tick": 5370,
+  },
+  {
+    "digest": "fnv1a64:b6e5f1e6571fd60d",
+    "tick": 5400,
+  },
+  {
+    "digest": "fnv1a64:de66260e6d728da8",
+    "tick": 5430,
+  },
+  {
+    "digest": "fnv1a64:f48f6a7293096e1c",
+    "tick": 5460,
+  },
+  {
+    "digest": "fnv1a64:2514650160563f2e",
+    "tick": 5490,
+  },
+  {
+    "digest": "fnv1a64:04e715c9a1394976",
+    "tick": 5520,
+  },
+]
+`;

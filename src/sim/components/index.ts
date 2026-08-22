@@ -32,6 +32,14 @@ import {
   type Activity,
 } from "../activities";
 import {
+  ASSIGNED_SITE,
+  BUILDING,
+  BUILDING_COMPONENT_ARITIES,
+  BUILDING_SITE,
+  TRAIN_QUEUE,
+  type BuildingComponents,
+} from "./buildings";
+import {
   ASSIGNED_NODE,
   CARRY_CAPACITY,
   INVENTORY,
@@ -60,6 +68,16 @@ export const MOVEMENT_COMPONENT_ARITIES: readonly [string, number][] = [
   [VELOCITY, 8],
 ];
 
+/**
+ * Every component family's arities in one table, in canonical registry
+ * order — documentation of the digest contract, re-validated by the
+ * registry's alphabetical enforcement at registration time.
+ */
+export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
+  ...MOVEMENT_COMPONENT_ARITIES,
+  ...BUILDING_COMPONENT_ARITIES,
+];
+
 export interface MovementComponents {
   readonly activityQueueId: number;
   readonly moveTargetId: number;
@@ -70,7 +88,11 @@ export interface MovementComponents {
 
 /** Every component id the M1 sim reads/writes. */
 export interface SimComponents
-  extends MovementComponents, EconomyComponents, StockpileComponents {}
+  extends
+    MovementComponents,
+    EconomyComponents,
+    StockpileComponents,
+    BuildingComponents {}
 
 /**
  * Register ALL sim components in one strictly alphabetical sequence —
@@ -81,6 +103,9 @@ export function defineSimComponents(world: World): SimComponents {
   return {
     activityQueueId: defineComponent(world, ACTIVITY_QUEUE),
     assignedNodeId: defineComponent(world, ASSIGNED_NODE),
+    assignedSiteId: defineComponent(world, ASSIGNED_SITE),
+    buildingId: defineComponent(world, BUILDING),
+    buildingSiteId: defineComponent(world, BUILDING_SITE),
     carryCapacityId: defineComponent(world, CARRY_CAPACITY),
     dropoffId: defineComponent(world, DROP_OFF),
     inventoryId: defineComponent(world, INVENTORY),
@@ -88,6 +113,7 @@ export function defineSimComponents(world: World): SimComponents {
     positionId: defineComponent(world, POSITION),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
     stockpileId: defineComponent(world, STOCKPILE),
+    trainQueueId: defineComponent(world, TRAIN_QUEUE),
     unitTagId: defineComponent(world, UNIT_TAG),
     velocityId: defineComponent(world, VELOCITY),
   };
@@ -268,3 +294,4 @@ export function spawnUnit(
 export const DEFAULT_UNIT_RADIUS = 0.25;
 
 export * from "./economy";
+export * from "./buildings";

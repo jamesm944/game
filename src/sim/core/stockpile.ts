@@ -73,21 +73,42 @@ function requireOwnerRow(
 }
 
 /**
- * Spawn one player's stockpile entity holding a zeroed amount slot per
- * gatherable resource. Returns its entity id.
+ * Spawn one player's stockpile entity holding an amount slot per
+ * gatherable resource. `initialAmounts` seeds starting resources
+ * (indexed by resource code) — how scenarios and golden fixtures grant
+ * opening capital; production worlds omit it for a zeroed ledger.
+ * Returns its entity id.
  */
 export function createPlayerStockpile(
   world: World,
   comps: Pick<StockpileComponents, "stockpileId">,
   playerId: number = PLAYER_ONE,
+  initialAmounts?: readonly number[] | undefined,
 ): number {
   if (!Number.isInteger(playerId) || playerId < 0) {
     throw new Error(
       `player id must be a non-negative integer, got ${String(playerId)}`,
     );
   }
+  if (initialAmounts !== undefined) {
+    if (initialAmounts.length !== RESOURCE_COUNT) {
+      throw new Error(
+        `initial amounts must hold exactly ${String(RESOURCE_COUNT)} entries, got ${String(initialAmounts.length)}`,
+      );
+    }
+    for (const amount of initialAmounts) {
+      if (!Number.isInteger(amount) || amount < 0) {
+        throw new Error(
+          `initial amounts must be non-negative integers, got ${String(amount)}`,
+        );
+      }
+    }
+  }
   const eid = spawnEntity(world);
-  const row = [playerId, ...new Array<number>(RESOURCE_COUNT).fill(0)];
+  const row = [
+    playerId,
+    ...(initialAmounts ?? new Array<number>(RESOURCE_COUNT).fill(0)),
+  ];
   requireComponentRows(world, comps.stockpileId).set(eid, row);
   return eid;
 }

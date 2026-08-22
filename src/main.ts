@@ -40,13 +40,25 @@ import {
 } from "./render/selectionRings";
 import {
   defineSimComponents,
+  getAssignedSite,
+  getBuildingRow,
+  getBuildingSiteRow,
+  populationCapOf,
+  populationOf,
+  readTrainQueue,
   spawnResourceNode,
   spawnUnit,
   WORK_SLOTS_PER_NODE,
 } from "./sim/components";
-import { PLAYER_ONE } from "./sim/core/stockpile";
 import {
-  createDropOffPoint,
+  buildingDefOf,
+  buildingIdOfCode,
+  BUILDING_DEFINITIONS,
+  unitDefOf,
+  unitIdOfCode,
+} from "./data/definitions";
+import {
+  PLAYER_ONE,
   createPlayerStockpile,
   stockpileSnapshot,
 } from "./sim/core/stockpile";
@@ -56,13 +68,34 @@ import {
   registerSystem,
   step,
 } from "./sim/core/world";
+import {
+  canEnqueueTraining,
+  createTrainingDiagnostics,
+  createTrainingSystem,
+} from "./sim/systems/training";
+import {
+  canAfford,
+  createPlacementSystem,
+  stampFinishedBuilding,
+  validatePlacement,
+} from "./sim/systems/placement";
+import {
+  createConstructionSystem,
+  WORK_MILLI_SCALE,
+} from "./sim/systems/construction";
 import { scatterResourceNodes } from "./sim/mapgen/resources";
-import { captureSimSnapshot, type SimSnapshotFrame } from "./sim/mirror";
+import {
+  captureBuildingSnapshot,
+  captureSimSnapshot,
+  type SimSnapshotFrame,
+} from "./sim/mirror";
 import { createWorkerTransport, PathScheduler } from "./sim/path/scheduler";
 import { createGatherSystem } from "./sim/systems/gather";
 import { createMovementSystem } from "./sim/systems/movement";
 import { createPathWorkerFactory } from "./game/paths";
 import { RtsCamera } from "./render/camera";
+import { createBuildingLayer } from "./render/buildings";
+import { createBuildGhost } from "./render/buildGhost";
 import {
   createRenderMirror,
   pushFrame,
@@ -71,6 +104,12 @@ import {
 } from "./render/mirror";
 import { buildTerrainMesh, terrainHeightAt } from "./render/terrain";
 import { createUnitSpriteLayer } from "./render/unitSprites";
+import {
+  issuePlaceBuilding,
+  snapGhostOrigin,
+  wireBuildMenu,
+} from "./ui/buildMenu";
+import { createBuildingPanel } from "./ui/buildingPanel";
 import { wireControlGroups } from "./ui/controlGroups";
 import { createTopbar, formatStockpileLine } from "./ui/hud";
 import { MINIMAP_REDRAW_MS, createMinimap } from "./ui/minimap";
@@ -83,11 +122,15 @@ import {
   setSelection,
   wireSelectionInput,
 } from "./ui/selection";
+import { buildingRectOf, siteRectOf } from "./sim/components/buildings";
 
 /** Fixed development seed — reproducible map for the render skeleton. */
 const DEV_SEED = 20260822;
-/** Dev population until spawning/training tickets land. */
-const DEV_UNIT_COUNT = 200;
+/**
+ * Dev population: a dark-age start scale now that M1-T10 owns spawning
+ * and training (the render-skeleton stress count moved to perf tests).
+ */
+const DEV_UNIT_COUNT = 5;
 /** SPEC §7 loop safety: clamp + max-steps-per-frame cap. */
 const FRAME_CLAMP_MS = 250;
 const MAX_STEPS_PER_FRAME = 5;
@@ -104,6 +147,9 @@ const world = createWorld(DEV_SEED, { pathScheduler: scheduler });
 const comps = defineSimComponents(world);
 registerSystem(world, createMovementSystem(comps, scheduler));
 registerSystem(world, createGatherSystem(comps, scheduler));
+registerSystem(world, createPlacementSystem(comps));
+registerSystem(world, createConstructionSystem(comps));
+registerSystem(world, createTrainingSystem(comps, createTrainingDiagnostics()));
 
 /**
  * Passable tiles nearest the map center, ascending by distance — dev
@@ -125,18 +171,44 @@ function centralPassableTiles(count: number): { x: number; y: number }[] {
   return found.slice(0, count).map(({ x, y }) => ({ x, y }));
 }
 
-for (const spot of centralPassableTiles(DEV_UNIT_COUNT)) {
-  spawnUnit(world, comps, spot.x, spot.y);
-}
-
-// ---- Economy world (M1-T9) ---------------------------------------------------
-// One player stockpile + a central drop-off point + scattered gatherables
-// around the dev spawn, so right-click-on-node gather loops work out of
-// the box. Deterministic: node placement is a pure function of the seed.
+// ---- Economy world (M1-T9 + M1-T10) -----------------------------------------
+// Dark-age start: one player stockpile with opening capital, a finished
+// Town Center (drop-off + villager production, pop cap 5) at the map
+// center and scattered gatherables around it. Deterministic: node
+// placement is a pure function of the seed.
 
 const centerSpot = centralPassableTiles(1)[0]!;
-createPlayerStockpile(world, comps, PLAYER_ONE);
-createDropOffPoint(world, comps, centerSpot.x, centerSpot.y, PLAYER_ONE);
+createPlayerStockpile(world, comps, PLAYER_ONE, [200, 600, 100, 0]);
+/** Stamp the start TC so its 3×3 footprint fits the central passables. */
+stampFinishedBuilding(
+  world,
+  comps,
+  "town-center",
+  Math.floor(centerSpot.x) - 1,
+  Math.floor(centerSpot.y) - 2,
+  { playerId: PLAYER_ONE },
+);
+
+for (const spot of centralPassableTiles(DEV_UNIT_COUNT * 3)) {
+  // Skip spots the start TC already covers (it stamped after listing).
+  let covered = false;
+  for (const eid of world.entities) {
+    const rect = buildingRectOf(world, comps, eid);
+    if (
+      rect &&
+      spot.x >= rect.x &&
+      spot.x < rect.x + rect.width &&
+      spot.y >= rect.y &&
+      spot.y < rect.y + rect.height
+    ) {
+      covered = true;
+      break;
+    }
+  }
+  if (covered) continue;
+  spawnUnit(world, comps, spot.x, spot.y);
+  if (populationOf(world, comps) >= DEV_UNIT_COUNT) break;
+}
 
 /** Keep the demo's nodes within a walkable radius of the dev spawn. */
 const DEV_NODE_RING_RADIUS = 26;
@@ -262,12 +334,32 @@ const isOnScreen = (x: number, y: number): boolean => {
   );
 };
 
+/** Building/site entity whose footprint covers a world point. */
+const buildingAt = (x: number, y: number): number | undefined => {
+  for (let i = world.entities.length - 1; i >= 0; i--) {
+    const eid = world.entities[i]!;
+    const rect =
+      siteRectOf(world, comps, eid) ?? buildingRectOf(world, comps, eid);
+    if (!rect) continue;
+    if (
+      x >= rect.x &&
+      x < rect.x + rect.width &&
+      y >= rect.y &&
+      y < rect.y + rect.height
+    ) {
+      return eid;
+    }
+  }
+  return undefined;
+};
+
 wireSelectionInput({
   canvas,
   groundPointAt: groundAt,
   getFrame: () => staging ?? null,
   worldPerPixel,
   isOnScreen,
+  buildingAt,
 });
 
 // Green ring feedback pool + orders log; the marker spawns synchronously
@@ -292,6 +384,84 @@ const nodeAt = (x: number, y: number): number | undefined => {
   return undefined;
 };
 
+// ---- Build menu + ghost placement (M1-T10, §2.13) ---------------------------
+
+const buildGhost = createBuildGhost();
+scene.add(buildGhost.mesh);
+
+const buildMenu = wireBuildMenu({
+  canAfford: (defId) => canAfford(world, comps, PLAYER_ONE, defId),
+  onArm: () => {},
+});
+
+/** Last pointer position in client pixels for the armed ghost. */
+let lastPointerClientX = -1;
+let lastPointerClientY = -1;
+canvas.addEventListener("pointermove", (event: PointerEvent) => {
+  lastPointerClientX = event.clientX;
+  lastPointerClientY = event.clientY;
+});
+
+/**
+ * Current ghost candidate under the pointer while a def is armed, or
+ * null. Shared by the per-frame repaint AND click-to-place so both see
+ * the exact same validity verdict.
+ */
+function currentPlacementCheck(): {
+  defId: string;
+  tileX: number;
+  tileY: number;
+  ok: boolean;
+} | null {
+  const defId = buildMenu.armedDefId();
+  if (!defId || lastPointerClientX < 0) return null;
+  const ground = cameraRig.groundPointAt(
+    lastPointerClientX,
+    lastPointerClientY,
+  );
+  if (!ground) return null;
+  const def = BUILDING_DEFINITIONS.get(defId);
+  if (!def) return null;
+  const origin = snapGhostOrigin(
+    ground.x,
+    ground.z,
+    def.footprint.width,
+    def.footprint.height,
+  );
+  const check = validatePlacement(
+    world,
+    comps,
+    defId,
+    origin.tileX,
+    origin.tileY,
+  );
+  return { defId, tileX: origin.tileX, tileY: origin.tileY, ok: check.ok };
+}
+
+canvas.addEventListener("click", (event: MouseEvent) => {
+  if (event.button !== 0) return;
+  const candidate = currentPlacementCheck();
+  if (!candidate || !candidate.ok) return;
+  issuePlaceBuilding(
+    world.inbox,
+    world.tick,
+    candidate.defId,
+    candidate.tileX,
+    candidate.tileY,
+  );
+  buildMenu.disarm(); // AoE2-style: one placement per arming
+});
+
+// Right-click while armed cancels placement instead of ordering.
+// Registered BEFORE wireOrderInput below so registration order lets it
+// intercept the shared canvas contextmenu stream first.
+canvas.addEventListener("contextmenu", (event: MouseEvent) => {
+  if (buildMenu.armedDefId() === null) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  buildMenu.disarm();
+});
+
 wireOrderInput({
   canvas,
   panelRoot: document.body,
@@ -301,6 +471,13 @@ wireOrderInput({
   currentTick: () => world.tick,
   inbox: world.inbox,
   nodeAt,
+  siteAt: (x, y) => {
+    const eid = buildingAt(x, y);
+    return eid !== undefined &&
+      getBuildingSiteRow(world, comps, eid) !== undefined
+      ? eid
+      : undefined;
+  },
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -320,6 +497,55 @@ const minimap = createMinimap({
 });
 
 const topbar = createTopbar(world.seed);
+
+// Building visuals (one instanced draw call) fed from the pure
+// building-snapshot mirror, plus the single-building selection panel.
+const buildingLayer = createBuildingLayer();
+scene.add(buildingLayer.mesh);
+let buildingFrame = captureBuildingSnapshot(world, comps);
+
+const buildingPanel = createBuildingPanel({
+  currentTick: () => world.tick,
+  inbox: world.inbox,
+  getData: () => {
+    const selected = getSelectedEids();
+    if (selected.length !== 1) return undefined;
+    const eid = selected[0]!;
+    const siteRow = getBuildingSiteRow(world, comps, eid);
+    if (siteRow) {
+      const def = buildingDefOf(buildingIdOfCode(siteRow[1]!));
+      let builders = 0;
+      for (const other of world.entities) {
+        if (getAssignedSite(world, comps, other) === eid) builders += 1;
+      }
+      return {
+        title: `${def.name} — under construction`,
+        progress01: siteRow[2]! / (def.buildTime * WORK_MILLI_SCALE),
+        builders,
+        pop: {
+          current: populationOf(world, comps),
+          cap: populationCapOf(world, comps),
+        },
+      };
+    }
+    const builtRow = getBuildingRow(world, comps, eid);
+    if (!builtRow) return undefined;
+    const def = buildingDefOf(buildingIdOfCode(builtRow[1]!));
+    if (!def.trainQueue) return { title: def.name };
+    return {
+      title: def.name,
+      queue: readTrainQueue(world, comps, eid).map((entry) => ({
+        label: unitDefOf(unitIdOfCode(entry.unitCode)).name,
+        remainingTicks: entry.remainingTicks,
+      })),
+      pop: {
+        current: populationOf(world, comps),
+        cap: populationCapOf(world, comps),
+      },
+      canTrain: canEnqueueTraining(world, comps, eid),
+    };
+  },
+});
 
 // Paint chrome immediately; the loop refreshes it from here on.
 topbar.update(world.tick, "—");
@@ -357,6 +583,8 @@ let lastFrame = performance.now();
 let accumulator = 0;
 /** Render-clock seconds feeding the shader's quantized playback. */
 let spriteTimeSec = 0;
+/** Combined units+buildings live-eid feed for selection pruning. */
+let combinedEids = new Int32Array(0);
 
 function frame(
   now: number,
@@ -380,15 +608,56 @@ function frame(
 
   // Snapshot AFTER stepping, interpolate BETWEEN the last two ticks.
   staging = captureSimSnapshot(world, comps, { reusable: staging });
+  buildingFrame = captureBuildingSnapshot(world, comps, {
+    reusable: buildingFrame,
+  });
   pushFrame(mirror, staging);
   const alpha = Math.min(accumulator / TICK_DT_MS, 1);
   const sampledCount = sampleMirror(mirror, alpha, sampleOut);
 
   // Selection bookkeeping against the fresh snapshot (prune dead).
-  noteLiveEids(staging.eids, staging.count);
+  // Buildings ride the same live-eid feed so selected sites survive
+  // pruning even though they are not movable units.
+  if (buildingFrame.count > 0) {
+    const total = staging.count + buildingFrame.count;
+    if (combinedEids.length < total) combinedEids = new Int32Array(total * 2);
+    combinedEids.set(staging.eids.subarray(0, staging.count), 0);
+    combinedEids.set(
+      buildingFrame.eids.subarray(0, buildingFrame.count),
+      staging.count,
+    );
+    noteLiveEids(combinedEids, total);
+  } else {
+    noteLiveEids(staging.eids, staging.count);
+  }
 
   villagerLayer.setTime(spriteTimeSec);
   writePopInstances(villagerLayer, sampledCount);
+
+  // Building meshes repaint from the fresh snapshot every frame.
+  buildingLayer.write(buildingFrame, world.layers);
+
+  // Armed placement ghost follows the pointer each frame so it stays
+  // glued while panning/zooming, not just on mousemove.
+  const ghostCandidate = currentPlacementCheck();
+  const armedDef =
+    ghostCandidate !== null
+      ? BUILDING_DEFINITIONS.get(ghostCandidate.defId)
+      : undefined;
+  if (ghostCandidate && armedDef) {
+    buildGhost.show(
+      {
+        x: ghostCandidate.tileX,
+        y: ghostCandidate.tileY,
+        width: armedDef.footprint.width,
+        height: armedDef.footprint.height,
+      },
+      ghostCandidate.ok,
+      world.layers,
+    );
+  } else {
+    buildGhost.hide();
+  }
 
   // Selection rings ride the same interpolated sample as the sprites:
   // find each selected eid's ascending-eid rank and copy its position.
@@ -419,14 +688,18 @@ function frame(
   cameraRig.update(frameMs / 1000);
   updateFps(now);
   // Resource topbar polls the live Stockpile rows each frame — the same
-  // rows golden digests hash, so chrome and sim cannot disagree.
+  // rows golden digests hash, so chrome and sim cannot disagree. The
+  // population/cap line rides along (M1-T10).
   const stockRow = stockpileSnapshot(world, comps).values().next().value;
+  const popLine = `pop ${String(populationOf(world, comps))}/${String(populationCapOf(world, comps))}`;
   topbar.update(
     world.tick,
     fpsText,
-    formatStockpileLine(stockRow ?? [0, 0, 0, 0]),
+    `${formatStockpileLine(stockRow ?? [0, 0, 0, 0])} · ${popLine}`,
   );
   controlGroups.refreshChips();
+  buildMenu.refresh();
+  buildingPanel.refresh();
   renderer.render(scene, cameraRig.camera);
 
   // SPEC §7 draw-call budget: terrain + instanced sprite field + small

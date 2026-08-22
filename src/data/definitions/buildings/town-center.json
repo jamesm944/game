@@ -1,0 +1,17 @@
+{
+  "id": "town-center",
+  "name": "Town Center",
+  "kind": "building",
+  "costs": { "wood": 300 },
+  "ageGate": 1,
+  "techPrereqs": [],
+  "buildTime": 3000,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 2400,
+  "workSlots": 0,
+  "dropoffFilters": ["food", "wood", "gold", "stone"],
+  "acceptsRoles": [],
+  "sightRadius": 8,
+  "populationCap": 5,
+  "trainQueue": { "capacity": 15, "trainable": [{ "unitId": "villager" }] }
+}
