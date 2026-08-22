@@ -10,12 +10,14 @@
     "lint": "eslint . && prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "golden:record": "vitest run -t 'golden' --update"
+    "golden:record": "vitest run -t 'golden' --update",
+    "bake:villager": "tsx tools/atlas-bake/index.ts --unit-id villager"
   },
   "dependencies": {
     "bitecs": "^0.4.0",
     "simplex-noise": "^4.0.3",
-    "three": "^0.185.1"
+    "three": "^0.185.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
@@ -25,6 +27,7 @@
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.0.0",
     "prettier": "^3.0.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.6.0",
     "typescript-eslint": "^8.0.0",
     "vite": "^7.0.0",

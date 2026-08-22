@@ -51,6 +51,20 @@ export class RtsCamera {
     return this.#viewHeight;
   }
 
+  /**
+   * Horizontal camera azimuth (M1-T7): atan2 of the eye offset from
+   * the look target in (x, z) — the value billboard direction picking
+   * needs to choose each unit's baked yaw cell. Constant under this
+   * fixed rig, computed from live state so a future rotating rig
+   * keeps units honest.
+   */
+  get azimuthRad(): number {
+    return Math.atan2(
+      this.camera.position.x - this.#targetX,
+      this.camera.position.z - this.#targetZ,
+    );
+  }
+
   #viewHeight = DEFAULT_VIEW_HEIGHT;
   /** Aspect ratio width/height of the attached viewport. */
   #aspect = 1;

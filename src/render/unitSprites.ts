@@ -1,0 +1,238 @@
+/**
+ * Instanced billboard units — M1-T7 (SPEC §2.14 GPU guarantees, §7).
+ *
+ * ONE draw call per unit type: an InstancedBufferGeometry of screen-
+ * facing quads driven by a custom ShaderMaterial. Everything hot runs
+ * on the GPU:
+ *
+ * - Playback: the vertex shader advances frames from uTime alone,
+ *   quantized to the near-band 15 fps clip rate — identical formula to
+ *   render/atlasFrames.frameAtTime. CPU animation cost: zero.
+ * - Frame lookup: two RGBA32F index textures built by parseAtlasIndex
+ *   (per-frame uv rects + per-action base/count/duration); the shader
+ *   resolves (action slot, directionIndex, quantized frame) → uv rect.
+ * - Billboarding: quad corners expand in VIEW space around the
+ *   instance origin, so every sprite faces the camera exactly under
+ *   the orthographic RTS rig.
+ * - Team tint: per-instance rgb multiplier over the neutral-gray bake.
+ *
+ * Per-frame CPU work is one linear attribute fill
+ * (atlasFrames.writeSpriteAttributes: origins/directions/tints) — no
+ * matrices, no per-instance playback math. The perf gate in
+ * tests/perf/billboard.test.ts pins that path at 10k instances < 2 ms.
+ */
+
+import {
+  DataTexture,
+  DynamicDrawUsage,
+  FloatType,
+  InstancedBufferAttribute,
+  InstancedBufferGeometry,
+  Mesh,
+  NearestFilter,
+  PlaneGeometry,
+  RGBAFormat,
+  ShaderMaterial,
+  type Texture,
+} from "three";
+import {
+  atlasActionSlot,
+  PLAYBACK_QUANTUM_FPS,
+  parseAtlasIndex,
+  writeSpriteAttributes,
+  type ParsedAtlasIndex,
+  type SpriteAttributeArrays,
+  type SpriteSampleInput,
+} from "./atlasFrames";
+
+export interface UnitSpriteLayerOptions {
+  /** Decoded atlas page texture (flipY upload as usual for PNGs). */
+  readonly atlasTexture: Texture;
+  /** Bake tool's frames JSON (already object-parsed). */
+  readonly indexJson: unknown;
+  /** Which baked action this field loops (one layer per unit type). */
+  readonly action: string;
+  readonly maxInstances: number;
+  /** Sprite size in world units (feet anchored at the instance origin). */
+  readonly worldWidth: number;
+  readonly worldHeight: number;
+}
+
+export interface UnitSpriteLayer {
+  readonly mesh: Mesh;
+  /**
+   * Fill instance attributes for this frame from a mirror sample;
+   * returns instances written (= mesh's instanceCount).
+   */
+  writeInstances(
+    samples: SpriteSampleInput,
+    heights: Float32Array,
+    camAzimuthRad: number,
+    tintR: number,
+    tintG: number,
+    tintB: number,
+  ): number;
+  setTime(timeSec: number): void;
+  dispose(): void;
+}
+
+const VERTEX_SHADER = /* glsl */ `
+  uniform sampler2D uRects;    // RGBA32F per absolute frame: u0, v0, du, dv
+  uniform sampler2D uActions;  // RGBA32F per action slot: base, count, duration, yawCount
+  uniform float uTime;
+  uniform float uQuantumFps;
+  uniform float uActionSlot;
+  uniform float uActionSlots;
+  uniform float uRectFrames;
+  uniform float uSpriteWidth;
+  uniform float uSpriteHeight;
+
+  attribute vec3 aOrigin;
+  attribute float aDirectionIndex;
+  attribute vec3 aTeamTint;
+
+  varying vec2 vUv;
+  varying vec3 vTint;
+
+  void main() {
+    vec4 am = texture2D(
+      uActions,
+      vec2((uActionSlot + 0.5) / uActionSlots, 0.5)
+    );
+    // Near-band quantized playback (mirrors atlasFrames.frameAtTime):
+    // time snaps to the quantum BEFORE dividing the loop, so a whole
+    // type flips frames together on shared ticks.
+    float tq = floor(uTime * uQuantumFps) / uQuantumFps;
+    float wrapped = tq - floor(tq / am.z) * am.z;
+    float local = min(floor(wrapped / am.z * am.y), am.y - 1.0);
+    float absolute = am.x + aDirectionIndex * am.y + local;
+
+    vec4 rect = texture2D(uRects, vec2((absolute + 0.5) / uRectFrames, 0.5));
+    vUv = rect.xy + uv * rect.zw;
+    vTint = aTeamTint;
+
+    // View-space expansion = exact camera-facing billboard for the
+    // orthographic rig (geometry y spans [0,1]: feet at the anchor).
+    vec4 center = viewMatrix * vec4(aOrigin, 1.0);
+    center.xy += vec2(position.x * uSpriteWidth, position.y * uSpriteHeight);
+    gl_Position = projectionMatrix * center;
+  }
+`;
+
+const FRAGMENT_SHADER = /* glsl */ `
+  uniform sampler2D uAtlas;
+  varying vec2 vUv;
+  varying vec3 vTint;
+
+  void main() {
+    vec4 texel = texture2D(uAtlas, vUv);
+    if (texel.a < 0.5) discard; // bake alpha is binary
+    gl_FragColor = vec4(texel.rgb * vTint, 1.0);
+  }
+`;
+
+function buildFloatTexture(
+  texels: Float32Array,
+  texelsWide: number,
+): DataTexture {
+  const texture = new DataTexture(texels, texelsWide, 1, RGBAFormat, FloatType);
+  texture.magFilter = NearestFilter;
+  texture.minFilter = NearestFilter;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+export function createUnitSpriteLayer(
+  options: UnitSpriteLayerOptions,
+): UnitSpriteLayer {
+  const atlas: ParsedAtlasIndex = parseAtlasIndex(options.indexJson);
+  if (atlas.pageCount !== 1) {
+    throw new Error(
+      `unit sprites support single-page atlases (got ${String(atlas.pageCount)}); extend the runtime when a bake exceeds one page`,
+    );
+  }
+  const { slot } = atlasActionSlot(atlas, options.action);
+
+  const quad = new PlaneGeometry(1, 1);
+  quad.translate(0, 0.5, 0); // feet at instance origin
+
+  const geometry = new InstancedBufferGeometry();
+  geometry.index = quad.index;
+  geometry.setAttribute("position", quad.getAttribute("position"));
+  geometry.setAttribute("uv", quad.getAttribute("uv"));
+
+  const capacity = options.maxInstances;
+  const arrays: SpriteAttributeArrays = {
+    origins: new Float32Array(capacity * 3),
+    directions: new Float32Array(capacity),
+    tints: new Float32Array(capacity * 3),
+  };
+  const originAttr = new InstancedBufferAttribute(arrays.origins, 3);
+  const directionAttr = new InstancedBufferAttribute(arrays.directions, 1);
+  const tintAttr = new InstancedBufferAttribute(arrays.tints, 3);
+  for (const attr of [originAttr, directionAttr, tintAttr]) {
+    attr.setUsage(DynamicDrawUsage);
+  }
+  geometry.setAttribute("aOrigin", originAttr);
+  geometry.setAttribute("aDirectionIndex", directionAttr);
+  geometry.setAttribute("aTeamTint", tintAttr);
+  geometry.instanceCount = 0;
+
+  const material = new ShaderMaterial({
+    uniforms: {
+      uAtlas: { value: options.atlasTexture },
+      uRects: { value: buildFloatTexture(atlas.rectTexels, atlas.totalFrames) },
+      uActions: {
+        value: buildFloatTexture(atlas.actionTexels, atlas.actions.length),
+      },
+      uTime: { value: 0 },
+      uQuantumFps: { value: PLAYBACK_QUANTUM_FPS },
+      uActionSlot: { value: slot },
+      uActionSlots: { value: atlas.actions.length },
+      uRectFrames: { value: atlas.totalFrames },
+      uSpriteWidth: { value: options.worldWidth },
+      uSpriteHeight: { value: options.worldHeight },
+    },
+    vertexShader: VERTEX_SHADER,
+    fragmentShader: FRAGMENT_SHADER,
+  });
+
+  const mesh = new Mesh(geometry, material);
+  mesh.frustumCulled = false; // positions change wholesale every frame
+  mesh.name = atlas.id;
+
+  return {
+    mesh,
+    writeInstances(samples, heights, camAzimuthRad, tintR, tintG, tintB) {
+      const count = writeSpriteAttributes(
+        arrays,
+        samples,
+        heights,
+        { yawCount: atlas.yawCount },
+        camAzimuthRad,
+        tintR,
+        tintG,
+        tintB,
+        capacity,
+      );
+      geometry.instanceCount = count;
+      originAttr.needsUpdate = true;
+      directionAttr.needsUpdate = true;
+      tintAttr.needsUpdate = true;
+      return count;
+    },
+    setTime(timeSec: number) {
+      const time = material.uniforms.uTime;
+      if (time) time.value = timeSec;
+    },
+    dispose() {
+      quad.dispose();
+      geometry.dispose();
+      material.dispose();
+      const rects = material.uniforms.uRects?.value;
+      if (rects instanceof DataTexture) rects.dispose();
+      const actions = material.uniforms.uActions?.value;
+      if (actions instanceof DataTexture) actions.dispose();
+    },
+  };
+}
