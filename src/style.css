@@ -8,7 +8,12 @@ canvas {
   display: block;
 }
 
-#hud {
+#game {
+  touch-action: none;
+}
+
+/* Topbar placeholder — seed · tick · fps (M1-T8). */
+#topbar {
   position: fixed;
   left: 12px;
   top: 10px;
@@ -21,4 +26,129 @@ canvas {
   border-radius: 6px;
   pointer-events: none;
   user-select: none;
+}
+
+/* Box-select marquee (screen space). */
+#marquee {
+  position: fixed;
+  z-index: 5;
+  border: 1px solid #fff;
+  background: rgb(255 255 255 / 0.09);
+  pointer-events: none;
+}
+
+/* Orders log — top-right, newest first (M1-T8). */
+#orders-panel {
+  position: fixed;
+  right: 12px;
+  top: 10px;
+  width: 240px;
+  max-height: 40vh;
+  overflow: hidden;
+  padding: 6px 10px 8px;
+  font:
+    12px/1.5 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
+}
+
+#orders-panel h3 {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa3c7;
+}
+
+#orders-panel ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#orders-panel li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.order-kind {
+  display: inline-block;
+  min-width: 34px;
+  margin-right: 6px;
+  padding: 0 4px;
+  border-radius: 3px;
+  text-align: center;
+  font-weight: 700;
+  color: #10141c;
+  background: #7ec46f;
+}
+
+/* Control group chips — bottom-center. */
+#group-bar {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  user-select: none;
+}
+
+.group-chip {
+  min-width: 44px;
+  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font:
+    13px/1 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.group-chip b {
+  color: #fff;
+}
+
+.group-chip span {
+  color: #8fa3c7;
+}
+
+.group-chip:hover {
+  border-color: rgb(255 255 255 / 0.45);
+}
+
+@keyframes chip-flash {
+  from {
+    box-shadow: 0 0 0 2px #f0b429;
+    background: rgb(64 56 28 / 0.9);
+  }
+  to {
+    box-shadow: none;
+    background: rgb(16 20 28 / 0.72);
+  }
+}
+
+.group-chip.flash {
+  animation: chip-flash 250ms ease-out;
+}
+
+/* Minimap — bottom-right. */
+#minimap {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 6px;
+  cursor: crosshair;
 }
