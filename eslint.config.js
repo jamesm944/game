@@ -17,8 +17,9 @@ export default [
     },
   },
   {
-    // The sim/render seam (SPEC §2.1, ADR-0001): sim stays pure TypeScript.
-    files: ["src/sim/**/*.ts", "tests/**/*.ts"],
+    // The sim/render seam (SPEC §2.1, ADR-0001): sim stays pure TypeScript
+    // and may never know render/audio exists.
+    files: ["src/sim/**/*.ts"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -52,6 +53,38 @@ export default [
         {
           name: "requestAnimationFrame",
           message: "sim owns its own loop; rAF is render-side.",
+        },
+      ],
+    },
+  },
+  {
+    // Tests sit OUTSIDE the seam: they are observers, not sim code, and
+    // the SPEC §7 harness requires headless (node-only) coverage of
+    // render-side pure modules like render/mirror (M1-T6 perf gate).
+    // They still may not touch three.js or audio — anything DOM/GPU-
+    // coupled belongs behind integration boundaries, not unit tests.
+    files: ["tests/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "three",
+              message:
+                "tests run headless; three.js needs a browser (use pure render/* modules instead).",
+            },
+          ],
+          patterns: [
+            {
+              group: ["three", "three/**"],
+              message: "tests run headless; three.js needs a browser.",
+            },
+            {
+              group: ["**/audio/**"],
+              message: "audio needs a browser AudioContext.",
+            },
+          ],
         },
       ],
     },

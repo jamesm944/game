@@ -177,3 +177,9 @@ _Avoid_: Win condition (when listing them all)
 **Conquest victory**: destroy enemy military production capacity (standard).
 **Wonder victory**: complete a Wonder, hold through timer.
 **Relic victory**: hold all Relics through timer.
+
+### Rendering
+
+**Render mirror**:
+The double-buffered SoA snapshot of live Pop positions/headings that the renderer reads. The sim-side producer copies it after each step(); render only samples it with an interpolation alpha. Render never touches sim component rows directly.
+_Avoid_: Snapshot state (bare), world copy

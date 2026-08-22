@@ -1,9 +1,24 @@
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  display: grid;
-  place-items: center;
-  min-height: 100vh;
-  background: #1a1d24;
-  color: #e8e6e3;
+  overflow: hidden;
+  background: #10141c;
+}
+
+canvas {
+  display: block;
+}
+
+#hud {
+  position: fixed;
+  left: 12px;
+  top: 10px;
+  padding: 6px 10px;
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
 }
