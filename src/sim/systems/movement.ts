@@ -648,6 +648,12 @@ export function createMovementSystem(
             world.tick,
           ),
           passability,
+          // A version-stale response is discarded by the scheduler
+          // without onApply; release the hold so the unit re-issues a
+          // fresh repath next tick instead of freezing forever.
+          onDiscard: (): void => {
+            awaitRepath.delete(eid);
+          },
           onApply: (response): void => {
             awaitRepath.delete(eid);
             // A newer order owns this unit now; the response is void.

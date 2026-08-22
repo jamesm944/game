@@ -13,6 +13,8 @@ import { createPrng, type Prng } from "./prng";
 import { ComponentRegistry } from "./registry";
 import { generateMap } from "../mapgen/generate";
 import type { PathScheduler } from "../path/scheduler";
+import type { VisibilityProvider } from "../systems/fog";
+import { createAllVisibleProvider } from "../systems/fog";
 import type { WorldLayers } from "../world/layers";
 
 export const TICK_HZ = 30;
@@ -49,6 +51,13 @@ export interface World {
    * systems — and retries the same boundary next frame (ADR-0003).
    */
   readonly pathScheduler: PathScheduler | undefined;
+  /**
+   * Fog-of-war seam (SPEC §2.9 / M1-T11). M1 ships the all-visible
+   * stub; consumers (placement explored-gate today, AI KnowledgeView +
+   * render culling in M2) read ONLY this interface, so M2 swaps the
+   * implementation here without touching any caller.
+   */
+  readonly visibility: VisibilityProvider;
 }
 
 export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
@@ -68,6 +77,11 @@ export interface CreateWorldOptions {
    * behave exactly as before M1-T5.
    */
   readonly pathScheduler?: PathScheduler | undefined;
+  /**
+   * Fog-of-war provider override (tests inject denying fakes to prove
+   * the seam). Production callers omit it for the all-visible stub.
+   */
+  readonly visibility?: VisibilityProvider | undefined;
 }
 
 export function createWorld(
@@ -77,6 +91,8 @@ export function createWorld(
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
     throw new Error(`world seed must be a u32 integer, got ${String(seed)}`);
   }
+  const layers =
+    options.layers ?? generateMap(seed, options.size ?? DEFAULT_MAP_SIZE);
   return {
     seed,
     prng: createPrng(seed),
@@ -86,9 +102,9 @@ export function createWorld(
     tick: 0,
     systems: [],
     rowsByComponentId: new Map(),
-    layers:
-      options.layers ?? generateMap(seed, options.size ?? DEFAULT_MAP_SIZE),
+    layers,
     pathScheduler: options.pathScheduler,
+    visibility: options.visibility ?? createAllVisibleProvider(layers.size),
   };
 }
 
@@ -168,6 +184,9 @@ export function step(world: World): void {
   world.tick += 1;
   const commands = world.inbox.drainDue(world.tick);
   for (const system of world.systems) system(world, commands);
+  // Fog dirty-entity flush (SPEC §2.9): after movement, before the
+  // tick-boundary commit. No-op for the M1 all-visible stub.
+  world.visibility.flushDirty();
 }
 
 /** SPEC §7 state digest over every registered component. */

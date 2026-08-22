@@ -168,6 +168,54 @@ describe("path scheduler protocol", () => {
     expect(fresh).toEqual([2]);
   });
 
+  it("fires onDiscard for stale responses so requesters can release holds", () => {
+    // Regression: a requester that parks a unit while its re-path is in
+    // flight must learn about version-stale discards, or the unit
+    // freezes forever (movement awaitRepath leak, found by the M1 demo
+    // checklist).
+    const { scheduler, transport } = makeScheduler();
+    scheduler.setPassabilityVersion(5);
+    const events: string[] = [];
+    scheduler.requestPath(
+      { startX: 0, startY: 0, goalX: 2, goalY: 2 },
+      {
+        issueTick: 0,
+        seed: 7,
+        passability: OPEN_GRID,
+        onApply: () => {
+          events.push("apply");
+        },
+        onDiscard: () => {
+          events.push("discard");
+        },
+      },
+    );
+    scheduler.setPassabilityVersion(6); // terrain changed mid-flight
+    transport.deliver(fakeResponse(1));
+    expect(scheduler.pump(10)).toBe(true);
+    expect(events).toEqual(["discard"]);
+    expect(scheduler.pendingCount).toBe(0);
+
+    // Fresh responses still apply normally.
+    scheduler.requestPath(
+      { startX: 0, startY: 0, goalX: 2, goalY: 2 },
+      {
+        issueTick: 10,
+        seed: 8,
+        passability: OPEN_GRID,
+        onApply: () => {
+          events.push("apply");
+        },
+        onDiscard: () => {
+          events.push("discard");
+        },
+      },
+    );
+    transport.deliver(fakeResponse(2));
+    expect(scheduler.pump(10 + PATH_LATENCY)).toBe(true);
+    expect(events).toEqual(["discard", "apply"]);
+  });
+
   it("gates application on dueTick even when responses arrive early", () => {
     const { scheduler, transport } = makeScheduler();
     const applied = request(scheduler, 5);

@@ -329,9 +329,22 @@ Rendering strategy enforcing it: instanced billboard sprites per unit type from 
 
 Each milestone is independently demoable and decomposable into agent-executable tickets. Order matters; slices inside a phase parallelize cleanly once the harness exists.
 
-### M1 — Dark-age walkable slice
+### M1 — Dark-age walkable slice ✅ (shipped, sign-off ticket M1-T11)
 
 Skeleton + harness first: vite/tsconfig/CI wiring; `sim/render` seam enforced; tile-grid world + mapgen (seeded simplex → map.bin); billboard-unit renderer + atlas-bake tool (first page); instanced building meshes + terrain splat; group-leader worker A* + formation slots + steering FSM (prototype locomotion feel ported); box-select/right-click-move/build-ghost/minimap-basic/control-groups UI; gather loop for Food/Wood/Gold/Stone with work slots, carry capacity, drop-off, auto-repeat; TC trains villagers; house/barracks placement; fog stub (all-visible provider); **golden harness + digest recipe live from the first sim slice**; perf smoke vs budget. **Demo:** drag-box villagers, send them to chop/build under a real 30 Hz loop at 60 fps.
+
+Shipped-scope checklist (M1-T11 sign-off):
+
+- [x] Sim core/world/layers/mapgen + digest recipe + golden harness (M1-T2/T3)
+- [x] Path worker with dueTick contract + movement steering FSM (M1-T4/T5)
+- [x] Render mirror, camera, terrain splat, billboards + atlas bake (M1-T6/T7)
+- [x] Command UI baseline: selection, orders, groups, minimap, build ghost (M1-T8)
+- [x] Gather loop: slots, carry capacity, drop-off, auto-repeat (M1-T9)
+- [x] Placement, construction, TC training, pop cap (M1-T10)
+- [x] Fog STUB: `VisibilityProvider` seam (`src/sim/systems/fog.ts`), all-visible implementation wired through world creation; placement explored-gate flows through the interface — real planes swap in at M2 without touching callers
+- [x] Perf budget gate: 300-villager headless scenario, p95 tick < 8 ms and mirror copy < 2 ms asserted in CI (`tests/perf/budget.test.ts`); recorded run in `docs/m1-budget.md` (measured p95 ≈ 2.5–4.3 ms, mirror ≈ 0.03 ms)
+- [x] Demo checklist sim-half executed end-to-end headlessly (`tests/e2e/m1-demo.test.ts`: chop → construct house+barracks → train to pop cap); browser-only visual items documented as manual checks in `docs/m1-budget.md`
+- [ ] Manual browser demo pass (visual 60 fps, drag-box feel) — instructions in `docs/m1-budget.md`; not blocking M2 start
 
 ### M2 — Feudal economy + combat
 

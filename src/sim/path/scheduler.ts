@@ -40,6 +40,13 @@ interface OutstandingRequest {
   readonly dueTick: number;
   readonly passableVersion: number;
   readonly onApply: PathApplyFn;
+  /**
+   * Called INSTEAD of onApply when the response arrives version-stale
+   * and is discarded. Requesters that hold per-unit state while a
+   * response is in flight MUST release it here — otherwise a mid-flight
+   * passability bump freezes the requester forever.
+   */
+  readonly onDiscard?: (() => void) | undefined;
 }
 
 /** How issued requests leave the main thread. */
@@ -158,6 +165,7 @@ export class PathScheduler {
       seed: number;
       passability: Uint8Array;
       onApply: PathApplyFn;
+      onDiscard?: (() => void) | undefined;
     }>,
   ): number {
     const id = ++this.#nextId;
@@ -166,6 +174,7 @@ export class PathScheduler {
       dueTick: options.issueTick + PATH_LATENCY,
       passableVersion: this.#passabilityVersion,
       onApply: options.onApply,
+      onDiscard: options.onDiscard,
     };
     this.#outstanding.set(id, entry);
     const request: PathRequest = {
@@ -211,9 +220,13 @@ export class PathScheduler {
       this.#outstanding.delete(entry.id);
       this.#nextApplyId += 1;
       // Stale-version responses are answered normally but discarded on
-      // arrival (ADR-0003): their passability no longer exists.
+      // arrival (ADR-0003): their passability no longer exists. The
+      // requester's onDiscard hook still fires so any held state (an
+      // awaiting-repath unit, say) is released this boundary.
       if (entry.passableVersion === this.#passabilityVersion) {
         entry.onApply(response);
+      } else {
+        entry.onDiscard?.();
       }
     }
   }

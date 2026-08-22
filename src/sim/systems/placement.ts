@@ -45,7 +45,12 @@ export const PLACE_BUILDING_KIND = "placeBuilding";
 
 /** Why a placement was rejected — surfaced verbatim by the ghost UI. */
 export type PlacementRejection =
-  "unknown-def" | "out-of-bounds" | "water" | "blocked-tile" | "occupied";
+  | "unknown-def"
+  | "out-of-bounds"
+  | "water"
+  | "blocked-tile"
+  | "occupied"
+  | "unexplored";
 
 export interface PlacementCheck {
   readonly ok: boolean;
@@ -138,6 +143,7 @@ export function validatePlacement(
   defId: string,
   tileX: number,
   tileY: number,
+  playerId: number = 0,
 ): PlacementCheck {
   let def;
   try {
@@ -184,8 +190,15 @@ export function validatePlacement(
       };
     }
   }
-  // Fog explored-stub: M1 ships an all-visible provider (SPEC M1), so
-  // the explored requirement is trivially satisfied everywhere.
+  // 4) Fog gate (SPEC §2.9): placement requires EXPLORED tiles. M1 runs
+  // the all-visible stub so this is trivially true everywhere on-grid;
+  // the rule itself lives here from day one so M2's real planes flip
+  // behavior without touching this call-site again.
+  for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
+    if (!world.visibility.isExplored(tile.x, tile.y, playerId)) {
+      return { ok: false, reason: "unexplored", rect };
+    }
+  }
   return { ok: true, rect };
 }
 
@@ -228,6 +241,7 @@ function applyPlaceCommand(
     parsed.defId,
     parsed.tileX,
     parsed.tileY,
+    parsed.playerId,
   );
   if (!check.ok) {
     throw new Error(
@@ -275,6 +289,7 @@ export function stampFinishedBuilding(
     defId,
     parsed.tileX,
     parsed.tileY,
+    options.playerId ?? 0,
   );
   if (!check.ok || !check.rect) {
     throw new Error(

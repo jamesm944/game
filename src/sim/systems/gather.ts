@@ -62,6 +62,7 @@ import {
   setInventory,
   WORK_SLOTS_PER_NODE,
 } from "../components/economy";
+import { clearAssignedSite } from "../components/buildings";
 import { depositIntoStockpile, dropOffOwnerOf } from "../core/stockpile";
 import { findPath } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
@@ -509,6 +510,10 @@ export function createGatherSystem(
         }
         ensureCarryCapacity(world, comps, eid);
         ensureInventory(world, comps, eid, resourceCode);
+        // Re-tasking replaces any prior job (AoE2 order semantics):
+        // a stale AssignedSite row would let the construction system
+        // keep planning site walks against the new chop chain.
+        clearAssignedSite(world, comps, eid);
         assignNode(world, comps, eid, parsed.nodeId);
         // A fresh order clears any prior chain and steering bookkeeping.
         const queue = queueOf(eid);

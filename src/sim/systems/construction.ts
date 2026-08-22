@@ -35,6 +35,7 @@ import {
   writeActivityQueue,
   type SimComponents,
 } from "../components";
+import { clearAssignedNode } from "../components/economy";
 import {
   assignSite,
   clearAssignedSite,
@@ -72,8 +73,19 @@ export function builderWorkMilliPerTick(rank: number): number {
   return Math.round(WORK_MILLI_SCALE * weight);
 }
 
-/** Distance from a site center within which builders contribute. */
+/** Distance from a site's FOOTPRINT EDGE within which builders contribute. */
 export const BUILD_WORK_RANGE_TILES = 3.25;
+
+/** Squared distance from (x,y) to the nearest point of `rect` (0 inside). */
+export function rectDistanceSq(
+  x: number,
+  y: number,
+  rect: FootprintRect,
+): number {
+  const dx = Math.max(rect.x - x, 0, x - (rect.x + rect.width));
+  const dy = Math.max(rect.y - y, 0, y - (rect.y + rect.height));
+  return dx * dx + dy * dy;
+}
 
 export interface ConstructionDiagnostics {
   /** build commands applied. */
@@ -224,6 +236,10 @@ export function createConstructionSystem(
         const velRow = velRows?.get(eid);
         const tagRow = tagRows?.get(eid);
         if (!posRow || !velRow || !tagRow) continue; // not a live unit
+        // Re-tasking replaces any prior job (AoE2 order semantics):
+        // without this, a gatherer keeps its AssignedNode row and the
+        // gather system re-plans chop legs against the site walk.
+        clearAssignedNode(world, comps, eid);
         const queue = readActivityQueue(world, comps, eid);
         cancelActivities(queue);
         writeActivityQueue(world, comps, eid, queue);
@@ -293,13 +309,15 @@ export function createConstructionSystem(
 
       // 3a) In-range builders add diminishing fixed-point progress;
       // the contributing rank counts ONLY in-range builders so walking
-      // stragglers never consume a better helper's weight tier.
+      // stragglers never consume a better helper's weight tier. Range
+      // measures from the FOOTPRINT EDGE: adjacency is the working
+      // contract, and center-based distance strands builders whose
+      // approach door (blocked-terrain corrected) lands past the
+      // center-radius while hugging a corner of the site.
       let milliThisTick = 0;
       let contributingRank = 0;
       for (const builder of group.builders) {
-        const ddx = builder.x - group.center.x;
-        const ddy = builder.y - group.center.y;
-        if (ddx * ddx + ddy * ddy <= rangeSq) {
+        if (rectDistanceSq(builder.x, builder.y, group.rect) <= rangeSq) {
           milliThisTick += builderWorkMilliPerTick(contributingRank);
           contributingRank += 1;
         }
@@ -311,9 +329,8 @@ export function createConstructionSystem(
       // 3b) Planning pass (ascending eid): fill idle, out-of-range
       // queues with a walk to their nearest approach point.
       for (const builder of group.builders) {
-        const ddx = builder.x - group.center.x;
-        const ddy = builder.y - group.center.y;
-        const inRange = ddx * ddx + ddy * ddy <= rangeSq;
+        const inRange =
+          rectDistanceSq(builder.x, builder.y, group.rect) <= rangeSq;
         if (!inRange) {
           const queue = readActivityQueue(world, comps, builder.eid);
           if (peekActivity(queue) === undefined) {
