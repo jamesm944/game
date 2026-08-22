@@ -12,7 +12,7 @@ canvas {
   touch-action: none;
 }
 
-/* Topbar placeholder — seed · tick · fps (M1-T8). */
+/* Topbar — seed · tick · fps + live stockpile readout (M1-T8/T9). */
 #topbar {
   position: fixed;
   left: 12px;
@@ -26,6 +26,11 @@ canvas {
   border-radius: 6px;
   pointer-events: none;
   user-select: none;
+}
+
+#topbar-resources {
+  margin-top: 2px;
+  color: #f0d9a0;
 }
 
 /* Box-select marquee (screen space). */
@@ -86,6 +91,10 @@ canvas {
   font-weight: 700;
   color: #10141c;
   background: #7ec46f;
+}
+
+.order-kind-gather {
+  background: #f0b429;
 }
 
 /* Control group chips — bottom-center. */

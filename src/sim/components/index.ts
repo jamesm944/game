@@ -1,13 +1,20 @@
 /**
- * Movement component definitions — SPEC §2.1/§2.2.
+ * Component definitions — SPEC §2.1/§2.2/§2.6.
  *
  * Components register through the world ComponentRegistry, whose
  * alphabetical enforcement pins the digest/save iteration order forever
- * (world.ts). Per ADR-0001 the hand-rolled row store is the sanctioned
- * M1 component store — bitecs slots in behind this same registration
- * surface later without touching call sites or fixtures.
+ * (world.ts). Because the registry validates ONE strictly ascending
+ * sequence per world, movement + economy + stockpile components
+ * register interleaved via defineSimComponents:
  *
- * Canonical row layouts (arity is part of the digest contract):
+ *   ActivityQueue, AssignedNode, CarryCapacity, DropOff, Inventory,
+ *   MoveTarget, Position, ResourceNode, Stockpile, UnitTag, Velocity
+ *
+ * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
+ * store — bitecs slots in behind this same registration surface later
+ * without touching call sites or fixtures.
+ *
+ * Movement row layouts (arity is part of the digest contract):
  * - ActivityQueue (variable): encoded activity stream — see activities/.
  * - MoveTarget (2): final destination x,y in float tile coordinates.
  * - Position (2): current x,y float tile coordinates.
@@ -15,6 +22,8 @@
  * - Velocity (8): [headingRad, speedTilesPerSec, stalledTicks,
  *   parkedContactTicks, closeArrivalTicks, avoidSide, avoidTicksLeft,
  *   propagationParked] — motion state + steering FSM bookkeeping.
+ * Economy/stockpile layouts live beside their modules (economy.ts,
+ * core/stockpile.ts).
  */
 
 import {
@@ -22,6 +31,18 @@ import {
   encodeActivities,
   type Activity,
 } from "../activities";
+import {
+  ASSIGNED_NODE,
+  CARRY_CAPACITY,
+  INVENTORY,
+  RESOURCE_NODE,
+  type EconomyComponents,
+} from "./economy";
+import {
+  DROP_OFF,
+  STOCKPILE,
+  type StockpileComponents,
+} from "../core/stockpile";
 import { defineComponent, spawnEntity, type World } from "../core/world";
 
 export const ACTIVITY_QUEUE = "ActivityQueue" as const;
@@ -47,19 +68,38 @@ export interface MovementComponents {
   readonly velocityId: number;
 }
 
+/** Every component id the M1 sim reads/writes. */
+export interface SimComponents
+  extends MovementComponents, EconomyComponents, StockpileComponents {}
+
 /**
- * Register all five movement components. Names are already in strict
- * alphabetical order; the registry re-validates and would throw if a
- * future edit reordered them.
+ * Register ALL sim components in one strictly alphabetical sequence —
+ * the registry re-validates order and would throw on any regression.
+ * The single canonical entry point for production worlds AND fixtures.
  */
-export function defineMovementComponents(world: World): MovementComponents {
+export function defineSimComponents(world: World): SimComponents {
   return {
     activityQueueId: defineComponent(world, ACTIVITY_QUEUE),
+    assignedNodeId: defineComponent(world, ASSIGNED_NODE),
+    carryCapacityId: defineComponent(world, CARRY_CAPACITY),
+    dropoffId: defineComponent(world, DROP_OFF),
+    inventoryId: defineComponent(world, INVENTORY),
     moveTargetId: defineComponent(world, MOVE_TARGET),
     positionId: defineComponent(world, POSITION),
+    resourceNodeId: defineComponent(world, RESOURCE_NODE),
+    stockpileId: defineComponent(world, STOCKPILE),
     unitTagId: defineComponent(world, UNIT_TAG),
     velocityId: defineComponent(world, VELOCITY),
   };
+}
+
+/**
+ * Legacy movement-only alias. Registers the full set (the registry has
+ * no partial sequences) and returns it — structurally a superset of
+ * MovementComponents, so existing call sites keep compiling unchanged.
+ */
+export function defineMovementComponents(world: World): SimComponents {
+  return defineSimComponents(world);
 }
 
 function requireRow(
@@ -226,3 +266,5 @@ export function spawnUnit(
 
 /** Default body radius in tiles (units keep ≥ 0.5-tile clearance). */
 export const DEFAULT_UNIT_RADIUS = 0.25;
+
+export * from "./economy";

@@ -1,11 +1,11 @@
 /**
- * Orders — SPEC §2.13 prototype-validated command layer (M1-T8).
+ * Orders — SPEC §2.13 prototype-validated command layer (M1-T8/T9).
  *
- * Right-click contextual orders. The only order the M1 sim understands
- * is `groupMove` (movement ticket), so every ground right-click with a
- * live selection issues one `{kind:"groupMove"}` command into the sim
- * inbox targeted at the NEXT tick (`currentTick + 1`) — replay-relevant
- * input that golden fixtures can drive verbatim.
+ * Right-click contextual orders. Ground right-clicks issue
+ * `{kind:"groupMove"}` commands; right-clicking a resource node with a
+ * live selection issues `{kind:"gather"}` instead (M1-T9). Both go into
+ * the sim inbox targeted at the NEXT tick (`currentTick + 1`) —
+ * replay-relevant input that golden fixtures drive verbatim.
  *
  * Feedback latency contract: the green ring marker spawns synchronously
  * inside the click handler, so it is on screen the same rendered frame
@@ -19,8 +19,10 @@
 
 import type { CommandInbox, SimCommand } from "../sim/core/inbox";
 
-/** The one movement command kind the M1 sim consumes. */
+/** Movement command kind (M1-T8). */
 export const GROUP_MOVE_KIND = "groupMove";
+/** Gather command kind (M1-T9). */
+export const GATHER_KIND = "gather";
 
 /**
  * Validate, canonicalize (dedupe + ascending sort), and submit one
@@ -65,27 +67,76 @@ export function issueGroupMove(
   return command;
 }
 
+/**
+ * Validate, canonicalize (dedupe + ascending sort), and submit one
+ * gather order against `nodeId` for delivery exactly on
+ * `currentTick + 1`. Same canonical-payload discipline as issueGroupMove.
+ */
+export function issueGather(
+  inbox: CommandInbox,
+  currentTick: number,
+  entityIds: readonly number[],
+  nodeId: number,
+): SimCommand {
+  if (typeof nodeId !== "number" || !Number.isInteger(nodeId) || nodeId < 1) {
+    throw new Error(
+      `gather node id must be a positive integer, got ${String(nodeId)}`,
+    );
+  }
+  const ids: number[] = [];
+  for (const id of entityIds) {
+    if (typeof id !== "number" || !Number.isInteger(id) || id < 1) {
+      throw new Error(
+        `gather entity id must be a positive integer, got ${String(id)}`,
+      );
+    }
+    if (!ids.includes(id)) ids.push(id);
+  }
+  if (ids.length === 0) {
+    throw new Error("gather requires at least one entity");
+  }
+  ids.sort((a, b) => a - b);
+  const command: SimCommand = {
+    kind: GATHER_KIND,
+    targetTick: currentTick + 1,
+    data: { entityIds: ids, nodeId },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 // ---- Order log (capped, newest-first) ---------------------------------------
+
+export type OrderKind = "move" | "gather";
 
 export interface OrderLogEntry {
   readonly seq: number;
   /** Absolute sim tick the order was issued on. */
   readonly issuedTick: number;
+  readonly kind: OrderKind;
   readonly label: string;
 }
 
 export function createOrderLog(limit = 20): {
-  push(issuedTick: number, label: string): OrderLogEntry;
+  push(
+    issuedTick: number,
+    entry: { kind: OrderKind; label: string },
+  ): OrderLogEntry;
   entries(): readonly OrderLogEntry[];
 } {
   const entries: OrderLogEntry[] = [];
   let nextSeq = 0;
   return {
-    push(issuedTick: number, label: string): OrderLogEntry {
-      const entry: OrderLogEntry = { seq: nextSeq++, issuedTick, label };
-      entries.unshift(entry); // newest first, like the prototype panel
+    push(issuedTick, entry): OrderLogEntry {
+      const logEntry: OrderLogEntry = {
+        seq: nextSeq++,
+        issuedTick,
+        kind: entry.kind,
+        label: entry.label,
+      };
+      entries.unshift(logEntry); // newest first, like the prototype panel
       if (entries.length > limit) entries.length = limit;
-      return entry;
+      return logEntry;
     },
     entries: () => entries,
   };
@@ -98,6 +149,11 @@ export function formatMoveLabel(
   y: number,
 ): string {
   return `${unitCount} ${unitCount === 1 ? "unit" : "units"} → (${Math.round(x)}, ${Math.round(y)})`;
+}
+
+/** "GATHER · tick 42 · 12 units → node 37" style line. */
+export function formatGatherLabel(unitCount: number, nodeId: number): string {
+  return `${unitCount} ${unitCount === 1 ? "unit" : "units"} → node ${String(nodeId)}`;
 }
 
 // ---- Input wiring (browser-only) ---------------------------------------------
@@ -119,6 +175,11 @@ export interface OrderInputDeps {
   /** Sim state accessors kept narrow for testability. */
   currentTick(): number;
   inbox: CommandInbox;
+  /**
+   * Resource-node entity under a world point, or undefined (M1-T9).
+   * When provided and hit, right-clicks become gather orders.
+   */
+  nodeAt?(x: number, y: number): number | undefined;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
@@ -143,8 +204,9 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     for (const entry of log.entries()) {
       const item = document.createElement("li");
       const kind = document.createElement("span");
-      kind.className = "order-kind";
-      kind.textContent = "MOV";
+      kind.className =
+        entry.kind === "gather" ? "order-kind order-kind-gather" : "order-kind";
+      kind.textContent = entry.kind === "gather" ? "GTH" : "MOV";
       const text = document.createElement("span");
       text.textContent = entry.label;
       item.append(kind, text);
@@ -157,6 +219,26 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     const ground = deps.getGroundPoint(event.clientX, event.clientY);
     if (!ground || deps.selectionCount() === 0) return;
     const selection = deps.selection();
+
+    // Contextual dispatch: node under cursor → gather, else ground move.
+    const nodeId = deps.nodeAt?.(ground.x, ground.y);
+    if (nodeId !== undefined) {
+      const command = issueGather(
+        deps.inbox,
+        deps.currentTick(),
+        selection,
+        nodeId,
+      );
+      log.push(command.targetTick, {
+        kind: "gather",
+        label:
+          `tick ${String(command.targetTick)} · ` +
+          formatGatherLabel(selection.length, nodeId),
+      });
+      renderList();
+      return;
+    }
+
     const command = issueGroupMove(
       deps.inbox,
       deps.currentTick(),
@@ -166,11 +248,12 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     );
     // Same-frame feedback: marker exists before this handler returns.
     deps.onMoveOrdered(ground.x, ground.y);
-    log.push(
-      command.targetTick,
-      `tick ${String(command.targetTick)} · ` +
+    log.push(command.targetTick, {
+      kind: "move",
+      label:
+        `tick ${String(command.targetTick)} · ` +
         formatMoveLabel(selection.length, ground.x, ground.y),
-    );
+    });
     renderList();
   });
 }

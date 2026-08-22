@@ -38,15 +38,28 @@ import {
   SELECTION_RING_CAPACITY,
   createSelectionRings,
 } from "./render/selectionRings";
-import { defineMovementComponents, spawnUnit } from "./sim/components";
+import {
+  defineSimComponents,
+  spawnResourceNode,
+  spawnUnit,
+  WORK_SLOTS_PER_NODE,
+} from "./sim/components";
+import { PLAYER_ONE } from "./sim/core/stockpile";
+import {
+  createDropOffPoint,
+  createPlayerStockpile,
+  stockpileSnapshot,
+} from "./sim/core/stockpile";
 import {
   TICK_DT_MS,
   createWorld,
   registerSystem,
   step,
 } from "./sim/core/world";
+import { scatterResourceNodes } from "./sim/mapgen/resources";
 import { captureSimSnapshot, type SimSnapshotFrame } from "./sim/mirror";
 import { createWorkerTransport, PathScheduler } from "./sim/path/scheduler";
+import { createGatherSystem } from "./sim/systems/gather";
 import { createMovementSystem } from "./sim/systems/movement";
 import { createPathWorkerFactory } from "./game/paths";
 import { RtsCamera } from "./render/camera";
@@ -59,7 +72,7 @@ import {
 import { buildTerrainMesh, terrainHeightAt } from "./render/terrain";
 import { createUnitSpriteLayer } from "./render/unitSprites";
 import { wireControlGroups } from "./ui/controlGroups";
-import { createTopbar } from "./ui/hud";
+import { createTopbar, formatStockpileLine } from "./ui/hud";
 import { MINIMAP_REDRAW_MS, createMinimap } from "./ui/minimap";
 import { wireOrderInput } from "./ui/orders";
 import {
@@ -88,8 +101,9 @@ const scheduler = new PathScheduler(
   createWorkerTransport(createPathWorkerFactory()),
 );
 const world = createWorld(DEV_SEED, { pathScheduler: scheduler });
-const comps = defineMovementComponents(world);
+const comps = defineSimComponents(world);
 registerSystem(world, createMovementSystem(comps, scheduler));
+registerSystem(world, createGatherSystem(comps, scheduler));
 
 /**
  * Passable tiles nearest the map center, ascending by distance — dev
@@ -113,6 +127,39 @@ function centralPassableTiles(count: number): { x: number; y: number }[] {
 
 for (const spot of centralPassableTiles(DEV_UNIT_COUNT)) {
   spawnUnit(world, comps, spot.x, spot.y);
+}
+
+// ---- Economy world (M1-T9) ---------------------------------------------------
+// One player stockpile + a central drop-off point + scattered gatherables
+// around the dev spawn, so right-click-on-node gather loops work out of
+// the box. Deterministic: node placement is a pure function of the seed.
+
+const centerSpot = centralPassableTiles(1)[0]!;
+createPlayerStockpile(world, comps, PLAYER_ONE);
+createDropOffPoint(world, comps, centerSpot.x, centerSpot.y, PLAYER_ONE);
+
+/** Keep the demo's nodes within a walkable radius of the dev spawn. */
+const DEV_NODE_RING_RADIUS = 26;
+const scattered = scatterResourceNodes(world.layers, DEV_SEED ^ 0x9e3779b9, {
+  count: 64,
+})
+  .filter(
+    (node) =>
+      (node.tileX + 0.5 - centerSpot.x) ** 2 +
+        (node.tileY + 0.5 - centerSpot.y) ** 2 <=
+      DEV_NODE_RING_RADIUS ** 2,
+  )
+  .slice(0, 24);
+for (const node of scattered) {
+  spawnResourceNode(
+    world,
+    comps,
+    node.tileX,
+    node.tileY,
+    node.resourceCode,
+    node.amount,
+    { workSlots: WORK_SLOTS_PER_NODE },
+  );
 }
 
 // ---- Renderer ---------------------------------------------------------------
@@ -226,6 +273,25 @@ wireSelectionInput({
 // Green ring feedback pool + orders log; the marker spawns synchronously
 // inside the right-click handler → visible the same rendered frame.
 const moveMarkers = createRingMarkerPool({ scene, layers: world.layers });
+
+/** Resource-node entity under a world point, for contextual gather orders. */
+const nodeAt = (x: number, y: number): number | undefined => {
+  const tx = Math.floor(x);
+  const ty = Math.floor(y);
+  if (tx < 0 || ty < 0 || tx >= world.layers.size || ty >= world.layers.size) {
+    return undefined;
+  }
+  const nodeRows = world.rowsByComponentId.get(comps.resourceNodeId);
+  if (!nodeRows) return undefined;
+  for (const [eid, row] of nodeRows) {
+    if ((row[1] ?? 0) <= 0) continue; // depleted nodes are not targets
+    const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+    if (!pos) continue;
+    if (Math.floor(pos[0]!) === tx && Math.floor(pos[1]!) === ty) return eid;
+  }
+  return undefined;
+};
+
 wireOrderInput({
   canvas,
   panelRoot: document.body,
@@ -234,6 +300,7 @@ wireOrderInput({
   selection: getSelectedEids,
   currentTick: () => world.tick,
   inbox: world.inbox,
+  nodeAt,
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -351,7 +418,14 @@ function frame(
 
   cameraRig.update(frameMs / 1000);
   updateFps(now);
-  topbar.update(world.tick, fpsText);
+  // Resource topbar polls the live Stockpile rows each frame — the same
+  // rows golden digests hash, so chrome and sim cannot disagree.
+  const stockRow = stockpileSnapshot(world, comps).values().next().value;
+  topbar.update(
+    world.tick,
+    fpsText,
+    formatStockpileLine(stockRow ?? [0, 0, 0, 0]),
+  );
   controlGroups.refreshChips();
   renderer.render(scene, cameraRig.camera);
 

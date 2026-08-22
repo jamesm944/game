@@ -6,9 +6,12 @@
  * from render or input code — commands enqueue whole chains at tick
  * boundaries, which keeps replays bit-reproducible.
  *
- * M1 ships Move and Wait; later tickets append Gather/Return/Build/…
- * behind the same shape. Because the digest recipe hashes numeric
- * component rows, queues serialize to a flat number stream via
+ * M1 ships Move and Wait; M1-T9 appends Gather (work at a slot until
+ * the carry fills or the node depletes) and Deliver (deposit carried
+ * resources at a drop-off point). Both are advanced by the gather
+ * system inside step(); travel legs stay plain Move activities so the
+ * movement system keeps steering them. Because the digest recipe hashes
+ * numeric component rows, queues serialize to a flat number stream via
  * encodeActivities/decodeActivities (kind code, payload length,
  * payload… per activity).
  */
@@ -35,11 +38,39 @@ export interface WaitActivity {
   ticks: number;
 }
 
-export type Activity = MoveActivity | WaitActivity;
+/**
+ * Work the head-of-queue resource node: every `ticksPerUnit` ticks
+ * extract one unit into the worker's inventory, until the carry
+ * capacity fills or the node depletes (the gather system owns both
+ * counters and completes the activity at either boundary).
+ */
+export interface GatherActivity {
+  readonly kind: "gather";
+  /** Ticks of work per extracted resource unit. */
+  ticksPerUnit: number;
+  /** Ticks already spent on the current unit. */
+  elapsedTicks: number;
+}
+
+/**
+ * Deposit the carried load into the owning player's stockpile via the
+ * drop-off entity `dropoffEid`. Becomes meaningful only once the unit
+ * has physically arrived; the gather system executes the deposit event
+ * the tick this activity reaches the queue head.
+ */
+export interface DeliverActivity {
+  readonly kind: "deliver";
+  dropoffEid: number;
+}
+
+export type Activity =
+  MoveActivity | WaitActivity | GatherActivity | DeliverActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
 export const ACTIVITY_KIND_WAIT = 2;
+export const ACTIVITY_KIND_GATHER = 3;
+export const ACTIVITY_KIND_DELIVER = 4;
 
 export type ActivityQueue = Activity[];
 
@@ -90,6 +121,38 @@ export function waitActivity(ticks: number): WaitActivity {
   return { kind: "wait", ticks };
 }
 
+/** Build a Gather activity working `ticksPerUnit` ticks per unit. */
+export function gatherActivity(
+  ticksPerUnit: number,
+  elapsedTicks = 0,
+): GatherActivity {
+  if (!Number.isInteger(ticksPerUnit) || ticksPerUnit <= 0) {
+    throw new Error(
+      `gather ticks per unit must be a positive integer, got ${String(ticksPerUnit)}`,
+    );
+  }
+  if (
+    !Number.isInteger(elapsedTicks) ||
+    elapsedTicks < 0 ||
+    elapsedTicks >= ticksPerUnit
+  ) {
+    throw new Error(
+      `gather elapsed ticks must be an integer in [0, ${String(ticksPerUnit)}), got ${String(elapsedTicks)}`,
+    );
+  }
+  return { kind: "gather", ticksPerUnit, elapsedTicks };
+}
+
+/** Build a Deliver activity targeting the drop-off entity `dropoffEid`. */
+export function deliverActivity(dropoffEid: number): DeliverActivity {
+  if (!Number.isInteger(dropoffEid) || dropoffEid < 1) {
+    throw new Error(
+      `deliver drop-off entity id must be a positive integer, got ${String(dropoffEid)}`,
+    );
+  }
+  return { kind: "deliver", dropoffEid };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -102,8 +165,17 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
         activity.cursor,
         ...activity.waypoints,
       );
-    } else {
+    } else if (activity.kind === "wait") {
       row.push(ACTIVITY_KIND_WAIT, 1, activity.ticks);
+    } else if (activity.kind === "gather") {
+      row.push(
+        ACTIVITY_KIND_GATHER,
+        2,
+        activity.ticksPerUnit,
+        activity.elapsedTicks,
+      );
+    } else {
+      row.push(ACTIVITY_KIND_DELIVER, 1, activity.dropoffEid);
     }
   }
   return row;
@@ -164,6 +236,42 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "wait", ticks: payload[0]! });
+    } else if (kind === ACTIVITY_KIND_GATHER) {
+      if (payloadLength !== 2) {
+        throw new Error(
+          `gather activity ${String(i)} must carry exactly two values`,
+        );
+      }
+      const ticksPerUnit = payload[0]!;
+      const elapsedTicks = payload[1]!;
+      if (!Number.isInteger(ticksPerUnit) || ticksPerUnit <= 0) {
+        throw new Error(
+          `gather activity ${String(i)} has malformed ticks per unit`,
+        );
+      }
+      if (
+        !Number.isInteger(elapsedTicks) ||
+        elapsedTicks < 0 ||
+        elapsedTicks >= ticksPerUnit
+      ) {
+        throw new Error(
+          `gather activity ${String(i)} has out-of-range elapsed ticks`,
+        );
+      }
+      queue.push({ kind: "gather", ticksPerUnit, elapsedTicks });
+    } else if (kind === ACTIVITY_KIND_DELIVER) {
+      if (payloadLength !== 1) {
+        throw new Error(
+          `deliver activity ${String(i)} must carry exactly one value`,
+        );
+      }
+      const dropoffEid = payload[0]!;
+      if (!Number.isInteger(dropoffEid) || dropoffEid < 1) {
+        throw new Error(
+          `deliver activity ${String(i)} has malformed drop-off entity id`,
+        );
+      }
+      queue.push({ kind: "deliver", dropoffEid });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

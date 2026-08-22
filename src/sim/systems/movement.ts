@@ -159,6 +159,35 @@ const V_AVOID_SIDE = 5;
 const V_AVOID_TICKS_LEFT = 6;
 const V_PROPAGATION_PARKED = 7;
 
+/**
+ * Zero every steering-FSM counter for one unit's Velocity row. A fresh
+ * order (groupMove, gather chain) invalidates all prior avoidance/
+ * stall/arrival bookkeeping — shared by every system that rewrites a
+ * unit's activity queue.
+ */
+export function resetSteeringBookkeeping(velRow: number[]): void {
+  velRow[V_STALLED_TICKS] = 0;
+  velRow[V_PARK_CONTACT_TICKS] = 0;
+  velRow[V_CLOSE_TICKS] = 0;
+  velRow[V_PROPAGATION_PARKED] = 0;
+}
+
+/**
+ * True when the steering FSM classifies this unit as jammed: deep in
+ * the stall ladder, sustaining contact with a parked body, or halted
+ * by Parked-contact propagation. Heuristic thresholds sit below the
+ * movement system's own escalation points (sidestep at 45, propagation
+ * at 21) so callers react before recovery churn begins. Consumed by
+ * the gather system's congested-delivery unload.
+ */
+export function isSteeringJammed(velRow: readonly number[]): boolean {
+  return (
+    velRow[V_STALLED_TICKS]! >= 30 ||
+    velRow[V_PARK_CONTACT_TICKS]! >= 15 ||
+    velRow[V_PROPAGATION_PARKED] !== 0
+  );
+}
+
 const T_RADIUS = 2;
 
 interface UnitState {
@@ -460,10 +489,7 @@ function handleGroupMove(
             ?.get(member.eid);
           if (!velRow) continue;
           // A fresh order clears all steering-FSM bookkeeping.
-          velRow[V_STALLED_TICKS] = 0;
-          velRow[V_PARK_CONTACT_TICKS] = 0;
-          velRow[V_CLOSE_TICKS] = 0;
-          velRow[V_PROPAGATION_PARKED] = 0;
+          resetSteeringBookkeeping(velRow);
           // String-pull per member: a clear straight line to the slot skips
           // the leader's route entirely; otherwise reuse the shared centers.
           let waypoints: number[];
@@ -516,13 +542,12 @@ export function createMovementSystem(
     // Continuations registered below fire from inside pump, so fresh
     // paths land here and are consumed immediately by this system.
 
-    // 1) Commands consumed exactly on their target tick boundary.
+    // 1) Commands consumed exactly on their target tick boundary. The
+    // inbox is a SHARED stream: every system sees every drained command,
+    // so each system dispatches on kind and skips foreign orders (the
+    // gather system owns "gather" since M1-T9).
     for (const command of commands) {
-      if (command.kind !== "groupMove") {
-        throw new Error(
-          `movement system cannot handle command kind: ${command.kind}`,
-        );
-      }
+      if (command.kind !== "groupMove") continue;
       if (!command.data) throw new Error("groupMove requires command data");
       handleGroupMove(world, comps, diagnostics, paths, command.data);
     }
@@ -739,13 +764,20 @@ export function createMovementSystem(
       unit.speed = unit.velRow[V_SPEED]!;
       const current = peekActivity(unit.queue);
 
-      if (!current || current.kind === "wait") {
+      if (
+        !current ||
+        current.kind === "wait" ||
+        // Work heads owned by the gather system: standing Parked at the
+        // post is exactly the idle contract below.
+        current.kind === "gather" ||
+        current.kind === "deliver"
+      ) {
         if (current?.kind === "wait") {
           current.ticks -= 1;
           if (current.ticks <= 0) dequeueCurrentActivity(unit.queue);
           unit.queueDirty = true;
         }
-        unit.speed = 0; // idle/waiting units are Parked
+        unit.speed = 0; // idle/waiting/working units are Parked
         continue;
       }
 
