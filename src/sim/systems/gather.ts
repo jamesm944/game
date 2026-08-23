@@ -23,11 +23,17 @@
  * (formation ring 2+) and take freed slots as ascending eid allows.
  *
  * Drop-off choice: cheapest KNOWN drop-off point by exact A* path cost
- * from the worker's tile. Costs cache per (worker-tile, drop-off) pair
- * and invalidate wholesale when the path scheduler's passabilityVersion
- * bumps. A cached cost is bit-identical to a fresh one, so warm vs cold
- * caches cannot change any decision; equal costs tie-break to the lower
- * (ascending-eid) drop-off rank.
+ * from the worker's tile, among those whose filter mask admits the
+ * carried resource (M2-T2 — the per-building `dropoffFilters` lists of
+ * SPEC §2.6 resolved into DropOff rows at completion). A resource no
+ * candidate accepts leaves the carrier idle at the node holding its
+ * cargo, counted in diagnostics; a target that stops accepting between
+ * planning and arrival refuses the deposit event and the worker reroutes
+ * to the next cheapest accepting point. Costs cache per
+ * (worker-tile, drop-off) pair and invalidate wholesale when the path
+ * scheduler's passabilityVersion bumps. A cached cost is bit-identical
+ * to a fresh one, so warm vs cold caches cannot change any decision;
+ * equal costs tie-break to the lower (ascending-eid) drop-off rank.
  *
  * Deposits are deterministic events executed while advancing Deliver
  * activities inside step(), crediting the drop-off owner's stockpile
@@ -63,7 +69,11 @@ import {
   WORK_SLOTS_PER_NODE,
 } from "../components/economy";
 import { clearAssignedSite } from "../components/buildings";
-import { depositIntoStockpile, dropOffOwnerOf } from "../core/stockpile";
+import {
+  depositIntoStockpile,
+  dropOffAccepts,
+  dropOffOwnerOf,
+} from "../core/stockpile";
 import { findPath } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
 import type { SimSystem } from "../core/world";
@@ -132,6 +142,19 @@ export interface GatherDiagnostics {
   depositedByResource: number[];
   /** Deliveries per drop-off point, indexed by ascending-eid rank. */
   deliveriesByDropOff: number[];
+  /**
+   * Deposit attempts refused because the TARGETED point's filter list
+   * rejects the carried resource (M2-T2). Healthy choice-time filtering
+   * keeps this at zero; it rises only when acceptance changed between
+   * planning and arrival — the deposit never happens either way.
+   */
+  rejectedByFilter: number;
+  /**
+   * Ticks workers ended holding cargo because NO known drop-off accepts
+   * their carried resource (M2-T2 idle-with-cargo fallback). One tick
+   * of waiting counts once per blocked worker per tick.
+   */
+  blockedCarryTicks: number;
 }
 
 export function createGatherDiagnostics(): GatherDiagnostics {
@@ -141,6 +164,8 @@ export function createGatherDiagnostics(): GatherDiagnostics {
     extractedByResource: [0, 0, 0, 0, 0, 0, 0],
     depositedByResource: [0, 0, 0, 0, 0, 0, 0],
     deliveriesByDropOff: [],
+    rejectedByFilter: 0,
+    blockedCarryTicks: 0,
   };
 }
 
@@ -155,6 +180,8 @@ interface DropOffInfo {
   readonly eid: number;
   readonly x: number;
   readonly y: number;
+  /** Filter mask: bit k set = gatherable code k may deposit here. */
+  readonly mask: number;
 }
 
 interface GroupedWorker {
@@ -315,8 +342,9 @@ export function createGatherSystem(
     };
 
     /**
-     * Live drop-off points ascending-eid with Position, memoized once
-     * per tick so ranks stay stable across all workers' decisions.
+     * Live drop-off points ascending-eid with Position and filter mask,
+     * memoized once per tick so ranks stay stable across all workers'
+     * decisions.
      */
     const dropOffs = (): DropOffInfo[] => {
       if (dropOffsMemo) return dropOffsMemo;
@@ -325,10 +353,11 @@ export function createGatherSystem(
       const dropRows = world.rowsByComponentId.get(comps.dropoffId);
       if (posRows && dropRows) {
         for (const eid of world.entities) {
-          if (!dropRows.get(eid)) continue;
+          const row = dropRows.get(eid);
+          if (!row) continue;
           const pos = posRows.get(eid);
           if (!pos) continue;
-          out.push({ eid, x: pos[0]!, y: pos[1]! });
+          out.push({ eid, x: pos[0]!, y: pos[1]!, mask: row[1]! });
         }
       }
       dropOffsMemo = out;
@@ -336,13 +365,17 @@ export function createGatherSystem(
     };
 
     /**
-     * Cheapest known drop-off by exact A* cost from the worker's tile.
-     * Strict `<` comparison ties-break toward the lower (ascending-eid)
-     * rank. Returns undefined when none exists or none is reachable.
+     * Cheapest known drop-off ACCEPTING `resourceCode` by exact A* cost
+     * from the worker's tile (M2-T2): candidates whose filter mask
+     * rejects the cargo never enter the cost race at all. Strict `<`
+     * comparison ties-break toward the lower (ascending-eid) rank.
+     * Returns undefined when none exists or none is reachable — the
+     * caller keeps the carrier idle holding its cargo.
      */
     const cheapestDropOff = (
       fromX: number,
       fromY: number,
+      resourceCode: number,
     ): DropOffInfo | undefined => {
       const version = paths?.passabilityVersion ?? 0;
       if (version !== costCache.version) {
@@ -358,11 +391,13 @@ export function createGatherSystem(
         startY = near.y;
       }
       const fromTileIdx = startY * size + startX;
+      const acceptBit = 1 << resourceCode;
       let best: DropOffInfo | undefined;
       let bestCost = Number.POSITIVE_INFINITY;
       const candidates = dropOffs();
       for (let rank = 0; rank < candidates.length; rank++) {
         const candidate = candidates[rank]!;
+        if ((candidate.mask & acceptBit) === 0) continue; // rejects cargo
         let goalX = Math.floor(candidate.x);
         let goalY = Math.floor(candidate.y);
         if (!tileIsPassable(passability, size, goalX, goalY)) {
@@ -563,11 +598,15 @@ export function createGatherSystem(
     /**
      * Execute one Deliver head: deposit the carried load into the
      * drop-off owner's stockpile — a deterministic event inside step().
+     * Returns false when the targeted point's filter list REJECTS the
+     * carried resource (M2-T2): nothing is credited, the caller cancels
+     * the chain and planning reroutes to the next cheapest accepting
+     * point (or idles holding cargo when none exists).
      */
     const executeDeliverHead = (
       worker: ClaimedWorker,
       head: DeliverActivity,
-    ): void => {
+    ): boolean => {
       const owner = dropOffOwnerOf(world, comps, head.dropoffEid);
       if (owner === undefined) {
         throw new Error(
@@ -575,11 +614,20 @@ export function createGatherSystem(
         );
       }
       const inv = getInventory(world, comps, worker.eid);
-      if (inv === undefined || inv.amount <= 0) return;
+      if (inv === undefined || inv.amount <= 0) return true;
+      // Deposit-time filter guard (M2-T2): choice-time filtering makes
+      // this a no-op in healthy runs; it fires only when acceptance
+      // changed between planning and arrival. Either way a rejected
+      // resource is NEVER credited — conservation holds.
+      if (!dropOffAccepts(world, comps, head.dropoffEid, inv.resourceCode)) {
+        diagnostics.rejectedByFilter += 1;
+        return false;
+      }
       depositIntoStockpile(world, comps, owner, inv.resourceCode, inv.amount);
       diagnostics.depositedByResource[inv.resourceCode]! += inv.amount;
       recordDelivery(head.dropoffEid);
       setInventory(world, comps, worker.eid, inv.resourceCode, 0);
+      return true;
     };
 
     /**
@@ -603,11 +651,20 @@ export function createGatherSystem(
         return true;
       }
 
-      // Carry full or node dry → walk cargo to the cheapest drop-off,
-      // aiming at this worker's personal perimeter door.
+      // Carry full or node dry → walk cargo to the cheapest drop-off
+      // that ACCEPTS this resource (M2-T2), aiming at this worker's
+      // personal perimeter door. No accepting candidate → idle here
+      // holding the cargo; every such tick lands in diagnostics.
       if (remaining <= 0 || inv.amount >= capacity) {
-        const target = cheapestDropOff(worker.posX, worker.posY);
-        if (!target) return false; // nothing known/reachable yet; retry
+        const target = cheapestDropOff(
+          worker.posX,
+          worker.posY,
+          inv.resourceCode,
+        );
+        if (!target) {
+          diagnostics.blockedCarryTicks += 1;
+          return false; // nothing known/accepting/reachable yet; retry
+        }
         const door = deliverDoorOf(worker.posX, worker.posY, target);
         enqueueActivity(queue, moveActivity([door.x, door.y]));
         enqueueActivity(queue, deliverActivity(target.eid));
@@ -767,7 +824,13 @@ export function createGatherSystem(
               withinDeliverRange(worker, drop) ||
               jammedNearDropOff(worker, drop)
             ) {
-              executeDeliverHead(worker, next);
+              if (!executeDeliverHead(worker, next)) {
+                // Target stopped accepting mid-flight: drop the chain,
+                // planning reroutes to an accepting point next tick.
+                cancelActivities(queue);
+                dirty = true;
+                continue;
+              }
               cancelActivities(queue);
               dirty = true;
               continue;
@@ -791,7 +854,14 @@ export function createGatherSystem(
             withinDeliverRange(worker, drop) ||
             jammedNearDropOff(worker, drop)
           ) {
-            executeDeliverHead(worker, head);
+            if (!executeDeliverHead(worker, head)) {
+              // Rejected by the filter list (M2-T2): nothing credited;
+              // cancel so auto-repeat planning reroutes to an accepting
+              // drop-off — or idles holding cargo when none exists.
+              cancelActivities(queue);
+              dirty = true;
+              continue; // reroute planning runs through planNextLeg
+            }
             // The chain segment ends here even if the movement system
             // never formally completed the approach leg.
             cancelActivities(queue);

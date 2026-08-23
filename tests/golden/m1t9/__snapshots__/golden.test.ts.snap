@@ -3,123 +3,123 @@
 exports[`golden harness m1t9 > records milestone digests at every 30th tick plus final 1`] = `
 [
   {
-    "digest": "fnv1a64:1e06c3952bbd8b41",
+    "digest": "fnv1a64:9b5f878094ea242d",
     "tick": 30,
   },
   {
-    "digest": "fnv1a64:5f0bbf39b8b50985",
+    "digest": "fnv1a64:6d44ea1f554abba5",
     "tick": 60,
   },
   {
-    "digest": "fnv1a64:240dcc3ee31ac38f",
+    "digest": "fnv1a64:f6413e5725897287",
     "tick": 90,
   },
   {
-    "digest": "fnv1a64:d2953f0c600d2414",
+    "digest": "fnv1a64:60d012854520b03c",
     "tick": 120,
   },
   {
-    "digest": "fnv1a64:c969b5396289b0c0",
+    "digest": "fnv1a64:7c4fb9339e9e0e78",
     "tick": 150,
   },
   {
-    "digest": "fnv1a64:11052de669deb30d",
+    "digest": "fnv1a64:b1ade233c9ce5ba5",
     "tick": 180,
   },
   {
-    "digest": "fnv1a64:b0a96f9c128e26e2",
+    "digest": "fnv1a64:f5ed80e8ecc4c4f6",
     "tick": 210,
   },
   {
-    "digest": "fnv1a64:56bd1437d8c37e32",
+    "digest": "fnv1a64:bf9508647bee151e",
     "tick": 240,
   },
   {
-    "digest": "fnv1a64:507d32a5d4ab0e42",
+    "digest": "fnv1a64:38253d0dafdd84a2",
     "tick": 270,
   },
   {
-    "digest": "fnv1a64:f6448534d1721e4a",
+    "digest": "fnv1a64:96b0ded0f0020dea",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:8e75b7dbd7d59881",
+    "digest": "fnv1a64:2438eaf581749c4d",
     "tick": 330,
   },
   {
-    "digest": "fnv1a64:8dcd706ca11ccc36",
+    "digest": "fnv1a64:cd3d5a814a748942",
     "tick": 360,
   },
   {
-    "digest": "fnv1a64:5fef5ce2c5921a53",
+    "digest": "fnv1a64:62fef1bcf47a713b",
     "tick": 390,
   },
   {
-    "digest": "fnv1a64:0395bb5e05b042de",
+    "digest": "fnv1a64:569c0bdbc9e103b2",
     "tick": 420,
   },
   {
-    "digest": "fnv1a64:000b0cbfd44e46be",
+    "digest": "fnv1a64:adc94576842f395e",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:8476bbbc96a52451",
+    "digest": "fnv1a64:1e27184cf3d5cf4d",
     "tick": 480,
   },
   {
-    "digest": "fnv1a64:7515c04b48a8a7b0",
+    "digest": "fnv1a64:e1610c33a5e7ed90",
     "tick": 510,
   },
   {
-    "digest": "fnv1a64:b55f6d5aa01081b6",
+    "digest": "fnv1a64:ec22a424818a5562",
     "tick": 540,
   },
   {
-    "digest": "fnv1a64:905ef34c0743f5bd",
+    "digest": "fnv1a64:1304584d16862edd",
     "tick": 570,
   },
   {
-    "digest": "fnv1a64:89daeb2e84dbce3c",
+    "digest": "fnv1a64:1b46c3cab59ba610",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:77bb80a16ceed93f",
+    "digest": "fnv1a64:580181d7ddd85463",
     "tick": 630,
   },
   {
-    "digest": "fnv1a64:db8ab102189eb510",
+    "digest": "fnv1a64:1a27ceaeabc6fadc",
     "tick": 660,
   },
   {
-    "digest": "fnv1a64:b0b38d874871619f",
+    "digest": "fnv1a64:e2e7267190957bc3",
     "tick": 690,
   },
   {
-    "digest": "fnv1a64:bca15539c911bf6f",
+    "digest": "fnv1a64:51e255931d682003",
     "tick": 720,
   },
   {
-    "digest": "fnv1a64:47d7d525e0ce06b5",
+    "digest": "fnv1a64:c035f2fe9b2428a9",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:b6feb09a04fcbb66",
+    "digest": "fnv1a64:59cacb59c08f6046",
     "tick": 780,
   },
   {
-    "digest": "fnv1a64:6048ad7b58cf298e",
+    "digest": "fnv1a64:107c22e3c715144a",
     "tick": 810,
   },
   {
-    "digest": "fnv1a64:4b0fc74da55f0d6c",
+    "digest": "fnv1a64:b14876ded647748c",
     "tick": 840,
   },
   {
-    "digest": "fnv1a64:30cc6d637662aeee",
+    "digest": "fnv1a64:94235b4fe33a6286",
     "tick": 870,
   },
   {
-    "digest": "fnv1a64:7c1b7dba163db2f8",
+    "digest": "fnv1a64:a11007f8658aed90",
     "tick": 900,
   },
 ]

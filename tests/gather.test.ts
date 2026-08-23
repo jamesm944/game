@@ -21,6 +21,7 @@ import {
 } from "../src/sim/activities";
 import {
   defineSimComponents,
+  readActivityQueue,
   spawnResourceNode,
   spawnUnit,
   type SimComponents,
@@ -29,7 +30,12 @@ import {
   getAssignedNode,
   getInventory,
   getResourceNodeRow,
+  RESOURCE_CLAY,
+  RESOURCE_COAL,
+  RESOURCE_FOOD,
   RESOURCE_GOLD,
+  RESOURCE_IRON,
+  RESOURCE_STONE,
   RESOURCE_WOOD,
 } from "../src/sim/components/economy";
 import {
@@ -78,7 +84,12 @@ interface WorldSpec {
     amount?: number;
     workSlots?: number;
   }[];
-  readonly dropOffs?: readonly { x: number; y: number }[];
+  readonly dropOffs?: readonly {
+    x: number;
+    y: number;
+    /** Accepted resource codes; omitted = accepts all seven (M2-T2). */
+    accepts?: readonly number[] | undefined;
+  }[];
 }
 
 interface GatherWorld {
@@ -111,7 +122,7 @@ function buildGatherWorld(spec: WorldSpec): GatherWorld {
 
   const stockpileId = createPlayerStockpile(world, comps, PLAYER_ONE);
   const dropOffIds = (spec.dropOffs ?? [{ x: 2.5, y: 2.5 }]).map((d) =>
-    createDropOffPoint(world, comps, d.x, d.y),
+    createDropOffPoint(world, comps, d.x, d.y, PLAYER_ONE, d.accepts),
   );
   const nodeIds = (spec.nodes ?? []).map((n) =>
     spawnResourceNode(
@@ -376,6 +387,177 @@ describe("cheapest known drop-off point", () => {
     expect(open.diagnostics.deliveriesByDropOff[0]!).toBeGreaterThanOrEqual(2);
     // The eastern point is reachable but never wins on cost.
     expect(open.diagnostics.deliveriesByDropOff[1] ?? 0).toBe(0);
+  });
+});
+
+// ---- Drop-off filters (M2-T2) ---------------------------------------------------
+
+describe("drop-off filters: rejection and rerouting", () => {
+  /** Nearest camp rejects iron; the far one accepts it. */
+  function filteredWorld(): GatherWorld {
+    return buildGatherWorld({
+      size: 24,
+      unitSpots: [{ x: 11.5, y: 12.5 }],
+      nodes: [{ tileX: 12, tileY: 12, resource: RESOURCE_IRON, amount: 300 }],
+      dropOffs: [
+        { x: 10.5, y: 10.5, accepts: [RESOURCE_WOOD] },
+        { x: 20.5, y: 20.5, accepts: [RESOURCE_IRON] },
+      ],
+    });
+  }
+
+  it("routes cargo past a nearer rejecting camp to the accepting one", () => {
+    const { world, comps, nodeIds, unitIds, diagnostics, dropOffIds } =
+      filteredWorld();
+    issueGatherAt(world, unitIds, nodeIds[0]!);
+    const ok = runUntil(
+      world,
+      2200,
+      () => stockpileAmountsOf(world, comps, PLAYER_ONE)[RESOURCE_IRON]! >= 10,
+    );
+    expect(ok).toBe(true);
+
+    // Choice-time filtering skipped the nearer wood-only camp entirely.
+    expect(diagnostics.deliveriesByDropOff[0] ?? 0).toBe(0);
+    expect(diagnostics.deliveriesByDropOff[1]!).toBeGreaterThanOrEqual(1);
+    // Nothing was ever refused — the rejecting candidate never won.
+    expect(diagnostics.rejectedByFilter).toBe(0);
+    expect(diagnostics.blockedCarryTicks).toBe(0);
+    // The deposit landed in the player ledger via the accepting camp.
+    expect(stockpileAmountsOf(world, comps, PLAYER_ONE)[RESOURCE_WOOD]).toBe(0);
+    void dropOffIds;
+  });
+
+  it("idles holding cargo with a diagnostic when no camp accepts", () => {
+    const { world, comps, nodeIds, unitIds, diagnostics } = buildGatherWorld({
+      unitSpots: [{ x: 11.5, y: 12.5 }],
+      nodes: [{ tileX: 12, tileY: 12, resource: RESOURCE_CLAY, amount: 300 }],
+      dropOffs: [{ x: 10.5, y: 10.5, accepts: [RESOURCE_WOOD] }],
+    });
+    issueGatherAt(world, unitIds, nodeIds[0]!);
+
+    // Carry fills, then the worker waits idle: no accepting depot exists.
+    const ok = runUntil(world, 1800, () => diagnostics.blockedCarryTicks > 30);
+    expect(ok).toBe(true);
+
+    const inv = getInventory(world, comps, unitIds[0]!)!;
+    expect(inv.resourceCode).toBe(RESOURCE_CLAY);
+    expect(inv.amount).toBe(diagnostics.extractedByResource[RESOURCE_CLAY]);
+    expect(inv.amount).toBeGreaterThan(0);
+    // Conservation without deposits: extracted == still-carried.
+    expect(diagnostics.depositedByResource[RESOURCE_CLAY]).toBe(0);
+    expect(
+      stockpileAmountsOf(world, comps, PLAYER_ONE).every((a) => a === 0),
+    ).toBe(true);
+    // The assignment SURVIVES — the worker keeps its cargo and slot
+    // rather than releasing goods into the void.
+    expect(getAssignedNode(world, comps, unitIds[0]!)).toBeDefined();
+    expect(diagnostics.rejectedByFilter).toBe(0);
+  });
+
+  it("refuses a mid-flight rejected deposit and holds cargo instead", () => {
+    const world1 = buildGatherWorld({
+      unitSpots: [{ x: 11.5, y: 12.5 }],
+      nodes: [{ tileX: 12, tileY: 12, resource: RESOURCE_COAL, amount: 300 }],
+      // Single coal-accepting camp; nothing else takes coal anywhere.
+      dropOffs: [{ x: 10.5, y: 10.5, accepts: [RESOURCE_COAL] }],
+    });
+    const { world, comps, nodeIds, unitIds, diagnostics, dropOffIds } = world1;
+    issueGatherAt(world, unitIds, nodeIds[0]!);
+
+    // Wait for the carry to fill AND the delivery leg toward the camp
+    // to be planned, then revoke that camp's coal acceptance mid-flight
+    // (as a later combat/destruction phase would).
+    const planned = runUntil(world, 1500, () => {
+      const inv = getInventory(world, comps, unitIds[0]!);
+      if ((inv?.amount ?? 0) < 10) return false;
+      return readActivityQueue(world, comps, unitIds[0]!).some(
+        (head) => head.kind === "deliver",
+      );
+    });
+    expect(planned).toBe(true);
+    world.rowsByComponentId
+      .get(comps.dropoffId)!
+      .set(dropOffIds[0]!, [PLAYER_ONE, 1 << RESOURCE_FOOD]);
+
+    // Arrival now hits the deposit-time guard: no credit, no reroute
+    // target, so the worker ends idle holding its coal.
+    const ok = runUntil(world, 1200, () => diagnostics.rejectedByFilter > 0);
+    expect(ok).toBe(true);
+    runTicks(world, 60); // let the fallback settle into idling
+
+    expect(diagnostics.depositedByResource[RESOURCE_COAL]).toBe(0);
+    expect(stockpileAmountsOf(world, comps, PLAYER_ONE)[RESOURCE_COAL]).toBe(0);
+    const inv = getInventory(world, comps, unitIds[0]!)!;
+    expect(inv.amount).toBe(diagnostics.extractedByResource[RESOURCE_COAL]);
+    expect(diagnostics.blockedCarryTicks).toBeGreaterThan(0);
+  });
+});
+
+// ---- Seven-resource conservation (M2-T2) -----------------------------------------
+
+describe("conservation across all seven gatherables (M2-T2)", () => {
+  it("closes every per-resource ledger through one accept-all depot", () => {
+    const NODE_TILES: readonly (readonly [number, number])[] = [
+      [8, 8],
+      [16, 8],
+      [8, 16],
+      [16, 16],
+      [12, 6],
+      [6, 12],
+      [18, 14],
+    ];
+    const CODES = [
+      RESOURCE_FOOD,
+      RESOURCE_WOOD,
+      RESOURCE_GOLD,
+      RESOURCE_STONE,
+      RESOURCE_IRON,
+      RESOURCE_COAL,
+      RESOURCE_CLAY,
+    ];
+    const { world, comps, nodeIds, unitIds, diagnostics } = buildGatherWorld({
+      size: 24,
+      // One worker per node tile, standing on its west work slot.
+      unitSpots: NODE_TILES.map(([tx, ty]) => ({ x: tx - 0.5, y: ty + 0.5 })),
+      nodes: NODE_TILES.map(([tileX, tileY], i) => ({
+        tileX,
+        tileY,
+        resource: CODES[i]!,
+        amount: 37, // odd amount forces a partial final carry
+      })),
+      dropOffs: [{ x: 12.5, y: 11.5 }], // accepts all seven by default
+    });
+
+    // Each villager works its own resource; orders land on one tick.
+    unitIds.forEach((eid, i) => issueGatherAt(world, [eid], nodeIds[i]!));
+
+    const allDone = () =>
+      CODES.every((_, i) => {
+        const inv = getInventory(world, comps, unitIds[i]!);
+        return (
+          getAssignedNode(world, comps, unitIds[i]!) === undefined &&
+          (inv?.amount ?? 0) === 0
+        );
+      });
+    // 37 units ≈ 4 carry cycles + walks; a generous window absorbs the
+    // congestion around the shared depot.
+    const ok = runUntil(world, 6000, allDone);
+    expect(ok).toBe(true);
+
+    for (const code of CODES) {
+      const extracted = diagnostics.extractedByResource[code]!;
+      const deposited = diagnostics.depositedByResource[code]!;
+      expect(extracted, `resource ${String(code)} extracted`).toBe(37);
+      expect(deposited, `resource ${String(code)} deposited`).toBeGreaterThan(
+        0,
+      );
+      expect(extracted).toBe(deposited);
+      expect(stockpileAmountsOf(world, comps, PLAYER_ONE)[code]).toBe(
+        deposited,
+      );
+    }
+    expect(diagnostics.rejectedByFilter).toBe(0);
   });
 });
 

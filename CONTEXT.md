@@ -44,7 +44,7 @@ The building where Children spend childhood gaining traits and early skills befo
 ### Economy
 
 **Resource**:
-A gatherable raw material. Base four: Food, Wood, Gold, Stone — plus the expanded set decided in tickets (iron, coal, clay class).
+A gatherable raw material. The seven §2.6 gatherables live since M2-T2: Food, Wood, Gold, Stone plus Iron, Coal, Clay.
 _Avoid_: Material, currency
 
 **Carry capacity**:
@@ -52,7 +52,7 @@ The maximum amount of one Resource a Pop holds before depositing at a Drop-off p
 _Avoid_: Load, inventory
 
 **Drop-off point**:
-A building where a Pop deposits carried Resources into the stockpile.
+A building where a Pop deposits carried Resources into the stockpile. Each declares an acceptance filter list (`dropoffFilters`); carriers route to the cheapest ACCEPTING point and a rejected resource is never credited (M2-T2).
 _Avoid_: Depot
 
 **Commodity**:

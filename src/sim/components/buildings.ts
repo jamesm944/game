@@ -37,6 +37,8 @@ import {
   buildingDefOf,
   buildingIdOfCode,
 } from "../../data/definitions";
+import { RESOURCE_SLUGS } from "../../data/schema";
+import { acceptedResourceMask } from "../core/stockpile";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
 
 export const ASSIGNED_SITE = "AssignedSite" as const;
@@ -216,7 +218,25 @@ export function completeBuilding(
     def.hp,
   ]);
   if (def.dropoffFilters.length > 0) {
-    requireRows(world, comps.dropoffId).set(siteEid, [playerId]);
+    // M2-T2: the definition's filter list resolves into the DropOff row
+    // mask at completion — the gather system filters candidates by the
+    // ROW (never by re-reading definitions), so acceptance is digest-
+    // visible state that reroutes gatherers from the next tick.
+    const codes = def.dropoffFilters.map((slug) => {
+      const code = RESOURCE_SLUGS.indexOf(
+        slug as (typeof RESOURCE_SLUGS)[number],
+      );
+      if (code < 0) {
+        throw new Error(
+          `building ${def.id}: unknown dropoffFilters slug ${JSON.stringify(slug)}`,
+        );
+      }
+      return code;
+    });
+    requireRows(world, comps.dropoffId).set(siteEid, [
+      playerId,
+      acceptedResourceMask(codes),
+    ]);
   }
   return { eid: siteEid, playerId, defId: def.id };
 }

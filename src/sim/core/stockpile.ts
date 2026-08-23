@@ -1,10 +1,18 @@
 /**
- * Per-player stockpile ledger — SPEC §2.6 / M1-T9.
+ * Per-player stockpile ledger — SPEC §2.6 / M1-T9, drop-off filters
+ * M2-T2.
  *
  * Stockpiled amounts live in a `Stockpile` component row, one entity
  * per player, layout `[ownerPlayerId, food, wood, gold, stone, iron,
  * coal, clay]` — amount slot k+1 holds gatherable code k. Self-
  * identifying rows mean no hidden eid↔player registry anywhere.
+ *
+ * Drop-off points carry `[ownerPlayerId, acceptedResourceMask]`: bit k
+ * of the mask set means gatherable code k may deposit here (the
+ * per-building `dropoffFilters` lists of SPEC §2.6, resolved into rows
+ * at completion so the gather system never consults definitions on its
+ * hot path and saves stay self-describing). Stamping a mask keeps the
+ * acceptance decision digest-visible state, not hidden config.
  *
  * Keeping the ledger inside the component store makes it digest-visible
  * for free (SPEC §7): topbar counts and golden digests read the exact
@@ -45,9 +53,30 @@ function requireComponentRows(
 
 /** Row arity per stockpile component — pinned for digest stability. */
 export const STOCKPILE_COMPONENT_ARITIES: readonly [string, number][] = [
-  [DROP_OFF, 1],
+  [DROP_OFF, 2],
   [STOCKPILE, RESOURCE_COUNT + 1],
 ];
+
+/**
+ * Bitmask accepting every active gatherable code (SPEC §2.6, seven
+ * slugs) — the default for raw drop-off points that declare no filter
+ * list.
+ */
+export const ALL_RESOURCES_MASK = (1 << RESOURCE_COUNT) - 1;
+
+/**
+ * Resolve accepted resource codes into a row mask: bit k set = gatherable
+ * code k deposits here. Every code is validated loudly; an empty list
+ * yields a mask that accepts nothing (a legal but useless drop-off).
+ */
+export function acceptedResourceMask(codes: readonly number[]): number {
+  let mask = 0;
+  for (const code of codes) {
+    requireResourceCode(code);
+    mask |= 1 << code;
+  }
+  return mask;
+}
 
 export interface StockpileComponents {
   readonly dropoffId: number;
@@ -116,6 +145,9 @@ export function createPlayerStockpile(
 /**
  * Spawn one drop-off point owned by `playerId`. Its Position row gives
  * travel legs their target; workers deposit into the owner's pool.
+ * `acceptedCodes` restricts which gatherable slugs may deposit here
+ * (SPEC §2.6 filter lists); omitting it accepts every active resource —
+ * the raw M1-style depot behavior.
  */
 export function createDropOffPoint(
   world: World,
@@ -123,6 +155,7 @@ export function createDropOffPoint(
   x: number,
   y: number,
   playerId: number = PLAYER_ONE,
+  acceptedCodes?: readonly number[] | undefined,
 ): number {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     throw new Error(
@@ -131,7 +164,12 @@ export function createDropOffPoint(
   }
   const eid = spawnEntity(world);
   requireComponentRows(world, comps.positionId).set(eid, [x, y]);
-  requireComponentRows(world, comps.dropoffId).set(eid, [playerId]);
+  requireComponentRows(world, comps.dropoffId).set(eid, [
+    playerId,
+    acceptedCodes === undefined
+      ? ALL_RESOURCES_MASK
+      : acceptedResourceMask(acceptedCodes),
+  ]);
   return eid;
 }
 
@@ -143,6 +181,24 @@ export function dropOffOwnerOf(
 ): number | undefined {
   const row = requireComponentRows(world, comps.dropoffId).get(dropoffEid);
   return row ? row[0]! : undefined;
+}
+
+/**
+ * True when the drop-off entity exists AND its filter mask admits
+ * `resourceCode`. The gather system consults this both when CHOOSING a
+ * deposit target (cheapest accepting point) and again at the deposit
+ * event itself, so a rejected resource is never credited.
+ */
+export function dropOffAccepts(
+  world: World,
+  comps: Pick<StockpileComponents, "dropoffId">,
+  dropoffEid: number,
+  resourceCode: number,
+): boolean {
+  const row = requireComponentRows(world, comps.dropoffId).get(dropoffEid);
+  if (!row) return false;
+  requireResourceCode(resourceCode);
+  return (row[1]! & (1 << resourceCode)) !== 0;
 }
 
 /** Credit `amount` of one resource to the owning player's stockpile. */

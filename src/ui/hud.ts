@@ -1,11 +1,13 @@
 /**
- * Topbar — SPEC §2.13/§2.6 (M1-T8 chrome, M1-T9 resource readout).
+ * Topbar — SPEC §2.13/§2.6 (M1-T8 chrome, M1-T9 resource readout,
+ * M2-T2 full gatherable set).
  *
  * Line 1: seed · tick · fps. Line 2: live stockpile counts per
- * gatherable resource (food · wood · gold · stone), polled from the
- * sim snapshot each rendered frame. The numbers come straight from the
- * Stockpile component rows — the exact rows golden digests hash — so
- * the topbar cannot drift from the simulation.
+ * gatherable resource — all SEVEN §2.6 slugs (food · wood · gold ·
+ * stone · iron · coal · clay) — polled from the sim snapshot each
+ * rendered frame. The numbers come straight from the Stockpile
+ * component rows — the exact rows golden digests hash — so the topbar
+ * cannot drift from the simulation.
  */
 
 import { RESOURCE_NAMES } from "../sim/components/economy";
@@ -43,8 +45,10 @@ export function createTopbar(seed: number): TopbarHandle {
 }
 
 /**
- * Format a stockpile snapshot row as the canonical topbar line,
- * e.g. `food 12 · wood 340 · gold 0 · stone 0`.
+ * Format a stockpile snapshot row as the canonical topbar line over all
+ * seven §2.6 gatherables, e.g. `food 12 · wood 340 · gold 0 · stone 0 ·
+ * iron 5 · coal 3 · clay 8`. Missing/short rows render their zeros —
+ * pass `[]` for the pre-stockpile default line.
  */
 export function formatStockpileLine(amounts: readonly number[]): string {
   const parts: string[] = [];

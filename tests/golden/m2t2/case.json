@@ -1,0 +1,64 @@
+{
+  "name": "m2t2",
+  "description": "Mixed-economy filter fixture on the pinned seed-20260823 map: a lumber camp (wood only), a mining camp (gold/stone/iron/coal/clay) and a mill (food only) are stamped from their definition dropoffFilters; six villagers gather wood/food/gold/iron/clay and every delivery must land at a camp whose filter admits its cargo — wrong-resource deposits are structurally impossible, so the seven-slug ledger closing with all three camps receiving deliveries proves the routing end-to-end. Milestone digests every 30th tick plus final; doubles as the determinism canary.",
+  "seed": 20260823,
+  "size": 32,
+  "ticks": 1800,
+  "milestoneEvery": 30,
+  "stockpile": {
+    "food": 400,
+    "wood": 600,
+    "gold": 150,
+    "stone": 100,
+    "iron": 40,
+    "coal": 30,
+    "clay": 20
+  },
+  "spawns": [
+    { "eid": 1, "x": 21.5, "y": 5.5 },
+    { "eid": 2, "x": 22.5, "y": 5.5 },
+    { "eid": 3, "x": 23.5, "y": 5.5 },
+    { "eid": 4, "x": 21.5, "y": 6.5 },
+    { "eid": 5, "x": 22.5, "y": 6.5 },
+    { "eid": 6, "x": 23.5, "y": 6.5 }
+  ],
+  "buildings": [
+    { "eid": 8, "defId": "lumber-camp", "tileX": 20, "tileY": 3 },
+    { "eid": 9, "defId": "mining-camp", "tileX": 24, "tileY": 3 },
+    { "eid": 10, "defId": "mill", "tileX": 20, "tileY": 7 }
+  ],
+  "nodes": [
+    { "eid": 11, "tileX": 18, "tileY": 3, "resource": "wood", "amount": 300 },
+    { "eid": 12, "tileX": 22, "tileY": 8, "resource": "food", "amount": 80 },
+    { "eid": 13, "tileX": 27, "tileY": 3, "resource": "gold", "amount": 80 },
+    { "eid": 14, "tileX": 27, "tileY": 5, "resource": "iron", "amount": 80 },
+    { "eid": 15, "tileX": 27, "tileY": 7, "resource": "clay", "amount": 80 }
+  ],
+  "commands": [
+    {
+      "kind": "gather",
+      "targetTick": 2,
+      "data": { "entityIds": [1, 2], "nodeId": 11 }
+    },
+    {
+      "kind": "gather",
+      "targetTick": 3,
+      "data": { "entityIds": [3], "nodeId": 12 }
+    },
+    {
+      "kind": "gather",
+      "targetTick": 4,
+      "data": { "entityIds": [4], "nodeId": 13 }
+    },
+    {
+      "kind": "gather",
+      "targetTick": 5,
+      "data": { "entityIds": [5], "nodeId": 14 }
+    },
+    {
+      "kind": "gather",
+      "targetTick": 6,
+      "data": { "entityIds": [6], "nodeId": 15 }
+    }
+  ]
+}

@@ -695,7 +695,9 @@ function frame(
   topbar.update(
     world.tick,
     fpsText,
-    `${formatStockpileLine(stockRow ?? [0, 0, 0, 0])} · ${popLine}`,
+    // Missing row (no stockpile entity yet) still renders the full
+    // seven-slug zero line — formatStockpileLine fills missing codes.
+    `${formatStockpileLine(stockRow ?? [])} · ${popLine}`,
   );
   controlGroups.refreshChips();
   buildMenu.refresh();
