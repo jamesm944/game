@@ -1,12 +1,13 @@
 /**
- * Topbar formatting — M2-T2 (SPEC §2.6).
+ * Topbar formatting — M2-T2 (SPEC §2.6), age badge M2-T4 (§2.11).
  *
  * The resource line must render ALL SEVEN gatherable slugs in canonical
- * code order, straight off the Stockpile rows the digests hash. Pure
- * string formatting — no DOM here (the seam stays unbroken).
+ * code order, straight off the Stockpile rows the digests hash. The
+ * age badge renders the roman-rank icon-text for the current ladder
+ * rung. Pure string formatting — no DOM here (the seam stays unbroken).
  */
 import { describe, expect, it } from "vitest";
-import { formatStockpileLine } from "../src/ui/hud";
+import { formatAgeBadge, formatStockpileLine } from "../src/ui/hud";
 import { RESOURCE_NAMES } from "../src/sim/components/economy";
 
 describe("topbar stockpile line (M2-T2)", () => {
@@ -28,5 +29,18 @@ describe("topbar stockpile line (M2-T2)", () => {
     expect(formatStockpileLine([1, 2, 3, 4])).toBe(
       "food 1 · wood 2 · gold 3 · stone 4 · iron 0 · coal 0 · clay 0",
     );
+  });
+});
+
+describe("topbar age badge (M2-T4)", () => {
+  it("renders the roman-rank icon-text for every ladder rung", () => {
+    expect(formatAgeBadge(1)).toBe("I · Dark Age");
+    expect(formatAgeBadge(2)).toBe("II · Feudal Age");
+    expect(formatAgeBadge(3)).toBe("III · Castle Age");
+    expect(formatAgeBadge(4)).toBe("IV · Imperial Age");
+  });
+
+  it("treats a missing rank as the dark-age default", () => {
+    expect(formatAgeBadge(undefined)).toBe("I · Dark Age");
   });
 });

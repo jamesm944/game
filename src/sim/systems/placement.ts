@@ -34,8 +34,10 @@ import {
 } from "../components/buildings";
 import type { SimComponents } from "../components";
 import { getResourceNodeRow } from "../components/economy";
-import { buildingDefOf } from "../../data/definitions";
+import { appendGateRejection, GATE_HANDLER_PLACE } from "../components/age";
+import { buildingCodeOf, buildingDefOf } from "../../data/definitions";
 import { canAffordCosts, payCosts } from "./costs";
+import { isDefAgeUnlocked } from "./age";
 import { IMPASSABLE, isWaterTerrain } from "../world/layers";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
@@ -50,7 +52,8 @@ export type PlacementRejection =
   | "water"
   | "blocked-tile"
   | "occupied"
-  | "unexplored";
+  | "unexplored"
+  | "age-gated";
 
 export interface PlacementCheck {
   readonly ok: boolean;
@@ -61,10 +64,21 @@ export interface PlacementCheck {
 export interface PlacementDiagnostics {
   /** placeBuilding commands applied. */
   commandsApplied: number;
+  /** Polite age-gate refusals (digest-visible GateRejected rows). */
+  gateRejections: number;
 }
 
 export function createPlacementDiagnostics(): PlacementDiagnostics {
-  return { commandsApplied: 0 };
+  return { commandsApplied: 0, gateRejections: 0 };
+}
+
+/** Options tuning the shared validity verdict for special callers. */
+export interface ValidatePlacementOptions {
+  /**
+   * Scenario editors and test fixtures stamp finished buildings of ANY
+   * age (bootstrap privilege); gameplay commands never set this.
+   */
+  readonly ignoreAgeGate?: boolean | undefined;
 }
 
 function parsePlaceData(data: Readonly<Record<string, unknown>>): {
@@ -136,6 +150,10 @@ function buildingOverlap(
  * Shared placement-validity function — ONE source of truth consumed by
  * the command handler AND the green/red ghost overlay, so the UI can
  * never offer what the sim would reject. Pure: reads rows/layers only.
+ *
+ * Age gate (SPEC §3): a definition whose ageGate outranks the owner's
+ * current age reports "age-gated" before any geometry — AoE2 greys the
+ * whole building, not just some sites.
  */
 export function validatePlacement(
   world: World,
@@ -144,12 +162,19 @@ export function validatePlacement(
   tileX: number,
   tileY: number,
   playerId: number = 0,
+  options: ValidatePlacementOptions = {},
 ): PlacementCheck {
   let def;
   try {
     def = buildingDefOf(defId);
   } catch {
     return { ok: false, reason: "unknown-def" };
+  }
+  if (
+    !options.ignoreAgeGate &&
+    !isDefAgeUnlocked(world, comps, playerId, def.ageGate)
+  ) {
+    return { ok: false, reason: "age-gated" };
   }
   const rect: FootprintRect = {
     x: tileX,
@@ -235,6 +260,30 @@ function applyPlaceCommand(
   data: Readonly<Record<string, unknown>>,
 ): void {
   const parsed = parsePlaceData(data);
+  // Polite age-gate refusal BEFORE the loud verdicts: gated content can
+  // legitimately reach the sim (laggy clicks, AI probes), so it records
+  // a digest-visible GateRejected row and returns — resources untouched,
+  // no site, world keeps stepping.
+  try {
+    if (
+      !isDefAgeUnlocked(
+        world,
+        comps,
+        parsed.playerId,
+        buildingDefOf(parsed.defId).ageGate,
+      )
+    ) {
+      appendGateRejection(world, comps, parsed.playerId, {
+        tick: world.tick,
+        handler: GATE_HANDLER_PLACE,
+        defCode: buildingCodeOf(parsed.defId),
+      });
+      diagnostics.gateRejections += 1;
+      return;
+    }
+  } catch {
+    // Unknown def: validatePlacement below renders the loud verdict.
+  }
   const check = validatePlacement(
     world,
     comps,
@@ -272,7 +321,8 @@ function applyPlaceCommand(
  * spawn AND immediately complete one building WITHOUT paying costs or
  * advancing construction. Scenario editors and test fixtures use this
  * to stand up a live town-center/house in one call; gameplay commands
- * must go through placeBuilding commands instead.
+ * must go through placeBuilding commands instead. Bootstrap stamps
+ * ignore the age gate (editors may stage any content).
  */
 export function stampFinishedBuilding(
   world: World,
@@ -290,6 +340,7 @@ export function stampFinishedBuilding(
     parsed.tileX,
     parsed.tileY,
     options.playerId ?? 0,
+    { ignoreAgeGate: true },
   );
   if (!check.ok || !check.rect) {
     throw new Error(

@@ -66,6 +66,10 @@ _Avoid_: Crafting rule
 **Farm re-seeding**:
 Rebuilding a depleted Farm for a wood cost so it continues producing Food indefinitely.
 
+**Age**:
+The per-player ladder rung — Dark, Feudal, Castle, Imperial (ranks 1–4). Every Entity definition carries an `ageGate`; content is usable only once the owner's rank reaches it. Advanced by researching age techs at the Town Center (`researchAge`); completions append digest-visible AgeAdvanced events.
+_Avoid_: Era, tier
+
 ### Delegated management
 
 **Workplace**:

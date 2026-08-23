@@ -67,6 +67,7 @@ import {
   ledgerAmountOfSlug,
   stockpileSnapshot,
 } from "./sim/core/stockpile";
+import { createPlayerAgeState } from "./sim/components/age";
 import {
   TICK_DT_MS,
   createWorld,
@@ -78,12 +79,14 @@ import {
   createTrainingDiagnostics,
   createTrainingSystem,
 } from "./sim/systems/training";
+import { createAgeSystem, currentAgeRankOf } from "./sim/systems/age";
 import {
   canAfford,
   createPlacementSystem,
   stampFinishedBuilding,
   validatePlacement,
 } from "./sim/systems/placement";
+import { isDefAgeUnlocked } from "./sim/systems/age";
 import {
   createConstructionSystem,
   WORK_MILLI_SCALE,
@@ -119,6 +122,7 @@ import {
 import { createBuildingPanel } from "./ui/buildingPanel";
 import { wireControlGroups } from "./ui/controlGroups";
 import { createTopbar, formatStockpileLine } from "./ui/hud";
+import { createToastHost } from "./ui/toast";
 import { MINIMAP_REDRAW_MS, createMinimap } from "./ui/minimap";
 import { wireOrderInput } from "./ui/orders";
 import {
@@ -158,6 +162,7 @@ registerSystem(world, createPlacementSystem(comps));
 registerSystem(world, createConstructionSystem(comps));
 registerSystem(world, createTrainingSystem(comps, createTrainingDiagnostics()));
 registerSystem(world, createProductionSystem(comps));
+registerSystem(world, createAgeSystem(comps));
 
 /**
  * Passable tiles nearest the map center, ascending by distance — dev
@@ -188,6 +193,8 @@ function centralPassableTiles(count: number): { x: number; y: number }[] {
 const centerSpot = centralPassableTiles(1)[0]!;
 createPlayerStockpile(world, comps, PLAYER_ONE, [200, 600, 100, 0, 0, 0, 0]);
 createCommodityStockpile(world, comps, PLAYER_ONE);
+// M2-T4: every player starts the ladder at the Dark Age bottom rung.
+createPlayerAgeState(world, comps, PLAYER_ONE);
 /** Stamp the start TC so its 3×3 footprint fits the central passables. */
 stampFinishedBuilding(
   world,
@@ -400,6 +407,13 @@ scene.add(buildGhost.mesh);
 
 const buildMenu = wireBuildMenu({
   canAfford: (defId) => canAfford(world, comps, PLAYER_ONE, defId),
+  ageUnlocked: (defId) => {
+    const def = BUILDING_DEFINITIONS.get(defId);
+    return (
+      def !== undefined &&
+      isDefAgeUnlocked(world, comps, PLAYER_ONE, def.ageGate)
+    );
+  },
   onArm: () => {},
 });
 
@@ -421,6 +435,7 @@ function currentPlacementCheck(): {
   tileX: number;
   tileY: number;
   ok: boolean;
+  reason?: string | undefined;
 } | null {
   const defId = buildMenu.armedDefId();
   if (!defId || lastPointerClientX < 0) return null;
@@ -444,13 +459,29 @@ function currentPlacementCheck(): {
     origin.tileX,
     origin.tileY,
   );
-  return { defId, tileX: origin.tileX, tileY: origin.tileY, ok: check.ok };
+  return {
+    defId,
+    tileX: origin.tileX,
+    tileY: origin.tileY,
+    ok: check.ok,
+    reason: check.reason,
+  };
 }
+
+// Polite same-frame refusal feedback (SPEC §2.13): a click the sim
+// would reject for age shows why, right now.
+const toast = createToastHost();
 
 canvas.addEventListener("click", (event: MouseEvent) => {
   if (event.button !== 0) return;
   const candidate = currentPlacementCheck();
-  if (!candidate || !candidate.ok) return;
+  if (!candidate || !candidate.ok) {
+    if (candidate?.reason === "age-gated") {
+      const def = BUILDING_DEFINITIONS.get(candidate.defId);
+      toast.show(`Requires ${def?.ageGate ?? "next"} age`);
+    }
+    return;
+  }
   issuePlaceBuilding(
     world.inbox,
     world.tick,
@@ -749,6 +780,7 @@ function frame(
     // seven-slug zero line — formatStockpileLine fills missing codes.
     `${formatStockpileLine(stockRow ?? [])} · ${popLine}`,
   );
+  topbar.updateAge(currentAgeRankOf(world, comps, PLAYER_ONE));
   controlGroups.refreshChips();
   buildMenu.refresh();
   buildingPanel.refresh();

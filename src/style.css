@@ -33,6 +33,42 @@ canvas {
   color: #f0d9a0;
 }
 
+/* Current-age badge (M2-T4): roman rank + age name beside the status. */
+#topbar-age {
+  margin-left: 10px;
+  padding: 1px 7px;
+  color: #f0d9a0;
+  border: 1px solid rgb(240 217 160 / 0.4);
+  border-radius: 999px;
+}
+
+/* Polite rejection toast (M2-T4): bottom-center, fades in and out. */
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 132px;
+  transform: translateX(-50%) translateY(6px);
+  z-index: 9;
+  padding: 7px 14px;
+  font:
+    13px/1.4 ui-monospace,
+    monospace;
+  color: #ffd9d9;
+  background: rgb(64 22 26 / 0.92);
+  border: 1px solid rgb(255 120 120 / 0.55);
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+#toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* Box-select marquee (screen space). */
 #marquee {
   position: fixed;
@@ -216,6 +252,12 @@ canvas {
 
 .build-button.unaffordable {
   opacity: 0.45;
+}
+
+/* Age-locked definitions stay visible but clearly not yet buildable;
+   their name carries a "requires <age> age" suffix (M2-T4). */
+.build-button.age-locked {
+  opacity: 0.4;
 }
 
 .build-button:disabled {

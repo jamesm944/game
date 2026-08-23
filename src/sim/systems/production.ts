@@ -22,8 +22,10 @@
  * future relaxed-depth flip needs no system change.
  *
  * techGate/ageGate respect runs through an injectable predicate seam:
- * shipped v1 has no age/tech state to consult yet (M3), so the default
- * unlocks everything and tests pin that a closed gate blocks starts.
+ * the DEFAULT predicate consults the owner's live AgeState row (M2-T4)
+ * so gated recipes stall politely until their age arrives; tests pin a
+ * closed injected gate blocks starts, and pre-M2 worlds with no age
+ * rows keep the everything-unlocked legacy behavior.
  *
  * Meals additionally append digest-visible MealConsumed event rows on
  * completion (SPEC §2.6 morale/work-speed buffs) — the M3 needs system
@@ -78,6 +80,7 @@ import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
 import { rectDistanceSq, approachPoint } from "./construction";
 import { resetSteeringBookkeeping } from "./movement";
+import { isDefAgeUnlocked } from "./age";
 
 /** Command kind owned by this system. */
 export const PRODUCE_KIND = "produce";
@@ -128,7 +131,11 @@ export function createProductionDiagnostics(): ProductionDiagnostics {
   };
 }
 
-/** Unlock seam for techGate/age gates (real predicates arrive with techs). */
+/**
+ * Unlock seam for techGate/age gates. When no predicate is injected,
+ * the system falls back to the owner's live age state (M2-T4): recipes
+ * whose ageGate outranks the owner stall politely until researched up.
+ */
 export interface ProductionGates {
   /** Return false to block cycle STARTS of that recipe. */
   readonly isRecipeUnlocked?: (recipe: RecipeDefinition) => boolean;
@@ -304,7 +311,9 @@ export function createProductionSystem(
       const playerId = row[0]!;
       const recipe = recipeDefOf(recipeIdOfCode(row[1]!));
       const staffed = staffedByBuilding.get(eid) ?? false;
-      const unlocked = gates.isRecipeUnlocked?.(recipe) ?? true;
+      const unlocked =
+        gates.isRecipeUnlocked?.(recipe) ??
+        isDefAgeUnlocked(world, comps, playerId, recipe.ageGate);
 
       // Idle → try starting (also fires on the completion tick right
       // after a finish below, keeping saturated lines on an exact

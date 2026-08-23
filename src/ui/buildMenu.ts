@@ -17,12 +17,25 @@
 import type { CommandInbox, SimCommand } from "../sim/core/inbox";
 import { BUILDING_DEFINITIONS } from "../data/definitions";
 
-/** M1 build-menu order (SPEC demo flow: TC → house → barracks). */
-export const M1_BUILD_MENU_IDS: readonly string[] = [
+/**
+ * Build-menu order: the M1 demo flow first, then the feudal-age
+ * military/support set (M2). Age-gated entries render locked until the
+ * player's current age clears each definition's ageGate.
+ */
+export const BUILD_MENU_IDS: readonly string[] = [
   "town-center",
   "house",
   "barracks",
+  "mill",
+  "farm",
+  "blacksmith",
+  "archery-range",
+  "stable",
+  "watch-tower",
 ];
+
+/** Legacy alias (M1 demo flow prefix of BUILD_MENU_IDS). */
+export const M1_BUILD_MENU_IDS = BUILD_MENU_IDS.slice(0, 3);
 
 /** Issue one authoritative placeBuilding order for `currentTick + 1`. */
 export function issuePlaceBuilding(
@@ -74,6 +87,12 @@ export function snapGhostOrigin(
 export interface BuildMenuDeps {
   /** Live affordability from stockpile rows (per definition id). */
   canAfford(defId: string): boolean;
+  /**
+   * Live age-gate verdict per definition id (M2-T4): false greys the
+   * button with a "Requires …" lock label until the age is reached.
+   * Omitted = everything unlocked (headless/tests).
+   */
+  ageUnlocked?(defId: string): boolean;
   /** Called whenever the armed selection CHANGES (null = disarmed). */
   onArm(defId: string | null): void;
 }
@@ -96,7 +115,7 @@ export function wireBuildMenu(deps: BuildMenuDeps): BuildMenuHandle {
 
   let armed: string | null = null;
 
-  const buttons = M1_BUILD_MENU_IDS.map((defId) => {
+  const buttons = BUILD_MENU_IDS.map((defId) => {
     const def = BUILDING_DEFINITIONS.get(defId);
     if (!def) throw new Error(`build menu references unknown def ${defId}`);
     const button = document.createElement("button");
@@ -122,15 +141,24 @@ export function wireBuildMenu(deps: BuildMenuDeps): BuildMenuHandle {
       paint();
     });
     grid.appendChild(button);
-    return { defId, button };
+    return { defId, button, name };
   });
 
   function paint(): void {
     for (const entry of buttons) {
       const affordable = deps.canAfford(entry.defId);
+      const unlocked = deps.ageUnlocked?.(entry.defId) ?? true;
+      const def = BUILDING_DEFINITIONS.get(entry.defId);
       entry.button.classList.toggle("unaffordable", !affordable);
+      entry.button.classList.toggle("age-locked", !unlocked);
       entry.button.classList.toggle("armed", armed === entry.defId);
-      entry.button.disabled = !affordable && armed !== entry.defId;
+      entry.button.disabled =
+        (!affordable || !unlocked) && armed !== entry.defId;
+      if (!unlocked) {
+        entry.name.textContent = `${def?.name ?? entry.defId} — requires ${def?.ageGate ?? "?"} age`;
+      } else {
+        entry.name.textContent = def?.name ?? entry.defId;
+      }
     }
   }
 

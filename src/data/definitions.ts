@@ -43,6 +43,8 @@ export const UNIT_DEF_CODES = assignCodes(REGISTRY.units);
 export const BUILDING_DEF_CODES = assignCodes(REGISTRY.buildings);
 /** u8 recipe codes (ascending slug) — ProductionCycle rows carry these. */
 export const RECIPE_DEF_CODES = assignCodes(REGISTRY.recipes);
+/** u8 tech codes (ascending slug) — AgeResearch/GateRejected rows carry these. */
+export const TECH_DEF_CODES = assignCodes(REGISTRY.techs);
 
 export function unitDefOf(id: string): UnitDefinition {
   const def = REGISTRY.units.get(id);
@@ -109,6 +111,20 @@ export function recipeIdOfCode(code: number): string {
     if (candidate === code) return id;
   }
   throw new Error(`unknown recipe def code: ${String(code)}`);
+}
+
+export function techCodeOf(id: string): number {
+  const code = TECH_DEF_CODES.get(id);
+  if (code === undefined)
+    throw new Error(`unknown tech definition: ${JSON.stringify(id)}`);
+  return code;
+}
+
+export function techIdOfCode(code: number): string {
+  for (const [id, candidate] of TECH_DEF_CODES) {
+    if (candidate === code) return id;
+  }
+  throw new Error(`unknown tech def code: ${String(code)}`);
 }
 
 /** Recipes of one building ascending by id — cached; content is static. */

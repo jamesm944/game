@@ -33,6 +33,7 @@ import {
   readTrainQueue,
   writeTrainQueue,
 } from "../components/buildings";
+import { appendGateRejection, GATE_HANDLER_TRAIN } from "../components/age";
 import { spawnUnit } from "../components";
 import {
   buildingDefOf,
@@ -41,6 +42,7 @@ import {
   unitDefOf,
   unitIdOfCode,
 } from "../../data/definitions";
+import { isDefAgeUnlocked } from "./age";
 import { payCosts } from "./costs";
 import { PLAYER_ONE } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
@@ -57,10 +59,29 @@ export interface TrainingDiagnostics {
   commandsApplied: number;
   /** Villagers spawned from completed queue heads. */
   unitsTrained: number;
+  /** Polite age-gate refusals (digest-visible GateRejected rows). */
+  gateRejections: number;
 }
 
 export function createTrainingDiagnostics(): TrainingDiagnostics {
-  return { commandsApplied: 0, unitsTrained: 0 };
+  return { commandsApplied: 0, unitsTrained: 0, gateRejections: 0 };
+}
+
+/** Structural slice of the definition's trainQueue config. */
+interface TrainQueueConfig {
+  readonly capacity: number;
+  readonly trainable: readonly { readonly unitId: string }[];
+}
+
+/**
+ * The unit this queue config trains: the villager entry when present
+ * (M1 command-kind intent), else the first listed unit. Shared by the
+ * command handler and the enqueue predicate so both always agree.
+ */
+function trainableUnitIdFor(queueConfig: TrainQueueConfig): string {
+  return queueConfig.trainable.some((entry) => entry.unitId === "villager")
+    ? "villager"
+    : queueConfig.trainable[0]!.unitId;
 }
 
 function parseTrainData(data: Readonly<Record<string, unknown>>): {
@@ -146,19 +167,24 @@ export function findSpawnTile(
 }
 
 /**
- * True when one more queued unit fits under BOTH the queue capacity
- * and the population ceiling — shared by the command handler and the
- * TC panel's disabled state.
+ * True when one more queued unit fits under the queue capacity, the
+ * population ceiling AND the age gate — shared by the command handler
+ * and the TC panel's disabled state.
  */
 export function canEnqueueTraining(
   world: World,
   comps: SimComponents,
   buildingEid: number,
+  playerId: number = PLAYER_ONE,
 ): boolean {
   const row = getBuildingRow(world, comps, buildingEid);
-  if (!row) return false;
+  if (!row || row[0] !== playerId) return false;
   const queueConfig = buildingDefOf(buildingIdOfCode(row[1]!)).trainQueue;
   if (!queueConfig) return false;
+  const unitDef = unitDefOf(trainableUnitIdFor(queueConfig));
+  if (!isDefAgeUnlocked(world, comps, playerId, unitDef.ageGate)) {
+    return false;
+  }
   const queued = readTrainQueue(world, comps, buildingEid).length;
   if (queued >= queueConfig.capacity) return false;
   return populationOf(world, comps) + queued < populationCapOf(world, comps);
@@ -188,12 +214,21 @@ function applyTrainCommand(
   const queueConfig = def.trainQueue!;
   // M1 trains villagers only; membership in the trainable list keeps it
   // data-driven while the command kind pins intent.
-  const unitId = queueConfig.trainable.some(
-    (entry) => entry.unitId === "villager",
-  )
-    ? "villager"
-    : queueConfig.trainable[0]!.unitId;
+  const unitId = trainableUnitIdFor(queueConfig);
   const unitDef = unitDefOf(unitId);
+
+  // Polite age-gate refusal BEFORE escrow: gated content can reach the
+  // sim from laggy clicks or AI probes, so record the digest-visible
+  // GateRejected row and return — no cost, no queue entry.
+  if (!isDefAgeUnlocked(world, comps, target.playerId, unitDef.ageGate)) {
+    appendGateRejection(world, comps, target.playerId, {
+      tick: world.tick,
+      handler: GATE_HANDLER_TRAIN,
+      defCode: unitCodeOf(unitId),
+    });
+    diagnostics.gateRejections += 1;
+    return;
+  }
 
   // Escrow at enqueue (AoE2-faithful); throws when unaffordable.
   payCosts(
