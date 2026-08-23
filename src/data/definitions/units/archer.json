@@ -10,6 +10,8 @@
   "speed": 0.95,
   "carryCapacity": 0,
   "attack": 4,
+  "range": 4,
+  "reloadTicks": 60,
   "armorClasses": ["archer"],
   "attackBonuses": [],
   "sightRadius": 6,

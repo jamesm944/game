@@ -80,6 +80,14 @@ export const ARMOR_CLASSES = [
 ] as const;
 export type ArmorClass = (typeof ARMOR_CLASSES)[number];
 
+/**
+ * Attack reach of default-fisted/melee units in tiles (center-to-center),
+ * and the schema default for `range` (SPEC §2.5 / M2-T5).
+ */
+export const MELEE_RANGE = 0.5;
+/** Schema default for `reloadTicks`: 2 s between strikes at 30 Hz. */
+export const DEFAULT_RELOAD_TICKS = 60;
+
 /** Resource costs keyed by gatherable slug (SPEC §2.6). */
 const costsSchema = z.record(z.string(), z.number().int().nonnegative());
 
@@ -100,6 +108,13 @@ export const unitSchema = z.object({
   speed: z.number().positive(),
   carryCapacity: z.number().int().nonnegative(),
   attack: z.number().int().nonnegative(),
+  /**
+   * Attack reach in tiles (center-to-center). Omitted = melee, striking
+   * from MELEE_RANGE (0.5); ranged content declares its own range.
+   */
+  range: z.number().positive().default(MELEE_RANGE),
+  /** Ticks between strikes; omitted = DEFAULT_RELOAD_TICKS. */
+  reloadTicks: z.number().int().positive().default(DEFAULT_RELOAD_TICKS),
   armorClasses: z.array(z.string()).min(1),
   attackBonuses: z
     .array(z.object({ armorClass: z.string(), mult: z.number().positive() }))

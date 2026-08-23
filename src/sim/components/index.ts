@@ -8,10 +8,11 @@
  * register interleaved via defineSimComponents:
  *
  *   ActivityQueue, AgeAdvanced, AgeResearch, AgeState, AssignedNode,
- *   AssignedSite, Building, BuildingSite, CarryCapacity,
- *   CommodityStockpile, DropOff, GateRejected, Inventory, MealConsumed,
- *   MoveTarget, Position, ProductionCycle, ProductionJob, ResourceNode,
- *   Stockpile, TrainQueue, UnitTag, Velocity
+ *   AssignedSite, Building, BuildingSite, CarryCapacity, Combat,
+ *   CombatEvents, CommodityStockpile, DropOff, GateRejected, Inventory,
+ *   MealConsumed, MoveTarget, Position, ProductionCycle, ProductionJob,
+ *   ResearchedTechs, ResourceNode, Stockpile, TrainQueue, UnitTag,
+ *   Velocity
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -26,7 +27,7 @@
  *   parkedContactTicks, closeArrivalTicks, avoidSide, avoidTicksLeft,
  *   propagationParked] — motion state + steering FSM bookkeeping.
  * Economy/stockpile layouts live beside their modules (economy.ts,
- * core/stockpile.ts).
+ * core/stockpile.ts); combat rows beside theirs (combat.ts).
  */
 
 import {
@@ -50,6 +51,13 @@ import {
   TRAIN_QUEUE,
   type BuildingComponents,
 } from "./buildings";
+import {
+  COMBAT_COMPONENT_ARITIES,
+  COMBAT,
+  COMBAT_EVENTS,
+  RESEARCHED_TECHS,
+  type CombatComponents,
+} from "./combat";
 import {
   ASSIGNED_NODE,
   CARRY_CAPACITY,
@@ -96,6 +104,7 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
   ...AGE_COMPONENT_ARITIES,
   ...BUILDING_COMPONENT_ARITIES,
+  ...COMBAT_COMPONENT_ARITIES,
   ...PRODUCTION_COMPONENT_ARITIES,
 ];
 
@@ -115,6 +124,7 @@ export interface SimComponents
     EconomyComponents,
     StockpileComponents,
     BuildingComponents,
+    CombatComponents,
     ProductionComponents {}
 
 /**
@@ -133,6 +143,8 @@ export function defineSimComponents(world: World): SimComponents {
     buildingId: defineComponent(world, BUILDING),
     buildingSiteId: defineComponent(world, BUILDING_SITE),
     carryCapacityId: defineComponent(world, CARRY_CAPACITY),
+    combatId: defineComponent(world, COMBAT),
+    combatEventsId: defineComponent(world, COMBAT_EVENTS),
     commodityStockpileId: defineComponent(world, COMMODITY_STOCKPILE),
     dropoffId: defineComponent(world, DROP_OFF),
     gateRejectedId: defineComponent(world, GATE_REJECTED),
@@ -142,6 +154,7 @@ export function defineSimComponents(world: World): SimComponents {
     positionId: defineComponent(world, POSITION),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
     productionJobId: defineComponent(world, PRODUCTION_JOB),
+    researchedTechsId: defineComponent(world, RESEARCHED_TECHS),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
     stockpileId: defineComponent(world, STOCKPILE),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
@@ -327,4 +340,5 @@ export const DEFAULT_UNIT_RADIUS = 0.25;
 export * from "./economy";
 export * from "./age";
 export * from "./buildings";
+export * from "./combat";
 export * from "./production";

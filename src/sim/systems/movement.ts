@@ -219,12 +219,19 @@ interface UnitState {
   queueDirty: boolean;
 }
 
-/** A unit can steer only while its head activity is a Move. */
+/** Movement heads the steering layer drives (attackMove rides along). */
+function isMovementHead(activity: Activity | undefined): boolean {
+  return activity !== undefined && isMovementKind(activity.kind);
+}
+
+function isMovementKind(kind: Activity["kind"]): boolean {
+  return kind === "move" || kind === "attackMove";
+}
+
+/** A unit can steer only while its head activity is a movement head. */
 function isSteerable(unit: UnitState): boolean {
   return (
-    unit.queue.length > 0 &&
-    unit.queue[0]!.kind === "move" &&
-    unit.velRow[V_PROPAGATION_PARKED] === 0
+    isMovementHead(unit.queue[0]) && unit.velRow[V_PROPAGATION_PARKED] === 0
   );
 }
 
@@ -630,7 +637,7 @@ export function createMovementSystem(
       diagnostics.repaths += 1;
       const dest = getMoveTarget(world, comps, unit.eid);
       const current = peekActivity(unit.queue);
-      if (!dest || !current || current.kind !== "move") return;
+      if (!dest || !isMovementHead(current)) return;
       const eid = unit.eid;
       const startX = Math.floor(unit.x);
       const startY = Math.floor(unit.y);
@@ -667,7 +674,12 @@ export function createMovementSystem(
             }
             const queue = readActivityQueue(world, comps, eid);
             const head = peekActivity(queue);
-            if (!head || head.kind !== "move") return;
+            if (
+              !head ||
+              !(head.kind === "move" || head.kind === "attackMove")
+            ) {
+              return;
+            }
             if (!response.ok) {
               cancelActivities(queue);
               writeActivityQueue(world, comps, eid, queue);
@@ -770,13 +782,15 @@ export function createMovementSystem(
       unit.speed = unit.velRow[V_SPEED]!;
       const current = peekActivity(unit.queue);
 
+      // Combat heads owned by the combat system: an engaged unit stands
+      // its ground here — out-of-range attackers get a Move approach leg
+      // inserted ahead of the Attack head and steer through that.
       if (
         !current ||
         current.kind === "wait" ||
-        // Work heads owned by the gather system: standing Parked at the
-        // post is exactly the idle contract below.
         current.kind === "gather" ||
-        current.kind === "deliver"
+        current.kind === "deliver" ||
+        current.kind === "attack"
       ) {
         if (current?.kind === "wait") {
           current.ticks -= 1;
@@ -788,7 +802,7 @@ export function createMovementSystem(
       }
 
       if (unit.velRow[V_PROPAGATION_PARKED] !== 0) {
-        // Propagated-Parked keeps its Move activity but halts cleanly.
+        // Propagated-Parked keeps its movement activity but halts cleanly.
         unit.speed = 0;
         continue;
       }
@@ -801,7 +815,7 @@ export function createMovementSystem(
         continue;
       }
 
-      const move = current; // kind === "move"
+      const move = current; // movement head (move | attackMove)
       const waypoints = move.waypoints;
       const baseSpeed = unit.tagRow[0]!;
       const turnRate = unit.tagRow[1]!;
@@ -1060,7 +1074,7 @@ export function createMovementSystem(
       if (ticksLeft > 0) unit.velRow[V_AVOID_TICKS_LEFT] = ticksLeft - 1;
 
       const current = peekActivity(unit.queue);
-      const hasMoveHead = current?.kind === "move";
+      const hasMoveHead = isMovementHead(current);
 
       // Net displacement this tick, smoothed over ~10 ticks and
       // projected onto the steering target direction. A unit counts as

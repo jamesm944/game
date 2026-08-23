@@ -10,10 +10,11 @@
  * the carry fills or the node depletes) and Deliver (deposit carried
  * resources at a drop-off point). Both are advanced by the gather
  * system inside step(); travel legs stay plain Move activities so the
- * movement system keeps steering them. Because the digest recipe hashes
- * numeric component rows, queues serialize to a flat number stream via
- * encodeActivities/decodeActivities (kind code, payload length,
- * payload… per activity).
+ * movement system keeps steering them. M2-T5 adds Attack and
+ * attackMove, advanced by the combat system. Because the digest recipe
+ * hashes numeric component rows, queues serialize to a flat number
+ * stream via encodeActivities/decodeActivities (kind code, payload
+ * length, payload… per activity).
  */
 
 /** Flat waypoint pairs [x0,y0,x1,y1,…] in float tile coordinates. */
@@ -63,14 +64,47 @@ export interface DeliverActivity {
   dropoffEid: number;
 }
 
+/**
+ * Engage `targetEid` in combat (SPEC §2.5 / M2-T5). The combat system
+ * advances this head: while out of range it inserts a Move approach leg
+ * AHEAD of it (movement steers only the head), and once in range it
+ * strikes on the reload cadence. When the target dies the head is
+ * dropped — an attackMove behind it resumes automatically, a paused
+ * gather chain picks its slot back up.
+ */
+export interface AttackActivity {
+  readonly kind: "attack";
+  targetEid: number;
+}
+
+/**
+ * Attack-move: steer exactly like Move (same waypoint/cursor shape) but
+ * flag the march as combat-ready — the combat system scans units whose
+ * head is an attackMove for enemies inside their aggro radius and pauses
+ * the march by inserting an Attack head in front (full acquire/resume
+ * behavior lands with M2-T6).
+ */
+export interface AttackMoveActivity {
+  readonly kind: "attackMove";
+  waypoints: number[];
+  cursor: number;
+}
+
 export type Activity =
-  MoveActivity | WaitActivity | GatherActivity | DeliverActivity;
+  | MoveActivity
+  | WaitActivity
+  | GatherActivity
+  | DeliverActivity
+  | AttackActivity
+  | AttackMoveActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
 export const ACTIVITY_KIND_WAIT = 2;
 export const ACTIVITY_KIND_GATHER = 3;
 export const ACTIVITY_KIND_DELIVER = 4;
+export const ACTIVITY_KIND_ATTACK = 5;
+export const ACTIVITY_KIND_ATTACK_MOVE = 6;
 
 export type ActivityQueue = Activity[];
 
@@ -153,6 +187,28 @@ export function deliverActivity(dropoffEid: number): DeliverActivity {
   return { kind: "deliver", dropoffEid };
 }
 
+/** Build an Attack activity engaging `targetEid`. */
+export function attackActivity(targetEid: number): AttackActivity {
+  if (!Number.isInteger(targetEid) || targetEid < 1) {
+    throw new Error(
+      `attack target entity id must be a positive integer, got ${String(targetEid)}`,
+    );
+  }
+  return { kind: "attack", targetEid };
+}
+
+/** Build an attackMove activity over a copy of the given flat waypoints. */
+export function attackMoveActivity(
+  waypoints: readonly number[],
+): AttackMoveActivity {
+  if (waypoints.length < 2 || waypoints.length % 2 !== 0) {
+    throw new Error(
+      `attackMove activity needs an even number of waypoint coordinates ≥ 2, got ${String(waypoints.length)}`,
+    );
+  }
+  return { kind: "attackMove", waypoints: [...waypoints], cursor: 0 };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -174,8 +230,18 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
         activity.ticksPerUnit,
         activity.elapsedTicks,
       );
-    } else {
+    } else if (activity.kind === "deliver") {
       row.push(ACTIVITY_KIND_DELIVER, 1, activity.dropoffEid);
+    } else if (activity.kind === "attack") {
+      row.push(ACTIVITY_KIND_ATTACK, 1, activity.targetEid);
+    } else {
+      // attackMove shares the move payload shape (cursor + flat pairs).
+      row.push(
+        ACTIVITY_KIND_ATTACK_MOVE,
+        activity.waypoints.length + 1,
+        activity.cursor,
+        ...activity.waypoints,
+      );
     }
   }
   return row;
@@ -213,10 +279,10 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
       }
       payload.push(value);
     }
-    if (kind === ACTIVITY_KIND_MOVE) {
+    if (kind === ACTIVITY_KIND_MOVE || kind === ACTIVITY_KIND_ATTACK_MOVE) {
       if (payloadLength < 3 || (payloadLength - 1) % 2 !== 0) {
         throw new Error(
-          `move activity ${String(i)} has malformed waypoint payload`,
+          `${kind === ACTIVITY_KIND_MOVE ? "move" : "attackMove"} activity ${String(i)} has malformed waypoint payload`,
         );
       }
       const cursor = payload[0]!;
@@ -226,9 +292,15 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         cursor % 2 !== 0 ||
         cursor > payload.length - 3
       ) {
-        throw new Error(`move activity ${String(i)} has out-of-range cursor`);
+        throw new Error(
+          `${kind === ACTIVITY_KIND_MOVE ? "move" : "attackMove"} activity ${String(i)} has out-of-range cursor`,
+        );
       }
-      queue.push({ kind: "move", waypoints: payload.slice(1), cursor });
+      queue.push({
+        kind: kind === ACTIVITY_KIND_MOVE ? "move" : "attackMove",
+        waypoints: payload.slice(1),
+        cursor,
+      });
     } else if (kind === ACTIVITY_KIND_WAIT) {
       if (payloadLength !== 1) {
         throw new Error(
@@ -272,6 +344,19 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "deliver", dropoffEid });
+    } else if (kind === ACTIVITY_KIND_ATTACK) {
+      if (payloadLength !== 1) {
+        throw new Error(
+          `attack activity ${String(i)} must carry exactly one value`,
+        );
+      }
+      const targetEid = payload[0]!;
+      if (!Number.isInteger(targetEid) || targetEid < 1) {
+        throw new Error(
+          `attack activity ${String(i)} has malformed target entity id`,
+        );
+      }
+      queue.push({ kind: "attack", targetEid });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

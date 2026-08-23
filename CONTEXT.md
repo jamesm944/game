@@ -120,6 +120,19 @@ Extra damage vs a specific Armor class, defined in data. Creates the counter tri
 **Counter triangle**:
 Emergent infantry → archer → cavalry → infantry loop (plus siege → buildings).
 
+**Derived stats**:
+Combat numbers (attack, per-class armor, speed, range, reload) computed ON READ from the Entity definition plus researched techs — never stored in a duplicate row. Traits and equipment contribute zero until M3/M2-T6.
+_Avoid_: Stat block, cached stats
+
+**Engagement**:
+The live attacker→target binding held in a unit's Combat row. Broken by death, disengagement validation after foreign orders, or purge when the target dies. Acquired three ways: explicit attack command, auto-retaliation when damaged in range, aggro acquisition while attack-moving.
+
+**Attack-move**:
+A march that watches for enemies inside the unit's sight radius and pauses to fight, resuming automatically once the engagement ends.
+
+**Retaliation**:
+Auto-acquiring your striker as target when damaged inside aggro range; pauses (never cancels) the current job, which resumes after the fight.
+
 **Age advancement**:
 Moving the settlement up Dark → Feudal → Castle → Imperial by paying at an advancing building; gates units, buildings, techs.
 _Avoid_: Era, level up

@@ -34,6 +34,12 @@ export interface World {
   readonly entities: number[];
   /** Completed ticks: after N steps this is exactly N. */
   tick: number;
+  /**
+   * High-water mark of allocated entity ids. Ids ascend strictly and
+   * NEVER return after despawn (M2-T5 death cleanup): reusing a dead id
+   * could silently re-bind stale references elsewhere.
+   */
+  lastAllocatedEid: number;
   /** Systems run each step in registration order, after command drain. */
   readonly systems: SimSystem[];
   /** Row map per registered component, indexed by component id. */
@@ -100,6 +106,7 @@ export function createWorld(
     inbox: new CommandInbox(),
     entities: [],
     tick: 0,
+    lastAllocatedEid: 0,
     systems: [],
     rowsByComponentId: new Map(),
     layers,
@@ -119,12 +126,30 @@ export function defineComponent(world: World, name: string): number {
   return id;
 }
 
-/** Allocate the next stable ascending entity id. */
+/** Allocate the next stable ascending entity id (never reused). */
 export function spawnEntity(world: World): number {
-  const last = world.entities.at(-1);
-  const eid = last === undefined ? 1 : last + 1;
+  const eid = world.lastAllocatedEid + 1;
+  world.lastAllocatedEid = eid;
   world.entities.push(eid);
   return eid;
+}
+
+/**
+ * Remove an entity and EVERY component row attached to it (M2-T5 death
+ * cleanup). Ascending-eid allocation is preserved: the id never returns,
+ * and remaining ids stay sorted. Systems keep their own claim-release
+ * discipline (AssignedNode/Site rows die with their owner here; rows on
+ * OTHER entities referencing the dead — Combat targets, activity
+ * payloads — are cleaned by the owning system's validation passes).
+ */
+export function despawnEntity(world: World, eid: number): boolean {
+  const index = world.entities.indexOf(eid);
+  if (index < 0) return false;
+  world.entities.splice(index, 1);
+  for (const rows of world.rowsByComponentId.values()) {
+    rows.delete(eid);
+  }
+  return true;
 }
 
 function requireRows(world: World, componentId: number): ComponentRows {

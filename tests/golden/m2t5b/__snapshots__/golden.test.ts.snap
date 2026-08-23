@@ -1,0 +1,126 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m2t5b > records milestone digests at every 30th tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:c215b9e47114e156",
+    "tick": 30,
+  },
+  {
+    "digest": "fnv1a64:35fabba1f3e4385d",
+    "tick": 60,
+  },
+  {
+    "digest": "fnv1a64:6046b4cb6edbfa13",
+    "tick": 90,
+  },
+  {
+    "digest": "fnv1a64:c1d0463ae8e53332",
+    "tick": 120,
+  },
+  {
+    "digest": "fnv1a64:4f79741b96603db0",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:7e54fcca97420d3d",
+    "tick": 180,
+  },
+  {
+    "digest": "fnv1a64:ce7f22fb5632def2",
+    "tick": 210,
+  },
+  {
+    "digest": "fnv1a64:335016d20ac07a0c",
+    "tick": 240,
+  },
+  {
+    "digest": "fnv1a64:4c39299ae731d47f",
+    "tick": 270,
+  },
+  {
+    "digest": "fnv1a64:2476101fa56497c3",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:01bacbefa80ae0ea",
+    "tick": 330,
+  },
+  {
+    "digest": "fnv1a64:7edfd47804aca627",
+    "tick": 360,
+  },
+  {
+    "digest": "fnv1a64:00e5524daaf6a7b1",
+    "tick": 390,
+  },
+  {
+    "digest": "fnv1a64:85a0a75f13cdc554",
+    "tick": 420,
+  },
+  {
+    "digest": "fnv1a64:3d111458f58b62e3",
+    "tick": 450,
+  },
+  {
+    "digest": "fnv1a64:51138c7110a44d51",
+    "tick": 480,
+  },
+  {
+    "digest": "fnv1a64:5cba19a873c4bdbb",
+    "tick": 510,
+  },
+  {
+    "digest": "fnv1a64:efd503188b8f32f2",
+    "tick": 540,
+  },
+  {
+    "digest": "fnv1a64:add50d0701f80127",
+    "tick": 570,
+  },
+  {
+    "digest": "fnv1a64:33cacf6fad1581f3",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:242990baef65a10f",
+    "tick": 630,
+  },
+  {
+    "digest": "fnv1a64:023da8b268d81330",
+    "tick": 660,
+  },
+  {
+    "digest": "fnv1a64:3e52273e882952e2",
+    "tick": 690,
+  },
+  {
+    "digest": "fnv1a64:c649ac0ac1bd3bbf",
+    "tick": 720,
+  },
+  {
+    "digest": "fnv1a64:de6c2dbc6a50c7a6",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:fe706c2da9a5d992",
+    "tick": 780,
+  },
+  {
+    "digest": "fnv1a64:f877c6b146e0d3e7",
+    "tick": 810,
+  },
+  {
+    "digest": "fnv1a64:1bb0a7846497be15",
+    "tick": 840,
+  },
+  {
+    "digest": "fnv1a64:845865edef608d68",
+    "tick": 870,
+  },
+  {
+    "digest": "fnv1a64:c28cfa6fcf0ac025",
+    "tick": 900,
+  },
+]
+`;

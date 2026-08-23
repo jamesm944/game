@@ -1,0 +1,26 @@
+{
+  "name": "m2t5a",
+  "description": "Melee duel fixture on an open all-grass field: two player-one militias attack-move across the map against two idle player-two militias holding mirrored positions north and south. Each marcher acquires its nearest enemy inside aggro (= sight) range, pauses the march with an Attack head, closes to melee range and trades 4-damage blows on the 60-tick reload cadence; each defender auto-retaliates on first blood and keeps fighting until death. Ascending-eid strike order lets both attackers land their tenth (killing) blow before the defenders' ninth retaliation lands, so the duel ends with two corpses, two wounded survivors at 1 hp bar of 4, released engagements and no orphan claims. Milestone digests land every 30th tick plus final; the run doubles as the extended determinism canary.",
+  "seed": 20260823,
+  "size": 32,
+  "ticks": 1500,
+  "milestoneEvery": 30,
+  "spawns": [
+    { "eid": 1, "x": 6.5, "y": 8.5 },
+    { "eid": 2, "x": 6.5, "y": 22.5 },
+    { "eid": 3, "x": 28.5, "y": 8.5 },
+    { "eid": 4, "x": 28.5, "y": 22.5 }
+  ],
+  "commands": [
+    {
+      "kind": "attackMove",
+      "targetTick": 10,
+      "data": { "ids": [1], "x": 27, "y": 8.5 }
+    },
+    {
+      "kind": "attackMove",
+      "targetTick": 10,
+      "data": { "ids": [2], "x": 27, "y": 22.5 }
+    }
+  ]
+}

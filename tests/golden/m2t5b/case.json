@@ -1,0 +1,28 @@
+{
+  "name": "m2t5b",
+  "description": "Death-cleanup fixture on an open all-grass field: three player-one villagers gather wood from a node while a player-two militia is commanded to kill the middle villager. The victim pauses its chop to retaliate (its work-slot claim survives the pause), trades blows on the reload cadence and dies after the militia's seventh strike; the corpse loses every component row, the militia's engagement purges clean, and the surviving pair keeps chopping and depositing through tick 900 with exclusive slot claims and a closed resource ledger. Milestone digests land every 30th tick plus final; the run doubles as the extended determinism canary.",
+  "seed": 20260823,
+  "size": 24,
+  "ticks": 900,
+  "milestoneEvery": 30,
+  "spawns": [
+    { "eid": 1, "x": 11.5, "y": 11.5 },
+    { "eid": 2, "x": 11.5, "y": 12.5 },
+    { "eid": 3, "x": 11.5, "y": 13.5 }
+  ],
+  "node": { "eid": 4, "tileX": 12, "tileY": 12, "amount": 400 },
+  "dropOff": { "x": 8.5, "y": 12.5 },
+  "raider": { "eid": 8, "x": 14.5, "y": 12.5 },
+  "commands": [
+    {
+      "kind": "gather",
+      "targetTick": 2,
+      "data": { "entityIds": [1, 2, 3], "nodeId": 4 }
+    },
+    {
+      "kind": "attack",
+      "targetTick": 5,
+      "data": { "attackerIds": [8], "targetId": 2 }
+    }
+  ]
+}
