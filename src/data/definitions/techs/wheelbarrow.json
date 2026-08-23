@@ -1,0 +1,23 @@
+{
+  "id": "wheelbarrow",
+  "name": "Wheelbarrow",
+  "kind": "tech",
+  "costs": { "food": 175, "wood": 50 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 1800,
+  "effects": [
+    {
+      "target": "unit:villager",
+      "stat": "speed",
+      "op": "mult",
+      "value": 1.1
+    },
+    {
+      "target": "unit:villager",
+      "stat": "carryCapacity",
+      "op": "mult",
+      "value": 1.25
+    }
+  ]
+}

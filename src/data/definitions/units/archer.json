@@ -1,0 +1,17 @@
+{
+  "id": "archer",
+  "name": "Archer",
+  "kind": "unit",
+  "costs": { "wood": 25, "gold": 45 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "trainTime": 810,
+  "hp": 30,
+  "speed": 0.95,
+  "carryCapacity": 0,
+  "attack": 4,
+  "armorClasses": ["archer"],
+  "attackBonuses": [],
+  "sightRadius": 6,
+  "equipmentSlots": ["weapon", "armor"]
+}

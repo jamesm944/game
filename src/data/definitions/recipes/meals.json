@@ -1,0 +1,12 @@
+{
+  "id": "meals",
+  "name": "Meals",
+  "kind": "recipe",
+  "costs": {},
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildingId": "kitchen",
+  "inputs": [{ "defId": "food", "qty": 3 }],
+  "output": { "defId": "meals", "qty": 1 },
+  "ticks": 300
+}

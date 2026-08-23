@@ -2,9 +2,9 @@
  * Per-player stockpile ledger — SPEC §2.6 / M1-T9.
  *
  * Stockpiled amounts live in a `Stockpile` component row, one entity
- * per player, layout `[ownerPlayerId, food, wood, gold, stone]` —
- * amount slot k+1 holds gatherable code k. Self-identifying rows mean
- * no hidden eid↔player registry anywhere.
+ * per player, layout `[ownerPlayerId, food, wood, gold, stone, iron,
+ * coal, clay]` — amount slot k+1 holds gatherable code k. Self-
+ * identifying rows mean no hidden eid↔player registry anywhere.
  *
  * Keeping the ledger inside the component store makes it digest-visible
  * for free (SPEC §7): topbar counts and golden digests read the exact

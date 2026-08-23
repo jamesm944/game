@@ -1,0 +1,11 @@
+{
+  "id": "castle-age",
+  "name": "Castle Age",
+  "kind": "tech",
+  "costs": { "food": 800, "gold": 200 },
+  "ageGate": "feudal",
+  "techPrereqs": ["feudal-age"],
+  "researchTime": 2700,
+  "effects": [],
+  "ageAdvance": 3
+}

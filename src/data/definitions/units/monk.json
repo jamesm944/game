@@ -1,0 +1,17 @@
+{
+  "id": "monk",
+  "name": "Monk",
+  "kind": "unit",
+  "costs": { "gold": 100 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 1500,
+  "hp": 30,
+  "speed": 0.7,
+  "carryCapacity": 0,
+  "attack": 0,
+  "armorClasses": ["monk"],
+  "attackBonuses": [],
+  "sightRadius": 8,
+  "equipmentSlots": []
+}

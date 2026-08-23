@@ -1,0 +1,23 @@
+{
+  "id": "hand-cart",
+  "name": "Hand Cart",
+  "kind": "tech",
+  "costs": { "food": 300, "wood": 200 },
+  "ageGate": "castle",
+  "techPrereqs": ["wheelbarrow"],
+  "researchTime": 2250,
+  "effects": [
+    {
+      "target": "unit:villager",
+      "stat": "speed",
+      "op": "mult",
+      "value": 1.1
+    },
+    {
+      "target": "unit:villager",
+      "stat": "carryCapacity",
+      "op": "mult",
+      "value": 1.5
+    }
+  ]
+}

@@ -178,7 +178,7 @@ function centralPassableTiles(count: number): { x: number; y: number }[] {
 // placement is a pure function of the seed.
 
 const centerSpot = centralPassableTiles(1)[0]!;
-createPlayerStockpile(world, comps, PLAYER_ONE, [200, 600, 100, 0]);
+createPlayerStockpile(world, comps, PLAYER_ONE, [200, 600, 100, 0, 0, 0, 0]);
 /** Stamp the start TC so its 3×3 footprint fits the central passables. */
 stampFinishedBuilding(
   world,

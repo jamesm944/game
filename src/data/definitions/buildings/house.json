@@ -3,7 +3,7 @@
   "name": "House",
   "kind": "building",
   "costs": { "wood": 30 },
-  "ageGate": 1,
+  "ageGate": "dark",
   "techPrereqs": [],
   "buildTime": 750,
   "footprint": { "width": 2, "height": 2 },

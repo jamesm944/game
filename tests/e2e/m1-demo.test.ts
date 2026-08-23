@@ -120,7 +120,12 @@ describe("M1 demo checklist (SPEC §8)", () => {
 
     // Opening capital only: everything below is paid through the real
     // cost paths (escrow at placement / enqueue), never granted mid-run.
-    createPlayerStockpile(world, comps, PLAYER_ONE, [1000, 3000, 0, 0]);
+    createPlayerStockpile(
+      world,
+      comps,
+      PLAYER_ONE,
+      [1000, 3000, 0, 0, 0, 0, 0],
+    );
 
     // ---- Start town: TC near the map center, four villagers ringing it.
     const center = Math.floor((MAP_SIZE - 1) / 2);

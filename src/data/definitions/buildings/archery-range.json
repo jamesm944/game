@@ -1,0 +1,20 @@
+{
+  "id": "archery-range",
+  "name": "Archery Range",
+  "kind": "building",
+  "costs": { "wood": 175 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 1500,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 1200,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 5,
+  "populationCap": 0,
+  "trainQueue": {
+    "capacity": 15,
+    "trainable": [{ "unitId": "archer" }, { "unitId": "skirmisher" }]
+  }
+}

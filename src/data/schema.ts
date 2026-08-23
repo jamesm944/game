@@ -4,19 +4,81 @@
  * Zod schemas are the single source of truth; TS types come from
  * z.infer. Definitions live as JSON under
  * src/data/definitions/{units,buildings,techs,recipes}/ and load with
- * the Factorio three-round discipline: parse all → validate all → fail
- * loudly listing every error. M1-T7 added the schemas; M1-T10 lands
- * the first building content (town-center/house/barracks) plus the
- * villager unit they produce and consume.
+ * the Factorio three-round discipline (see ./load.ts): parse all →
+ * validate all → fail loudly listing EVERY error. M2-T1 grew the M1
+ * stubs into the full kind set: age gates became the dark|feudal|
+ * castle|imperial slug enum, gatherables expanded to the seven §2.6
+ * slugs, armor classes got their §2.5 canonical table, and techs gained
+ * age advances plus mult/add effect descriptors.
  */
 
 import { z } from "zod";
 
 export const KIND = z.enum(["unit", "building", "tech", "recipe"]);
 
-/** Gatherable resource slugs usable in drop-off filters (SPEC §2.6). */
-export const RESOURCE_SLUGS = ["food", "wood", "gold", "stone"] as const;
+/** Age names used by every `ageGate` field (SPEC §3). */
+export const AGES = ["dark", "feudal", "castle", "imperial"] as const;
+export const ageGateSchema = z.enum(AGES);
+export type AgeName = (typeof AGES)[number];
+
+/** Numeric rank per age — how sim code compares gates against progress. */
+export const AGE_RANK: Readonly<Record<AgeName, number>> = {
+  dark: 1,
+  feudal: 2,
+  castle: 3,
+  imperial: 4,
+};
+
+/**
+ * Gatherable resource slugs (SPEC §2.6): the M1 base four plus the M2
+ * Iron/Coal/Clay set. ARRAY ORDER IS THE SIM RESOURCE CODE ORDER —
+ * economy.ts pins codes 0–6 against it, so never reorder.
+ */
+export const RESOURCE_SLUGS = [
+  "food",
+  "wood",
+  "gold",
+  "stone",
+  "iron",
+  "coal",
+  "clay",
+] as const;
 export const resourceSlugSchema = z.enum(RESOURCE_SLUGS);
+
+/**
+ * Depth-1 commodities producible by recipes (SPEC §2.6 table). Recipes
+ * may reference these as INPUTS in the schema, but v1 content blocks
+ * commodity-on-commodity chains (loader round 3 enforces the depth-1
+ * hard rule).
+ */
+export const COMMODITY_SLUGS = [
+  "planks",
+  "bricks",
+  "tools",
+  "weapons",
+  "armor",
+  "meals",
+] as const;
+export const commoditySlugSchema = z.enum(COMMODITY_SLUGS);
+
+/**
+ * Canonical armor classes (SPEC §2.5 counter table): the eight combat
+ * classes plus the two soft tags already carried by content. Attack
+ * bonuses may ONLY reference these ids — loader round 3 checks refs.
+ */
+export const ARMOR_CLASSES = [
+  "infantry",
+  "cavalry",
+  "archer",
+  "siege",
+  "building",
+  "ship",
+  "monastery",
+  "camel",
+  "civilian",
+  "monk",
+] as const;
+export type ArmorClass = (typeof ARMOR_CLASSES)[number];
 
 /** Resource costs keyed by gatherable slug (SPEC §2.6). */
 const costsSchema = z.record(z.string(), z.number().int().nonnegative());
@@ -24,14 +86,14 @@ const costsSchema = z.record(z.string(), z.number().int().nonnegative());
 const commonFields = {
   id: z.string().regex(/^[a-z0-9-]+$/, "stable slug"),
   name: z.string().min(1),
-  kind: KIND,
   costs: costsSchema,
-  ageGate: z.number().int().min(1).max(4),
+  ageGate: ageGateSchema,
   techPrereqs: z.array(z.string()),
 };
 
 export const unitSchema = z.object({
   ...commonFields,
+  kind: z.literal("unit"),
   trainTime: z.number().int().positive(),
   hp: z.number().int().positive(),
   /** Cruise speed in tiles per second. */
@@ -39,15 +101,15 @@ export const unitSchema = z.object({
   carryCapacity: z.number().int().nonnegative(),
   attack: z.number().int().nonnegative(),
   armorClasses: z.array(z.string()).min(1),
-  attackBonuses: z.array(
-    z.object({ armorClass: z.string(), mult: z.number().positive() }),
-  ),
+  attackBonuses: z
+    .array(z.object({ armorClass: z.string(), mult: z.number().positive() }))
+    .default([]),
   sightRadius: z.number().positive(),
   equipmentSlots: z.array(z.string()).default([]),
   /**
    * Banished-style work presentation (SPEC §2.14): activity → baked
    * clip id, e.g. { "gather-wood": "chop", "idle": "idle" }. Optional
-   * until the M2 definitions fill it in.
+   * until the art tickets fill it in.
    */
   activityAnims: z.record(z.string(), z.string()).optional(),
   /** Asset-manifest id of the prop shown in-hand during matching activities. */
@@ -55,6 +117,8 @@ export const unitSchema = z.object({
   /** Asset-manifest id of the visible carried cargo while returning. */
   cargoProp: z.string().optional(),
 });
+
+export type UnitDefinition = z.infer<typeof unitSchema>;
 
 /**
  * Building footprint in whole tiles (SPEC §3): `width × height` tiles
@@ -78,6 +142,7 @@ export const trainQueueSchema = z.object({
 
 export const buildingSchema = z.object({
   ...commonFields,
+  kind: z.literal("building"),
   buildTime: z.number().int().positive(),
   footprint: footprintSchema,
   hp: z.number().int().positive(),
@@ -98,17 +163,48 @@ export const buildingSchema = z.object({
 
 export type BuildingDefinition = z.infer<typeof buildingSchema>;
 
-/** Stat-modifier effect descriptor à la OpenRA conditions (SPEC §3). */
-const techEffectSchema = z.object({
-  target: z.string().min(1),
-  stat: z.string().min(1),
-  mult: z.number().positive(),
-});
+/**
+ * Stat-modifier effect descriptor à la OpenRA conditions (SPEC §3).
+ * Exactly one of `add` (flat delta, integer) or `mult` (strictly
+ * positive multiplier) per effect. Targets follow `<selector>` grammar:
+ * `class:<armorClass>`, `unit:<defId>`, or freeform activity/economy
+ * selectors like `activity:gather-wood` — round 3 validates the typed
+ * prefixes.
+ */
+export const techEffectSchema = z
+  .object({
+    target: z.string().min(1),
+    stat: z.string().min(1),
+    op: z.enum(["add", "mult"]).default("mult"),
+    /** Flat delta when op="add" (integer); multiplier when op="mult" (>0). */
+    value: z.number(),
+  })
+  .superRefine((effect, ctx) => {
+    if (effect.op === "add" && !Number.isInteger(effect.value)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "add effects require an integer value",
+        path: ["value"],
+      });
+    }
+    if (effect.op === "mult" && effect.value <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "mult effects require a strictly positive value",
+        path: ["value"],
+      });
+    }
+  });
+
+export type TechEffect = z.infer<typeof techEffectSchema>;
 
 export const techSchema = z.object({
   ...commonFields,
+  kind: z.literal("tech"),
   researchTime: z.number().int().positive(),
-  effects: z.array(techEffectSchema).min(1),
+  effects: z.array(techEffectSchema).default([]),
+  /** Age techs declare which age rank they grant (2=feudal…4=imperial). */
+  ageAdvance: z.union([z.literal(2), z.literal(3), z.literal(4)]).optional(),
 });
 
 export type TechDefinition = z.infer<typeof techSchema>;
@@ -123,7 +219,7 @@ export const recipeSchema = z.object({
   name: z.string().min(1),
   kind: z.literal("recipe"),
   costs: costsSchema,
-  ageGate: z.number().int().min(1).max(4),
+  ageGate: ageGateSchema,
   techPrereqs: z.array(z.string()),
   buildingId: z.string().min(1),
   inputs: z.array(recipeIO).min(1),
@@ -133,5 +229,3 @@ export const recipeSchema = z.object({
 });
 
 export type RecipeDefinition = z.infer<typeof recipeSchema>;
-
-export type UnitDefinition = z.infer<typeof unitSchema>;

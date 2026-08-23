@@ -27,15 +27,19 @@ export const RESOURCE_NODE = "ResourceNode" as const;
 
 /**
  * Gatherable resource codes — stable u8 enum values baked into rows and
- * fixtures, never reordered (SPEC §2.6 base four; Iron/Coal/Clay join
- * in M2 as 4–6).
+ * fixtures, never reordered. Order mirrors RESOURCE_SLUGS in
+ * data/schema.ts (SPEC §2.6: the base four plus the M2 Iron/Coal/Clay
+ * set as codes 4–6).
  */
 export const RESOURCE_FOOD = 0;
 export const RESOURCE_WOOD = 1;
 export const RESOURCE_GOLD = 2;
 export const RESOURCE_STONE = 3;
-/** Active resource count for M1 (the §2.6 base four). */
-export const RESOURCE_COUNT = 4;
+export const RESOURCE_IRON = 4;
+export const RESOURCE_COAL = 5;
+export const RESOURCE_CLAY = 6;
+/** Active resource count (the full §2.6 gatherable set). */
+export const RESOURCE_COUNT = 7;
 
 /** Human-readable resource names indexed by resource code. */
 export const RESOURCE_NAMES: readonly string[] = [
@@ -43,6 +47,9 @@ export const RESOURCE_NAMES: readonly string[] = [
   "wood",
   "gold",
   "stone",
+  "iron",
+  "coal",
+  "clay",
 ];
 
 export function requireResourceCode(code: number): number {

@@ -52,7 +52,7 @@ function harness(food = 400): Harness {
   });
   const comps = defineSimComponents(world);
   registerSystem(world, createTrainingSystem(comps));
-  createPlayerStockpile(world, comps, PLAYER_ONE, [food, 900, 0, 0]);
+  createPlayerStockpile(world, comps, PLAYER_ONE, [food, 900, 0, 0, 0, 0, 0]);
   return { world, comps };
 }
 

@@ -63,7 +63,8 @@ const RESOURCE_SLUG_TO_CODE: Record<string, number> = {
   gold: 2,
   stone: 3,
 };
-const RESOURCE_COUNT = 4;
+/** M2 gatherable set: Iron/Coal/Clay join as codes 4–6 (SPEC §2.6). */
+const RESOURCE_COUNT = 7;
 
 interface GoldenSpawn {
   readonly eid: number;
@@ -360,14 +361,17 @@ describe("golden harness m1t9", () => {
     expect(run.commandsApplied).toBe(fixture.commands.length);
 
     // Ledger closure per resource: extracted == deposited + still-carried.
+    // Codes 4–6 (iron/coal/clay) have no nodes in this M1 fixture and
+    // stay zero across extracted/deposited/carried alike.
     for (let code = 0; code < RESOURCE_COUNT; code++) {
-      expect(run.extracted[code]).toBe(
-        run.deposited[code]! + run.carried[code]!,
+      expect(run.extracted[code] ?? 0).toBe(
+        (run.deposited[code] ?? 0) + (run.carried[code] ?? 0),
       );
     }
 
     // Node deltas mirror extraction exactly, per resource.
-    for (let code = 0; code < RESOURCE_COUNT; code++) {
+    const nodeCodes = new Set(fixture.nodes.map((node) => node.resourceCode));
+    for (const code of nodeCodes) {
       let delta = 0;
       fixture.nodes.forEach((node, index) => {
         if (node.resourceCode !== code) return;
@@ -376,8 +380,9 @@ describe("golden harness m1t9", () => {
       expect(delta).toBe(run.extracted[code]);
     }
 
-    // All four resources sustain unattended deposit cycles (SPEC §2.6).
-    for (let code = 0; code < RESOURCE_COUNT; code++) {
+    // All four gathered resources sustain unattended deposit cycles
+    // (SPEC §2.6); this fixture places no iron/coal/clay nodes yet.
+    for (const code of nodeCodes) {
       expect(
         run.deposited[code]!,
         `resource ${code} produced no deposits`,

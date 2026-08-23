@@ -1,0 +1,16 @@
+{
+  "id": "mining-camp",
+  "name": "Mining Camp",
+  "kind": "building",
+  "costs": { "wood": 100 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 600,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 550,
+  "workSlots": 0,
+  "dropoffFilters": ["gold", "stone", "iron", "coal", "clay"],
+  "acceptsRoles": [],
+  "sightRadius": 5,
+  "populationCap": 0
+}

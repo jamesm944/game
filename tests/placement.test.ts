@@ -10,6 +10,7 @@
  * losing the unit.
  */
 import { describe, expect, it } from "vitest";
+import { buildingCodeOf } from "../src/data/definitions";
 import {
   defineSimComponents,
   getBuildingSiteRow,
@@ -94,7 +95,12 @@ function harness(rows: readonly string[] = OPEN_16, seed = 424242): Harness {
   const movement = createMovementDiagnostics();
   registerSystem(world, createMovementSystem(comps, paths, movement));
   registerSystem(world, createPlacementSystem(comps));
-  createPlayerStockpile(world, comps, PLAYER_ONE, [500, 1000, 200, 200]);
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_ONE,
+    [500, 1000, 200, 200, 0, 0, 0],
+  );
   return { world, comps, paths, movement };
 }
 
@@ -130,8 +136,13 @@ describe("placement system", () => {
     step(world);
 
     // Stockpile takes eid 1; the site is the next entity.
-    // Row layout [playerId, defCode, progress].
-    expect(getBuildingSiteRow(world, comps, 2)).toEqual([0, 2, 0]);
+    // Row layout [playerId, defCode, progress]; the def code comes from
+    // the registry's ascending-slug assignment (M2 content renumbered).
+    expect(getBuildingSiteRow(world, comps, 2)).toEqual([
+      0,
+      buildingCodeOf("house"),
+      0,
+    ]);
     // Full wood cost left the stockpile at PLACEMENT, not completion.
     expect(stockpileAmountsOf(world, comps, PLAYER_ONE)[1]).toBe(1000 - 30);
     // Every footprint tile is impassable the same tick…

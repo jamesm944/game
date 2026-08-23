@@ -1,0 +1,15 @@
+{
+  "id": "armor",
+  "name": "Armor",
+  "kind": "recipe",
+  "costs": {},
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildingId": "forge",
+  "inputs": [
+    { "defId": "iron", "qty": 2 },
+    { "defId": "gold", "qty": 1 }
+  ],
+  "output": { "defId": "armor", "qty": 1 },
+  "ticks": 600
+}

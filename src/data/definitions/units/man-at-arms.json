@@ -1,0 +1,17 @@
+{
+  "id": "man-at-arms",
+  "name": "Man-at-Arms",
+  "kind": "unit",
+  "costs": { "food": 60, "gold": 20 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "trainTime": 630,
+  "hp": 45,
+  "speed": 0.9,
+  "carryCapacity": 0,
+  "attack": 6,
+  "armorClasses": ["infantry"],
+  "attackBonuses": [],
+  "sightRadius": 5,
+  "equipmentSlots": ["weapon", "armor"]
+}

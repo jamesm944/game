@@ -1,0 +1,17 @@
+{
+  "id": "militia",
+  "name": "Militia",
+  "kind": "unit",
+  "costs": { "food": 60, "gold": 20 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "trainTime": 630,
+  "hp": 40,
+  "speed": 0.9,
+  "carryCapacity": 0,
+  "attack": 4,
+  "armorClasses": ["infantry"],
+  "attackBonuses": [],
+  "sightRadius": 5,
+  "equipmentSlots": ["weapon", "armor"]
+}

@@ -1,0 +1,15 @@
+{
+  "id": "tools",
+  "name": "Tools",
+  "kind": "recipe",
+  "costs": {},
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildingId": "smithy",
+  "inputs": [
+    { "defId": "iron", "qty": 1 },
+    { "defId": "wood", "qty": 1 }
+  ],
+  "output": { "defId": "tools", "qty": 1 },
+  "ticks": 450
+}

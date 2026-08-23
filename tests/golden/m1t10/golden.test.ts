@@ -149,11 +149,16 @@ function loadGoldenCase(): GoldenCase {
   if (!stockpileBox) {
     throw new Error("fixture case.json: stockpile grants are required");
   }
+  // Base four from the fixture plus the M2 Iron/Coal/Clay codes (4–6),
+  // which this dark-age scenario never touches and grants as zero.
   const stockpile = [
     requiredNumber(stockpileBox.food, "stockpile.food"),
     requiredNumber(stockpileBox.wood, "stockpile.wood"),
     requiredNumber(stockpileBox.gold, "stockpile.gold"),
     requiredNumber(stockpileBox.stone, "stockpile.stone"),
+    0,
+    0,
+    0,
   ];
 
   if (!Array.isArray(box.commands)) {
@@ -350,13 +355,15 @@ describe("golden harness m1t10", () => {
 
     // Escrow accounting with zero gather income in this fixture:
     // wood spent 300+30+175+30 = 535; food spent 4×50 = 200 (escrowed
-    // at enqueue, refunds are not part of M1).
-    expect(run.stockpiles).toEqual([400, 165, 100, 0]);
+    // at enqueue, refunds are not part of M1). Codes 4–6 (iron/coal/
+    // clay) stay untouched zeroes.
+    expect(run.stockpiles).toEqual([400, 165, 100, 0, 0, 0, 0]);
 
     // Exactly the fourth queued villager remains in the TC queue: it
     // became head when the third spawned and counted down through the
-    // end of the window (deterministic to the tick).
-    expect(run.tcQueue).toEqual([[1, 79]]);
+    // end of the window (deterministic to the tick). Villager's def
+    // code is 8 under the full M2 unit set (ascending-slug assignment).
+    expect(run.tcQueue).toEqual([[8, 79]]);
   });
 
   it("extended canary: two identical runs agree byte-for-byte", () => {

@@ -1,0 +1,16 @@
+{
+  "id": "blacksmith",
+  "name": "Blacksmith",
+  "kind": "building",
+  "costs": { "wood": 150 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 1200,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 800,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 5,
+  "populationCap": 0
+}

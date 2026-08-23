@@ -1,0 +1,23 @@
+{
+  "id": "scale-mail",
+  "name": "Scale Mail",
+  "kind": "tech",
+  "costs": { "food": 100 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 1800,
+  "effects": [
+    {
+      "target": "class:infantry",
+      "stat": "melee-armor",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:infantry",
+      "stat": "pierce-armor",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

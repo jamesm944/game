@@ -1,0 +1,11 @@
+{
+  "id": "imperial-age",
+  "name": "Imperial Age",
+  "kind": "tech",
+  "costs": { "food": 1000, "gold": 800 },
+  "ageGate": "castle",
+  "techPrereqs": ["castle-age"],
+  "researchTime": 3600,
+  "effects": [],
+  "ageAdvance": 4
+}

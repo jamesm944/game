@@ -3,7 +3,7 @@
   "name": "Town Center",
   "kind": "building",
   "costs": { "wood": 300 },
-  "ageGate": 1,
+  "ageGate": "dark",
   "techPrereqs": [],
   "buildTime": 3000,
   "footprint": { "width": 3, "height": 3 },

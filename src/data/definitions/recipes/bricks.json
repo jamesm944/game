@@ -1,0 +1,15 @@
+{
+  "id": "bricks",
+  "name": "Bricks",
+  "kind": "recipe",
+  "costs": {},
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildingId": "kiln",
+  "inputs": [
+    { "defId": "clay", "qty": 2 },
+    { "defId": "coal", "qty": 1 }
+  ],
+  "output": { "defId": "bricks", "qty": 1 },
+  "ticks": 450
+}

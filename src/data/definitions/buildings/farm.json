@@ -1,0 +1,16 @@
+{
+  "id": "farm",
+  "name": "Farm",
+  "kind": "building",
+  "costs": { "wood": 60 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 450,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 480,
+  "workSlots": 1,
+  "dropoffFilters": [],
+  "acceptsRoles": ["farmer"],
+  "sightRadius": 2,
+  "populationCap": 0
+}

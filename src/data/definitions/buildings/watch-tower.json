@@ -1,0 +1,16 @@
+{
+  "id": "watch-tower",
+  "name": "Watch Tower",
+  "kind": "building",
+  "costs": { "wood": 50, "stone": 50 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 1200,
+  "footprint": { "width": 1, "height": 1 },
+  "hp": 850,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 10,
+  "populationCap": 0
+}

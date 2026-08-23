@@ -1,0 +1,11 @@
+{
+  "id": "feudal-age",
+  "name": "Feudal Age",
+  "kind": "tech",
+  "costs": { "food": 500 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "researchTime": 1800,
+  "effects": [],
+  "ageAdvance": 2
+}

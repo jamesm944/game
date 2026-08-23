@@ -3,7 +3,7 @@
   "name": "Villager",
   "kind": "unit",
   "costs": { "food": 50 },
-  "ageGate": 1,
+  "ageGate": "dark",
   "techPrereqs": [],
   "trainTime": 750,
   "hp": 25,

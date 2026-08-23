@@ -1,0 +1,79 @@
+{
+  "name": "m2t1",
+  "description": "Full-definition boot fixture on the pinned m1t3 seed map: six villagers raise two houses, an Archery Range and a Stable from the seven-slug resource ledger (iron/coal/clay granted and left untouched); once the feudal production buildings complete, the range trains an archer and the stable trains a scout cavalry through the shared trainVillager command path, proving every loaded definition family feeds the sim. Milestone digests every 30th tick plus final; doubles as the determinism canary.",
+  "seed": 424242,
+  "size": 32,
+  "ticks": 3200,
+  "milestoneEvery": 30,
+  "stockpile": {
+    "food": 1200,
+    "wood": 1400,
+    "gold": 400,
+    "stone": 200,
+    "iron": 100,
+    "coal": 50,
+    "clay": 25
+  },
+  "spawns": [
+    { "eid": 1, "x": 6.5, "y": 19.5 },
+    { "eid": 2, "x": 7.5, "y": 19.5 },
+    { "eid": 3, "x": 8.5, "y": 19.5 },
+    { "eid": 4, "x": 6.5, "y": 20.5 },
+    { "eid": 5, "x": 7.5, "y": 20.5 },
+    { "eid": 6, "x": 8.5, "y": 20.5 }
+  ],
+  "nodes": [],
+  "dropOffs": [],
+  "commands": [
+    {
+      "kind": "placeBuilding",
+      "targetTick": 5,
+      "data": { "defId": "house", "tileX": 20, "tileY": 17 }
+    },
+    {
+      "kind": "build",
+      "targetTick": 6,
+      "data": { "entityIds": [5], "siteEid": 8 }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 8,
+      "data": { "defId": "archery-range", "tileX": 13, "tileY": 13 }
+    },
+    {
+      "kind": "build",
+      "targetTick": 9,
+      "data": { "entityIds": [1, 2], "siteEid": 9 }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 11,
+      "data": { "defId": "stable", "tileX": 13, "tileY": 18 }
+    },
+    {
+      "kind": "build",
+      "targetTick": 12,
+      "data": { "entityIds": [3, 4], "siteEid": 10 }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 14,
+      "data": { "defId": "house", "tileX": 18, "tileY": 19 }
+    },
+    {
+      "kind": "build",
+      "targetTick": 15,
+      "data": { "entityIds": [6], "siteEid": 11 }
+    },
+    {
+      "kind": "trainVillager",
+      "targetTick": 1800,
+      "data": { "siteEid": 9 }
+    },
+    {
+      "kind": "trainVillager",
+      "targetTick": 1850,
+      "data": { "siteEid": 10 }
+    }
+  ]
+}

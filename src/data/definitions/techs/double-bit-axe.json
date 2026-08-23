@@ -1,0 +1,17 @@
+{
+  "id": "double-bit-axe",
+  "name": "Double-Bit Axe",
+  "kind": "tech",
+  "costs": { "food": 150, "wood": 50 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 1500,
+  "effects": [
+    {
+      "target": "activity:gather-wood",
+      "stat": "work-rate",
+      "op": "mult",
+      "value": 1.2
+    }
+  ]
+}

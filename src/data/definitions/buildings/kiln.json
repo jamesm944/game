@@ -1,0 +1,16 @@
+{
+  "id": "kiln",
+  "name": "Kiln",
+  "kind": "building",
+  "costs": { "wood": 100 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 900,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 800,
+  "workSlots": 1,
+  "dropoffFilters": [],
+  "acceptsRoles": ["crafter"],
+  "sightRadius": 4,
+  "populationCap": 0
+}

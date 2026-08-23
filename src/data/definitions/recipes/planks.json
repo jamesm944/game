@@ -1,0 +1,12 @@
+{
+  "id": "planks",
+  "name": "Planks",
+  "kind": "recipe",
+  "costs": {},
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildingId": "sawpit",
+  "inputs": [{ "defId": "wood", "qty": 2 }],
+  "output": { "defId": "planks", "qty": 1 },
+  "ticks": 300
+}

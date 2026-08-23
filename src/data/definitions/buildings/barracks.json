@@ -3,7 +3,7 @@
   "name": "Barracks",
   "kind": "building",
   "costs": { "wood": 175 },
-  "ageGate": 1,
+  "ageGate": "dark",
   "techPrereqs": [],
   "buildTime": 1500,
   "footprint": { "width": 3, "height": 3 },
@@ -12,5 +12,9 @@
   "dropoffFilters": [],
   "acceptsRoles": [],
   "sightRadius": 5,
-  "populationCap": 0
+  "populationCap": 0,
+  "trainQueue": {
+    "capacity": 15,
+    "trainable": [{ "unitId": "militia" }, { "unitId": "man-at-arms" }]
+  }
 }

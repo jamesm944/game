@@ -1,0 +1,23 @@
+{
+  "id": "forging",
+  "name": "Forging",
+  "kind": "tech",
+  "costs": { "food": 150 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 900,
+  "effects": [
+    {
+      "target": "class:infantry",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:cavalry",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

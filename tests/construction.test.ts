@@ -77,7 +77,12 @@ function harness(seed = 424242): Harness {
   registerSystem(world, createGatherSystem(comps, paths, gather));
   registerSystem(world, createPlacementSystem(comps));
   registerSystem(world, createConstructionSystem(comps));
-  createPlayerStockpile(world, comps, PLAYER_ONE, [500, 2000, 200, 200]);
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_ONE,
+    [500, 2000, 200, 200, 0, 0, 0],
+  );
   return { world, comps, movement, gather };
 }
 

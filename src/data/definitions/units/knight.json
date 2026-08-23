@@ -1,0 +1,17 @@
+{
+  "id": "knight",
+  "name": "Knight",
+  "kind": "unit",
+  "costs": { "food": 60, "gold": 75 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 900,
+  "hp": 70,
+  "speed": 1.35,
+  "carryCapacity": 0,
+  "attack": 10,
+  "armorClasses": ["cavalry"],
+  "attackBonuses": [],
+  "sightRadius": 8,
+  "equipmentSlots": ["weapon", "armor"]
+}

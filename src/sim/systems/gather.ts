@@ -137,8 +137,9 @@ export interface GatherDiagnostics {
 export function createGatherDiagnostics(): GatherDiagnostics {
   return {
     commandsApplied: 0,
-    extractedByResource: [0, 0, 0, 0],
-    depositedByResource: [0, 0, 0, 0],
+    // One slot per gatherable resource code (SPEC §2.6, seven slugs).
+    extractedByResource: [0, 0, 0, 0, 0, 0, 0],
+    depositedByResource: [0, 0, 0, 0, 0, 0, 0],
     deliveriesByDropOff: [],
   };
 }
