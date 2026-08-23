@@ -22,7 +22,10 @@
  *   player's ledger entity (mirroring AgeAdvanced). kind codes:
  *   COMBAT_EVENT_DAMAGE / _DEATH (victim-owner log) and
  *   COMBAT_EVENT_SHOT (attacker-owner log, one per ranged strike — the
- *   projectile stub row M2-T6 upgrades into real flight). Every damage
+ *   projectile stub row M2-T6 upgrades into real flight). M2-T10 splits
+ *   unit deaths onto their own COMBAT_EVENT_UNIT_DEATH code so the death
+ *   ledger answers "units lost" without ambiguity against razed
+ *   structures; _DEATH remains structure-only from then on. Every damage
  *   event is digest-visible by construction.
  * - ResearchedTechs (variable): [entryCount, techCode₀, …] — completed,
  *   stat-bearing techs per player on the same ledger entity. Stat
@@ -57,8 +60,11 @@ export interface CombatComponents {
 
 /** CombatEvents entry kinds — stable u8 codes, never renumbered. */
 export const COMBAT_EVENT_DAMAGE = 0;
+/** A structure was destroyed into rubble (M2-T7). */
 export const COMBAT_EVENT_DEATH = 1;
 export const COMBAT_EVENT_SHOT = 2;
+/** A combatant unit died (M2-T10 split from the structure code). */
+export const COMBAT_EVENT_UNIT_DEATH = 3;
 
 function requireRows(world: World, componentId: number): ComponentRows {
   const rows = world.rowsByComponentId.get(componentId);

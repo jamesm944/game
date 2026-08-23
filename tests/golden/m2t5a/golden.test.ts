@@ -31,7 +31,7 @@ import {
 } from "../../../src/sim/components";
 import {
   COMBAT_EVENT_DAMAGE,
-  COMBAT_EVENT_DEATH,
+  COMBAT_EVENT_UNIT_DEATH,
   readCombatEvents,
 } from "../../../src/sim/components/combat";
 import {
@@ -244,7 +244,8 @@ function runScenario(fixture: GoldenCase): RunState {
     let deaths = 0;
     for (const event of readCombatEvents(world, comps, ownerId)) {
       if (event.kind === COMBAT_EVENT_DAMAGE) damage += 1;
-      if (event.kind === COMBAT_EVENT_DEATH) deaths += 1;
+      // M2-T10: fallen UNITS ride the dedicated unit-death kind.
+      if (event.kind === COMBAT_EVENT_UNIT_DEATH) deaths += 1;
     }
     return [damage, deaths];
   };

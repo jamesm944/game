@@ -4,7 +4,8 @@
  * Registers as an ordinary SimSystem (LAST, after every gameplay
  * system) and thinks on the §2.8 cadence:
  *
- *   - FULL PASS every 30 ticks: economy manager + build-order layer,
+ *   - FULL PASS every 30 ticks (× reactionLatency — the §2.8 difficulty
+ *     knob, M2-T10 stub): economy manager + build-order layer,
  *     in that fixed order, sharing one planning-time resource budget
  *     and one spot reservation so a single pass can never overdraw or
  *     double-place.
@@ -42,6 +43,21 @@ import type { SimSystem, World } from "../core/world";
 
 /** §2.8 cadence: one full planning pass per simulated second. */
 export const PLANNER_CADENCE_TICKS = 30;
+
+/**
+ * Difficulty latency presets (SPEC §2.8 "disclosed knobs", M2-T10 stub).
+ * The scalar multiplies the full-pass decision interval: easy thinks
+ * every 90 ticks instead of 30, so its economy/build-order ladder and
+ * any army it musters develop ~3× slower. The disclosed AoE2-style
+ * INCOME cheat is deliberately deferred to M4 — this knob only slows
+ * decisions, never pads resources.
+ */
+export const AI_DIFFICULTY_LATENCY = {
+  easy: 3,
+  normal: 1,
+} as const;
+
+export type AiDifficultyId = keyof typeof AI_DIFFICULTY_LATENCY;
 
 export interface PlannerTelemetry {
   /** Full-pass invocations. */
@@ -86,6 +102,13 @@ export interface AiPlannerOptions {
   readonly strategy: StrategyId | Strategy;
   readonly telemetry?: PlannerTelemetry | undefined;
   /**
+   * Difficulty reaction-latency scalar (§2.8, M2-T10 stub): multiplies
+   * the full-pass decision interval. Presets in AI_DIFFICULTY_LATENCY
+   * (easy=3, normal=1); must be a positive integer. Default 1 — every
+   * existing fixture plays at normal and is byte-unaffected.
+   */
+  readonly reactionLatency?: number | undefined;
+  /**
    * Optional wall-clock source for budget instrumentation ONLY — never
    * consulted for decisions, omitted in production to preserve sim
    * purity (tests inject performance.now).
@@ -106,6 +129,18 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
   const k = options.knowledge;
   const telemetry = options.telemetry ?? createPlannerTelemetry();
   const memory: BuildOrderMemory = {};
+  const latency = options.reactionLatency ?? AI_DIFFICULTY_LATENCY.normal;
+  if (!Number.isInteger(latency) || latency < 1) {
+    throw new Error(
+      `reactionLatency must be a positive integer, got ${String(latency)}`,
+    );
+  }
+  /**
+   * Effective full-pass interval. Latency > 1 delays STRATEGIC planning
+   * (economy + build order); the cheap incremental probes keep their
+   * base rhythm — M4's military manager owns reactive-latency tuning.
+   */
+  const fullPassIntervalTicks = PLANNER_CADENCE_TICKS * latency;
 
   const measure = <T>(think: () => T): T => {
     if (options.now === undefined) return think();
@@ -198,7 +233,7 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     // Deterministic and idempotent; the end-of-step flush stays a no-op.
     world.visibility.flushDirty();
     const tick = world.tick;
-    if (tick % PLANNER_CADENCE_TICKS === 0) {
+    if (tick % fullPassIntervalTicks === 0) {
       telemetry.thinkCalls += 1;
       for (const draft of measure(fullPass)) submit(world, draft);
       return;

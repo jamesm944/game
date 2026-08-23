@@ -84,6 +84,7 @@ import {
   COMBAT_EVENT_DAMAGE,
   COMBAT_EVENT_DEATH,
   COMBAT_EVENT_SHOT,
+  COMBAT_EVENT_UNIT_DEATH,
   getCombatRow,
   type CombatComponents,
 } from "../components/combat";
@@ -590,7 +591,9 @@ export function createCombatSystem(
       const victim = combatantByEid.get(victimEid)!;
       appendCombatEvent(world, comps, victim.owner, {
         tick: world.tick,
-        kind: COMBAT_EVENT_DEATH,
+        // M2-T10: unit deaths carry their own kind code so the death
+        // ledger separates fallen units from razed structures.
+        kind: COMBAT_EVENT_UNIT_DEATH,
         attackerEid: killerEid,
         victimEid,
         amount: blow,

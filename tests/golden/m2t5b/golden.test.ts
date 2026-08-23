@@ -37,7 +37,7 @@ import {
 import { getAssignedNode } from "../../../src/sim/components/economy";
 import {
   COMBAT_EVENT_DAMAGE,
-  COMBAT_EVENT_DEATH,
+  COMBAT_EVENT_UNIT_DEATH,
   readCombatEvents,
 } from "../../../src/sim/components/combat";
 import {
@@ -289,7 +289,7 @@ function runScenario(fixture: GoldenCase): RunState {
   }
 
   const p0Deaths = readCombatEvents(world, comps, PLAYER_ONE)
-    .filter((event) => event.kind === COMBAT_EVENT_DEATH)
+    .filter((event) => event.kind === COMBAT_EVENT_UNIT_DEATH)
     .map((event) => event.victimEid);
   const p1Damage = readCombatEvents(world, comps, 1).filter(
     (event) => event.kind === COMBAT_EVENT_DAMAGE,

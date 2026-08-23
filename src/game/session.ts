@@ -1,0 +1,404 @@
+/**
+ * Skirmish session lifecycle — M2-T10 game flow (issue #44).
+ *
+ * {@link createSkirmishWorld} is THE two-player start: everything
+ * production main.ts used to inline — world + components + full system
+ * roster (victory evaluator included, AI planner last), the human dark-
+ * age capital at map center, the AI opponent mirrored through the map
+ * center via the existing setupAiOpponent bootstrap, ringed resource
+ * nodes and the map-gen fog recompute. Browser and headless tests share
+ * one code path, so a restarted world is byte-for-byte what a fresh
+ * page load would have built.
+ *
+ * RESTART-TO-FRESH-WORLD: a match ends → the victory overlay's Restart
+ * button stashes a NEW u32 seed ({@link stashNextSeed}) and the app
+ * re-boots; boot consumes it ({@link consumeNextSeed}) so the next
+ * createSkirmishWorld runs the SAME bootstrap from a different seed.
+ * The teardown is total (the page discards the JS heap), which for a
+ * framework-free static build is the honest way to drop every
+ * world/renderer binding without a dispose graph. Seeds come from
+ * {@link freshSeed} (app-level randomness — never sim code); tests
+ * inject their own rng to stay deterministic.
+ */
+
+import {
+  defineSimComponents,
+  getBuildingRow,
+  populationOf,
+  spawnResourceNode,
+  spawnUnit,
+  WORK_SLOTS_PER_NODE,
+  type SimComponents,
+} from "../sim/components";
+import { buildingIdOfCode } from "../data/definitions";
+import {
+  PLAYER_ONE,
+  createCommodityStockpile,
+  createPlayerStockpile,
+} from "../sim/core/stockpile";
+import { createPlayerAgeState } from "../sim/components/age";
+import { createWorld, registerSystem, type World } from "../sim/core/world";
+import { PathScheduler, type PathTransport } from "../sim/path/scheduler";
+import {
+  createFogVisibility,
+  createRowEntityResolver,
+} from "../sim/systems/fog";
+import type { FogVisibilityHandle } from "../sim/systems/fog";
+import { createMovementSystem } from "../sim/systems/movement";
+import { createGatherSystem } from "../sim/systems/gather";
+import {
+  createPlacementSystem,
+  stampFinishedBuilding,
+  validatePlacement,
+} from "../sim/systems/placement";
+import { createConstructionSystem } from "../sim/systems/construction";
+import { createTrainingSystem } from "../sim/systems/training";
+import { createProductionSystem } from "../sim/systems/production";
+import { createAgeSystem } from "../sim/systems/age";
+import { createCombatSystem } from "../sim/systems/combat";
+import { createEquipmentSystem } from "../sim/systems/equipment";
+import { createVictorySystem } from "../sim/systems/victory";
+import { buildingRectOf } from "../sim/components/buildings";
+import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "../sim/ai/bootstrap";
+import { createAiKnowledge, type AiKnowledge } from "../sim/ai/knowledge";
+import {
+  createAiPlannerSystem,
+  createPlannerTelemetry,
+  type PlannerTelemetry,
+} from "../sim/ai/planner";
+import { scatterResourceNodes } from "../sim/mapgen/resources";
+
+/** Dark-age start scale carried over from the M1-T10 dev world. */
+export const STARTING_VILLAGERS = 5;
+
+/** Opening stockpile — the documented skirmish seed capital. */
+export const STARTING_RESOURCES = [200, 600, 100, 0, 0, 0, 0] as const;
+
+/** Demo node ring: keep gatherables near BOTH bases (main.ts parity). */
+const NODE_RING_RADIUS = 26;
+const NODE_CANDIDATES = 96;
+const NODE_TARGET = 32;
+
+export interface SkirmishWorldOptions {
+  /** Grid edge in tiles; defaults to the §2.1 120-tile skirmish grid. */
+  readonly size?: number | undefined;
+  /**
+   * Path transport factory. Production passes the worker transport
+   * (game/paths.ts); headless tests pass the synchronous transport.
+   */
+  readonly createTransport: () => PathTransport;
+}
+
+export interface SkirmishWorld {
+  readonly seed: number;
+  readonly world: World;
+  readonly comps: SimComponents;
+  readonly scheduler: PathScheduler;
+  readonly fog: FogVisibilityHandle;
+  /** The AI's fog-honest knowledge surface (viewer = AI_PLAYER). */
+  readonly aiKnowledge: AiKnowledge;
+  readonly aiTelemetry: PlannerTelemetry;
+}
+
+/**
+ * Stand up one complete two-player skirmish from a seed. Pure function
+ * of (seed, options): same seed ⇒ byte-identical world at tick 0.
+ */
+export function createSkirmishWorld(
+  seed: number,
+  options: SkirmishWorldOptions,
+): SkirmishWorld {
+  const scheduler = new PathScheduler(options.createTransport());
+  const size = options.size ?? 120;
+  const fog = createFogVisibility(size, 2);
+  const world = createWorld(seed, {
+    size,
+    pathScheduler: scheduler,
+    visibility: fog.provider,
+  });
+  const comps = defineSimComponents(world);
+  fog.bindSource({
+    resolve: createRowEntityResolver(world, comps),
+    eidsAscending: () => world.entities,
+  });
+
+  // System roster mirrors production registration order; the victory
+  // evaluator runs after combat (settled destruction state) and the AI
+  // planner stays LAST per its contract.
+  registerSystem(world, createMovementSystem(comps, scheduler));
+  registerSystem(world, createGatherSystem(comps, scheduler));
+  registerSystem(world, createPlacementSystem(comps));
+  registerSystem(world, createConstructionSystem(comps));
+  registerSystem(world, createTrainingSystem(comps));
+  registerSystem(world, createProductionSystem(comps));
+  registerSystem(world, createAgeSystem(comps));
+  registerSystem(world, createCombatSystem(comps, undefined, scheduler));
+  registerSystem(world, createEquipmentSystem(comps));
+  registerSystem(world, createVictorySystem(comps));
+
+  // ---- Human start: ledger + age ladder + central TC + villagers ------
+  const centerSpot = centralPassableTiles(world, 1)[0]!;
+  createPlayerStockpile(world, comps, PLAYER_ONE, [...STARTING_RESOURCES]);
+  createCommodityStockpile(world, comps, PLAYER_ONE);
+  createPlayerAgeState(world, comps, PLAYER_ONE);
+  stampFinishedBuilding(
+    world,
+    comps,
+    "town-center",
+    Math.floor(centerSpot.x) - 1,
+    Math.floor(centerSpot.y) - 2,
+    { playerId: PLAYER_ONE },
+  );
+  spawnStartVillagers(world, comps, centerSpot);
+
+  // ---- AI opponent: mirrored TC through the map center ----------------
+  const playerTcRect = buildingRectOf(
+    world,
+    comps,
+    requirePlayerTcEid(world, comps),
+  );
+  const aiAnchor = mirrorOrigin(
+    playerTcRect?.x ?? Math.floor(centerSpot.x),
+    playerTcRect?.y ?? Math.floor(centerSpot.y),
+    3,
+    3,
+    size,
+  );
+  const aiTcOrigin = findAiTcOrigin(world, comps, aiAnchor);
+  setupAiOpponent(world, comps, {
+    tcOrigin: [aiTcOrigin.x, aiTcOrigin.y],
+    villagerSpawns: [],
+    startingResources: [...STARTING_RESOURCES],
+  });
+  {
+    const spots = passableTilesNear(
+      world,
+      aiTcOrigin.x + 1.5,
+      aiTcOrigin.y + 4.5,
+      STARTING_VILLAGERS * 2,
+    );
+    let spawned = 0;
+    for (const spot of spots) {
+      if (spawned >= STARTING_VILLAGERS) break;
+      spawnUnit(world, comps, spot.x, spot.y, { ownerId: AI_PLAYER });
+      spawned += 1;
+    }
+  }
+
+  const aiKnowledge = createAiKnowledge({
+    world,
+    comps,
+    view: fog.knowledgeFor(AI_PLAYER),
+  });
+  const aiTelemetry = createPlannerTelemetry();
+  registerSystem(
+    world,
+    createAiPlannerSystem({
+      knowledge: aiKnowledge,
+      strategy: "fast-castle-knights",
+      telemetry: aiTelemetry,
+    }),
+  );
+
+  // ---- Gatherable ring near both bases ---------------------------------
+  const scattered = scatterResourceNodes(world.layers, seed ^ 0x9e3779b9, {
+    count: NODE_CANDIDATES,
+  })
+    .filter((node) => {
+      const nearPlayer =
+        (node.tileX + 0.5 - centerSpot.x) ** 2 +
+          (node.tileY + 0.5 - centerSpot.y) ** 2 <=
+        NODE_RING_RADIUS ** 2;
+      const nearAi =
+        (node.tileX + 0.5 - (aiTcOrigin.x + 1.5)) ** 2 +
+          (node.tileY + 0.5 - (aiTcOrigin.y + 1.5)) ** 2 <=
+        NODE_RING_RADIUS ** 2;
+      return nearPlayer || nearAi;
+    })
+    .slice(0, NODE_TARGET);
+  for (const node of scattered) {
+    spawnResourceNode(
+      world,
+      comps,
+      node.tileX,
+      node.tileY,
+      node.resourceCode,
+      node.amount,
+      { workSlots: WORK_SLOTS_PER_NODE },
+    );
+  }
+
+  // Map-gen full fog recompute (§2.9) — the ONLY non-incremental pass.
+  fog.recomputeAll();
+
+  return { seed, world, comps, scheduler, fog, aiKnowledge, aiTelemetry };
+}
+
+// ---- Spawn-site helpers (verbatim semantics from main.ts) ---------------------
+
+function centralPassableTiles(
+  world: World,
+  count: number,
+): { x: number; y: number }[] {
+  const size = world.layers.size;
+  const c = (size - 1) / 2;
+  const found: { x: number; y: number; d2: number }[] = [];
+  for (let ty = 0; ty < size; ty++) {
+    for (let tx = 0; tx < size; tx++) {
+      if (world.layers.derivedPassability[ty * size + tx] !== 1) continue;
+      const dx = tx + 0.5 - c;
+      const dy = ty + 0.5 - c;
+      found.push({ x: tx + 0.5, y: ty + 0.5, d2: dx * dx + dy * dy });
+    }
+  }
+  found.sort((a, b) => a.d2 - b.d2);
+  return found.slice(0, count).map(({ x, y }) => ({ x, y }));
+}
+
+function passableTilesNear(
+  world: World,
+  targetX: number,
+  targetY: number,
+  count: number,
+): { x: number; y: number }[] {
+  const size = world.layers.size;
+  const found: { x: number; y: number; d2: number }[] = [];
+  for (let ty = 0; ty < size; ty++) {
+    for (let tx = 0; tx < size; tx++) {
+      if (world.layers.derivedPassability[ty * size + tx] !== 1) continue;
+      const dx = tx + 0.5 - targetX;
+      const dy = ty + 0.5 - targetY;
+      found.push({ x: tx + 0.5, y: ty + 0.5, d2: dx * dx + dy * dy });
+    }
+  }
+  return found
+    .sort((a, b) => a.d2 - b.d2)
+    .slice(0, count)
+    .map(({ x, y }) => ({ x, y }));
+}
+
+function spawnStartVillagers(
+  world: World,
+  comps: SimComponents,
+  centerSpot: { x: number; y: number },
+): void {
+  for (const spot of passableTilesNear(
+    world,
+    centerSpot.x,
+    centerSpot.y,
+    STARTING_VILLAGERS * 3,
+  )) {
+    // Skip spots the start TC already covers (it stamped after listing).
+    let covered = false;
+    for (const eid of world.entities) {
+      const rect = buildingRectOf(world, comps, eid);
+      if (
+        rect &&
+        spot.x >= rect.x &&
+        spot.x < rect.x + rect.width &&
+        spot.y >= rect.y &&
+        spot.y < rect.y + rect.height
+      ) {
+        covered = true;
+        break;
+      }
+    }
+    if (covered) continue;
+    spawnUnit(world, comps, spot.x, spot.y);
+    if (populationOf(world, comps) >= STARTING_VILLAGERS) break;
+  }
+}
+
+function requirePlayerTcEid(world: World, comps: SimComponents): number {
+  for (const eid of world.entities) {
+    const row = getBuildingRow(world, comps, eid);
+    if (
+      row &&
+      row[0] === PLAYER_ONE &&
+      buildingIdOfCode(row[1]!) === "town-center"
+    ) {
+      return eid;
+    }
+  }
+  throw new Error("player town center missing before AI bootstrap");
+}
+
+/** First mirrored candidate whose 3×3 footprint stamps cleanly. */
+function findAiTcOrigin(
+  world: World,
+  comps: SimComponents,
+  anchor: { x: number; y: number },
+): { x: number; y: number } {
+  for (const spot of passableTilesNear(
+    world,
+    anchor.x + 1.5,
+    anchor.y + 1.5,
+    40,
+  )) {
+    const tileX = Math.floor(spot.x) - 1;
+    const tileY = Math.floor(spot.y) - 1;
+    // Bootstrap privilege mirrors stampFinishedBuilding: age gate and
+    // fog ignored, geometry still enforced.
+    if (
+      validatePlacement(world, comps, "town-center", tileX, tileY, AI_PLAYER, {
+        ignoreAgeGate: true,
+        ignoreFog: true,
+      }).ok
+    ) {
+      return { x: tileX, y: tileY };
+    }
+  }
+  throw new Error("no valid AI town-center site near the mirrored anchor");
+}
+
+// ---- Restart seed handoff ------------------------------------------------------
+
+const NEXT_SEED_STORAGE_KEY = "ageofwind.nextSeed";
+
+/** Minimal storage surface (localStorage in production, Map fake in tests). */
+export interface SeedStore {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+/**
+ * A fresh u32 seed for the next world, never colliding with `previous`.
+ * App-level randomness (the sim never calls this); inject `rng` in tests.
+ */
+export function freshSeed(
+  previous: number | undefined,
+  rng: () => number = Math.random,
+): number {
+  for (let attempt = 0; attempt < 64; attempt++) {
+    const candidate = Math.floor(rng() * 0x100000000) >>> 0;
+    if (candidate !== previous) return candidate;
+  }
+  // 2⁻⁶⁴ collision odds collapsed into a defined tail: flip one bit.
+  return (previous ?? 0) ^ 1;
+}
+
+export function stashNextSeed(store: SeedStore, seed: number): void {
+  store.setItem(NEXT_SEED_STORAGE_KEY, String(seed));
+}
+
+/**
+ * Consume the stashed restart seed, if any. Invalid or missing entries
+ * return undefined (boot falls back to the dev seed); the key is always
+ * cleared so one stash fires exactly one restart.
+ */
+export function consumeNextSeed(store: SeedStore): number | undefined {
+  const raw = store.getItem(NEXT_SEED_STORAGE_KEY);
+  store.removeItem(NEXT_SEED_STORAGE_KEY);
+  if (raw === null) return undefined;
+  const parsed = Number(raw);
+  if (
+    !Number.isInteger(parsed) ||
+    parsed < 0 ||
+    parsed > 0xffffffff ||
+    Number.isNaN(parsed)
+  ) {
+    return undefined;
+  }
+  return parsed;
+}

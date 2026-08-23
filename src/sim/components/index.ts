@@ -12,7 +12,7 @@
  *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
  *   Inventory, MealConsumed, MoveTarget, Position, ProductionCycle,
  *   ProductionJob, ResearchedTechs, ResourceNode, Rubble, Stockpile,
- *   TrainQueue, UnitTag, Velocity
+ *   TrainQueue, UnitTag, Velocity, VictoryCheck
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -78,6 +78,7 @@ import {
   STOCKPILE,
   type StockpileComponents,
 } from "../core/stockpile";
+import type { VictoryComponents } from "./victory";
 import {
   MEAL_CONSUMED,
   PRODUCTION_COMPONENT_ARITIES,
@@ -86,6 +87,7 @@ import {
   type ProductionComponents,
 } from "./production";
 import { defineComponent, spawnEntity, type World } from "../core/world";
+import { VICTORY_CHECK, VICTORY_COMPONENT_ARITIES } from "./victory";
 
 export const ACTIVITY_QUEUE = "ActivityQueue" as const;
 export const MOVE_TARGET = "MoveTarget" as const;
@@ -120,6 +122,7 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...COMBAT_COMPONENT_ARITIES,
   ...EQUIPMENT_COMPONENT_ARITIES,
   ...PRODUCTION_COMPONENT_ARITIES,
+  ...VICTORY_COMPONENT_ARITIES,
 ];
 
 export interface MovementComponents {
@@ -141,7 +144,8 @@ export interface SimComponents
     BuildingComponents,
     CombatComponents,
     EquipmentComponents,
-    ProductionComponents {}
+    ProductionComponents,
+    VictoryComponents {}
 
 /**
  * Register ALL sim components in one strictly alphabetical sequence —
@@ -179,6 +183,7 @@ export function defineSimComponents(world: World): SimComponents {
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
     unitTagId: defineComponent(world, UNIT_TAG),
     velocityId: defineComponent(world, VELOCITY),
+    victoryCheckId: defineComponent(world, VICTORY_CHECK),
   };
 }
 

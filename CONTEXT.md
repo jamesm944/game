@@ -183,6 +183,10 @@ _Avoid_: Building combat
 The residue entity spawned over a destroyed structure's footprint (M2-T7). Pure marker state on its own entity id; rebuild/repair flows arrive later.
 _Avoid_: Wreck, ruin tile
 
+**Unit death**:
+A combatant's death, logged on the victim owner's ledger with its own CombatEvents kind (M2-T10) so fallen units count separately from razed structures — the stats recap reads exactly this.
+_Avoid_: Casualty (bare), kill (from the victim side)
+
 **Destruction**:
 What happens when a structure's hp reaches zero (M2-T7), in pinned order: DEATH event on the owner log → workers whose site/job pointed there released to idle → footprint tiles freed + passabilityVersion bump (repath invalidation) → Rubble spawns → attackers drop their engagements → every functional row (Drop-off, Train queue, Production cycle) dies with the entity.
 
@@ -240,9 +244,25 @@ _Avoid_: Backpack, load mesh
 One of several alternative win routes (Civ-style): Conquest plus knowledge/culture/economic/diplomatic-style paths as decided in design tickets.
 _Avoid_: Win condition (when listing them all)
 
-**Conquest victory**: destroy enemy military production capacity (standard) — the live count of Barracks, Archery Range and Stable buildings per player (M2-T7 helper, consumed by the T10 evaluator).
+**Victory evaluator**:
+The §2.11 frame as one symmetric system: generator → accumulating metric → completing act → hold timer (timerless for Conquest). Every side runs the SAME code path; the decision freezes the match.
+_Avoid_: Win checker, victory logic
+
+**Conquest victory**: destroy enemy military production capacity (standard) — the live count of Barracks, Archery Range and Stable buildings per player (M2-T7 helper, consumed by the T10 evaluator). A player is defeated only after having HELD such capacity (read off their VictoryCheck log); economic-only play cannot be conquered until the other paths exist.
 **Wonder victory**: complete a Wonder, hold through timer.
 **Relic victory**: hold all Relics through timer.
+
+**VictoryCheck log**:
+The append-only per-player evaluation record on each ledger entity — one entry every 30 ticks with the current metric, then the decisive WON/LOST/SURRENDERED tail. Digest-visible by construction.
+_Avoid_: Score, progress bar state
+
+**Surrender**:
+A player's concede order entering the shared inbox like any command; the survivor wins immediately and the log freezes.
+_Avoid_: Quit, resign (bare)
+
+**Session bootstrap**:
+The single two-player skirmish start (world + systems + bases + fog recompute) shared by production and tests; restart re-runs it from a fresh seed.
+_Avoid_: Game init, setup code
 
 ### Rendering
 

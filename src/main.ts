@@ -24,6 +24,12 @@
  * calls total; see docs/m2-overlays.md for the browser-only
  * renderer.info dev check). Attack-move (A) and stop (S) keyboard
  * orders enter the same sim inbox as clicks.
+ *
+ * M2-T10: game flow — the skirmish bootstrap moved into game/session.ts
+ * so restart builds a FRESH world from a new seed through the SAME code
+ * path as boot; the §2.11 victory evaluator decides conquest matches,
+ * the HUD shows the victory/defeat overlay with a death-ledger stats
+ * recap, and the surrender control concedes through the shared inbox.
  */
 
 import "./style.css";
@@ -46,16 +52,12 @@ import {
   createSelectionRings,
 } from "./render/selectionRings";
 import {
-  defineSimComponents,
   getAssignedSite,
   getBuildingRow,
   getBuildingSiteRow,
   populationCapOf,
   populationOf,
   readTrainQueue,
-  spawnResourceNode,
-  spawnUnit,
-  WORK_SLOTS_PER_NODE,
 } from "./sim/components";
 import {
   buildingDefOf,
@@ -69,62 +71,33 @@ import {
 } from "./data/definitions";
 import {
   PLAYER_ONE,
-  createCommodityStockpile,
-  createPlayerStockpile,
   ledgerAmountOfSlug,
   stockpileSnapshot,
 } from "./sim/core/stockpile";
-import { createPlayerAgeState } from "./sim/components/age";
-import {
-  TICK_DT_MS,
-  createWorld,
-  registerSystem,
-  step,
-} from "./sim/core/world";
-import {
-  createFogVisibility,
-  createRowEntityResolver,
-} from "./sim/systems/fog";
-import {
-  canEnqueueTraining,
-  createTrainingDiagnostics,
-  createTrainingSystem,
-} from "./sim/systems/training";
-import {
-  createCombatDiagnostics,
-  createCombatSystem,
-} from "./sim/systems/combat";
-import { createEquipmentSystem } from "./sim/systems/equipment";
-import { createAgeSystem, currentAgeRankOf } from "./sim/systems/age";
-import {
-  canAfford,
-  createPlacementSystem,
-  stampFinishedBuilding,
-  validatePlacement,
-} from "./sim/systems/placement";
-import { isDefAgeUnlocked } from "./sim/systems/age";
-import {
-  createConstructionSystem,
-  WORK_MILLI_SCALE,
-} from "./sim/systems/construction";
-import { scatterResourceNodes } from "./sim/mapgen/resources";
+import { TICK_DT_MS, step } from "./sim/core/world";
+import { canEnqueueTraining } from "./sim/systems/training";
+import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
+import { canAfford, validatePlacement } from "./sim/systems/placement";
+import { WORK_MILLI_SCALE } from "./sim/systems/construction";
 import {
   captureBuildingSnapshot,
   captureSimSnapshot,
   type SimSnapshotFrame,
 } from "./sim/mirror";
-import { createWorkerTransport, PathScheduler } from "./sim/path/scheduler";
-import { createGatherSystem } from "./sim/systems/gather";
-import { createMovementSystem } from "./sim/systems/movement";
+import { createWorkerTransport } from "./sim/path/scheduler";
 import { getProductionCycleRow } from "./sim/components/production";
-import { createProductionSystem } from "./sim/systems/production";
 import { createPathWorkerFactory } from "./game/paths";
-import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "./sim/ai/bootstrap";
-import { createAiKnowledge } from "./sim/ai/knowledge";
 import {
-  createAiPlannerSystem,
-  createPlannerTelemetry,
-} from "./sim/ai/planner";
+  consumeNextSeed,
+  createSkirmishWorld,
+  freshSeed,
+  stashNextSeed,
+} from "./game/session";
+import {
+  SURRENDER_COMMAND_KIND,
+  evaluateOutcome,
+  unitsLostOf,
+} from "./sim/systems/victory";
 import { RtsCamera } from "./render/camera";
 import { createBuildingLayer } from "./render/buildings";
 import {
@@ -167,15 +140,20 @@ import {
   setSelection,
   wireSelectionInput,
 } from "./ui/selection";
+import {
+  createSurrenderControl,
+  createVictoryScreen,
+} from "./ui/victoryScreen";
 import { buildingRectOf, siteRectOf } from "./sim/components/buildings";
 
 /** Fixed development seed — reproducible map for the render skeleton. */
 const DEV_SEED = 20260822;
 /**
- * Dev population: a dark-age start scale now that M1-T10 owns spawning
- * and training (the render-skeleton stress count moved to perf tests).
+ * Restart handoff: a stashed seed (set by the victory overlay's Restart
+ * button) boots the NEXT fresh world through the same session
+ * bootstrap; absent one, the dev seed replays the familiar map.
  */
-const DEV_UNIT_COUNT = 5;
+const bootSeed = consumeNextSeed(window.localStorage) ?? DEV_SEED;
 /**
  * Mirror/overlay sample capacity: sized past the dev start population
  * so M2-T6 trained armies render without re-allocating the frame loop's
@@ -189,242 +167,12 @@ const MAX_STEPS_PER_FRAME = 5;
 const SPRITE_WORLD_WIDTH = 0.95;
 const SPRITE_WORLD_HEIGHT = 1.5;
 
-// ---- World (pure sim, wired exactly like the golden fixtures) --------------
+// ---- World (the shared skirmish bootstrap — identical to tests) -------------
 
-const scheduler = new PathScheduler(
-  createWorkerTransport(createPathWorkerFactory()),
-);
-// Real fog-of-war planes (SPEC §2.9 / M2-T8): the provider swaps in at
-// world creation behind the unchanged VisibilityProvider seam.
-const fog = createFogVisibility(120, 2);
-const world = createWorld(DEV_SEED, {
-  pathScheduler: scheduler,
-  visibility: fog.provider,
+const session = createSkirmishWorld(bootSeed, {
+  createTransport: () => createWorkerTransport(createPathWorkerFactory()),
 });
-const comps = defineSimComponents(world);
-fog.bindSource({
-  resolve: createRowEntityResolver(world, comps),
-  eidsAscending: () => world.entities,
-});
-registerSystem(world, createMovementSystem(comps, scheduler));
-registerSystem(world, createGatherSystem(comps, scheduler));
-registerSystem(world, createPlacementSystem(comps));
-registerSystem(world, createConstructionSystem(comps));
-registerSystem(world, createTrainingSystem(comps, createTrainingDiagnostics()));
-registerSystem(world, createProductionSystem(comps));
-registerSystem(world, createAgeSystem(comps));
-// M2-T6: combat engagements + equip orders. Combat runs AFTER
-// movement/gather so strikes see this tick's final positions; the
-// scheduler upgrade gives attack-move the full formation route.
-registerSystem(
-  world,
-  createCombatSystem(comps, createCombatDiagnostics(), scheduler),
-);
-registerSystem(world, createEquipmentSystem(comps));
-
-/**
- * Passable tiles nearest the map center, ascending by distance — dev
- * spawn sites. Plain grid scan over 14k tiles is nothing at startup.
- */
-function centralPassableTiles(count: number): { x: number; y: number }[] {
-  const size = world.layers.size;
-  const c = (size - 1) / 2;
-  const found: { x: number; y: number; d2: number }[] = [];
-  for (let ty = 0; ty < size; ty++) {
-    for (let tx = 0; tx < size; tx++) {
-      if (world.layers.derivedPassability[ty * size + tx] !== 1) continue;
-      const dx = tx + 0.5 - c;
-      const dy = ty + 0.5 - c;
-      found.push({ x: tx + 0.5, y: ty + 0.5, d2: dx * dx + dy * dy });
-    }
-  }
-  found.sort((a, b) => a.d2 - b.d2);
-  return found.slice(0, count).map(({ x, y }) => ({ x, y }));
-}
-
-// ---- Economy world (M1-T9 + M1-T10) -----------------------------------------
-// Dark-age start: one player stockpile with opening capital, a finished
-// Town Center (drop-off + villager production, pop cap 5) at the map
-// center and scattered gatherables around it. Deterministic: node
-// placement is a pure function of the seed.
-
-const centerSpot = centralPassableTiles(1)[0]!;
-createPlayerStockpile(world, comps, PLAYER_ONE, [200, 600, 100, 0, 0, 0, 0]);
-createCommodityStockpile(world, comps, PLAYER_ONE);
-// M2-T4: every player starts the ladder at the Dark Age bottom rung.
-createPlayerAgeState(world, comps, PLAYER_ONE);
-/** Stamp the start TC so its 3×3 footprint fits the central passables. */
-stampFinishedBuilding(
-  world,
-  comps,
-  "town-center",
-  Math.floor(centerSpot.x) - 1,
-  Math.floor(centerSpot.y) - 2,
-  { playerId: PLAYER_ONE },
-);
-
-for (const spot of centralPassableTiles(DEV_UNIT_COUNT * 3)) {
-  // Skip spots the start TC already covers (it stamped after listing).
-  let covered = false;
-  for (const eid of world.entities) {
-    const rect = buildingRectOf(world, comps, eid);
-    if (
-      rect &&
-      spot.x >= rect.x &&
-      spot.x < rect.x + rect.width &&
-      spot.y >= rect.y &&
-      spot.y < rect.y + rect.height
-    ) {
-      covered = true;
-      break;
-    }
-  }
-  if (covered) continue;
-  spawnUnit(world, comps, spot.x, spot.y);
-  if (populationOf(world, comps) >= DEV_UNIT_COUNT) break;
-}
-
-// ---- AI opponent start (M2-T9 / SPEC §2.8) ------------------------------------
-// The scripted opponent mirrors the player's dark-age start through the
-// map center and plays exclusively through command drafts into the same
-// inbox — the planner is just another registered system (last).
-
-/** Passable tiles nearest a target point — mirrored-base siting. */
-function passableTilesNear(
-  targetX: number,
-  targetY: number,
-  count: number,
-): { x: number; y: number }[] {
-  const size = world.layers.size;
-  const found: { x: number; y: number; d2: number }[] = [];
-  for (let ty = 0; ty < size; ty++) {
-    for (let tx = 0; tx < size; tx++) {
-      if (world.layers.derivedPassability[ty * size + tx] !== 1) continue;
-      const dx = tx + 0.5 - targetX;
-      const dy = ty + 0.5 - targetY;
-      found.push({ x: tx + 0.5, y: ty + 0.5, d2: dx * dx + dy * dy });
-    }
-  }
-  return found
-    .sort((a, b) => a.d2 - b.d2)
-    .slice(0, count)
-    .map(({ x, y }) => ({ x, y }));
-}
-
-const playerTcRect = buildingRectOf(world, comps, findPlayerTcEid());
-const aiAnchor = mirrorOrigin(
-  playerTcRect?.x ?? Math.floor(centerSpot.x),
-  playerTcRect?.y ?? Math.floor(centerSpot.y),
-  3,
-  3,
-  world.layers.size,
-);
-
-function findPlayerTcEid(): number {
-  for (const eid of world.entities) {
-    const row = getBuildingRow(world, comps, eid);
-    if (
-      row &&
-      row[0] === PLAYER_ONE &&
-      buildingIdOfCode(row[1]!) === "town-center"
-    ) {
-      return eid;
-    }
-  }
-  throw new Error("player town center missing before AI bootstrap");
-}
-
-/** First mirrored candidate whose 3×3 footprint stamps cleanly. */
-function findAiTcOrigin(): { x: number; y: number } {
-  for (const spot of passableTilesNear(
-    aiAnchor.x + 1.5,
-    aiAnchor.y + 1.5,
-    40,
-  )) {
-    const tileX = Math.floor(spot.x) - 1;
-    const tileY = Math.floor(spot.y) - 1;
-    // Bootstrap privilege mirrors stampFinishedBuilding: age gate and
-    // fog ignored, geometry still enforced.
-    if (
-      validatePlacement(world, comps, "town-center", tileX, tileY, AI_PLAYER, {
-        ignoreAgeGate: true,
-        ignoreFog: true,
-      }).ok
-    ) {
-      return { x: tileX, y: tileY };
-    }
-  }
-  throw new Error("no valid AI town-center site near the mirrored anchor");
-}
-
-const aiTcOrigin = findAiTcOrigin();
-setupAiOpponent(world, comps, {
-  tcOrigin: [aiTcOrigin.x, aiTcOrigin.y],
-  villagerSpawns: [],
-  startingResources: [200, 600, 100, 0, 0, 0, 0],
-});
-{
-  // Starting villagers on free ground beside the AI TC (explicit Owner
-  // rows so per-player population accounting sees them).
-  const spots = passableTilesNear(
-    aiTcOrigin.x + 1.5,
-    aiTcOrigin.y + 4.5,
-    DEV_UNIT_COUNT * 2,
-  );
-  let spawned = 0;
-  for (const spot of spots) {
-    if (spawned >= DEV_UNIT_COUNT) break;
-    spawnUnit(world, comps, spot.x, spot.y, { ownerId: AI_PLAYER });
-    spawned += 1;
-  }
-}
-
-const aiKnowledge = createAiKnowledge({
-  world,
-  comps,
-  view: fog.knowledgeFor(AI_PLAYER),
-});
-registerSystem(
-  world,
-  createAiPlannerSystem({
-    knowledge: aiKnowledge,
-    strategy: "fast-castle-knights",
-    telemetry: createPlannerTelemetry(),
-  }),
-);
-
-/** Keep demo nodes near BOTH bases (player center + mirrored AI corner). */
-const DEV_NODE_RING_RADIUS = 26;
-const scattered = scatterResourceNodes(world.layers, DEV_SEED ^ 0x9e3779b9, {
-  count: 96,
-})
-  .filter((node) => {
-    const nearPlayer =
-      (node.tileX + 0.5 - centerSpot.x) ** 2 +
-        (node.tileY + 0.5 - centerSpot.y) ** 2 <=
-      DEV_NODE_RING_RADIUS ** 2;
-    const nearAi =
-      (node.tileX + 0.5 - (aiTcOrigin.x + 1.5)) ** 2 +
-        (node.tileY + 0.5 - (aiTcOrigin.y + 1.5)) ** 2 <=
-      DEV_NODE_RING_RADIUS ** 2;
-    return nearPlayer || nearAi;
-  })
-  .slice(0, 32);
-for (const node of scattered) {
-  spawnResourceNode(
-    world,
-    comps,
-    node.tileX,
-    node.tileY,
-    node.resourceCode,
-    node.amount,
-    { workSlots: WORK_SLOTS_PER_NODE },
-  );
-}
-
-// Map-gen full fog recompute (SPEC §2.9): the ONLY non-incremental
-// stamp pass, mirroring the save/load restore path.
-fog.recomputeAll();
+const { world, comps, fog } = session;
 
 // ---- Renderer ---------------------------------------------------------------
 
@@ -797,6 +545,59 @@ const minimap = createMinimap({
 });
 
 const topbar = createTopbar(world.seed);
+
+// ---- Game flow (M2-T10): surrender control + victory overlay -----------------
+//
+// The overlay polls the SAME VictoryCheck rows the digests hash, so the
+// screen cannot disagree with the sim. Restart tears this page down and
+// re-boots the session bootstrap from a FRESH seed; the handoff rides
+// localStorage so one stash fires exactly one restart.
+
+let matchDecidedShown = false;
+
+const victoryScreen = createVictoryScreen({
+  onRestart: () => {
+    stashNextSeed(window.localStorage, freshSeed(world.seed));
+    window.location.reload();
+  },
+});
+
+const surrenderControl = createSurrenderControl(() => {
+  if (matchDecidedShown) return;
+  world.inbox.submit({
+    kind: SURRENDER_COMMAND_KIND,
+    targetTick: world.tick + 1,
+    data: { playerId: PLAYER_ONE },
+  });
+  toast.show("Surrendering…");
+  surrenderControl.setEnabled(false);
+});
+
+function pollMatchOutcome(): void {
+  if (matchDecidedShown) return;
+  const outcome = evaluateOutcome(world, comps);
+  if (!outcome.decided) return;
+  matchDecidedShown = true;
+  surrenderControl.setEnabled(false);
+  const viewerLoss = outcome.losers.find(
+    (record) => record.playerId === VIEWER,
+  );
+  let enemyUnitsLost = 0;
+  for (const record of outcome.losers) {
+    if (record.playerId !== VIEWER) {
+      enemyUnitsLost += unitsLostOf(world, comps, record.playerId);
+    }
+  }
+  victoryScreen.show({
+    side: viewerLoss !== undefined ? "defeat" : "victory",
+    reason: viewerLoss?.reason ?? outcome.losers[0]?.reason ?? "conquest",
+    stats: {
+      ticksElapsed: world.tick,
+      viewerUnitsLost: unitsLostOf(world, comps, VIEWER),
+      enemyUnitsLost,
+    },
+  });
+}
 
 // Building visuals (one instanced draw call) fed from the pure
 // building-snapshot mirror, plus the single-building selection panel.
@@ -1173,6 +974,7 @@ function frame(
   controlGroups.refreshChips();
   buildMenu.refresh();
   buildingPanel.refresh();
+  pollMatchOutcome();
   renderer.render(scene, cameraRig.camera);
 
   // SPEC §7 draw-call budget: terrain + instanced sprite field +

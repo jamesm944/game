@@ -38,7 +38,7 @@ import {
   type SimComponents,
 } from "../../../src/sim/components";
 import {
-  COMBAT_EVENT_DEATH,
+  COMBAT_EVENT_UNIT_DEATH,
   combatDefOf,
   readCombatEvents,
 } from "../../../src/sim/components/combat";
@@ -334,7 +334,7 @@ function runScenario(fixture: GoldenCase): RunState {
 
   // Deaths live on the VICTIM owner's log: player two lost the scout.
   const p2Deaths = readCombatEvents(world, comps, 1)
-    .filter((event) => event.kind === COMBAT_EVENT_DEATH)
+    .filter((event) => event.kind === COMBAT_EVENT_UNIT_DEATH)
     .map((event) => event.victimEid);
 
   const finalPositions: [number, number, number][] = [];

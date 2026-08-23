@@ -55,71 +55,71 @@ exports[`golden harness m2t5b > records milestone digests at every 30th tick plu
     "tick": 390,
   },
   {
-    "digest": "fnv1a64:85a0a75f13cdc554",
+    "digest": "fnv1a64:0859aff21bedd2cb",
     "tick": 420,
   },
   {
-    "digest": "fnv1a64:3d111458f58b62e3",
+    "digest": "fnv1a64:477b3646ec95e378",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:51138c7110a44d51",
+    "digest": "fnv1a64:8c2c79783d0bb196",
     "tick": 480,
   },
   {
-    "digest": "fnv1a64:5cba19a873c4bdbb",
+    "digest": "fnv1a64:1975f970df93c84c",
     "tick": 510,
   },
   {
-    "digest": "fnv1a64:efd503188b8f32f2",
+    "digest": "fnv1a64:9182b0a7c59927c9",
     "tick": 540,
   },
   {
-    "digest": "fnv1a64:add50d0701f80127",
+    "digest": "fnv1a64:c57b69a0e5dffcf0",
     "tick": 570,
   },
   {
-    "digest": "fnv1a64:33cacf6fad1581f3",
+    "digest": "fnv1a64:31b430f5f7bf4454",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:242990baef65a10f",
+    "digest": "fnv1a64:03d1602b69c93648",
     "tick": 630,
   },
   {
-    "digest": "fnv1a64:023da8b268d81330",
+    "digest": "fnv1a64:074a0d4e667d413f",
     "tick": 660,
   },
   {
-    "digest": "fnv1a64:3e52273e882952e2",
+    "digest": "fnv1a64:ec8e3fc3be8ab03d",
     "tick": 690,
   },
   {
-    "digest": "fnv1a64:c649ac0ac1bd3bbf",
+    "digest": "fnv1a64:ab3ffd9a3bfea094",
     "tick": 720,
   },
   {
-    "digest": "fnv1a64:de6c2dbc6a50c7a6",
+    "digest": "fnv1a64:d44811fe0444bb4d",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:fe706c2da9a5d992",
+    "digest": "fnv1a64:60591f02cbf9e8e5",
     "tick": 780,
   },
   {
-    "digest": "fnv1a64:f877c6b146e0d3e7",
+    "digest": "fnv1a64:df9ceb3a36e68778",
     "tick": 810,
   },
   {
-    "digest": "fnv1a64:1bb0a7846497be15",
+    "digest": "fnv1a64:0510027ced9e736e",
     "tick": 840,
   },
   {
-    "digest": "fnv1a64:845865edef608d68",
+    "digest": "fnv1a64:2175c2357e55efe7",
     "tick": 870,
   },
   {
-    "digest": "fnv1a64:c28cfa6fcf0ac025",
+    "digest": "fnv1a64:2944548e51ca9cfe",
     "tick": 900,
   },
 ]
