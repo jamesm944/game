@@ -214,7 +214,10 @@ export function canEnqueueTraining(
   }
   const queued = readTrainQueue(world, comps, buildingEid).length;
   if (queued >= queueConfig.capacity) return false;
-  return populationOf(world, comps) + queued < populationCapOf(world, comps);
+  return (
+    populationOf(world, comps, playerId) + queued <
+    populationCapOf(world, comps, playerId)
+  );
 }
 
 function applyTrainCommand(
@@ -277,11 +280,11 @@ function applyTrainCommand(
     );
   }
   if (
-    populationOf(world, comps) + entries.length >=
-    populationCapOf(world, comps)
+    populationOf(world, comps, target.playerId) + entries.length >=
+    populationCapOf(world, comps, target.playerId)
   ) {
     throw new Error(
-      `training blocked: population ${String(populationOf(world, comps))}/${String(populationCapOf(world, comps))} at cap`,
+      `training blocked: population ${String(populationOf(world, comps, target.playerId))}/${String(populationCapOf(world, comps, target.playerId))} at cap`,
     );
   }
   entries.push({
@@ -325,13 +328,32 @@ export function createTrainingSystem(
       }
     }
 
-    // ---- 2) Advance queues ascending eid inside step().
+    // ---- 2) Advance queues ascending eid inside step(). Housing gates
+    // are PER OWNER (M2-T9): each player's population counts against
+    // its own buildings' caps — a rival's town center no longer houses
+    // our training. Owner tallies are memoized per tick.
     const posRows = world.rowsByComponentId.get(comps.positionId);
     const trainRows = world.rowsByComponentId.get(comps.trainQueueId);
     if (!trainRows) throw new Error("unregistered TrainQueue component");
 
-    let population = populationOf(world, comps);
-    let cap = populationCapOf(world, comps);
+    const popByOwner = new Map<number, number>();
+    const capByOwner = new Map<number, number>();
+    const populationFor = (owner: number): number => {
+      let value = popByOwner.get(owner);
+      if (value === undefined) {
+        value = populationOf(world, comps, owner);
+        popByOwner.set(owner, value);
+      }
+      return value;
+    };
+    const capFor = (owner: number): number => {
+      let value = capByOwner.get(owner);
+      if (value === undefined) {
+        value = populationCapOf(world, comps, owner);
+        capByOwner.set(owner, value);
+      }
+      return value;
+    };
 
     for (const eid of [...trainRows.keys()].sort((a, b) => a - b)) {
       const buildingRow = getBuildingRow(world, comps, eid);
@@ -339,8 +361,9 @@ export function createTrainingSystem(
       const entries = readTrainQueue(world, comps, eid);
       if (entries.length === 0) continue;
       const head = entries[0]!;
+      const owner = buildingRow[0]!;
 
-      if (population < cap && head.remainingTicks > 0) {
+      if (populationFor(owner) < capFor(owner) && head.remainingTicks > 0) {
         head.remainingTicks -= 1;
         writeTrainQueue(world, comps, eid, entries);
       }
@@ -367,7 +390,7 @@ export function createTrainingSystem(
           tile.y + 0.5,
           buildingRow[0]!,
         );
-        population += 1;
+        popByOwner.set(owner, populationFor(owner) + 1);
         diagnostics.unitsTrained += 1;
         entries.shift();
         writeTrainQueue(world, comps, eid, entries);
@@ -393,6 +416,10 @@ function spawnTrainedUnit(
   if (unitId === "villager") {
     return spawnUnit(world, comps, x, y, {
       baseSpeed: unitDefOf(unitId).speed,
+      // M2-T9: non-zero owners stamp an explicit Owner row so the
+      // producing player's economy can attribute (and manage) its own
+      // villagers; player zero stays rowless for digest stability.
+      ownerId: playerId,
     });
   }
   return spawnCombatUnit(world, comps, unitId, x, y, playerId);

@@ -41,6 +41,7 @@ import {
   unitIdOfCode,
 } from "../../data/definitions";
 import type { SimComponents } from "../components";
+import { ownerOfUnit } from "../components/owner";
 import type { World } from "../core/world";
 
 /** Why an entity was flagged for the next dirty flush (SPEC §2.9). */
@@ -353,7 +354,9 @@ export function createRowEntityResolver(
         tileX: clampTile(Math.floor(pos[0]!), size),
         tileY: clampTile(Math.floor(pos[1]!), size),
         sightRadius: DEFAULT_UNIT_SIGHT_RADIUS,
-        owner: 0,
+        // M2-T9: rowless legacy villagers read as player zero (see
+        // components/owner.ts); AI-owned villagers carry explicit rows.
+        owner: ownerOfUnit(world, comps, eid),
         defId: DEFAULT_UNIT_DEF_ID,
         kind: "unit",
         originX: Math.floor(pos[0]!),
@@ -375,6 +378,12 @@ export interface KnownEntitySnapshot {
   /** Current known tile (units: center tile; buildings: origin tile). */
   readonly tileX: number;
   readonly tileY: number;
+  /**
+   * Owning player (M2-T9): lets the AI split its own roster from
+   * visible enemies without any raw-row access. Enemies on non-visible
+   * tiles never reach this snapshot regardless.
+   */
+  readonly owner: number;
 }
 
 /** Memory record for an enemy building no longer under observation. */
@@ -658,6 +667,7 @@ export function createFogVisibility(
               defId: record.defId,
               tileX: own ? record.tileX : record.originX,
               tileY: own ? record.tileY : record.originY,
+              owner: record.owner,
             });
           }
           out.sort((a, b) => a.eid - b.eid);

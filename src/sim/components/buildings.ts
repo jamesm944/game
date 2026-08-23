@@ -48,6 +48,7 @@ import {
 } from "../../data/definitions";
 import { RESOURCE_SLUGS } from "../../data/schema";
 import { acceptedResourceMask } from "../core/stockpile";
+import { ownerOfUnit, type OwnerComponents } from "./owner";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
 
 export const ASSIGNED_SITE = "AssignedSite" as const;
@@ -419,19 +420,27 @@ export function writeTrainQueue(
 // ---- Population -----------------------------------------------------------------
 
 /**
- * Live population owned by the single M1 player: every entity carrying
- * a UnitTag row. M2 adds owner columns to units; until then one player
- * exists so counting tags is exact.
+ * Live population: every entity carrying a UnitTag row. With an
+ * `ownerId` (M2-T9) only that player's units count — rowless legacy
+ * villagers read as player zero via components/owner.ts; without one
+ * the M1 global count is returned unchanged.
  */
 export function populationOf(
   world: World,
-  comps: { unitTagId: number },
+  comps: { unitTagId: number } & Partial<Pick<OwnerComponents, "ownerId">>,
+  ownerId?: number | undefined,
 ): number {
   const rows = world.rowsByComponentId.get(comps.unitTagId);
   let count = 0;
   if (rows) {
-    for (const eid of rows.keys()) {
-      void eid;
+    for (const [eid] of rows) {
+      if (
+        ownerId !== undefined &&
+        comps.ownerId !== undefined &&
+        ownerOfUnit(world, comps as OwnerComponents, eid) !== ownerId
+      ) {
+        continue;
+      }
       count += 1;
     }
   }
@@ -439,17 +448,21 @@ export function populationOf(
 }
 
 /**
- * Current population-cap ceiling: the sum of `populationCap` over all
- * FINISHED buildings (sites grant nothing until they complete).
+ * Current population-cap ceiling: the sum of `populationCap` over
+ * FINISHED buildings (sites grant nothing until they complete). With
+ * `ownerId` (M2-T9) only that player's buildings count — the shared
+ * M1 global sum is returned when no owner is named.
  */
 export function populationCapOf(
   world: World,
   comps: Pick<BuildingComponents, "buildingId">,
+  ownerId?: number | undefined,
 ): number {
   const rows = world.rowsByComponentId.get(comps.buildingId);
   let cap = 0;
   if (rows) {
     for (const row of rows.values()) {
+      if (ownerId !== undefined && row[0] !== ownerId) continue;
       cap += buildingDefOf(buildingIdOfCode(row[1]!)).populationCap;
     }
   }

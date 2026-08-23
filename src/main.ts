@@ -119,6 +119,12 @@ import { createMovementSystem } from "./sim/systems/movement";
 import { getProductionCycleRow } from "./sim/components/production";
 import { createProductionSystem } from "./sim/systems/production";
 import { createPathWorkerFactory } from "./game/paths";
+import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "./sim/ai/bootstrap";
+import { createAiKnowledge } from "./sim/ai/knowledge";
+import {
+  createAiPlannerSystem,
+  createPlannerTelemetry,
+} from "./sim/ai/planner";
 import { RtsCamera } from "./render/camera";
 import { createBuildingLayer } from "./render/buildings";
 import {
@@ -278,18 +284,132 @@ for (const spot of centralPassableTiles(DEV_UNIT_COUNT * 3)) {
   if (populationOf(world, comps) >= DEV_UNIT_COUNT) break;
 }
 
-/** Keep the demo's nodes within a walkable radius of the dev spawn. */
+// ---- AI opponent start (M2-T9 / SPEC §2.8) ------------------------------------
+// The scripted opponent mirrors the player's dark-age start through the
+// map center and plays exclusively through command drafts into the same
+// inbox — the planner is just another registered system (last).
+
+/** Passable tiles nearest a target point — mirrored-base siting. */
+function passableTilesNear(
+  targetX: number,
+  targetY: number,
+  count: number,
+): { x: number; y: number }[] {
+  const size = world.layers.size;
+  const found: { x: number; y: number; d2: number }[] = [];
+  for (let ty = 0; ty < size; ty++) {
+    for (let tx = 0; tx < size; tx++) {
+      if (world.layers.derivedPassability[ty * size + tx] !== 1) continue;
+      const dx = tx + 0.5 - targetX;
+      const dy = ty + 0.5 - targetY;
+      found.push({ x: tx + 0.5, y: ty + 0.5, d2: dx * dx + dy * dy });
+    }
+  }
+  return found
+    .sort((a, b) => a.d2 - b.d2)
+    .slice(0, count)
+    .map(({ x, y }) => ({ x, y }));
+}
+
+const playerTcRect = buildingRectOf(world, comps, findPlayerTcEid());
+const aiAnchor = mirrorOrigin(
+  playerTcRect?.x ?? Math.floor(centerSpot.x),
+  playerTcRect?.y ?? Math.floor(centerSpot.y),
+  3,
+  3,
+  world.layers.size,
+);
+
+function findPlayerTcEid(): number {
+  for (const eid of world.entities) {
+    const row = getBuildingRow(world, comps, eid);
+    if (
+      row &&
+      row[0] === PLAYER_ONE &&
+      buildingIdOfCode(row[1]!) === "town-center"
+    ) {
+      return eid;
+    }
+  }
+  throw new Error("player town center missing before AI bootstrap");
+}
+
+/** First mirrored candidate whose 3×3 footprint stamps cleanly. */
+function findAiTcOrigin(): { x: number; y: number } {
+  for (const spot of passableTilesNear(
+    aiAnchor.x + 1.5,
+    aiAnchor.y + 1.5,
+    40,
+  )) {
+    const tileX = Math.floor(spot.x) - 1;
+    const tileY = Math.floor(spot.y) - 1;
+    // Bootstrap privilege mirrors stampFinishedBuilding: age gate and
+    // fog ignored, geometry still enforced.
+    if (
+      validatePlacement(world, comps, "town-center", tileX, tileY, AI_PLAYER, {
+        ignoreAgeGate: true,
+        ignoreFog: true,
+      }).ok
+    ) {
+      return { x: tileX, y: tileY };
+    }
+  }
+  throw new Error("no valid AI town-center site near the mirrored anchor");
+}
+
+const aiTcOrigin = findAiTcOrigin();
+setupAiOpponent(world, comps, {
+  tcOrigin: [aiTcOrigin.x, aiTcOrigin.y],
+  villagerSpawns: [],
+  startingResources: [200, 600, 100, 0, 0, 0, 0],
+});
+{
+  // Starting villagers on free ground beside the AI TC (explicit Owner
+  // rows so per-player population accounting sees them).
+  const spots = passableTilesNear(
+    aiTcOrigin.x + 1.5,
+    aiTcOrigin.y + 4.5,
+    DEV_UNIT_COUNT * 2,
+  );
+  let spawned = 0;
+  for (const spot of spots) {
+    if (spawned >= DEV_UNIT_COUNT) break;
+    spawnUnit(world, comps, spot.x, spot.y, { ownerId: AI_PLAYER });
+    spawned += 1;
+  }
+}
+
+const aiKnowledge = createAiKnowledge({
+  world,
+  comps,
+  view: fog.knowledgeFor(AI_PLAYER),
+});
+registerSystem(
+  world,
+  createAiPlannerSystem({
+    knowledge: aiKnowledge,
+    strategy: "fast-castle-knights",
+    telemetry: createPlannerTelemetry(),
+  }),
+);
+
+/** Keep demo nodes near BOTH bases (player center + mirrored AI corner). */
 const DEV_NODE_RING_RADIUS = 26;
 const scattered = scatterResourceNodes(world.layers, DEV_SEED ^ 0x9e3779b9, {
-  count: 64,
+  count: 96,
 })
-  .filter(
-    (node) =>
+  .filter((node) => {
+    const nearPlayer =
       (node.tileX + 0.5 - centerSpot.x) ** 2 +
         (node.tileY + 0.5 - centerSpot.y) ** 2 <=
-      DEV_NODE_RING_RADIUS ** 2,
-  )
-  .slice(0, 24);
+      DEV_NODE_RING_RADIUS ** 2;
+    const nearAi =
+      (node.tileX + 0.5 - (aiTcOrigin.x + 1.5)) ** 2 +
+        (node.tileY + 0.5 - (aiTcOrigin.y + 1.5)) ** 2 <=
+      DEV_NODE_RING_RADIUS ** 2;
+    return nearPlayer || nearAi;
+  })
+  .slice(0, 32);
 for (const node of scattered) {
   spawnResourceNode(
     world,

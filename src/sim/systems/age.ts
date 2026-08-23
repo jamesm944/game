@@ -89,6 +89,41 @@ const NEXT_AGE_TECH: Readonly<Record<number, string>> = {
   3: "imperial-age",
 };
 
+/** Tech id advancing FROM `rank`, or undefined at the ladder top. */
+export function nextAgeTechIdOf(rank: number): string | undefined {
+  return NEXT_AGE_TECH[rank];
+}
+
+/**
+ * True when `playerId` may enqueue its next advance right now: a rung
+ * remains, no research is in flight on any of their production
+ * buildings, and the AoE2 prerequisite buildings stand. Cost
+ * affordability is deliberately NOT part of this verdict — callers
+ * gate that separately via the tech's definition costs.
+ */
+export function canStartAgeAdvance(
+  world: World,
+  comps: SimComponents,
+  playerId: number,
+): boolean {
+  const rank = currentAgeRankOf(world, comps, playerId);
+  if (NEXT_AGE_TECH[rank] === undefined) return false;
+  for (const eid of world.entities) {
+    const row = getBuildingRow(world, comps, eid);
+    if (!row || row[0] !== playerId) continue;
+    if (!buildingDefOf(buildingIdOfCode(row[1]!)).trainQueue) continue;
+    if (getAgeResearchRow(world, comps, eid)) return false;
+  }
+  const prereq = AGE_BUILDING_PREREQS[rank + 1];
+  if (
+    prereq &&
+    countFinishedPrereqs(world, comps, playerId, prereq) < prereq.minCount
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export interface AgeDiagnostics {
   /** researchAge commands applied (escrow paid, row opened). */
   commandsApplied: number;

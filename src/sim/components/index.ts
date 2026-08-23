@@ -71,6 +71,7 @@ import {
   EQUIPMENT,
   type EquipmentComponents,
 } from "./equipment";
+import { attachOwner, OWNER, OWNER_ARITY, type OwnerComponents } from "./owner";
 import {
   COMMODITY_STOCKPILE,
   DROP_OFF,
@@ -101,6 +102,11 @@ export const MOVEMENT_COMPONENT_ARITIES: readonly [string, number][] = [
   [VELOCITY, 8],
 ];
 
+/** Owner registers between MoveTarget and Position (alphabetical). */
+const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
+  [OWNER, OWNER_ARITY],
+];
+
 /**
  * Every component family's arities in one table, in canonical registry
  * order — documentation of the digest contract, re-validated by the
@@ -108,6 +114,7 @@ export const MOVEMENT_COMPONENT_ARITIES: readonly [string, number][] = [
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
+  ...OWNER_COMPONENT_ARITIES,
   ...AGE_COMPONENT_ARITIES,
   ...BUILDING_COMPONENT_ARITIES,
   ...COMBAT_COMPONENT_ARITIES,
@@ -127,6 +134,7 @@ export interface MovementComponents {
 export interface SimComponents
   extends
     MovementComponents,
+    OwnerComponents,
     AgeComponents,
     EconomyComponents,
     StockpileComponents,
@@ -160,6 +168,7 @@ export function defineSimComponents(world: World): SimComponents {
     inventoryId: defineComponent(world, INVENTORY),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
     moveTargetId: defineComponent(world, MOVE_TARGET),
+    ownerId: defineComponent(world, OWNER),
     positionId: defineComponent(world, POSITION),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
     productionJobId: defineComponent(world, PRODUCTION_JOB),
@@ -299,6 +308,13 @@ export interface SpawnUnitOptions {
   readonly turnRate?: number | undefined;
   /** Body radius in tiles used by separation/push-apart. */
   readonly radius?: number | undefined;
+  /**
+   * Owning player (M2-T9). Non-zero owners stamp an explicit Owner row
+   * so two-player worlds can attribute population; player zero stays
+   * rowless (the documented legacy default) and every existing fixture
+   * digest is untouched.
+   */
+  readonly ownerId?: number | undefined;
 }
 
 /** Default M1 unit speed — SPEC ticket: 1.0 tile/sec constant. */
@@ -322,7 +338,7 @@ function defaultTurnRate(seed: number, eid: number): number {
 /** Spawn one movable Pop with every movement component attached. */
 export function spawnUnit(
   world: World,
-  comps: MovementComponents,
+  comps: MovementComponents & Partial<Pick<OwnerComponents, "ownerId">>,
   x: number,
   y: number,
   options: SpawnUnitOptions = {},
@@ -341,6 +357,9 @@ export function spawnUnit(
   ]);
   rows(comps.moveTargetId, [x, y]);
   rows(comps.activityQueueId, encodeActivities([]));
+  if (options.ownerId !== undefined && comps.ownerId !== undefined) {
+    attachOwner(world, comps as OwnerComponents, eid, options.ownerId);
+  }
   // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
   // at the next tick-boundary flush.
   world.visibility.markDirty("spawned", eid);
@@ -351,6 +370,7 @@ export function spawnUnit(
 export const DEFAULT_UNIT_RADIUS = 0.25;
 
 export * from "./economy";
+export * from "./owner";
 export * from "./age";
 export * from "./buildings";
 export * from "./combat";

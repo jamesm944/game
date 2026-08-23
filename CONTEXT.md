@@ -108,6 +108,40 @@ _Avoid_: Bank, fund
 A Company's founding focus and rules: name, sector, expansion approval mode.
 _Avoid_: License
 
+### AI opponent
+
+**AI opponent**:
+The single scripted adversary (player slot 1) that plays through the SAME command interface as the human — never by mutating sim state directly.
+_Avoid_: Bot, CPU, computer player
+
+**Fog honesty**:
+The structural guarantee that the AI can only know what its fog planes allow: enemy queries go through a surface with no API to ask about unseen entities, so wallhacks are impossible by construction.
+_Avoid_: Line of sight check, cheat
+
+**KnowledgeView**:
+The fog-curated query surface over one viewer's planes — own entities always, enemies only while observed, plus memory ghosts. Backs the AI, replays and future observers alike.
+_Avoid_: World state, entity list
+
+**Memory ghost**:
+The last-known record of an enemy building that left visibility; persists until re-sighted or observed destroyed. Invisible to combat and simulation.
+_Avoid_: Ghost building (bare)
+
+**Build-order layer**:
+Layer 1 of the AI planner: scripted gated strategies as data (fast-castle-knights, scouts-rush, archers-push) whose steps carry completion conditions, resource/age gates and `requires` edges.
+_Avoid_: Opening, build order script (bare)
+
+**Economy manager**:
+Layer 2 of the AI planner: keeps the town-center villager queue saturated toward the strategy target, places houses ahead of demand, pulls builders above a gatherer floor, and balances idle villagers onto resources per strategy weights.
+_Avoid_: Worker assigner, macro
+
+**Planning pass**:
+The AI's full think cycle, run every 30 ticks (1 s) with cheap incremental checks between; amortized cost stays under 1 ms.
+_Avoid_: Tick logic, update loop
+
+**Command draft**:
+A plain `{kind, data}` descriptor the AI emits for the orchestrator to submit into the shared inbox at the next tick boundary — identical in kind to a human click.
+_Avoid_: Direct order, API call
+
 ### Combat & progression
 
 **Armor class**:
