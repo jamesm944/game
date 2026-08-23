@@ -125,6 +125,9 @@ export function spawnCombatUnit(
     0, // targetEid — disengaged
     0, // cooldownTicks — free to strike
   ]);
+  // Fog dirty mark (SPEC §2.9): the unit's sight circle (from its
+  // definition's sightRadius) stamps at the next tick-boundary flush.
+  world.visibility.markDirty("spawned", eid);
   return eid;
 }
 

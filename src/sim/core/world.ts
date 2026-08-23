@@ -58,10 +58,12 @@ export interface World {
    */
   readonly pathScheduler: PathScheduler | undefined;
   /**
-   * Fog-of-war seam (SPEC §2.9 / M1-T11). M1 ships the all-visible
-   * stub; consumers (placement explored-gate today, AI KnowledgeView +
-   * render culling in M2) read ONLY this interface, so M2 swaps the
-   * implementation here without touching any caller.
+   * Fog-of-war seam (SPEC §2.9 / M2-T8). Production hands the real
+   * plane set (createFogVisibility) to world creation; the default
+   * remains the all-visible stub for fog-blind fixtures/tests.
+   * Consumers (placement explored-gate, KnowledgeView, render culling)
+   * read ONLY this interface, so implementations swap without touching
+   * any caller.
    */
   readonly visibility: VisibilityProvider;
 }
@@ -85,7 +87,7 @@ export interface CreateWorldOptions {
   readonly pathScheduler?: PathScheduler | undefined;
   /**
    * Fog-of-war provider override (tests inject denying fakes to prove
-   * the seam). Production callers omit it for the all-visible stub.
+   * the seam; production passes createFogVisibility().provider).
    */
   readonly visibility?: VisibilityProvider | undefined;
 }
@@ -149,6 +151,9 @@ export function despawnEntity(world: World, eid: number): boolean {
   for (const rows of world.rowsByComponentId.values()) {
     rows.delete(eid);
   }
+  // Fog dirty mark (SPEC §2.9): the sight circle un-stamps at the next
+  // tick-boundary flush; memory ghosts observe the destruction too.
+  world.visibility.markDirty("removed", eid);
   return true;
 }
 
@@ -210,7 +215,8 @@ export function step(world: World): void {
   const commands = world.inbox.drainDue(world.tick);
   for (const system of world.systems) system(world, commands);
   // Fog dirty-entity flush (SPEC §2.9): after movement, before the
-  // tick-boundary commit. No-op for the M1 all-visible stub.
+  // tick-boundary commit. No-op for stateless providers with nothing
+  // queued.
   world.visibility.flushDirty();
 }
 

@@ -79,6 +79,12 @@ export interface ValidatePlacementOptions {
    * age (bootstrap privilege); gameplay commands never set this.
    */
   readonly ignoreAgeGate?: boolean | undefined;
+  /**
+   * Scenario editors and test fixtures also stage content OUTSIDE the
+   * placing player's explored area (M2-T8); gameplay commands never
+   * set this — §2.9 keeps the explored gate for them.
+   */
+  readonly ignoreFog?: boolean | undefined;
 }
 
 function parsePlaceData(data: Readonly<Record<string, unknown>>): {
@@ -215,13 +221,15 @@ export function validatePlacement(
       };
     }
   }
-  // 4) Fog gate (SPEC §2.9): placement requires EXPLORED tiles. M1 runs
-  // the all-visible stub so this is trivially true everywhere on-grid;
-  // the rule itself lives here from day one so M2's real planes flip
-  // behavior without touching this call-site again.
-  for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
-    if (!world.visibility.isExplored(tile.x, tile.y, playerId)) {
-      return { ok: false, reason: "unexplored", rect };
+  // 4) Fog gate (SPEC §2.9): placement requires EXPLORED tiles. The
+  // rule consults only the provider seam, so the M1 all-visible stub
+  // trivially passed it everywhere on-grid and M2's real planes flip
+  // behavior without touching this call-site.
+  if (!options.ignoreFog) {
+    for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
+      if (!world.visibility.isExplored(tile.x, tile.y, playerId)) {
+        return { ok: false, reason: "unexplored", rect };
+      }
     }
   }
   return { ok: true, rect };
@@ -340,7 +348,7 @@ export function stampFinishedBuilding(
     parsed.tileX,
     parsed.tileY,
     options.playerId ?? 0,
-    { ignoreAgeGate: true },
+    { ignoreAgeGate: true, ignoreFog: true },
   );
   if (!check.ok || !check.rect) {
     throw new Error(

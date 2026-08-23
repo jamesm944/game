@@ -1184,5 +1184,17 @@ export function createMovementSystem(
         writeActivityQueue(world, comps, unit.eid, unit.queue);
       }
     }
+
+    // Fog dirty marks (SPEC §2.9): any unit whose committed tile changed
+    // this tick re-stamps its sight circle at the tick-boundary flush
+    // (the flush un-stamps the previously stamped circle first).
+    for (const unit of units) {
+      if (
+        Math.floor(unit.x) !== Math.floor(unit.tickStartX) ||
+        Math.floor(unit.y) !== Math.floor(unit.tickStartY)
+      ) {
+        world.visibility.markDirty("moved", unit.eid);
+      }
+    }
   };
 }

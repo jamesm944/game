@@ -36,6 +36,7 @@ import {
   TextureLoader,
   Vector3,
   WebGLRenderer,
+  type DataTexture,
 } from "three";
 import atlasUrl from "./assets/atlas/villager.png";
 import atlasIndexJson from "./assets/atlas/villager.frames.json";
@@ -81,6 +82,10 @@ import {
   step,
 } from "./sim/core/world";
 import {
+  createFogVisibility,
+  createRowEntityResolver,
+} from "./sim/systems/fog";
+import {
   canEnqueueTraining,
   createTrainingDiagnostics,
   createTrainingSystem,
@@ -116,6 +121,11 @@ import { createProductionSystem } from "./sim/systems/production";
 import { createPathWorkerFactory } from "./game/paths";
 import { RtsCamera } from "./render/camera";
 import { createBuildingLayer } from "./render/buildings";
+import {
+  copyFogTexture,
+  createFogShaderUniforms,
+  writeFogPlaneIntoTexture,
+} from "./render/fogTexture";
 import { createBuildGhost } from "./render/buildGhost";
 import {
   createRenderMirror,
@@ -178,8 +188,18 @@ const SPRITE_WORLD_HEIGHT = 1.5;
 const scheduler = new PathScheduler(
   createWorkerTransport(createPathWorkerFactory()),
 );
-const world = createWorld(DEV_SEED, { pathScheduler: scheduler });
+// Real fog-of-war planes (SPEC §2.9 / M2-T8): the provider swaps in at
+// world creation behind the unchanged VisibilityProvider seam.
+const fog = createFogVisibility(120, 2);
+const world = createWorld(DEV_SEED, {
+  pathScheduler: scheduler,
+  visibility: fog.provider,
+});
 const comps = defineSimComponents(world);
+fog.bindSource({
+  resolve: createRowEntityResolver(world, comps),
+  eidsAscending: () => world.entities,
+});
 registerSystem(world, createMovementSystem(comps, scheduler));
 registerSystem(world, createGatherSystem(comps, scheduler));
 registerSystem(world, createPlacementSystem(comps));
@@ -282,6 +302,10 @@ for (const node of scattered) {
   );
 }
 
+// Map-gen full fog recompute (SPEC §2.9): the ONLY non-incremental
+// stamp pass, mirroring the save/load restore path.
+fog.recomputeAll();
+
 // ---- Renderer ---------------------------------------------------------------
 
 const renderer = new WebGLRenderer({ antialias: true });
@@ -297,7 +321,13 @@ const sun = new DirectionalLight(0xfff2d9, 1.35);
 sun.position.set(0.55, 1, 0.35);
 scene.add(sun);
 
-const terrain = buildTerrainMesh(world.layers);
+// Fog DataTexture pair (SPEC §2.9): R=explored G=visible planes for the
+// human viewer, blended uFogPrev → uFogCurr across each tick interval.
+const VIEWER = PLAYER_ONE;
+const fogUniforms = createFogShaderUniforms(fog.state, VIEWER);
+let fogRevision = fog.revision;
+
+const terrain = buildTerrainMesh(world.layers, fogUniforms);
 scene.add(terrain);
 
 const cameraRig = new RtsCamera({ mapSize: world.layers.size });
@@ -316,6 +346,23 @@ const groundHeights = new Float32Array(RENDER_CAPACITY);
 const selectedFlags = new Uint8Array(RENDER_CAPACITY);
 const mirror = createRenderMirror();
 
+// Fog CPU-culling scratch (SPEC §2.9): entities culled against the
+// visible plane BEFORE instancing; health-bar fractions ride the full
+// mirror ranks with invisible units forced to "undamaged" so no bar
+// floats over a hidden enemy.
+const viewerKnowledge = fog.knowledgeFor(VIEWER);
+const culledPositions = new Float32Array(RENDER_CAPACITY * 2);
+const culledHeadings = new Float32Array(RENDER_CAPACITY);
+const barHpFractions = new Float32Array(RENDER_CAPACITY);
+/** Building feed cap mirrors the instanced layer's MAX_BUILDINGS. */
+const BUILDING_RENDER_CAP = 128;
+const bOrigins = new Float32Array(BUILDING_RENDER_CAP * 2);
+const bSizes = new Float32Array(BUILDING_RENDER_CAP * 2);
+const bStates = new Uint8Array(BUILDING_RENDER_CAP);
+const bProgress = new Float32Array(BUILDING_RENDER_CAP);
+const bEids = new Int32Array(BUILDING_RENDER_CAP);
+const bGhosts = new Uint8Array(BUILDING_RENDER_CAP);
+
 async function loadVillagerLayer(): Promise<
   ReturnType<typeof createUnitSpriteLayer>
 > {
@@ -333,19 +380,21 @@ async function loadVillagerLayer(): Promise<
 
 function writePopInstances(
   layer: ReturnType<typeof createUnitSpriteLayer>,
+  positions: Float32Array,
+  headings: Float32Array,
   sampledCount: number,
 ): void {
   for (let i = 0; i < sampledCount && i < RENDER_CAPACITY; i++) {
     groundHeights[i] = terrainHeightAt(
       world.layers,
-      sampleOut.positions[i * 2]!,
-      sampleOut.positions[i * 2 + 1]!,
+      positions[i * 2]!,
+      positions[i * 2 + 1]!,
     );
   }
   layer.writeInstances(
     {
-      positions: sampleOut.positions,
-      headings: sampleOut.headings,
+      positions,
+      headings,
       count: sampledCount,
     },
     groundHeights,
@@ -615,6 +664,14 @@ const minimap = createMinimap({
   layers: world.layers,
   getFrame: () => staging ?? null,
   isSelected,
+  fog: {
+    isVisible: (x, y) => fog.isVisible(x, y, VIEWER),
+    isExplored: (x, y) => fog.isExplored(x, y, VIEWER),
+  },
+  isOwn: (eid) => {
+    const combat = world.rowsByComponentId.get(comps.combatId)?.get(eid);
+    return !combat || combat[1] === VIEWER;
+  },
   groundPointAt: groundAt,
   setCenter: (x, y) => cameraRig.setCenter(x, y),
 });
@@ -783,9 +840,44 @@ function frame(
   buildingFrame = captureBuildingSnapshot(world, comps, {
     reusable: buildingFrame,
   });
+
+  // Fog texture rotation (SPEC §2.9): on a fog-dirty tick boundary,
+  // curr becomes prev and fresh planes land in curr; uBlend then sweeps
+  // 0→1 across the tick interval with the interpolation alpha.
+  if (fog.revision !== fogRevision) {
+    fogRevision = fog.revision;
+    copyFogTexture(
+      fogUniforms.uFogCurr.value as DataTexture,
+      fogUniforms.uFogPrev.value as DataTexture,
+    );
+    writeFogPlaneIntoTexture(
+      fogUniforms.uFogCurr.value as DataTexture,
+      fog.state,
+      VIEWER,
+    );
+  }
+
   pushFrame(mirror, staging);
   const alpha = Math.min(accumulator / TICK_DT_MS, 1);
+  fogUniforms.uBlend.value = alpha;
   const sampledCount = sampleMirror(mirror, alpha, sampleOut);
+
+  // Entity CPU culling against the visible plane (SPEC §2.9) before
+  // any instancing work.
+  let visibleCount = 0;
+  for (let i = 0; i < sampledCount; i++) {
+    const x = sampleOut.positions[i * 2]!;
+    const y = sampleOut.positions[i * 2 + 1]!;
+    const seen =
+      sampledCount > 0 && fog.isVisible(Math.floor(x), Math.floor(y), VIEWER);
+    if (seen && visibleCount < RENDER_CAPACITY) {
+      culledPositions[visibleCount * 2] = x;
+      culledPositions[visibleCount * 2 + 1] = y;
+      culledHeadings[visibleCount] = sampleOut.headings[i]!;
+      visibleCount += 1;
+    }
+    barHpFractions[i] = seen ? sampleOut.hpFractions[i]! : 1;
+  }
 
   // Selection bookkeeping against the fresh snapshot (prune dead).
   // Buildings ride the same live-eid feed so selected sites survive
@@ -804,10 +896,69 @@ function frame(
   }
 
   villagerLayer.setTime(spriteTimeSec);
-  writePopInstances(villagerLayer, sampledCount);
+  writePopInstances(
+    villagerLayer,
+    culledPositions,
+    culledHeadings,
+    visibleCount,
+  );
 
-  // Building meshes repaint from the fresh snapshot every frame.
-  buildingLayer.write(buildingFrame, world.layers);
+  // Building meshes repaint from the fresh snapshot every frame, gated
+  // by fog: own buildings always render; enemy ones only while
+  // observed, otherwise their memory ghost submits desaturated/static.
+  let bCount = 0;
+  for (
+    let i = 0;
+    i < buildingFrame.count && bCount < BUILDING_RENDER_CAP;
+    i++
+  ) {
+    const eid = buildingFrame.eids[i]!;
+    const ox = buildingFrame.origins[i * 2]!;
+    const oy = buildingFrame.origins[i * 2 + 1]!;
+    const w = buildingFrame.sizes[i * 2]!;
+    const h = buildingFrame.sizes[i * 2 + 1]!;
+    const siteRow = getBuildingSiteRow(world, comps, eid);
+    const builtRow = getBuildingRow(world, comps, eid);
+    const owner = (siteRow ?? builtRow)?.[0];
+    let ghost = false;
+    let keep = owner === VIEWER;
+    if (!keep) {
+      for (let dy = 0; dy < h && !keep && !ghost; dy++) {
+        for (let dx = 0; dx < w; dx++) {
+          if (fog.isVisible(Math.floor(ox) + dx, Math.floor(oy) + dy, VIEWER)) {
+            keep = true;
+            break;
+          }
+        }
+      }
+      if (!keep && viewerKnowledge.lastKnown(eid) !== undefined) {
+        ghost = true;
+        keep = true;
+      }
+    }
+    if (!keep) continue;
+    bEids[bCount] = eid;
+    bOrigins[bCount * 2] = ox;
+    bOrigins[bCount * 2 + 1] = oy;
+    bSizes[bCount * 2] = w;
+    bSizes[bCount * 2 + 1] = h;
+    bStates[bCount] = buildingFrame.states[i]!;
+    bProgress[bCount] = buildingFrame.progress[i]!;
+    bGhosts[bCount] = ghost ? 1 : 0;
+    bCount += 1;
+  }
+  buildingLayer.write(
+    {
+      count: bCount,
+      eids: bEids,
+      origins: bOrigins,
+      sizes: bSizes,
+      states: bStates,
+      progress: bProgress,
+    },
+    world.layers,
+    { isGhost: (index) => bGhosts[index] === 1 },
+  );
 
   // Armed placement ghost follows the pointer each frame so it stays
   // glued while panning/zooming, not just on mousemove.
@@ -863,7 +1014,7 @@ function frame(
     healthBarArrays,
     {
       positions: sampleOut.positions,
-      hpFractions: sampleOut.hpFractions,
+      hpFractions: barHpFractions,
       selectedFlags,
       count: sampledCount,
     },

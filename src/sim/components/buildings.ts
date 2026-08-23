@@ -174,6 +174,9 @@ export function spawnBuildingSite(
     0, // progressMilliTicks
     def.hp, // hp — sites are attackable from placement day one (M2-T7)
   ]);
+  // Fog dirty mark (SPEC §2.9): sites already radiate their definition
+  // sight radius (AoE2 foundations reveal their surroundings).
+  world.visibility.markDirty("spawned", eid);
   return eid;
 }
 

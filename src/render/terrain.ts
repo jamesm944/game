@@ -30,6 +30,7 @@ import {
   TERRAIN_WATER,
   type WorldLayers,
 } from "../sim/world/layers";
+import { injectTerrainFog, type FogShaderUniforms } from "./fogTexture";
 
 /** Vertical world units per integer elevation level (ticket constant). */
 export const ELEVATION_STEP = 0.25;
@@ -190,8 +191,16 @@ function pushWall(
  * Build the whole terrain as ONE mesh from map layers. Sim coordinates
  * map identically into the XZ plane: tile (tx, ty) occupies
  * x ∈ [tx, tx+1], z ∈ [ty, ty+1], matching camera/render conventions.
+ *
+ * Pass `fog` to dim/black out terrain per the fog-of-war planes
+ * (SPEC §2.9 / M2-T8): brightness = mix(EXPLORED_DIM, 1, texel.g) *
+ * step(0.5, texel.r) sampled from the RG DataTexture handoff with
+ * temporal uBlend smoothing. Omit it for the unfogged M1 look.
  */
-export function buildTerrainMesh(layers: WorldLayers): Mesh {
+export function buildTerrainMesh(
+  layers: WorldLayers,
+  fog?: FogShaderUniforms | undefined,
+): Mesh {
   const size = layers.size;
 
   // Tops: plane subdivided to the tile grid, un-indexed so each facet
@@ -277,7 +286,10 @@ export function buildTerrainMesh(layers: WorldLayers): Mesh {
   merged.setAttribute("color", new BufferAttribute(colors, 3));
   tops.dispose();
 
-  return new Mesh(merged, new MeshLambertMaterial({ vertexColors: true }));
+  const material = new MeshLambertMaterial({ vertexColors: true });
+  if (fog) injectTerrainFog(material, fog, size);
+
+  return new Mesh(merged, material);
 }
 
 /**

@@ -341,6 +341,9 @@ export function spawnUnit(
   ]);
   rows(comps.moveTargetId, [x, y]);
   rows(comps.activityQueueId, encodeActivities([]));
+  // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
+  // at the next tick-boundary flush.
+  world.visibility.markDirty("spawned", eid);
   return eid;
 }
 

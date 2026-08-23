@@ -23,6 +23,9 @@ import { terrainHeightAt } from "./terrain";
 
 const SITE_COLOR = 0x8a6a42;
 const DONE_COLOR = 0xb8bfc9;
+/** Memory-ghost tint — desaturated, static (SPEC §2.9 / M2-T8). */
+export const GHOST_BUILDING_COLOR = 0x565b63;
+const GHOST_BUILDING_HEIGHT = 0.55;
 const MAX_BUILDINGS = 128;
 
 const scratch = new Object3D();
@@ -30,7 +33,20 @@ const color = new Color();
 
 export interface BuildingLayer {
   mesh: InstancedMesh;
-  write(frame: BuildingSnapshotFrame, layers: WorldLayers): void;
+  write(
+    frame: BuildingSnapshotFrame,
+    layers: WorldLayers,
+    options?: BuildingWriteOptions | undefined,
+  ): void;
+}
+
+/**
+ * Per-write classification hook (M2-T8): indices flagged as memory
+ * ghosts submit desaturated at a fixed static height instead of their
+ * live state.
+ */
+export interface BuildingWriteOptions {
+  readonly isGhost?: ((index: number) => boolean) | undefined;
 }
 
 export function createBuildingLayer(): BuildingLayer {
@@ -48,16 +64,21 @@ export function createBuildingLayer(): BuildingLayer {
 
   return {
     mesh,
-    write(frame, layers) {
+    write(frame, layers, options: BuildingWriteOptions = {}) {
       const count = Math.min(frame.count, MAX_BUILDINGS);
       for (let i = 0; i < count; i++) {
         const ox = frame.origins[i * 2]!;
         const oy = frame.origins[i * 2 + 1]!;
         const w = frame.sizes[i * 2]!;
         const h = frame.sizes[i * 2 + 1]!;
-        const done = frame.states[i] === 1;
+        const ghost = options.isGhost?.(i) ?? false;
+        const done = !ghost && frame.states[i] === 1;
         const progress = done ? 1 : frame.progress[i]!;
-        const bodyHeight = done ? 0.9 : 0.15 + 0.55 * progress;
+        const bodyHeight = ghost
+          ? GHOST_BUILDING_HEIGHT
+          : done
+            ? 0.9
+            : 0.15 + 0.55 * progress;
         const cx = ox + w / 2;
         const cy = oy + h / 2;
         const groundY = terrainHeightAt(layers, cx, cy);
@@ -66,8 +87,12 @@ export function createBuildingLayer(): BuildingLayer {
         scratch.rotation.set(0, 0, 0);
         scratch.updateMatrix();
         mesh.setMatrixAt(i, scratch.matrix);
-        color.setHex(done ? DONE_COLOR : SITE_COLOR);
-        if (!done && progress <= 0.001) color.multiplyScalar(0.75);
+        if (ghost) {
+          color.setHex(GHOST_BUILDING_COLOR);
+        } else {
+          color.setHex(done ? DONE_COLOR : SITE_COLOR);
+          if (!done && progress <= 0.001) color.multiplyScalar(0.75);
+        }
         mesh.setColorAt(i, color);
       }
       mesh.count = count;

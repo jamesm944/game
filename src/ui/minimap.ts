@@ -1,13 +1,17 @@
 /**
- * Minimap — SPEC §2.13 prototype-validated command layer (M1-T8).
+ * Minimap — SPEC §2.13 prototype-validated command layer (M1-T8),
+ * fog tri-state projection M2-T8.
  *
  * Bottom-right canvas: the terrain layers are mini-rendered ONCE into
  * an offscreen buffer (per-tile palette + elevation shading), then each
- * redraw blits that buffer, paints unit dots from the latest post-step
- * snapshot (~10 Hz is plenty), and strokes the camera viewport quad
- * (ground-plane projections of the four screen corners — a trapezoid
- * under the pitched orthographic rig). Click/drag anywhere jumps the
- * camera via `setCenter`. Fog stays full-bright until the fog ticket.
+ * redraw blits that buffer, applies the fog planes as a per-tile
+ * tri-state overlay (unexplored black / explored-dim / visible bright —
+ * a pure projection of the sim planes, never independent state, ~4 Hz),
+ * paints unit dots from the latest post-step snapshot (own Pops always;
+ * enemy dots only on visible tiles), and strokes the camera viewport
+ * quad (ground-plane projections of the four screen corners — a
+ * trapezoid under the pitched orthographic rig). Click/drag anywhere
+ * jumps the camera via `setCenter`.
  *
  * All DOM/canvas access lives inside the factory; importing this file
  * headlessly is safe.
@@ -18,8 +22,26 @@ import type { SelectionFrame } from "./selection";
 
 /** CSS size of the square minimap in pixels (validated prototype feel). */
 const MINIMAP_CSS_PX = 176;
-/** Redraw cadence handled by the caller (~10 Hz). */
-export const MINIMAP_REDRAW_MS = 100;
+/** Redraw cadence handled by the caller (~4 Hz, SPEC §2.9). */
+export const MINIMAP_REDRAW_MS = 250;
+
+/** Tri-state fog shading for one minimap tile (SPEC §2.9). */
+export const MINIMAP_SHADE_UNEXPLORED = 0;
+export const MINIMAP_SHADE_DIM = 1;
+export const MINIMAP_SHADE_BRIGHT = 2;
+
+/**
+ * Pure projection of the fog planes onto the minimap tri-state. The
+ * redraw loop and the golden tests share this exact mapping so the
+ * canvas can never disagree with the planes.
+ */
+export function minimapShadeFor(
+  isExplored: boolean,
+  isVisible: boolean,
+): number {
+  if (!isExplored) return MINIMAP_SHADE_UNEXPLORED;
+  return isVisible ? MINIMAP_SHADE_BRIGHT : MINIMAP_SHADE_DIM;
+}
 
 /**
  * Same palette as render/terrain.ts's TERRAIN_HEX (kept literal here to
@@ -45,12 +67,24 @@ function shade(hex: number, factor: number): string {
   return `rgb(${String(r)}, ${String(g)}, ${String(b)})`;
 }
 
+export interface MinimapFogView {
+  isVisible(tileX: number, tileY: number): boolean;
+  isExplored(tileX: number, tileY: number): boolean;
+}
+
 export interface MinimapDeps {
   readonly layers: WorldLayers;
   /** Latest post-step snapshot for unit dots (null before first step). */
   getFrame(): SelectionFrame | null;
   /** eid → selected test (white highlight dots). */
   isSelected(eid: number): boolean;
+  /**
+   * Fog planes projection (M2-T8). Omitted → legacy full-bright map
+   * (fog-blind tests/fixtures).
+   */
+  readonly fog?: MinimapFogView | undefined;
+  /** Ownership test gating enemy dots; defaults to "everyone is own". */
+  isOwn?(eid: number): boolean;
   /** Ground-plane raycast of a client pixel → world XZ (viewport quad). */
   groundPointAt(
     clientX: number,
@@ -169,15 +203,47 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
     redraw(): void {
       ctx.drawImage(bake, 0, 0);
 
+      // Fog tri-state overlay — pure projection of the planes.
+      if (deps.fog) {
+        for (let ty = 0; ty < layers.size; ty++) {
+          for (let tx = 0; tx < layers.size; tx++) {
+            const shade = minimapShadeFor(
+              deps.fog.isExplored(tx, ty),
+              deps.fog.isVisible(tx, ty),
+            );
+            if (shade === MINIMAP_SHADE_BRIGHT) continue;
+            ctx.fillStyle =
+              shade === MINIMAP_SHADE_UNEXPLORED
+                ? "#000000"
+                : "rgba(0, 0, 0, 0.45)";
+            ctx.fillRect(
+              tx * pxPerTile,
+              ty * pxPerTile,
+              pxPerTile + 0.5,
+              pxPerTile + 0.5,
+            );
+          }
+        }
+      }
+
       const frame = deps.getFrame();
       if (frame && frame.count > 0) {
         for (let i = 0; i < frame.count; i++) {
-          const selected = deps.isSelected(frame.eids[i]!);
+          const eid = frame.eids[i]!;
+          const x = frame.positions[i * 2]!;
+          const y = frame.positions[i * 2 + 1]!;
+          // Own Pops always dotted; enemy dots only on visible tiles
+          // (SPEC §2.9).
+          const own = deps.isOwn ? deps.isOwn(eid) : true;
+          if (!own && !deps.fog?.isVisible(Math.floor(x), Math.floor(y))) {
+            continue;
+          }
+          const selected = deps.isSelected(eid);
           ctx.fillStyle = selected ? SELECTED_DOT_HEX : UNIT_DOT_HEX;
           const dot = selected ? 3 : 2;
           ctx.fillRect(
-            frame.positions[i * 2]! * pxPerTile - dot / 2,
-            frame.positions[i * 2 + 1]! * pxPerTile - dot / 2,
+            x * pxPerTile - dot / 2,
+            y * pxPerTile - dot / 2,
             dot,
             dot,
           );

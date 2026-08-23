@@ -1,0 +1,42 @@
+{
+  "name": "m2t8-fog-of-war-minimap",
+  "description": "Fog-of-war fixture on an open all-grass field: a player-zero town center plus two villagers anchor a starting explored ring while a scout-cavalry (sight 8) marches east across unexplored ground toward an unseen player-one barracks and house. Milestone samples pin the plane progression (unexplored black \u2192 sighted bright \u2192 dim ghost), KnowledgeView sighting of the enemy buildings, their memory ghosts after the scout returns west, and exact minimap tri-state projection over every sampled tile. An explored-tile house placement succeeds mid-run while the same call-site rejects far unexplored ground. Digests land every 30th tick plus final under BOTH the real fog planes and the M1 all-visible stub (observational-neutrality parity), doubling as the extended determinism canary.",
+  "seed": 20260824,
+  "size": 64,
+  "ticks": 660,
+  "milestoneEvery": 30,
+  "scout": { "eid": 1, "x": 13.5, "y": 30.5 },
+  "villagers": [
+    { "eid": 2, "x": 10.5, "y": 31.5 },
+    { "eid": 3, "x": 11.5, "y": 33.5 }
+  ],
+  "stockpiles": [{ "playerId": 0, "resources": [200, 600, 200, 200, 0, 0, 0] }],
+  "buildings": [
+    {
+      "eid": 5,
+      "defId": "town-center",
+      "tileX": 6,
+      "tileY": 28,
+      "playerId": 0
+    },
+    { "eid": 6, "defId": "barracks", "tileX": 24, "tileY": 28, "playerId": 1 },
+    { "eid": 7, "defId": "house", "tileX": 28, "tileY": 29, "playerId": 1 }
+  ],
+  "commands": [
+    {
+      "kind": "groupMove",
+      "targetTick": 10,
+      "data": { "entityIds": [1], "x": 25.5, "y": 32.5 }
+    },
+    {
+      "kind": "placeBuilding",
+      "targetTick": 60,
+      "data": { "defId": "house", "tileX": 9, "tileY": 25 }
+    },
+    {
+      "kind": "groupMove",
+      "targetTick": 300,
+      "data": { "entityIds": [1], "x": 12.5, "y": 30.5 }
+    }
+  ]
+}
