@@ -54,12 +54,17 @@ import {
   buildingDefOf,
   buildingIdOfCode,
   BUILDING_DEFINITIONS,
+  recipeDefOf,
+  recipeIdOfCode,
+  recipesForBuilding,
   unitDefOf,
   unitIdOfCode,
 } from "./data/definitions";
 import {
   PLAYER_ONE,
+  createCommodityStockpile,
   createPlayerStockpile,
+  ledgerAmountOfSlug,
   stockpileSnapshot,
 } from "./sim/core/stockpile";
 import {
@@ -92,6 +97,8 @@ import {
 import { createWorkerTransport, PathScheduler } from "./sim/path/scheduler";
 import { createGatherSystem } from "./sim/systems/gather";
 import { createMovementSystem } from "./sim/systems/movement";
+import { getProductionCycleRow } from "./sim/components/production";
+import { createProductionSystem } from "./sim/systems/production";
 import { createPathWorkerFactory } from "./game/paths";
 import { RtsCamera } from "./render/camera";
 import { createBuildingLayer } from "./render/buildings";
@@ -150,6 +157,7 @@ registerSystem(world, createGatherSystem(comps, scheduler));
 registerSystem(world, createPlacementSystem(comps));
 registerSystem(world, createConstructionSystem(comps));
 registerSystem(world, createTrainingSystem(comps, createTrainingDiagnostics()));
+registerSystem(world, createProductionSystem(comps));
 
 /**
  * Passable tiles nearest the map center, ascending by distance — dev
@@ -179,6 +187,7 @@ function centralPassableTiles(count: number): { x: number; y: number }[] {
 
 const centerSpot = centralPassableTiles(1)[0]!;
 createPlayerStockpile(world, comps, PLAYER_ONE, [200, 600, 100, 0, 0, 0, 0]);
+createCommodityStockpile(world, comps, PLAYER_ONE);
 /** Stamp the start TC so its 3×3 footprint fits the central passables. */
 stampFinishedBuilding(
   world,
@@ -531,6 +540,47 @@ const buildingPanel = createBuildingPanel({
     const builtRow = getBuildingRow(world, comps, eid);
     if (!builtRow) return undefined;
     const def = buildingDefOf(buildingIdOfCode(builtRow[1]!));
+    // M2-T3: recipe workshops show their current recipe, live per-input
+    // availability across both ledgers and the run/stall state — the
+    // exact rows golden digests hash.
+    const recipes = recipesForBuilding(def.id);
+    if (recipes.length > 0) {
+      const cycle = getProductionCycleRow(world, comps, eid);
+      const recipe = recipeDefOf(
+        cycle ? recipeIdOfCode(cycle[1]!) : recipes[0]!.id,
+      );
+      const inputs = recipe.inputs.map((input) => ({
+        slug: input.defId,
+        need: input.qty,
+        have: ledgerAmountOfSlug(world, comps, PLAYER_ONE, input.defId),
+      }));
+      const missing = inputs.find((input) => input.have < input.need);
+      const remaining = cycle?.[2] ?? 0;
+      let state: string;
+      if (remaining > 0) {
+        state = `running ${(remaining / 30).toFixed(1)}s`;
+      } else if (missing) {
+        state = `stalled — need ${missing.slug} ${String(missing.have)}/${String(missing.need)}`;
+      } else {
+        state = "idle — no crafter";
+      }
+      return {
+        title: def.name,
+        pop: {
+          current: populationOf(world, comps),
+          cap: populationCapOf(world, comps),
+        },
+        production: {
+          recipeLabel: recipe.name,
+          line: `${inputs
+            .map(
+              (input) =>
+                `${input.slug} ${String(input.have)}/${String(input.need)}`,
+            )
+            .join(" · ")} · ${state}`,
+        },
+      };
+    }
     if (!def.trainQueue) return { title: def.name };
     return {
       title: def.name,

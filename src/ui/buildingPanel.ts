@@ -29,6 +29,13 @@ export interface BuildingPanelData {
   readonly pop?: { current: number; cap: number } | undefined;
   /** Show the train button (production buildings only). */
   readonly canTrain?: boolean | undefined;
+  /**
+   * Recipe workshop line (M2-T3): current recipe + per-input
+   * availability + running/stalled state. Excluded from the structural
+   * rebuild key — it repaints through text comparison every frame.
+   */
+  readonly production?:
+    { readonly recipeLabel: string; readonly line: string } | undefined;
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
@@ -65,6 +72,8 @@ export function createBuildingPanel(deps: {
   metaEl.className = "panel-meta";
   const queueEl = document.createElement("div");
   queueEl.className = "panel-queue";
+  const productionEl = document.createElement("div");
+  productionEl.className = "panel-production";
   const trainButton = document.createElement("button");
   trainButton.type = "button";
   trainButton.className = "panel-train";
@@ -85,13 +94,16 @@ export function createBuildingPanel(deps: {
         }
         return;
       }
-      const key = JSON.stringify(data);
+      // The production line is volatile (countdowns/stock counts change
+      // every tick) — structural rebuilds key off everything else.
+      const { production, ...structural } = data;
+      const key = JSON.stringify(structural);
       const structuralChange = key !== lastKey;
       if (structuralChange) {
         lastKey = key;
         panel.style.display = "block";
         while (panel.firstChild) panel.firstChild.remove();
-        panel.append(titleEl, barWrap, metaEl, queueEl);
+        panel.append(titleEl, barWrap, metaEl, queueEl, productionEl);
         titleEl.textContent = data.title;
         metaEl.textContent = "";
         queueEl.textContent = "";
@@ -132,6 +144,15 @@ export function createBuildingPanel(deps: {
                 )
                 .join(" → ");
       if (queueEl.textContent !== queueText) queueEl.textContent = queueText;
+
+      // Recipe workshop line: "Planks — wood 4/2 · running 8.3s".
+      let productionText = "";
+      if (production) {
+        productionText = `${production.recipeLabel} — ${production.line}`;
+      }
+      if (productionEl.textContent !== productionText) {
+        productionEl.textContent = productionText;
+      }
     },
   };
 }

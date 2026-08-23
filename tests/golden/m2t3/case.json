@@ -1,0 +1,64 @@
+{
+  "name": "m2t3",
+  "description": "Depth-1 production-chain fixture on the pinned seed-20260823 map: five §2.6 workshops (sawpit, kiln, smithy, forge, kitchen) are stamped finished and six villagers staff them via produce commands — one crafter each, the sixth overflowing the sawpit's single slot. Inputs debit from the seven-slug resource ledger at cycle START, outputs credit the commodity ledger on the pinned completion tick (commandTargetTick + recipe.ticks), and every completed meals batch appends a digest-visible MealConsumed event. With ample inputs and in-range staff the lines never stall, so the commodity ledger closes against exact cycle counts. Milestone digests every 30th tick plus final; doubles as the determinism canary.",
+  "seed": 20260823,
+  "size": 32,
+  "ticks": 1800,
+  "milestoneEvery": 30,
+  "stockpile": {
+    "food": 400,
+    "wood": 600,
+    "gold": 150,
+    "stone": 0,
+    "iron": 80,
+    "coal": 40,
+    "clay": 60
+  },
+  "spawns": [
+    { "eid": 1, "x": 22.5, "y": 4.5 },
+    { "eid": 2, "x": 23.5, "y": 5.5 },
+    { "eid": 3, "x": 26.5, "y": 5.5 },
+    { "eid": 4, "x": 22.5, "y": 8.5 },
+    { "eid": 5, "x": 23.5, "y": 8.5 },
+    { "eid": 6, "x": 22.5, "y": 3.5 }
+  ],
+  "buildings": [
+    { "eid": 8, "defId": "sawpit", "tileX": 20, "tileY": 3 },
+    { "eid": 9, "defId": "kiln", "tileX": 24, "tileY": 3 },
+    { "eid": 10, "defId": "smithy", "tileX": 27, "tileY": 3 },
+    { "eid": 11, "defId": "forge", "tileX": 20, "tileY": 7 },
+    { "eid": 12, "defId": "kitchen", "tileX": 24, "tileY": 7 }
+  ],
+  "commands": [
+    {
+      "kind": "produce",
+      "targetTick": 2,
+      "data": { "entityIds": [1], "buildingEid": 8 }
+    },
+    {
+      "kind": "produce",
+      "targetTick": 3,
+      "data": { "entityIds": [2], "buildingEid": 9 }
+    },
+    {
+      "kind": "produce",
+      "targetTick": 4,
+      "data": { "entityIds": [3], "buildingEid": 10 }
+    },
+    {
+      "kind": "produce",
+      "targetTick": 5,
+      "data": { "entityIds": [4], "buildingEid": 11, "recipeId": "weapons" }
+    },
+    {
+      "kind": "produce",
+      "targetTick": 6,
+      "data": { "entityIds": [5], "buildingEid": 12 }
+    },
+    {
+      "kind": "produce",
+      "targetTick": 7,
+      "data": { "entityIds": [6], "buildingEid": 8 }
+    }
+  ]
+}

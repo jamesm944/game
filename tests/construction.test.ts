@@ -45,10 +45,17 @@ import {
 } from "../src/sim/systems/gather";
 import {
   BUILD_KIND,
+  TOOLS_CONSUME_PERIOD_TICKS,
   builderWorkMilliPerTick,
   createConstructionSystem,
 } from "../src/sim/systems/construction";
 import { createPlacementSystem } from "../src/sim/systems/placement";
+import {
+  COMMODITY_TOOLS,
+  commodityAmountOf,
+  createCommodityStockpile,
+  depositCommodityIntoStockpile,
+} from "../src/sim/core/stockpile";
 import { TERRAIN_GRASS, buildLayers } from "../src/sim/world/layers";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
 
@@ -237,5 +244,152 @@ describe("construction system", () => {
     );
     // And the ledger still closes through either camp.
     expect(h.gather.depositedByResource[1]).toBeGreaterThan(0);
+  });
+});
+
+// ---- Tool speed bonus + consumption (M2-T3) ---------------------------------
+
+interface ToolHarness {
+  readonly world: ReturnType<typeof createWorld>;
+  readonly comps: ReturnType<typeof defineSimComponents>;
+}
+
+/**
+ * Identical geometry to `harness` plus a commodity ledger so tool
+ * stock can be granted per case — same seed means the only possible
+ * difference between two runs is the tools themselves.
+ */
+function toolHarness(seed = 424242): ToolHarness {
+  const size = 16;
+  const terrainType = new Uint8Array(size * size).fill(TERRAIN_GRASS);
+  const paths = new PathScheduler(createSynchronousPathTransport());
+  const world = createWorld(seed, {
+    layers: buildLayers(terrainType, new Uint8Array(size * size)),
+    size,
+    pathScheduler: paths,
+  });
+  const comps = defineSimComponents(world);
+  registerSystem(world, createMovementSystem(comps, paths));
+  registerSystem(world, createPlacementSystem(comps));
+  registerSystem(world, createConstructionSystem(comps));
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_ONE,
+    [500, 2000, 200, 200, 0, 0, 0],
+  );
+  createCommodityStockpile(world, comps, PLAYER_ONE);
+  return { world, comps };
+}
+
+/** Stamp a house site at (4,4) and put one builder in its work band. */
+function startHouse(h: ToolHarness): { siteEid: number; builder: number } {
+  const siteEid = placeSite(h.world, h.comps, "house", 4, 4);
+  const builder = spawnUnit(h.world, h.comps, 6.5, 5.5);
+  assignBuilders(h.world, [builder], siteEid);
+  step(h.world); // assignment lands; contributions start this tick
+  return { siteEid, builder };
+}
+
+describe("construction tool bonus (M2-T3)", () => {
+  it("boosts single-builder output to exactly ×5/4 while tools last", () => {
+    const h = toolHarness();
+    depositCommodityIntoStockpile(
+      h.world,
+      h.comps,
+      PLAYER_ONE,
+      COMMODITY_TOOLS,
+      50,
+    );
+    const { siteEid } = startHouse(h);
+    for (let i = 0; i < 50; i++) step(h.world);
+    // 51 contributing ticks (assignment tick included), each boosted:
+    // no consumption boundary (tick 90) has passed yet.
+    expect(getBuildingSiteRow(h.world, h.comps, siteEid)?.[2]).toBe(51 * 1250);
+    expect(
+      commodityAmountOf(h.world, h.comps, PLAYER_ONE, COMMODITY_TOOLS),
+    ).toBe(50);
+  });
+
+  it("drains exactly one tool per boosted site on period boundaries", () => {
+    const h = toolHarness();
+    depositCommodityIntoStockpile(
+      h.world,
+      h.comps,
+      PLAYER_ONE,
+      COMMODITY_TOOLS,
+      50,
+    );
+    const { siteEid } = startHouse(h);
+    while (h.world.tick < TOOLS_CONSUME_PERIOD_TICKS + 1) step(h.world);
+    // Contributions ran ticks 2..91 (90 ticks), all boosted; tick 90
+    // consumed exactly one tool.
+    expect(getBuildingSiteRow(h.world, h.comps, siteEid)?.[2]).toBe(90 * 1250);
+    expect(
+      commodityAmountOf(h.world, h.comps, PLAYER_ONE, COMMODITY_TOOLS),
+    ).toBe(49);
+  });
+
+  it("reverts to base rate the moment the pile runs dry", () => {
+    const h = toolHarness();
+    depositCommodityIntoStockpile(
+      h.world,
+      h.comps,
+      PLAYER_ONE,
+      COMMODITY_TOOLS,
+      1,
+    );
+    const { siteEid } = startHouse(h);
+    while (h.world.tick < 120) step(h.world);
+    // Ticks 2..90 boosted (89 × 1250), ticks 91..120 plain (30 × 1000).
+    expect(getBuildingSiteRow(h.world, h.comps, siteEid)?.[2]).toBe(
+      89 * 1250 + 30 * 1000,
+    );
+    expect(
+      commodityAmountOf(h.world, h.comps, PLAYER_ONE, COMMODITY_TOOLS),
+    ).toBe(0);
+  });
+
+  it("finishes a house measurably sooner with tools in the bank", () => {
+    const plain = toolHarness();
+    const { siteEid: plainSite } = startHouse(plain);
+    let plainCompletedAt = -1;
+    for (let i = 0; i < 1200 && plainCompletedAt < 0; i++) {
+      step(plain.world);
+      if (getBuildingRow(plain.world, plain.comps, plainSite)) {
+        plainCompletedAt = plain.world.tick;
+      }
+    }
+
+    const boosted = toolHarness();
+    depositCommodityIntoStockpile(
+      boosted.world,
+      boosted.comps,
+      PLAYER_ONE,
+      COMMODITY_TOOLS,
+      50,
+    );
+    const { siteEid: boostSite } = startHouse(boosted);
+    let boostCompletedAt = -1;
+    for (let i = 0; i < 1200 && boostCompletedAt < 0; i++) {
+      step(boosted.world);
+      if (getBuildingRow(boosted.world, boosted.comps, boostSite)) {
+        boostCompletedAt = boosted.world.tick;
+      }
+    }
+
+    // Same seed, same geometry: 750k milli needs 750 base ticks vs 600
+    // boosted ones → exactly 150 ticks sooner.
+    expect(plainCompletedAt).toBe(751);
+    expect(boostCompletedAt).toBe(601);
+    // Six consumption boundaries (90…540) drained six tools.
+    expect(
+      commodityAmountOf(
+        boosted.world,
+        boosted.comps,
+        PLAYER_ONE,
+        COMMODITY_TOOLS,
+      ),
+    ).toBe(44);
   });
 });

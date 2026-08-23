@@ -7,8 +7,10 @@
  * sequence per world, movement + economy + stockpile components
  * register interleaved via defineSimComponents:
  *
- *   ActivityQueue, AssignedNode, CarryCapacity, DropOff, Inventory,
- *   MoveTarget, Position, ResourceNode, Stockpile, UnitTag, Velocity
+ *   ActivityQueue, AssignedNode, AssignedSite, Building, BuildingSite,
+ *   CarryCapacity, CommodityStockpile, DropOff, Inventory,
+ *   MealConsumed, MoveTarget, Position, ProductionCycle, ProductionJob,
+ *   ResourceNode, Stockpile, TrainQueue, UnitTag, Velocity
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -47,10 +49,18 @@ import {
   type EconomyComponents,
 } from "./economy";
 import {
+  COMMODITY_STOCKPILE,
   DROP_OFF,
   STOCKPILE,
   type StockpileComponents,
 } from "../core/stockpile";
+import {
+  MEAL_CONSUMED,
+  PRODUCTION_COMPONENT_ARITIES,
+  PRODUCTION_CYCLE,
+  PRODUCTION_JOB,
+  type ProductionComponents,
+} from "./production";
 import { defineComponent, spawnEntity, type World } from "../core/world";
 
 export const ACTIVITY_QUEUE = "ActivityQueue" as const;
@@ -76,6 +86,7 @@ export const MOVEMENT_COMPONENT_ARITIES: readonly [string, number][] = [
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
   ...BUILDING_COMPONENT_ARITIES,
+  ...PRODUCTION_COMPONENT_ARITIES,
 ];
 
 export interface MovementComponents {
@@ -86,13 +97,14 @@ export interface MovementComponents {
   readonly velocityId: number;
 }
 
-/** Every component id the M1 sim reads/writes. */
+/** Every component id the M1/M2 sim reads/writes. */
 export interface SimComponents
   extends
     MovementComponents,
     EconomyComponents,
     StockpileComponents,
-    BuildingComponents {}
+    BuildingComponents,
+    ProductionComponents {}
 
 /**
  * Register ALL sim components in one strictly alphabetical sequence —
@@ -107,10 +119,14 @@ export function defineSimComponents(world: World): SimComponents {
     buildingId: defineComponent(world, BUILDING),
     buildingSiteId: defineComponent(world, BUILDING_SITE),
     carryCapacityId: defineComponent(world, CARRY_CAPACITY),
+    commodityStockpileId: defineComponent(world, COMMODITY_STOCKPILE),
     dropoffId: defineComponent(world, DROP_OFF),
     inventoryId: defineComponent(world, INVENTORY),
+    mealConsumedId: defineComponent(world, MEAL_CONSUMED),
     moveTargetId: defineComponent(world, MOVE_TARGET),
     positionId: defineComponent(world, POSITION),
+    productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
+    productionJobId: defineComponent(world, PRODUCTION_JOB),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
     stockpileId: defineComponent(world, STOCKPILE),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
@@ -295,3 +311,4 @@ export const DEFAULT_UNIT_RADIUS = 0.25;
 
 export * from "./economy";
 export * from "./buildings";
+export * from "./production";

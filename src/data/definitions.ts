@@ -41,6 +41,8 @@ function assignCodes<T extends { id: string }>(
 
 export const UNIT_DEF_CODES = assignCodes(REGISTRY.units);
 export const BUILDING_DEF_CODES = assignCodes(REGISTRY.buildings);
+/** u8 recipe codes (ascending slug) — ProductionCycle rows carry these. */
+export const RECIPE_DEF_CODES = assignCodes(REGISTRY.recipes);
 
 export function unitDefOf(id: string): UnitDefinition {
   const def = REGISTRY.units.get(id);
@@ -94,3 +96,31 @@ export function unitIdOfCode(code: number): string {
   }
   throw new Error(`unknown unit def code: ${String(code)}`);
 }
+
+export function recipeCodeOf(id: string): number {
+  const code = RECIPE_DEF_CODES.get(id);
+  if (code === undefined)
+    throw new Error(`unknown recipe definition: ${JSON.stringify(id)}`);
+  return code;
+}
+
+export function recipeIdOfCode(code: number): string {
+  for (const [id, candidate] of RECIPE_DEF_CODES) {
+    if (candidate === code) return id;
+  }
+  throw new Error(`unknown recipe def code: ${String(code)}`);
+}
+
+/** Recipes of one building ascending by id — cached; content is static. */
+export function recipesForBuilding(buildingId: string): RecipeDefinition[] {
+  let list = RECIPES_BY_BUILDING.get(buildingId);
+  if (!list) {
+    list = [...REGISTRY.recipes.values()]
+      .filter((recipe) => recipe.buildingId === buildingId)
+      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    RECIPES_BY_BUILDING.set(buildingId, list);
+  }
+  return list;
+}
+
+const RECIPES_BY_BUILDING = new Map<string, RecipeDefinition[]>();

@@ -45,6 +45,11 @@ import {
   type FootprintRect,
 } from "../components/buildings";
 import { buildingDefOf, buildingIdOfCode } from "../../data/definitions";
+import {
+  COMMODITY_TOOLS,
+  commodityAmountOfOrZero,
+  withdrawCommodityFromStockpile,
+} from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
 import { resetSteeringBookkeeping } from "./movement";
@@ -76,6 +81,22 @@ export function builderWorkMilliPerTick(rank: number): number {
 /** Distance from a site's FOOTPRINT EDGE within which builders contribute. */
 export const BUILD_WORK_RANGE_TILES = 3.25;
 
+// ---- Tool bonus (M2-T3) ---------------------------------------------------------
+//
+// SPEC §2.6: tools are "consumed by construction + work-speed bonuses".
+// While the building owner holds at least one tool, every contributing
+// builder's fixed-point output scales by TOOLS_BOOST (×5/4 exact
+// integer math), and each boosted site drains one tool every
+// TOOLS_CONSUME_PERIOD_TICKS — a deterministic world-tick boundary, so
+// replays and digests see identical deductions. Sites iterate ascending
+// eid, so same-tick multi-site consumption order is pinned too.
+
+/** Boost multiplier numerator/denominator: exactly ×5/4. */
+export const TOOLS_BOOST_NUMERATOR = 5;
+export const TOOLS_BOOST_DENOMINATOR = 4;
+/** One tool consumed per boosted site every this many ticks. */
+export const TOOLS_CONSUME_PERIOD_TICKS = 90;
+
 /** Squared distance from (x,y) to the nearest point of `rect` (0 inside). */
 export function rectDistanceSq(
   x: number,
@@ -92,10 +113,19 @@ export interface ConstructionDiagnostics {
   commandsApplied: number;
   /** Sites completed since sim start. */
   completions: number;
+  /** Tools drained by boosted sites since sim start (M2-T3). */
+  toolsConsumed: number;
+  /** Site-ticks that ran under the tool speed bonus (M2-T3). */
+  boostedSiteTicks: number;
 }
 
 export function createConstructionDiagnostics(): ConstructionDiagnostics {
-  return { commandsApplied: 0, completions: 0 };
+  return {
+    commandsApplied: 0,
+    completions: 0,
+    toolsConsumed: 0,
+    boostedSiteTicks: 0,
+  };
 }
 
 function parseBuildData(data: Readonly<Record<string, unknown>>): {
@@ -137,8 +167,11 @@ function parseBuildData(data: Readonly<Record<string, unknown>>): {
  * point slides to the nearest still-passable tile (expanding square
  * rings, clockwise from north-west) so the approach goal stays
  * reachable and the planner can never livelock against movement.
+ *
+ * Shared with the production system (M2-T3): workshop crafters walk to
+ * the exact same kind of perimeter door.
  */
-function approachPoint(
+export function approachPoint(
   world: World,
   rect: FootprintRect,
   margin: number,
@@ -322,6 +355,31 @@ export function createConstructionSystem(
           contributingRank += 1;
         }
       }
+
+      // M2-T3 tool bonus: holding any tools speeds this site's work and
+      // drains them on the deterministic period boundary. A player
+      // without a commodity ledger simply counts as tool-less.
+      if (
+        milliThisTick > 0 &&
+        commodityAmountOfOrZero(world, comps, group.row[0]!, COMMODITY_TOOLS) >
+          0
+      ) {
+        milliThisTick = Math.floor(
+          (milliThisTick * TOOLS_BOOST_NUMERATOR) / TOOLS_BOOST_DENOMINATOR,
+        );
+        diagnostics.boostedSiteTicks += 1;
+        if (world.tick % TOOLS_CONSUME_PERIOD_TICKS === 0) {
+          withdrawCommodityFromStockpile(
+            world,
+            comps,
+            group.row[0]!,
+            COMMODITY_TOOLS,
+            1,
+          );
+          diagnostics.toolsConsumed += 1;
+        }
+      }
+
       if (milliThisTick > 0) {
         group.row[2] = Math.min(totalNeeded, group.row[2]! + milliThisTick);
       }

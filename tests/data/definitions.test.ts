@@ -243,6 +243,51 @@ describe("three-round aggregate failure reporting", () => {
     );
   });
 
+  /**
+   * M2-T3 explicit proof of the issue #37 acceptance criterion: a
+   * recipe whose INPUT is itself a commodity (tools → weapons here)
+   * is rejected outright at load under default options.
+   */
+  it("rejects commodity-input recipes at load (depth-1 hard rule)", () => {
+    const workshop: DefinitionSource = {
+      label: "buildings/workshop.json",
+      json: JSON.stringify({
+        id: "workshop",
+        name: "Workshop",
+        kind: "building",
+        costs: {},
+        ageGate: "dark",
+        techPrereqs: [],
+        buildTime: 100,
+        footprint: { width: 1, height: 1 },
+        hp: 100,
+        workSlots: 1,
+        dropoffFilters: [],
+        acceptsRoles: [],
+        sightRadius: 3,
+        populationCap: 0,
+      }),
+    };
+    const deepChain: DefinitionSource = {
+      label: "recipes/deep-chain.json",
+      json: JSON.stringify({
+        id: "deep-chain",
+        name: "Deep Chain",
+        kind: "recipe",
+        costs: {},
+        ageGate: "dark",
+        techPrereqs: [],
+        buildingId: "workshop",
+        inputs: [{ defId: "tools", qty: 1 }],
+        output: { defId: "weapons", qty: 1 },
+        ticks: 50,
+      }),
+    };
+    expect(() => loadDefinitions([workshop, deepChain])).toThrow(
+      /recipe deep-chain: commodity input "tools" violates the depth-1 hard rule/,
+    );
+  });
+
   it("permits commodity inputs only when the depth rule is relaxed", () => {
     const workshop: DefinitionSource = {
       label: "buildings/workshop.json",
