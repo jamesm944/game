@@ -9,6 +9,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  BUILDING_DEFINITIONS,
   TECH_DEF_CODES,
   UNIT_DEFINITIONS,
   techCodeOf,
@@ -53,8 +54,10 @@ import {
 } from "../src/sim/systems/combat";
 import {
   bonusMultiplierOf,
+  BUILDING_ARMOR_CLASSES,
   deriveUnitStats,
   strikeDamage,
+  strikeDamageOnBuilding,
 } from "../src/sim/combat/stats";
 
 const realRandom = Math.random;
@@ -117,6 +120,51 @@ describe("damage counter table (SPEC §2.5)", () => {
         ).toBeGreaterThanOrEqual(1);
       }
     }
+  });
+
+  /**
+   * M2-T7 snapshot extension: the SAME counter table resolved against
+   * BUILDING defenders (canonical `building` armor class, zero base
+   * armor). Every attacker × every loaded building definition — the
+   * siege→building column of the §2.5 table pins itself here the moment
+   * siege content declares `{armorClass:"building", mult:N}` bonuses.
+   */
+  const BUILDING_IDS = [...BUILDING_DEFINITIONS.keys()].sort();
+
+  it("snapshots every attacker × building-defender pairing (M2-T7)", () => {
+    const table: Record<string, Record<string, number>> = {};
+    for (const attackerId of UNIT_IDS) {
+      const attacker = unitDefOf(attackerId);
+      const attackerStats = deriveUnitStats(attacker);
+      table[attackerId] = {};
+      for (const buildingId of BUILDING_IDS) {
+        // Building defenders carry no per-definition stats yet; the
+        // strike resolves against the shared class tag + base armor.
+        void buildingId;
+        table[attackerId]![buildingId] = strikeDamageOnBuilding(
+          attacker,
+          attackerStats,
+        );
+      }
+    }
+    expect(table).toMatchSnapshot();
+  });
+
+  it("resolves buildings through the canonical building armor class", () => {
+    // The defender-side contract: one class tag, documented zero armor.
+    expect(BUILDING_ARMOR_CLASSES).toEqual(["building"]);
+    // No M2 content holds a siege→building multiplier yet — pin the
+    // zeros so the first ram/trebuchet flips this visibly.
+    for (const attackerId of UNIT_IDS) {
+      expect(
+        bonusMultiplierOf(unitDefOf(attackerId), BUILDING_ARMOR_CLASSES),
+      ).toBe(1);
+    }
+    // Same max(1, …) floor as unit strikes: villagers chip stone walls.
+    const villager = unitDefOf("villager");
+    expect(strikeDamageOnBuilding(villager, deriveUnitStats(villager))).toBe(3);
+    const knight = unitDefOf("knight");
+    expect(strikeDamageOnBuilding(knight, deriveUnitStats(knight))).toBe(10);
   });
 
   it("applies armor-class attack bonuses multiplicatively", () => {

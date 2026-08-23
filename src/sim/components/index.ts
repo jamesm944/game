@@ -11,8 +11,8 @@
  *   AssignedSite, Building, BuildingSite, CarryCapacity, Combat,
  *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
  *   Inventory, MealConsumed, MoveTarget, Position, ProductionCycle,
- *   ProductionJob, ResearchedTechs, ResourceNode, Stockpile, TrainQueue,
- *   UnitTag, Velocity
+ *   ProductionJob, ResearchedTechs, ResourceNode, Rubble, Stockpile,
+ *   TrainQueue, UnitTag, Velocity
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -48,6 +48,7 @@ import {
   BUILDING,
   BUILDING_COMPONENT_ARITIES,
   BUILDING_SITE,
+  RUBBLE,
   TRAIN_QUEUE,
   type BuildingComponents,
 } from "./buildings";
@@ -164,6 +165,7 @@ export function defineSimComponents(world: World): SimComponents {
     productionJobId: defineComponent(world, PRODUCTION_JOB),
     researchedTechsId: defineComponent(world, RESEARCHED_TECHS),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
+    rubbleId: defineComponent(world, RUBBLE),
     stockpileId: defineComponent(world, STOCKPILE),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
     unitTagId: defineComponent(world, UNIT_TAG),

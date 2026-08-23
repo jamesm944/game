@@ -1,0 +1,104 @@
+{
+  "name": "m2t7-raid",
+  "seed": 20260823,
+  "size": 40,
+  "ticks": 2100,
+  "milestoneEvery": 30,
+  "raider": { "eid": 1, "x": 23.0, "y": 19.0 },
+  "villagers": [
+    { "eid": 2, "x": 20.5, "y": 19.5 },
+    { "eid": 3, "x": 21.5, "y": 19.5 },
+    { "eid": 4, "x": 21.5, "y": 20.5 }
+  ],
+  "nodes": [
+    { "eid": 7, "tileX": 20, "tileY": 20, "resource": "wood", "amount": 4000 }
+  ],
+  "buildings": [
+    {
+      "eid": 8,
+      "defId": "lumber-camp",
+      "tileX": 24,
+      "tileY": 18,
+      "playerId": 1,
+      "hp": 24
+    },
+    {
+      "eid": 9,
+      "defId": "lumber-camp",
+      "tileX": 34,
+      "tileY": 26,
+      "playerId": 1
+    },
+    { "eid": 10, "defId": "barracks", "tileX": 30, "tileY": 20, "playerId": 1 }
+  ],
+  "stockpiles": [
+    {
+      "playerId": 0,
+      "resources": [200, 200, 200, 200, 0, 0, 0],
+      "commodities": { "weapons": 10 }
+    },
+    { "playerId": 1, "resources": [100, 100, 100, 100, 0, 0, 0] }
+  ],
+  "commands": [
+    {
+      "kind": "gather",
+      "targetTick": 1,
+      "data": { "entityIds": [2, 3, 4], "nodeId": 7 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 60,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 61,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 62,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 63,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 64,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 65,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 66,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 67,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 68,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 69,
+      "data": { "unitIds": [1], "item": "weapon", "playerId": 0 }
+    },
+    {
+      "kind": "attack",
+      "targetTick": 306,
+      "data": { "attackerIds": [1], "targetId": 8 }
+    }
+  ]
+}

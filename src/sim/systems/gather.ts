@@ -38,6 +38,11 @@
  * Deposits are deterministic events executed while advancing Deliver
  * activities inside step(), crediting the drop-off owner's stockpile
  * rows (core/stockpile.ts) — digest-visible by construction.
+ *
+ * M2-T7 raid destruction: a drop-off whose building died mid-flight
+ * (DropOff row gone) aborts the carrier's chain with nothing credited
+ * and planning reroutes to the next cheapest ACCEPTING point — or the
+ * worker idles holding cargo, counted, when no candidate remains.
  */
 
 import {
@@ -155,6 +160,13 @@ export interface GatherDiagnostics {
    * of waiting counts once per blocked worker per tick.
    */
   blockedCarryTicks: number;
+  /**
+   * Deposit runs abandoned because their TARGETED drop-off entity died
+   * mid-flight (M2-T7 raid destruction): nothing is credited, the chain
+   * cancels and planning reroutes to the next cheapest accepting point
+   * — or idles holding cargo when none remains.
+   */
+  destroyedDropoffReroutes: number;
 }
 
 export function createGatherDiagnostics(): GatherDiagnostics {
@@ -166,6 +178,7 @@ export function createGatherDiagnostics(): GatherDiagnostics {
     deliveriesByDropOff: [],
     rejectedByFilter: 0,
     blockedCarryTicks: 0,
+    destroyedDropoffReroutes: 0,
   };
 }
 
@@ -436,6 +449,14 @@ export function createGatherSystem(
       diagnostics.deliveriesByDropOff[rank]! += 1;
     };
 
+    /**
+     * True while the drop-off entity still holds its DropOff row.
+     * Destruction (M2-T7) removes the row with the entity, so a carrier
+     * mid-flight can detect the loss before touching position rows.
+     */
+    const dropOffAlive = (eid: number): boolean =>
+      world.rowsByComponentId.get(comps.dropoffId)?.has(eid) ?? false;
+
     /** Drop-off world position; throws when the row vanished. */
     const dropOffPositionOf = (eid: number): { x: number; y: number } => {
       const pos = posRows?.get(eid);
@@ -607,6 +628,13 @@ export function createGatherSystem(
       worker: ClaimedWorker,
       head: DeliverActivity,
     ): boolean => {
+      // Destroyed mid-flight (M2-T7): the DropOff row died with the
+      // building. Nothing is credited; the caller cancels the chain and
+      // planning reroutes to the next cheapest accepting point.
+      if (!dropOffAlive(head.dropoffEid)) {
+        diagnostics.destroyedDropoffReroutes += 1;
+        return false;
+      }
       const owner = dropOffOwnerOf(world, comps, head.dropoffEid);
       if (owner === undefined) {
         throw new Error(
@@ -819,6 +847,14 @@ export function createGatherSystem(
           // co-deliverers may physically forbid.
           const next = queue[1];
           if (head.kind === "move" && next?.kind === "deliver") {
+            if (!dropOffAlive(next.dropoffEid)) {
+              // Depot destroyed mid-flight (M2-T7): drop the chain,
+              // planning reroutes to an accepting point next tick.
+              cancelActivities(queue);
+              diagnostics.destroyedDropoffReroutes += 1;
+              dirty = true;
+              continue;
+            }
             const drop = dropOffPositionOf(next.dropoffEid);
             if (
               withinDeliverRange(worker, drop) ||
@@ -849,6 +885,14 @@ export function createGatherSystem(
         // kind === "deliver": deposit once within reach of the depot —
         // exact-pixel arrival would deadlock behind co-deliverers.
         if (head.kind === "deliver") {
+          if (!dropOffAlive(head.dropoffEid)) {
+            // Depot destroyed mid-flight (M2-T7): nothing credited;
+            // cancel so reroute planning finds an accepting drop-off.
+            cancelActivities(queue);
+            diagnostics.destroyedDropoffReroutes += 1;
+            dirty = true;
+            continue; // reroute planning runs through planNextLeg
+          }
           const drop = dropOffPositionOf(head.dropoffEid);
           if (
             withinDeliverRange(worker, drop) ||

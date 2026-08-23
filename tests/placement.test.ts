@@ -136,12 +136,15 @@ describe("placement system", () => {
     step(world);
 
     // Stockpile takes eid 1; the site is the next entity.
-    // Row layout [playerId, defCode, progress]; the def code comes from
-    // the registry's ascending-slug assignment (M2 content renumbered).
+    // Row layout [playerId, defCode, progress, hp]; the def code comes
+    // from the registry's ascending-slug assignment (M2 content
+    // renumbered). Sites spawn at full definition hp (M2-T7: they are
+    // attackable from placement day one).
     expect(getBuildingSiteRow(world, comps, 2)).toEqual([
       0,
       buildingCodeOf("house"),
       0,
+      550,
     ]);
     // Full wood cost left the stockpile at PLACEMENT, not completion.
     expect(stockpileAmountsOf(world, comps, PLAYER_ONE)[1]).toBe(1000 - 30);

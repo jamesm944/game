@@ -35,6 +35,28 @@
  *     stub: damage lands instantly this tick; M2-T6 upgrades the event
  *     into real flight + visuals)
  *
+ * M2-T7 BUILDINGS AS TARGETS: every construction site and finished
+ * building is attackable through the SAME command/formula surface —
+ * attack orders accept their eids, reach uses the footprint's
+ * circumscribed radius (a stand point outside the circumscribed circle
+ * is always off the impassable rect, so melee attackers can always
+ * arrive), and strikes run `strikeDamageOnBuilding` (the §2.5 counter
+ * formula with the canonical `building` armor-class tag — siege→building
+ * multipliers apply the moment siege content lands). Buildings never
+ * retaliate and are invisible to aggro acquisition (attack-marches
+ * plow past them unless explicitly ordered); they hold no Combat row.
+ *
+ * Destruction (hp → 0, sites included) is immediate and permanent:
+ *
+ *   DEATH event on the owner's log → every worker whose AssignedSite /
+ *   ProductionJob pointed here is released to idle (counted) → the
+ *   footprint tiles return to PASSABLE and the path scheduler's
+ *   passabilityVersion bumps (in-flight paths re-validate; the gather
+ *   system's cost cache invalidates wholesale) → a Rubble-state entity
+ *   spawns over the footprint → attackers lose their Attack heads
+ *   (paused jobs resume) → despawn drops EVERY functional row (DropOff,
+ *   TrainQueue, ProductionCycle … die by construction).
+ *
  * Deaths are immediate and permanent: the victim's entity loses EVERY
  * component row (work-slot and site claims die with it — the gather
  * system recomputes claims from AssignedNode rows alone), and all other
@@ -65,8 +87,16 @@ import {
   getCombatRow,
   type CombatComponents,
 } from "../components/combat";
-import { clearAssignedSite } from "../components/buildings";
+import {
+  clearAssignedSite,
+  footprintOfDefCode,
+  getAssignedSite,
+  getBuildingRow,
+  getBuildingSiteRow,
+  spawnRubble,
+} from "../components/buildings";
 import { clearAssignedNode } from "../components/economy";
+import { clearProductionJob, getProductionJob } from "../components/production";
 import { equipmentCountsOf } from "../components/equipment";
 import {
   readActivityQueue,
@@ -77,6 +107,7 @@ import { MELEE_RANGE, type UnitDefinition } from "../../data/schema";
 import {
   deriveUnitStats,
   strikeDamage,
+  strikeDamageOnBuilding,
   type DerivedStats,
   type StatContext,
 } from "../combat/stats";
@@ -86,6 +117,7 @@ import {
   type EntitySpatialHash,
 } from "../core/spatialHash";
 import { despawnEntity, type SimSystem, type World } from "../core/world";
+import { PASSABLE } from "../world/layers";
 import { issueGroupRoute, resetSteeringBookkeeping } from "./movement";
 import type { PathScheduler } from "../path/scheduler";
 
@@ -104,6 +136,20 @@ const APPROACH_REFRESH_DISTANCE = 0.75;
  *  unit between in-range and out-of-range across ticks. */
 const RANGE_STAND_FACTOR = 0.9;
 
+/**
+ * Circumscribed-circle radius of a building footprint: the reach ring
+ * computed against it always lies OUTSIDE the impassable rect (the
+ * circle contains it), so even a melee attacker's stand point lands on
+ * passable ground movement can actually reach — no wall-hugging
+ * deadlock against a full-tile footprint.
+ */
+export function buildingTargetRadius(defCode: number): number {
+  const fp = footprintOfDefCode(defCode);
+  const halfW = fp.width / 2;
+  const halfH = fp.height / 2;
+  return Math.sqrt(halfW * halfW + halfH * halfH);
+}
+
 export interface CombatDiagnostics {
   /** attack commands applied. */
   attackCommands: number;
@@ -115,6 +161,13 @@ export interface CombatDiagnostics {
   strikes: number;
   /** Units killed. */
   kills: number;
+  /** Buildings/sites destroyed into rubble (M2-T7). */
+  buildingsDestroyed: number;
+  /**
+   * Workers released to idle because their construction site or
+   * production workplace died under them (M2-T7).
+   */
+  workersRetasked: number;
   /** Damaged units that auto-acquired their striker. */
   retaliations: number;
   /** Attack-marching units that acquired a fresh target via aggro. */
@@ -128,6 +181,8 @@ export function createCombatDiagnostics(): CombatDiagnostics {
     stopCommands: 0,
     strikes: 0,
     kills: 0,
+    buildingsDestroyed: 0,
+    workersRetasked: 0,
     retaliations: 0,
     aggroAcquisitions: 0,
   };
@@ -270,6 +325,61 @@ export function createCombatSystem(
     const combatantByEid = new Map<number, Combatant>();
     for (const combatant of combatants) {
       combatantByEid.set(combatant.eid, combatant);
+    }
+
+    // ---- 2b) Collect attackable structures ascending eid (M2-T7):
+    // every BuildingSite and finished Building row joins the target
+    // space with its footprint-center position and circumscribed
+    // radius. Structures never act — no Combat row, no hash entry, no
+    // retaliation — they only receive strikes.
+    interface StructureTarget {
+      readonly eid: number;
+      /** Live BuildingSite or Building row (mutable hp column). */
+      readonly row: number[];
+      readonly kind: "site" | "finished";
+      readonly owner: number;
+      readonly defCode: number;
+      /** Index of the hp column in `row` (3 on sites, 4 on buildings). */
+      readonly hpIndex: number;
+    }
+
+    const structures = new Map<number, StructureTarget>();
+    for (const eid of world.entities) {
+      const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+      if (!posRow) continue;
+      const siteRow = getBuildingSiteRow(world, comps, eid);
+      const buildingRow = getBuildingRow(world, comps, eid);
+      if (siteRow !== undefined) {
+        positions.set(eid, {
+          x: posRow[0]!,
+          y: posRow[1]!,
+          radius: buildingTargetRadius(siteRow[1]!),
+        });
+        alive.add(eid);
+        structures.set(eid, {
+          eid,
+          row: siteRow as number[],
+          kind: "site",
+          owner: siteRow[0]!,
+          defCode: siteRow[1]!,
+          hpIndex: 3,
+        });
+      } else if (buildingRow !== undefined) {
+        positions.set(eid, {
+          x: posRow[0]!,
+          y: posRow[1]!,
+          radius: buildingTargetRadius(buildingRow[1]!),
+        });
+        alive.add(eid);
+        structures.set(eid, {
+          eid,
+          row: buildingRow as number[],
+          kind: "finished",
+          owner: buildingRow[0]!,
+          defCode: buildingRow[1]!,
+          hpIndex: 4,
+        });
+      }
     }
 
     // ---- 3) Per-tick stat derivation memo. Keys are defCode×owner×
@@ -451,14 +561,21 @@ export function createCombatSystem(
         if (combatant.row[3] === deadEid) combatant.row[3] = 0;
         let removed = false;
         for (let i = combatant.queue.length - 1; i >= 0; i--) {
-          const activity = combatant.queue[i]!;
-          if (activity.kind !== "attack" || activity.targetEid !== deadEid) {
+          const activity = combatant.queue[i];
+          if (
+            activity === undefined ||
+            activity.kind !== "attack" ||
+            activity.targetEid !== deadEid
+          ) {
             continue;
           }
           combatant.queue.splice(i, 1);
           const prev = combatant.queue[i - 1];
           if (prev !== undefined && prev.kind === "move") {
+            // The orphaned approach leg dies with its head; both slots
+            // are gone, so skip past the leg's index on the way down.
             combatant.queue.splice(i - 1, 1);
+            i -= 1;
           }
           removed = true;
         }
@@ -484,6 +601,90 @@ export function createCombatSystem(
       despawnEntity(world, victimEid);
       alive.delete(victimEid);
       diagnostics.kills += 1;
+    };
+
+    /**
+     * Tear a destroyed structure down (M2-T7), in a pinned order:
+     *
+     *   1. DEATH event on the owner's digest-visible log;
+     *   2. every worker whose AssignedSite / ProductionJob pointed here
+     *      is released to idle — queue cancelled, steering reset,
+     *      counted (the "villagers retask" contract; gatherers hauling
+     *      cargo reroute through the gather system's own destroyed-
+     *      dropoff path next tick);
+     *   3. footprint tiles return to PASSABLE and the scheduler's
+     *      passabilityVersion bumps once — in-flight paths re-validate
+     *      via their LOS raycasts (bounded repath storm) and the gather
+     *      cost cache invalidates wholesale;
+     *   4. a Rubble-state entity spawns over the footprint (new eid —
+     *      the dead id never returns);
+     *   5. attackers drop their Attack heads / dangling targets
+     *      (paused jobs resume untouched);
+     *   6. despawn removes EVERY functional row at once — DropOff
+     *      deregistration, TrainQueue purge and ProductionCycle loss
+     *      fall out by construction.
+     */
+    const destroyStructure = (
+      victimEid: number,
+      killerEid: number,
+      blow: number,
+    ): void => {
+      const structure = structures.get(victimEid)!;
+      appendCombatEvent(world, comps, structure.owner, {
+        tick: world.tick,
+        kind: COMBAT_EVENT_DEATH,
+        attackerEid: killerEid,
+        victimEid,
+        amount: blow,
+      });
+
+      for (const workerEid of world.entities) {
+        const assignedHere =
+          getAssignedSite(world, comps, workerEid) === victimEid ||
+          getProductionJob(world, comps, workerEid)?.buildingEid === victimEid;
+        if (!assignedHere) continue;
+        clearAssignedSite(world, comps, workerEid);
+        clearProductionJob(world, comps, workerEid);
+        const queue = readActivityQueue(world, comps, workerEid);
+        cancelActivities(queue);
+        writeActivityQueue(world, comps, workerEid, queue);
+        const velRow = world.rowsByComponentId
+          .get(comps.velocityId)
+          ?.get(workerEid);
+        if (velRow) resetSteeringBookkeeping(velRow);
+        diagnostics.workersRetasked += 1;
+      }
+
+      const fp = footprintOfDefCode(structure.defCode);
+      const posRow = world.rowsByComponentId
+        .get(comps.positionId)
+        ?.get(victimEid);
+      const originX =
+        structure.kind === "finished"
+          ? structure.row[2]!
+          : posRow![0]! - fp.width / 2;
+      const originY =
+        structure.kind === "finished"
+          ? structure.row[3]!
+          : posRow![1]! - fp.height / 2;
+
+      const size = world.layers.size;
+      const passability = world.layers.derivedPassability;
+      for (let dy = 0; dy < fp.height; dy++) {
+        for (let dx = 0; dx < fp.width; dx++) {
+          passability[(originY + dy) * size + (originX + dx)] = PASSABLE;
+        }
+      }
+      const scheduler = world.pathScheduler;
+      scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
+
+      spawnRubble(world, comps, structure.defCode, originX, originY);
+
+      purgeReferencesToDead(victimEid);
+      despawnEntity(world, victimEid);
+      alive.delete(victimEid);
+      structures.delete(victimEid);
+      diagnostics.buildingsDestroyed += 1;
     };
 
     const strike = (attacker: Combatant, targetEid: number): void => {
@@ -529,6 +730,46 @@ export function createCombatSystem(
       if (targetRow[2]! <= 0) kill(targetEid, attacker.eid, damage);
     };
 
+    /**
+     * Strike a structure (M2-T7): the SAME reload cadence and the SAME
+     * counter formula resolved against the canonical `building` armor
+     * class — siege→building multipliers apply from the §2.5 table.
+     * Ranged strikes log SHOT events exactly like unit duels; at 0 hp
+     * the destruction pipeline tears the site/building down.
+     */
+    const strikeStructure = (attacker: Combatant, targetEid: number): void => {
+      const structure = structures.get(targetEid);
+      const targetPos = positions.get(targetEid);
+      if (!structure || !targetPos) return; // destroyed this tick
+      const attackerStats = statsOf(attacker);
+      const damage = strikeDamageOnBuilding(attacker.def, attackerStats);
+      structure.row[structure.hpIndex] = Math.max(
+        0,
+        structure.row[structure.hpIndex]! - damage,
+      );
+      diagnostics.strikes += 1;
+
+      if (attackerStats.range > MELEE_RANGE) {
+        appendCombatEvent(world, comps, attacker.owner, {
+          tick: world.tick,
+          kind: COMBAT_EVENT_SHOT,
+          attackerEid: attacker.eid,
+          victimEid: targetEid,
+          amount: damage,
+        });
+      }
+      appendCombatEvent(world, comps, structure.owner, {
+        tick: world.tick,
+        kind: COMBAT_EVENT_DAMAGE,
+        attackerEid: attacker.eid,
+        victimEid: targetEid,
+        amount: damage,
+      });
+      if (structure.row[structure.hpIndex]! <= 0) {
+        destroyStructure(targetEid, attacker.eid, damage);
+      }
+    };
+
     // ---- 5) Engagement validation: foreign orders disengage, stale
     // targets clear (deaths already purge proactively; this is the
     // replay-safe backstop).
@@ -558,7 +799,11 @@ export function createCombatSystem(
       const reach = reachOf(combatant, targetBody, stats.range);
       if (distSq <= reach * reach) {
         if (combatant.row[4]! <= 0) {
-          strike(combatant, targetEid);
+          if (structures.has(targetEid)) {
+            strikeStructure(combatant, targetEid);
+          } else {
+            strike(combatant, targetEid);
+          }
           combatant.row[4] = stats.reloadTicks;
         }
         continue;
@@ -672,10 +917,15 @@ function applyAttackCommand(
   data: Readonly<Record<string, unknown>>,
 ): void {
   const parsed = parseAttackData(data);
+  // Units AND structures (M2-T7: sites/finished buildings) are legal
+  // targets; anything else is a caller bug and rejects loudly.
+  const isStructure =
+    getBuildingRow(world, comps, parsed.targetId) !== undefined ||
+    getBuildingSiteRow(world, comps, parsed.targetId) !== undefined;
   const targetRow = getCombatRow(world, comps, parsed.targetId);
-  if (!targetRow) {
+  if (!targetRow && !isStructure) {
     throw new Error(
-      `attack targets entity ${String(parsed.targetId)}, which has no Combat row`,
+      `attack targets entity ${String(parsed.targetId)}, which has no Combat or Building row`,
     );
   }
   for (const eid of parsed.attackerIds) {

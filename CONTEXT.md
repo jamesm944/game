@@ -129,7 +129,7 @@ Forge Weapons/Armor commodities consumed onto a military Pop (SPEC §2.5 "equipm
 _Avoid_: Item, gear slot inventory
 
 **Engagement**:
-The live attacker→target binding held in a unit's Combat row. Broken by death, disengagement validation after foreign orders, or purge when the target dies. Acquired three ways: explicit attack command, auto-retaliation when damaged in range, aggro acquisition while attack-moving.
+The live attacker→target binding held in a unit's Combat row; the target may be another unit OR a structure (M2-T7). Broken by death, disengagement validation after foreign orders, or purge when the target dies. Acquired three ways: explicit attack command (units and structures), auto-retaliation when damaged in range, aggro acquisition while attack-moving (units only).
 
 **Attack-move**:
 A march that watches for enemies inside the unit's sight radius and pauses to fight, resuming automatically once the engagement ends. Group attack-marches reuse the formation slots of plain moves (one leader path, concentric-ring deal).
@@ -140,6 +140,17 @@ Auto-acquiring your striker as target when damaged inside aggro range; pauses (n
 **Age advancement**:
 Moving the settlement up Dark → Feudal → Castle → Imperial by paying at an advancing building; gates units, buildings, techs.
 _Avoid_: Era, level up
+
+**Structure targeting**:
+Buildings and construction sites are legal Attack targets without holding a Combat row (M2-T7): strikes run the same counter formula against the canonical `building` Armor class; structures never retaliate and are invisible to aggro acquisition.
+_Avoid_: Building combat
+
+**Rubble**:
+The residue entity spawned over a destroyed structure's footprint (M2-T7). Pure marker state on its own entity id; rebuild/repair flows arrive later.
+_Avoid_: Wreck, ruin tile
+
+**Destruction**:
+What happens when a structure's hp reaches zero (M2-T7), in pinned order: DEATH event on the owner log → workers whose site/job pointed there released to idle → footprint tiles freed + passabilityVersion bump (repath invalidation) → Rubble spawns → attackers drop their engagements → every functional row (Drop-off, Train queue, Production cycle) dies with the entity.
 
 **Technology**:
 A purchasable permanent modifier to units, buildings, or civilization. Bought via the Tech tree.
@@ -195,7 +206,7 @@ _Avoid_: Backpack, load mesh
 One of several alternative win routes (Civ-style): Conquest plus knowledge/culture/economic/diplomatic-style paths as decided in design tickets.
 _Avoid_: Win condition (when listing them all)
 
-**Conquest victory**: destroy enemy military production capacity (standard).
+**Conquest victory**: destroy enemy military production capacity (standard) — the live count of Barracks, Archery Range and Stable buildings per player (M2-T7 helper, consumed by the T10 evaluator).
 **Wonder victory**: complete a Wonder, hold through timer.
 **Relic victory**: hold all Relics through timer.
 

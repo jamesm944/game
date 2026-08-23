@@ -244,3 +244,30 @@ export function strikeDamage(
   const armor = effectiveArmorOf(defenderStats, defenderDef.armorClasses);
   return Math.max(1, Math.floor(attackerStats.attack * mult - armor));
 }
+
+/**
+ * Every building defends with exactly ONE canonical armor-class tag
+ * (SPEC §2.5 counter table) and no equipment/tech armor of its own in
+ * M2 — so its effective armor is this documented constant until techs
+ * (or a future definition field) contribute.
+ */
+export const BUILDING_ARMOR_CLASSES: readonly string[] = ["building"];
+export const BUILDING_BASE_ARMOR = 0;
+
+/**
+ * The same counter formula as `strikeDamage`, resolved against a
+ * BUILDING defender: attack-bonus multipliers keyed to the `building`
+ * class apply (the siege→building column of the §2.5 table), armor is
+ * BUILDING_BASE_ARMOR, and the max(1, …) floor holds — every ram hit
+ * chips, even a militia's sword.
+ */
+export function strikeDamageOnBuilding(
+  attackerDef: UnitDefinition,
+  attackerStats: DerivedStats,
+): number {
+  const mult = bonusMultiplierOf(attackerDef, BUILDING_ARMOR_CLASSES);
+  return Math.max(
+    1,
+    Math.floor(attackerStats.attack * mult - BUILDING_BASE_ARMOR),
+  );
+}

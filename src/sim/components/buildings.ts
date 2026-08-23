@@ -14,17 +14,26 @@
  *   the footprint center, so origin + definition recover every covered
  *   tile exactly (centers sit on .0/.5 coordinates by construction).
  *   defCode is the stable numeric code from data/definitions.ts — rows
- *   never carry slugs.
- * - BuildingSite (3): [ownerPlayerId, defCode, progressMilliTicks] —
- *   construction-in-progress living on the SAME entity id that later
- *   carries the finished Building row (references survive completion).
- *   Progress is fixed-point thousandths of one builder-work tick so
- *   multi-builder accumulation stays exact integer math (platform
- *   float-drift proof, SPEC §9).
+ *   never carry slugs. hp starts at the site's carried damage state and
+ *   is decremented by the combat system (M2-T7); at 0 the structure is
+ *   destroyed into a rubble-state entity.
+ * - BuildingSite (4): [ownerPlayerId, defCode, progressMilliTicks,
+ *   hp] — construction-in-progress living on the SAME entity id that
+ *   later carries the finished Building row (references survive
+ *   completion). Progress is fixed-point thousandths of one builder-
+ *   work tick so multi-builder accumulation stays exact integer math
+ *   (platform float-drift proof, SPEC §9). Sites are attackable from
+ *   day one (M2-T7): they start at full definition hp; completion
+ *   carries whatever damage state the foundation holds forward.
  * - TrainQueue (variable): [entryCount, unitCode₀, remainingTicks₀,
  *   unitCode₁, remainingTicks₁, …]. Entry 0 is the unit in progress;
  *   the rest wait FIFO. Remaining ticks freeze while the population
  *   cap blocks production (AoE2 housed behavior).
+ * - Rubble (4): [originTileX, originTileY, widthTiles, heightTiles] —
+ *   destruction residue (M2-T7) on its OWN entity spawned where a
+ *   building/site died, after every functional row has been torn down.
+ *   Pure render/economy marker state today; M4 rebuild orders will read
+ *   it to offer footprints-for-repair.
  *
  * A construction site BLOCKS its footprint tiles from placement day
  * one (AoE2-faithful): passability mutation + version bump live in
@@ -44,13 +53,15 @@ import { spawnEntity, type ComponentRows, type World } from "../core/world";
 export const ASSIGNED_SITE = "AssignedSite" as const;
 export const BUILDING = "Building" as const;
 export const BUILDING_SITE = "BuildingSite" as const;
+export const RUBBLE = "Rubble" as const;
 export const TRAIN_QUEUE = "TrainQueue" as const;
 
 /** Row arity per building component — pinned for digest stability. */
 export const BUILDING_COMPONENT_ARITIES: readonly [string, number][] = [
   [ASSIGNED_SITE, 1],
   [BUILDING, 5],
-  [BUILDING_SITE, 3],
+  [BUILDING_SITE, 4],
+  [RUBBLE, 4],
   [TRAIN_QUEUE, -1], // variable-length production queue
 ];
 
@@ -59,6 +70,7 @@ export interface BuildingComponents {
   readonly assignedSiteId: number;
   readonly buildingId: number;
   readonly buildingSiteId: number;
+  readonly rubbleId: number;
   readonly trainQueueId: number;
 }
 
@@ -160,6 +172,7 @@ export function spawnBuildingSite(
     playerId,
     buildingCodeOf(defId),
     0, // progressMilliTicks
+    def.hp, // hp — sites are attackable from placement day one (M2-T7)
   ]);
   return eid;
 }
@@ -195,6 +208,8 @@ export interface CompletedBuildingInfo {
  * drop-off filters (the gather system enumerates DropOff rows live, so
  * gatherers reroute automatically from the next tick). No passability
  * or version change happens here — sites already block their tiles.
+ * The foundation's damage state carries into the finished building
+ * (AoE2-faithful: raiding a construction site leaves it weakened).
  */
 export function completeBuilding(
   world: World,
@@ -204,6 +219,7 @@ export function completeBuilding(
   const site = requireRow(world, comps.buildingSiteId, siteEid, BUILDING_SITE);
   const playerId = site[0]!;
   const defCode = site[1]!;
+  const carriedHp = Math.max(1, Math.floor(site[3] ?? Infinity));
   const def = buildingDefOf(buildingIdOfCode(defCode));
 
   requireRows(world, comps.buildingSiteId).delete(siteEid);
@@ -215,7 +231,7 @@ export function completeBuilding(
     defCode,
     originX,
     originY,
-    def.hp,
+    Math.min(carriedHp, def.hp),
   ]);
   if (def.dropoffFilters.length > 0) {
     // M2-T2: the definition's filter list resolves into the DropOff row
@@ -277,6 +293,47 @@ export function siteRectOf(
     width: fp.width,
     height: fp.height,
   };
+}
+
+// ---- Rubble (M2-T7 destruction residue) ---------------------------------------
+
+/**
+ * Spawn one rubble-state entity over a destroyed structure's footprint.
+ * The residue lives on its OWN entity id (the dead building's id never
+ * returns), carrying only Position (footprint center, so render/UI
+ * overlays place it like any entity) plus the origin-anchored Rubble
+ * rect. Pure state creation — the caller owns tile freeing and the
+ * passabilityVersion bump.
+ */
+export function spawnRubble(
+  world: World,
+  comps: BuildingComponents & { positionId: number },
+  defCode: number,
+  originX: number,
+  originY: number,
+): number {
+  const fp = footprintOfDefCode(defCode);
+  const eid = spawnEntity(world);
+  requireRows(world, comps.positionId).set(eid, [
+    originX + fp.width / 2,
+    originY + fp.height / 2,
+  ]);
+  requireRows(world, comps.rubbleId).set(eid, [
+    originX,
+    originY,
+    fp.width,
+    fp.height,
+  ]);
+  return eid;
+}
+
+/** Live Rubble row for `eid`, or undefined when not rubble. */
+export function getRubbleRow(
+  world: World,
+  comps: Pick<BuildingComponents, "rubbleId">,
+  eid: number,
+): readonly number[] | undefined {
+  return world.rowsByComponentId.get(comps.rubbleId)?.get(eid);
 }
 
 // ---- Assignment ---------------------------------------------------------------
