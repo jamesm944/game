@@ -18,6 +18,12 @@
  * ground-plane picking over sim coordinates, right-click groupMove
  * orders into the sim inbox with same-frame green-ring feedback,
  * control groups, minimap camera jumps, orders log, tick/fps topbar.
+ *
+ * M2-T6: overlays complete SPEC §7's two-extra-draw-call contract —
+ * instanced health bars join the selection rings (exactly 2 overlay
+ * calls total; see docs/m2-overlays.md for the browser-only
+ * renderer.info dev check). Attack-move (A) and stop (S) keyboard
+ * orders enter the same sim inbox as clicks.
  */
 
 import "./style.css";
@@ -79,6 +85,11 @@ import {
   createTrainingDiagnostics,
   createTrainingSystem,
 } from "./sim/systems/training";
+import {
+  createCombatDiagnostics,
+  createCombatSystem,
+} from "./sim/systems/combat";
+import { createEquipmentSystem } from "./sim/systems/equipment";
 import { createAgeSystem, currentAgeRankOf } from "./sim/systems/age";
 import {
   canAfford,
@@ -114,6 +125,13 @@ import {
 } from "./render/mirror";
 import { buildTerrainMesh, terrainHeightAt } from "./render/terrain";
 import { createUnitSpriteLayer } from "./render/unitSprites";
+import { createHealthBars } from "./render/healthBars";
+import {
+  HEALTH_BAR_CAPACITY,
+  packHealthBarAttributes,
+  type HealthBarAttributeArrays,
+} from "./render/overlayPack";
+import { issueAttackMove, issueStop } from "./ui/orders";
 import {
   issuePlaceBuilding,
   snapGhostOrigin,
@@ -142,6 +160,12 @@ const DEV_SEED = 20260822;
  * and training (the render-skeleton stress count moved to perf tests).
  */
 const DEV_UNIT_COUNT = 5;
+/**
+ * Mirror/overlay sample capacity: sized past the dev start population
+ * so M2-T6 trained armies render without re-allocating the frame loop's
+ * scratch arrays.
+ */
+const RENDER_CAPACITY = 128;
 /** SPEC §7 loop safety: clamp + max-steps-per-frame cap. */
 const FRAME_CLAMP_MS = 250;
 const MAX_STEPS_PER_FRAME = 5;
@@ -163,6 +187,14 @@ registerSystem(world, createConstructionSystem(comps));
 registerSystem(world, createTrainingSystem(comps, createTrainingDiagnostics()));
 registerSystem(world, createProductionSystem(comps));
 registerSystem(world, createAgeSystem(comps));
+// M2-T6: combat engagements + equip orders. Combat runs AFTER
+// movement/gather so strikes see this tick's final positions; the
+// scheduler upgrade gives attack-move the full formation route.
+registerSystem(
+  world,
+  createCombatSystem(comps, createCombatDiagnostics(), scheduler),
+);
+registerSystem(world, createEquipmentSystem(comps));
 
 /**
  * Passable tiles nearest the map center, ascending by distance — dev
@@ -275,10 +307,13 @@ cameraRig.setCenter(world.layers.size / 2, world.layers.size / 2);
 // Mirror plumbing: reusable capture staging + allocation-free sampling.
 let staging: SimSnapshotFrame | undefined;
 const sampleOut: MirrorSampleOut = {
-  positions: new Float32Array(DEV_UNIT_COUNT * 2),
-  headings: new Float32Array(DEV_UNIT_COUNT),
+  positions: new Float32Array(RENDER_CAPACITY * 2),
+  headings: new Float32Array(RENDER_CAPACITY),
+  hpFractions: new Float32Array(RENDER_CAPACITY),
 };
-const groundHeights = new Float32Array(DEV_UNIT_COUNT);
+const groundHeights = new Float32Array(RENDER_CAPACITY);
+/** 1 = selected, per mirror rank — forces health bars on. */
+const selectedFlags = new Uint8Array(RENDER_CAPACITY);
 const mirror = createRenderMirror();
 
 async function loadVillagerLayer(): Promise<
@@ -290,7 +325,7 @@ async function loadVillagerLayer(): Promise<
     atlasTexture: texture,
     indexJson: atlasIndexJson,
     action: "walk",
-    maxInstances: DEV_UNIT_COUNT,
+    maxInstances: RENDER_CAPACITY,
     worldWidth: SPRITE_WORLD_WIDTH,
     worldHeight: SPRITE_WORLD_HEIGHT,
   });
@@ -300,7 +335,7 @@ function writePopInstances(
   layer: ReturnType<typeof createUnitSpriteLayer>,
   sampledCount: number,
 ): void {
-  for (let i = 0; i < sampledCount && i < DEV_UNIT_COUNT; i++) {
+  for (let i = 0; i < sampledCount && i < RENDER_CAPACITY; i++) {
     groundHeights[i] = terrainHeightAt(
       world.layers,
       sampleOut.positions[i * 2]!,
@@ -474,6 +509,23 @@ const toast = createToastHost();
 
 canvas.addEventListener("click", (event: MouseEvent) => {
   if (event.button !== 0) return;
+  // Armed attack-move (A): the click becomes an attackMove order at
+  // that ground point instead of a placement/selection click.
+  if (attackMoveArmed) {
+    attackMoveArmed = false;
+    const ground = groundAt(event.clientX, event.clientY);
+    if (ground && selectionCount() > 0) {
+      issueAttackMove(
+        world.inbox,
+        world.tick,
+        getSelectedEids(),
+        ground.x,
+        ground.y,
+      );
+      moveMarkers.spawn(ground.x, ground.y); // same-frame feedback
+    }
+    return;
+  }
   const candidate = currentPlacementCheck();
   if (!candidate || !candidate.ok) {
     if (candidate?.reason === "age-gated") {
@@ -492,10 +544,11 @@ canvas.addEventListener("click", (event: MouseEvent) => {
   buildMenu.disarm(); // AoE2-style: one placement per arming
 });
 
-// Right-click while armed cancels placement instead of ordering.
-// Registered BEFORE wireOrderInput below so registration order lets it
-// intercept the shared canvas contextmenu stream first.
+// Right-click cancels placement or disarms attack-move instead of
+// ordering. Registered BEFORE wireOrderInput below so registration
+// order lets it intercept the shared canvas contextmenu stream first.
 canvas.addEventListener("contextmenu", (event: MouseEvent) => {
+  disarmAttackMove();
   if (buildMenu.armedDefId() === null) return;
   event.preventDefault();
   event.stopImmediatePropagation();
@@ -519,6 +572,36 @@ wireOrderInput({
       : undefined;
   },
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
+});
+
+// ---- Attack-move (A) + stop (S) keyboard orders (M2-T6, §2.13) -----
+//
+// A arms the attack-move cursor: the next left-click issues attackMove
+// at that ground point (red-ring feedback) instead of selecting. S
+// stops the selection immediately. Escape or a right-click disarms.
+
+let attackMoveArmed = false;
+
+function disarmAttackMove(): void {
+  if (!attackMoveArmed) return;
+  attackMoveArmed = false;
+}
+
+window.addEventListener("keydown", (event: KeyboardEvent) => {
+  if (event.repeat || event.metaKey || event.ctrlKey) return;
+  const key = event.key.toLowerCase();
+  if (key === "escape") {
+    disarmAttackMove();
+    return;
+  }
+  if (selectionCount() === 0) return;
+  if (key === "a") {
+    attackMoveArmed = true;
+    toast.show("Attack-move — click a destination");
+  } else if (key === "s") {
+    issueStop(world.inbox, world.tick, getSelectedEids());
+    toast.show("Stop");
+  }
 });
 
 const controlGroups = wireControlGroups({
@@ -639,6 +722,14 @@ const ringScratch = new Float32Array(SELECTION_RING_CAPACITY * 2);
 let ringScratchCount = 0;
 const SELECTION_RING_WRITE_CAP = SELECTION_RING_CAPACITY;
 
+// Instanced health bars — the SECOND (and last) overlay draw call
+// (SPEC §7). Instances come from the three-free packer each frame.
+const healthBars = createHealthBars(scene);
+const healthBarArrays: HealthBarAttributeArrays = {
+  origins: new Float32Array(HEALTH_BAR_CAPACITY * 3),
+  fractions: new Float32Array(HEALTH_BAR_CAPACITY),
+};
+
 let fpsFrames = 0;
 let fpsWindowStart = performance.now();
 let fpsText = "—";
@@ -758,6 +849,33 @@ function frame(
     selectionRings.write(ringScratch, 0);
   }
 
+  // Health bars — the second overlay draw call (SPEC §7). Damaged or
+  // selected units only; the pure packer keeps the frame-loop CPU cost
+  // a flat typed-array fill (headless-gated in tests/perf/overlays).
+  selectedFlags.fill(0);
+  if (selectionCount() > 0) {
+    for (const eid of getSelectedEids()) {
+      const rank = staging.eids.indexOf(eid);
+      if (rank >= 0 && rank < RENDER_CAPACITY) selectedFlags[rank] = 1;
+    }
+  }
+  const barCount = packHealthBarAttributes(
+    healthBarArrays,
+    {
+      positions: sampleOut.positions,
+      hpFractions: sampleOut.hpFractions,
+      selectedFlags,
+      count: sampledCount,
+    },
+    groundHeights,
+    HEALTH_BAR_CAPACITY,
+  );
+  healthBars.write(
+    healthBarArrays.origins,
+    healthBarArrays.fractions,
+    barCount,
+  );
+
   moveMarkers.update(frameMs / 1000);
 
   minimapSinceRedrawMs += frameMs;
@@ -786,10 +904,12 @@ function frame(
   buildingPanel.refresh();
   renderer.render(scene, cameraRig.camera);
 
-  // SPEC §7 draw-call budget: terrain + instanced sprite field + small
-  // overlay pools must stay in the single digits. Logged every frame.
+  // SPEC §7 draw-call budget: terrain + instanced sprite field +
+  // buildings + EXACTLY TWO overlay draws (selection rings + health
+  // bars) must stay in the single digits. Logged every frame; the
+  // browser-only overlay-count dev check lives in docs/m2-overlays.md.
   const calls = renderer.info.render.calls;
-  console.assert(calls <= 8, `draw calls ${calls} exceed §7 handful budget`);
+  console.assert(calls <= 9, `draw calls ${calls} exceed §7 handful budget`);
 }
 
 loadVillagerLayer()

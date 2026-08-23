@@ -4,14 +4,24 @@
  * "Derived stats, never stored": attack, per-class armor, speed, range
  * and reload compute FRESH on every read from
  *
- *   base definition stats + researched tech effects
- *   + traits (M3: contributes zero today)
- *   + equipment (M2-T6 Forge weapons/armor: zero today),
+ *   base definition stats + equipped commodity counts (M2-T6)
+ *   + researched tech effects
+ *   + traits (M3: contributes zero today),
  *
  * never from any duplicate stat row. The Combat component stores only
  * identity/ownership/hp/engagement state — everything numeric about how
  * hard a unit hits or how far it reaches is re-derived here, so a tech
- * completion re-prices an entire army with no migration pass.
+ * completion or an equip order re-prices an entire army with no
+ * migration pass.
+ *
+ * Equipment (SPEC §2.5 "equipment = commodities"): each Forge Weapons /
+ * Armor commodity consumed onto a unit contributes a flat documented
+ * delta — WEAPON_ATTACK_BONUS attack per weapon, ARMOR_EQUIP_BONUS per
+ * armor piece folded into every armor class the unit is tagged with
+ * (same single-pool model the melee/pierce techs use). Equipment applies
+ * FIRST (base → equipment → techs in ascending tech-code order), so
+ * multiplier techs scale the equipped loadout too. The rock-paper-
+ * scissors shape lives in definitions and is untouched by either layer.
  *
  * Tech effect application follows the OpenRA-style descriptor grammar of
  * data/schema.ts: effects whose selector matches the unit apply in
@@ -26,6 +36,7 @@
  */
 
 import { TECH_DEF_CODES, techDefOf } from "../../data/definitions";
+import type { EquipmentCounts } from "../components/equipment";
 import {
   DEFAULT_RELOAD_TICKS,
   MELEE_RANGE,
@@ -42,7 +53,20 @@ export interface StatContext {
    * decoded). Omit for raw baseline stats.
    */
   readonly researchedTechCodes?: ReadonlySet<number> | undefined;
+  /**
+   * Equipped Forge commodity counts (Equipment row, decoded). Omit for
+   * a default-fisted unit.
+   */
+  readonly equipment?: EquipmentCounts | undefined;
 }
+
+/**
+ * Attack added per equipped Weapons commodity (M2-T6, SPEC §2.5).
+ * Documented tuning constant — rebalancing is a one-line change.
+ */
+export const WEAPON_ATTACK_BONUS = 2;
+/** Armor folded into every owned class per equipped Armor piece. */
+export const ARMOR_EQUIP_BONUS = 1;
 
 /** One fully-derived combat stat block, fresh every call. */
 export interface DerivedStats {
@@ -107,9 +131,34 @@ function applyEffect(stats: StatAccumulator, effect: TechEffect): void {
 }
 
 /**
- * Derive one unit's combat stats from its definition plus the owning
- * player's completed techs. Traits and equipment contribute their
- * documented zero until M3 / M2-T6 land their modifiers.
+ * Fold equipped commodity counts into the accumulator (base → equipment
+ * step of the derivation). Weapons add flat attack; armor raises every
+ * armor class the definition tags the unit with.
+ */
+function applyEquipment(
+  stats: StatAccumulator,
+  def: UnitDefinition,
+  equipment: EquipmentCounts,
+): void {
+  if (equipment.weapons > 0) {
+    stats.attack += equipment.weapons * WEAPON_ATTACK_BONUS;
+  }
+  if (equipment.armor > 0) {
+    for (const tag of def.armorClasses) {
+      const armorClass = tag as ArmorClass;
+      const held = stats.armorByClass[armorClass];
+      if (held !== undefined) {
+        stats.armorByClass[armorClass] =
+          held + equipment.armor * ARMOR_EQUIP_BONUS;
+      }
+    }
+  }
+}
+
+/**
+ * Derive one unit's combat stats from its definition, its equipped
+ * commodity counts and the owning player's completed techs. Traits
+ * contribute their documented zero until M3 lands its modifiers.
  */
 export function deriveUnitStats(
   def: UnitDefinition,
@@ -122,6 +171,9 @@ export function deriveUnitStats(
     range: def.range ?? MELEE_RANGE,
     reloadTicks: def.reloadTicks ?? DEFAULT_RELOAD_TICKS,
   };
+  if (ctx.equipment !== undefined) {
+    applyEquipment(stats, def, ctx.equipment);
+  }
   if (ctx.researchedTechCodes !== undefined) {
     for (const code of [...ctx.researchedTechCodes].sort((a, b) => a - b)) {
       const id = techIdOfCodeOrNull(code);

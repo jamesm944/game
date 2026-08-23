@@ -11,16 +11,28 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  combatDefOf,
+  getCombatRow,
   defineSimComponents,
   getBuildingRow,
   getPosition,
   populationCapOf,
   populationOf,
+  readGateRejections,
   readTrainQueue,
   spawnUnit,
   type SimComponents,
 } from "../src/sim/components";
-import { PLAYER_ONE, createPlayerStockpile } from "../src/sim/core/stockpile";
+import {
+  GATE_HANDLER_TRAIN,
+  createPlayerAgeState,
+  setPlayerAgeRank,
+} from "../src/sim/components/age";
+import {
+  PLAYER_ONE,
+  createPlayerStockpile,
+  stockpileAmountsOf,
+} from "../src/sim/core/stockpile";
 import {
   createWorld,
   registerSystem,
@@ -28,7 +40,9 @@ import {
   type World,
 } from "../src/sim/core/world";
 import {
+  TRAIN_UNIT_KIND,
   TRAIN_VILLAGER_KIND,
+  canEnqueueTraining,
   createTrainingSystem,
 } from "../src/sim/systems/training";
 import { stampFinishedBuilding } from "../src/sim/systems/placement";
@@ -52,7 +66,7 @@ function harness(food = 400): Harness {
   });
   const comps = defineSimComponents(world);
   registerSystem(world, createTrainingSystem(comps));
-  createPlayerStockpile(world, comps, PLAYER_ONE, [food, 900, 0, 0, 0, 0, 0]);
+  createPlayerStockpile(world, comps, PLAYER_ONE, [food, 900, 300, 0, 0, 0, 0]);
   return { world, comps };
 }
 
@@ -182,5 +196,117 @@ describe("training system", () => {
     expect(readTrainQueue(h.world, h.comps, tc)).toHaveLength(15);
     train(h);
     expect(() => step(h.world)).toThrow(/training queue full/);
+  });
+});
+
+// ---- Military training (M2-T6) -------------------------------------------------
+
+/** Submit one trainUnit order for delivery on the very next tick. */
+function trainUnit(h: Harness, unitId: string, siteEid: number): void {
+  h.world.inbox.submit({
+    kind: TRAIN_UNIT_KIND,
+    targetTick: h.world.tick + 1,
+    data: { unitId, siteEid },
+  });
+}
+
+describe("military training from range/stable (M2-T6)", () => {
+  /** Feudal-ready harness with a TC (pop cap) plus the named military building. */
+  function militaryHarness(
+    defId: "archery-range" | "stable" | "barracks",
+    tileX = 10,
+  ): Harness & { readonly building: number } {
+    const h = harness(600);
+    createPlayerAgeState(h.world, h.comps, PLAYER_ONE); // dark rank 1
+    const tc = stampTC(h); // cap 5
+    stampFinishedBuilding(h.world, h.comps, "house", 9, 12, {
+      playerId: PLAYER_ONE,
+    }); // cap 10 total
+    void tc;
+    const building = stampFinishedBuilding(h.world, h.comps, defId, tileX, 2, {
+      playerId: PLAYER_ONE,
+    });
+    return { ...h, building };
+  }
+
+  it("trains an archer from the archery-range as a full combatant", () => {
+    const h = militaryHarness("archery-range");
+    // Promote to feudal so the archer's age gate opens.
+    setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, 2);
+
+    trainUnit(h, "archer", h.building);
+    step(h.world);
+    // Wood 25 + gold 45 escrowed at enqueue.
+    const resources = stockpileAmountsOf(h.world, h.comps, PLAYER_ONE);
+    expect(resources[1]).toBe(900 - 25);
+    expect(resources[2]).toBe(300 - 45);
+    expect(readTrainQueue(h.world, h.comps, h.building)).toHaveLength(1);
+
+    for (let i = 0; i < 808; i++) step(h.world);
+    expect(populationOf(h.world, h.comps)).toBe(0); // 1 countdown tick early
+    step(h.world); // the 810th countdown tick (= trainTime) spawns
+    expect(populationOf(h.world, h.comps)).toBe(1);
+
+    const archerEid = h.world.entities.at(-1)!;
+    expect(getCombatRow(h.world, h.comps, archerEid)).toBeDefined();
+    expect(combatDefOf(h.world, h.comps, archerEid)!.id).toBe("archer");
+    const pos = getPosition(h.world, h.comps, archerEid);
+    expect(
+      h.world.layers.derivedPassability[
+        Math.floor(pos.y) * SIZE + Math.floor(pos.x)
+      ],
+    ).toBe(1);
+    expect(readTrainQueue(h.world, h.comps, h.building)).toHaveLength(0);
+  });
+
+  it("trains a scout cavalry from the stable", () => {
+    const h = militaryHarness("stable");
+    setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, 2); // scout-cavalry gates at feudal
+
+    trainUnit(h, "scout-cavalry", h.building);
+    step(h.world);
+    // Food 80 escrowed; wood/gold untouched.
+    const resources = stockpileAmountsOf(h.world, h.comps, PLAYER_ONE);
+    expect(resources[0]).toBe(600 - 80);
+    expect(resources[1]).toBe(900);
+
+    for (let i = 0; i < 900; i++) step(h.world);
+    const scoutEid = h.world.entities.at(-1)!;
+    expect(getCombatRow(h.world, h.comps, scoutEid)).toBeDefined();
+    expect(combatDefOf(h.world, h.comps, scoutEid)!.id).toBe("scout-cavalry");
+  });
+
+  it("records a polite GateRejected row for castle-gated knights in feudal", () => {
+    const h = militaryHarness("stable");
+    setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, 2); // feudal: knight (castle) still gated
+
+    trainUnit(h, "knight", h.building);
+    step(h.world);
+    const rejections = readGateRejections(h.world, h.comps, PLAYER_ONE);
+    expect(rejections).toHaveLength(1);
+    expect(rejections[0]!.handler).toBe(GATE_HANDLER_TRAIN);
+    // No cost moved, no queue entry appeared.
+    expect(stockpileAmountsOf(h.world, h.comps, PLAYER_ONE)[0]).toBe(600);
+    expect(readTrainQueue(h.world, h.comps, h.building)).toHaveLength(0);
+  });
+
+  it("rejects orders for units a building does not train", () => {
+    const h = militaryHarness("barracks");
+    setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, 2);
+
+    trainUnit(h, "archer", h.building); // barracks list lacks archer
+    expect(() => step(h.world)).toThrow(/does not train archer/);
+  });
+
+  it("canEnqueueTraining honors per-unit selection", () => {
+    const h = militaryHarness("stable");
+    setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, 3); // castle: knight unlocked now
+
+    expect(
+      canEnqueueTraining(h.world, h.comps, h.building, PLAYER_ONE, "knight"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, h.building, PLAYER_ONE, "villager"),
+    ).toBe(false);
   });
 });

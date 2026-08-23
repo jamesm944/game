@@ -1,0 +1,92 @@
+{
+  "name": "m2t6",
+  "description": "Military slice fixture on an open all-grass field: a player-one militia equips Forge weapons and armor straight off the commodity ledger (SPEC \u00a72.5 'equipment = commodities'), an archer trains through the archery-range queue as a full combatant, and both then attack-move across the map toward a formation destination. En route an idle player-two scout-cavalry stands inside their aggro radii: the marchers pause with Attack heads, close, trade blows on the reload cadence (the scout auto-retaliates once) and kill it, after which both engagements purge and the attack-moves RESUME automatically, delivering each unit onto its concentric-ring slot at the destination. Milestone digests land every 30th tick plus final; the run doubles as the extended determinism canary.",
+  "seed": 20260824,
+  "size": 24,
+  "ticks": 2100,
+  "milestoneEvery": 30,
+  "spawns": [
+    {
+      "eid": 1,
+      "defId": "militia",
+      "playerId": 0,
+      "x": 7.5,
+      "y": 12.5
+    },
+    {
+      "eid": 2,
+      "defId": "scout-cavalry",
+      "playerId": 1,
+      "x": 11.5,
+      "y": 13.5
+    }
+  ],
+  "stockpiles": [
+    {
+      "eid": 3,
+      "playerId": 0,
+      "resources": [200, 200, 200, 0, 0, 0, 0],
+      "commodities": {
+        "weapons": 2,
+        "armor": 1
+      },
+      "ageRank": 2
+    },
+    {
+      "eid": 4,
+      "playerId": 1,
+      "resources": [0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "buildings": [
+    {
+      "eid": 5,
+      "defId": "town-center",
+      "tileX": 13,
+      "tileY": 4,
+      "playerId": 0
+    },
+    {
+      "eid": 6,
+      "defId": "archery-range",
+      "tileX": 4,
+      "tileY": 4,
+      "playerId": 0
+    }
+  ],
+  "commands": [
+    {
+      "kind": "equip",
+      "targetTick": 2,
+      "data": {
+        "unitIds": [1],
+        "item": "weapon"
+      }
+    },
+    {
+      "kind": "equip",
+      "targetTick": 3,
+      "data": {
+        "unitIds": [1],
+        "item": "armor"
+      }
+    },
+    {
+      "kind": "trainUnit",
+      "targetTick": 4,
+      "data": {
+        "unitId": "archer",
+        "siteEid": 6
+      }
+    },
+    {
+      "kind": "attackMove",
+      "targetTick": 830,
+      "data": {
+        "ids": [1, 7],
+        "x": 20.5,
+        "y": 11.5
+      }
+    }
+  ]
+}

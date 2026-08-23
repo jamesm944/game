@@ -1,27 +1,36 @@
 /**
- * Training system — SPEC §2.6/§2.13 / M1-T10.
+ * Training system — SPEC §2.6/§2.13 / M1-T10, military M2-T6.
  *
  * Production buildings (any finished building whose definition carries
- * a trainQueue config — M1: town-center) run an AoE2-style finite queue:
+ * a trainQueue config) run an AoE2-style finite queue:
  *
- *   `{kind:"trainVillager"}` → validate + pay the unit's food cost at
- *   ENQUEUE time, then append {unitCode, remainingTicks: trainTime} to
- *   the building's TrainQueue row.
+ *   `{kind:"trainVillager"}` → the M1 shape: trains the villager entry.
+ *   `{kind:"trainUnit", unitId}` → the M2-T6 generalization: trains any
+ *   unit in THAT building's `trainable` list (barracks militia/man-at-
+ *   arms, archery-range archer/skirmisher, stable scout/knight), after
+ *   validating membership, the age gate and affordability.
+ *
+ * Both validate + pay costs at ENQUEUE time, then append
+ * {unitCode, remainingTicks: trainTime} to the building's TrainQueue
+ * row.
  *
  * Each tick, per queue ascending eid:
  *   - the head counts down ONLY while population < popCap — housed
  *     players pause production exactly like AoE2, and the frozen row is
  *     digest-visible so replays see the stall too;
- *   - a head reaching zero spawns its villager at the first free
- *     perimeter tile (pinned clockwise rings around the footprint) and
- *     shifts the queue up; with no free tile the head waits at zero and
- *     retries next tick — deterministic backpressure.
+ *   - a head reaching zero spawns its unit at the first free perimeter
+ *     tile (pinned clockwise rings around the footprint) and shifts the
+ *     queue up; with no free tile the head waits at zero and retries
+ *     next tick — deterministic backpressure. Villagers spawn through
+ *     the legacy M1 spawner (no Combat row); military units spawn as
+ *     full combatants via spawnCombatUnit (SPEC §2.5).
  *
- * Population = live UnitTag rows (M1 single player); popCap = Σ
- * populationCap over FINISHED buildings. Enqueue is REJECTED loudly
- * (gather/placement command discipline) once population + queued ≥ cap
- * or the queue itself is full; the TC panel disables its button via the
- * same exported predicate.
+ * Population = live UnitTag rows; popCap = Σ populationCap over
+ * FINISHED buildings. Enqueue is REJECTED loudly (gather/placement
+ * command discipline) once population + queued ≥ cap or the queue
+ * itself is full; age-gated content reaches the sim only as polite
+ * digest-visible GateRejected rows. The exported predicates power the
+ * UI's disabled buttons.
  */
 
 import type { SimComponents } from "../components";
@@ -34,7 +43,7 @@ import {
   writeTrainQueue,
 } from "../components/buildings";
 import { appendGateRejection, GATE_HANDLER_TRAIN } from "../components/age";
-import { spawnUnit } from "../components";
+import { spawnCombatUnit, spawnUnit } from "../components";
 import {
   buildingDefOf,
   buildingIdOfCode,
@@ -48,16 +57,17 @@ import { PLAYER_ONE } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
 
-/** Command kind owned by this system. */
+/** Command kinds owned by this system. */
 export const TRAIN_VILLAGER_KIND = "trainVillager";
+export const TRAIN_UNIT_KIND = "trainUnit";
 
 /** Perimeter search depth (in whole-tile rings) for spawn placement. */
 export const SPAWN_RING_DEPTH = 3;
 
 export interface TrainingDiagnostics {
-  /** trainVillager commands applied. */
+  /** trainVillager/trainUnit commands applied. */
   commandsApplied: number;
-  /** Villagers spawned from completed queue heads. */
+  /** Units spawned from completed queue heads. */
   unitsTrained: number;
   /** Polite age-gate refusals (digest-visible GateRejected rows). */
   gateRejections: number;
@@ -74,11 +84,12 @@ interface TrainQueueConfig {
 }
 
 /**
- * The unit this queue config trains: the villager entry when present
- * (M1 command-kind intent), else the first listed unit. Shared by the
- * command handler and the enqueue predicate so both always agree.
+ * The unit this queue config trains when the order names none: the
+ * villager entry when present (M1 command-kind intent), else the first
+ * listed unit. Shared by the command handler and the enqueue predicate
+ * so both always agree.
  */
-function trainableUnitIdFor(queueConfig: TrainQueueConfig): string {
+function defaultTrainableUnitIdFor(queueConfig: TrainQueueConfig): string {
   return queueConfig.trainable.some((entry) => entry.unitId === "villager")
     ? "villager"
     : queueConfig.trainable[0]!.unitId;
@@ -86,15 +97,25 @@ function trainableUnitIdFor(queueConfig: TrainQueueConfig): string {
 
 function parseTrainData(data: Readonly<Record<string, unknown>>): {
   siteEid: number | undefined;
+  unitId: string | undefined;
 } {
   const raw = data.siteEid;
-  if (raw === undefined) return { siteEid: undefined };
-  if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1) {
+  if (
+    raw !== undefined &&
+    (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1)
+  ) {
     throw new Error(
-      `trainVillager siteEid must be a positive integer, got ${String(raw)}`,
+      `training siteEid must be a positive integer, got ${String(raw)}`,
     );
   }
-  return { siteEid: raw };
+  let unitId: string | undefined;
+  if (data.unitId !== undefined) {
+    if (typeof data.unitId !== "string" || data.unitId.length === 0) {
+      throw new Error("trainUnit unitId must be a non-empty string");
+    }
+    unitId = data.unitId;
+  }
+  return { siteEid: raw as number | undefined, unitId };
 }
 
 interface ProductionBuilding {
@@ -168,20 +189,26 @@ export function findSpawnTile(
 
 /**
  * True when one more queued unit fits under the queue capacity, the
- * population ceiling AND the age gate — shared by the command handler
- * and the TC panel's disabled state.
+ * population ceiling AND the age gate — shared by the command handlers
+ * and the production panel's disabled state. `unitId` selects among the
+ * building's trainable list; omit it for the M1 default entry.
  */
 export function canEnqueueTraining(
   world: World,
   comps: SimComponents,
   buildingEid: number,
   playerId: number = PLAYER_ONE,
+  unitId?: string | undefined,
 ): boolean {
   const row = getBuildingRow(world, comps, buildingEid);
   if (!row || row[0] !== playerId) return false;
   const queueConfig = buildingDefOf(buildingIdOfCode(row[1]!)).trainQueue;
   if (!queueConfig) return false;
-  const unitDef = unitDefOf(trainableUnitIdFor(queueConfig));
+  const resolved = unitId ?? defaultTrainableUnitIdFor(queueConfig);
+  if (!queueConfig.trainable.some((entry) => entry.unitId === resolved)) {
+    return false;
+  }
+  const unitDef = unitDefOf(resolved);
   if (!isDefAgeUnlocked(world, comps, playerId, unitDef.ageGate)) {
     return false;
   }
@@ -194,6 +221,7 @@ function applyTrainCommand(
   world: World,
   comps: SimComponents,
   diagnostics: TrainingDiagnostics,
+  kind: string,
   data: Readonly<Record<string, unknown>>,
 ): void {
   const parsed = parseTrainData(data);
@@ -205,16 +233,19 @@ function applyTrainCommand(
   if (!target) {
     throw new Error(
       parsed.siteEid !== undefined
-        ? `trainVillager targets entity ${String(parsed.siteEid)}, which is not a finished production building`
-        : "trainVillager requires a finished production building (none exists)",
+        ? `${kind} targets entity ${String(parsed.siteEid)}, which is not a finished production building`
+        : `${kind} requires a finished production building (none exists)`,
     );
   }
 
   const def = buildingDefOf(target.defId);
   const queueConfig = def.trainQueue!;
-  // M1 trains villagers only; membership in the trainable list keeps it
-  // data-driven while the command kind pins intent.
-  const unitId = trainableUnitIdFor(queueConfig);
+  // Membership in the trainable list keeps this data-driven: trainUnit
+  // names its unit explicitly; trainVillager pins the M1 intent.
+  const unitId = parsed.unitId ?? defaultTrainableUnitIdFor(queueConfig);
+  if (!queueConfig.trainable.some((entry) => entry.unitId === unitId)) {
+    throw new Error(`${def.id} does not train ${unitId}`);
+  }
   const unitDef = unitDefOf(unitId);
 
   // Polite age-gate refusal BEFORE escrow: gated content can reach the
@@ -272,9 +303,26 @@ export function createTrainingSystem(
   return (world: World, commands: readonly SimCommand[]): void => {
     // ---- 1) Commands consumed exactly on their tick boundary.
     for (const command of commands) {
-      if (command.kind !== TRAIN_VILLAGER_KIND) continue;
-      if (!command.data) throw new Error("trainVillager requires command data");
-      applyTrainCommand(world, comps, diagnostics, command.data);
+      if (command.kind === TRAIN_VILLAGER_KIND) {
+        if (!command.data)
+          throw new Error("trainVillager requires command data");
+        applyTrainCommand(
+          world,
+          comps,
+          diagnostics,
+          command.kind,
+          command.data,
+        );
+      } else if (command.kind === TRAIN_UNIT_KIND) {
+        if (!command.data) throw new Error("trainUnit requires command data");
+        applyTrainCommand(
+          world,
+          comps,
+          diagnostics,
+          command.kind,
+          command.data,
+        );
+      }
     }
 
     // ---- 2) Advance queues ascending eid inside step().
@@ -311,10 +359,14 @@ export function createTrainingSystem(
           fp.height,
         );
         if (!tile) continue; // boxed in: retry next tick
-        const unitDef = unitDefOf(unitIdOfCode(head.unitCode));
-        spawnUnit(world, comps, tile.x + 0.5, tile.y + 0.5, {
-          baseSpeed: unitDef.speed,
-        });
+        spawnTrainedUnit(
+          world,
+          comps,
+          unitIdOfCode(head.unitCode),
+          tile.x + 0.5,
+          tile.y + 0.5,
+          buildingRow[0]!,
+        );
         population += 1;
         diagnostics.unitsTrained += 1;
         entries.shift();
@@ -322,4 +374,26 @@ export function createTrainingSystem(
       }
     }
   };
+}
+
+/**
+ * Spawn one completed queue head: villagers ride the legacy M1 spawner
+ * (no Combat row — they stay untargetable per the M2-T5 contract);
+ * every other definition spawns as a full combatant owned by the
+ * producing building's player (SPEC §2.5).
+ */
+function spawnTrainedUnit(
+  world: World,
+  comps: SimComponents,
+  unitId: string,
+  x: number,
+  y: number,
+  playerId: number,
+): number {
+  if (unitId === "villager") {
+    return spawnUnit(world, comps, x, y, {
+      baseSpeed: unitDefOf(unitId).speed,
+    });
+  }
+  return spawnCombatUnit(world, comps, unitId, x, y, playerId);
 }

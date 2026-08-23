@@ -171,35 +171,35 @@ exports[`golden harness m2t5a > records milestone digests at every 30th tick plu
     "tick": 1260,
   },
   {
-    "digest": "fnv1a64:1ce86ba0a122393d",
+    "digest": "fnv1a64:4c2f1bcafc8bae3f",
     "tick": 1290,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1320,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1350,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1380,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1410,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1440,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1470,
   },
   {
-    "digest": "fnv1a64:fc27c80dfdb40ae4",
+    "digest": "fnv1a64:fc445f0bace6899e",
     "tick": 1500,
   },
 ]

@@ -20,9 +20,19 @@ import {
   attackMoveActivity,
   decodeActivities,
   encodeActivities,
+  moveActivity,
 } from "../src/sim/activities";
-import { defineSimComponents, spawnCombatUnit } from "../src/sim/components";
 import {
+  defineSimComponents,
+  readActivityQueue,
+  spawnCombatUnit,
+  spawnUnit,
+  writeActivityQueue,
+  type SimComponents,
+} from "../src/sim/components";
+import { assignNode } from "../src/sim/components/economy";
+import {
+  getCombatRow,
   markTechResearched,
   researchedTechCodesOf,
 } from "../src/sim/components/combat";
@@ -31,9 +41,16 @@ import {
   computeWorldDigest,
   createWorld,
   despawnEntity,
+  registerSystem,
   spawnEntity,
+  step,
   type World,
 } from "../src/sim/core/world";
+import {
+  STOP_COMMAND_KIND,
+  createCombatDiagnostics,
+  createCombatSystem,
+} from "../src/sim/systems/combat";
 import {
   bonusMultiplierOf,
   deriveUnitStats,
@@ -230,6 +247,80 @@ describe("entity despawn (death cleanup primitive)", () => {
     expect(next).toBe(eid + 1);
     expect(computeWorldDigest(world)).toMatch(/^fnv1a64:[0-9a-f]{16}$/);
   });
+});
+
+describe("stop command (M2-T6, SPEC §2.13)", () => {
+  function stopHarness(): {
+    world: World;
+    comps: SimComponents;
+  } {
+    const world = createWorld(11);
+    const comps = defineSimComponents(world);
+    registerSystem(world, createCombatSystem(comps, createCombatDiagnostics()));
+    createPlayerStockpile(world, comps, PLAYER_ONE);
+    createPlayerStockpile(world, comps, 1);
+    return { world, comps };
+  }
+
+  it("cancels queues, drops engagements and releases claims", () => {
+    const { world, comps } = stopHarness();
+    const a = spawnCombatUnit(world, comps, "militia", 5.5, 5.5, PLAYER_ONE);
+    const b = spawnCombatUnit(world, comps, "militia", 6.1, 5.5, 1);
+    // A gather claim + an engagement to tear down.
+    assignNode(world, comps, a, 99);
+    world.inbox.submit({
+      kind: "attack",
+      targetTick: world.tick + 1,
+      data: { attackerIds: [a], targetId: b },
+    });
+    step(world);
+    expect(getCombatRow(world, comps, a)![3]).toBe(b);
+
+    world.inbox.submit({
+      kind: STOP_COMMAND_KIND,
+      targetTick: world.tick + 1,
+      data: { entityIds: [a, b] },
+    });
+    step(world);
+    // Both sides halt cleanly: stopping only `a` would let b's ongoing
+    // engagement re-trigger a-retaliation next strike (correct combat
+    // behavior — stopped units still fight back when actively hit).
+    expect(readActivityQueue(world, comps, a)).toEqual([]);
+    expect(readActivityQueue(world, comps, b)).toEqual([]);
+    expect(getCombatRow(world, comps, a)![3]).toBe(0);
+    expect(getCombatRow(world, comps, b)![3]).toBe(0);
+    expect(getAssignedNodeForTest(world, comps, a)).toBeUndefined();
+  });
+
+  it("stops villagers too — any ActivityQueue holder halts", () => {
+    const { world, comps } = stopHarness();
+    const villager = spawnUnit(world, comps, 8.5, 8.5, { baseSpeed: 1 });
+    writeQueueMove(world, comps, villager);
+
+    world.inbox.submit({
+      kind: STOP_COMMAND_KIND,
+      targetTick: world.tick + 1,
+      data: { entityIds: [villager] },
+    });
+    step(world);
+    expect(readActivityQueue(world, comps, villager)).toEqual([]);
+  });
+
+  function getAssignedNodeForTest(
+    world: World,
+    comps: SimComponents,
+    eid: number,
+  ): readonly number[] | undefined {
+    return world.rowsByComponentId.get(comps.assignedNodeId)?.get(eid);
+  }
+
+  function writeQueueMove(
+    world: World,
+    comps: SimComponents,
+    eid: number,
+  ): void {
+    writeActivityQueue(world, comps, eid, [moveActivity([9.5, 9.5])]);
+  }
 });
 
 function rowsCount(world: World, componentId: number): number {

@@ -7,13 +7,17 @@
  * stays one-directional: render reads, sim knows nothing of render.
  *
  * Frame layout is SoA, indexed by ascending-eid rank i (NOT by eid —
- * eids travel alongside for future id-keyed overlays):
+ * eids travel alongside for id-keyed overlays):
  *   positions[2i], positions[2i + 1]  → x,y float tile coordinates
  *   headings[i]                       → facing radians (Velocity row [0])
+ *   hpFractions[i]                    → hp / maxHp clamped to [0,1]
+ *                                       (M2-T6 health-bar overlay feed;
+ *                                       units without a Combat row
+ *                                       report a full bar)
  */
 
-import type { MovementComponents } from "./components";
 import type { SimComponents } from "./components";
+import { combatDefOf, getCombatRow } from "./components/combat";
 import { getBuildingRow, getBuildingSiteRow } from "./components/buildings";
 import { buildingDefOf, buildingIdOfCode } from "../data/definitions";
 import { WORK_MILLI_SCALE } from "./systems/construction";
@@ -31,6 +35,8 @@ export interface SimSnapshotFrame {
   readonly positions: Float32Array;
   /** Facing radians, capacity ≥ count. */
   readonly headings: Float32Array;
+  /** Health 0..1 per rank, capacity ≥ count (M2-T6 overlays). */
+  readonly hpFractions: Float32Array;
 }
 
 export interface CaptureSnapshotOptions {
@@ -61,14 +67,16 @@ function growI32(array: Int32Array, needed: number): Int32Array {
 }
 
 /**
- * Copy every live unit's position/heading out of the world. Pure:
- * reads component rows only, writes only into the returned frame, and
- * touches neither DOM nor three.js. Call once per rendered frame AFTER
- * all step()s, before sampling interpolation.
+ * Copy every live unit's position/heading/health out of the world.
+ * Pure: reads component rows only, writes only into the returned frame,
+ * and touches neither DOM nor three.js. Call once per rendered frame
+ * AFTER all step()s, before sampling interpolation. Takes SimComponents
+ * because the M2-T6 overlay feed reads Combat rows; callers without a
+ * combat registry simply get full-health bars everywhere.
  */
 export function captureSimSnapshot(
   world: World,
-  comps: MovementComponents,
+  comps: SimComponents,
   options: CaptureSnapshotOptions = {},
 ): SimSnapshotFrame {
   // Live units ⊆ entities, so sizing to entityCount up front means no
@@ -84,9 +92,15 @@ export function captureSimSnapshot(
     options.reusable?.headings ?? new Float32Array(0),
     needed,
   );
+  let hpFractions = growF32(
+    options.reusable?.hpFractions ?? new Float32Array(0),
+    needed,
+  );
 
   const positionRows = world.rowsByComponentId.get(comps.positionId);
   const velocityRows = world.rowsByComponentId.get(comps.velocityId);
+  // maxHp per def code, memoized per capture (codes are dense u8s).
+  const maxHpByDefCode = new Map<number, number>();
 
   let count = 0;
   // world.entities ascends by construction (spawn order); a linear walk
@@ -100,10 +114,23 @@ export function captureSimSnapshot(
     positions[count * 2] = posRow[0]!;
     positions[count * 2 + 1] = posRow[1]!;
     headings[count] = velRow[0]!; // Velocity row layout: headingRad first
+
+    const combatRow = getCombatRow(world, comps, eid);
+    let fraction = 1;
+    if (combatRow) {
+      const defCode = combatRow[0]!;
+      let maxHp = maxHpByDefCode.get(defCode);
+      if (maxHp === undefined) {
+        maxHp = combatDefOf(world, comps, eid)!.hp;
+        maxHpByDefCode.set(defCode, maxHp);
+      }
+      fraction = Math.min(1, Math.max(0, combatRow[2]! / maxHp));
+    }
+    hpFractions[count] = fraction;
     count++;
   }
 
-  return { tick: world.tick, count, eids, positions, headings };
+  return { tick: world.tick, count, eids, positions, headings, hpFractions };
 }
 
 /**

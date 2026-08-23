@@ -320,17 +320,33 @@ function derivePathSeed(
   return (z ^ (z >>> 15)) >>> 0;
 }
 
-// ---- groupMove command handling ---------------------------------------------
+// ---- group route pipeline ----------------------------------------------------
 
-interface GroupMoveData {
+export interface GroupRouteOrder {
   readonly entityIds: readonly number[];
   readonly x: number;
   readonly y: number;
 }
 
+/**
+ * Caller hooks adapting the shared route pipeline (M2-T6): plain moves
+ * write Move heads; attack-marches write combat-ready attackMove heads
+ * and clear engagements at issue time.
+ */
+export interface GroupRouteHooks {
+  /**
+   * Extra per-member writes at ISSUE time, before any path response
+   * lands (explicit orders release job claims immediately). Closures
+   * capture their own world/comps.
+   */
+  readonly onIssue?: (eid: number) => void;
+  /** Head activity written for one member's dealt waypoints. */
+  readonly buildHead: (waypoints: number[]) => Activity;
+}
+
 function parseGroupMoveData(
   data: Readonly<Record<string, unknown>>,
-): GroupMoveData {
+): GroupRouteOrder {
   const rawIds = data.entityIds;
   if (!Array.isArray(rawIds) || rawIds.length === 0) {
     throw new Error("groupMove requires a non-empty entityIds array");
@@ -382,13 +398,14 @@ function nearestPassableTile(
 }
 
 /**
- * Apply one group-move order: pick the leader nearest the centroid
+ * The ONE leader-path + formation-slot pipeline behind groupMove AND
+ * the M2-T6 formation attack-move: pick the leader nearest the centroid
  * (ascending-eid tiebreak), resolve start/goal tiles, then issue ONE
  * octile A* request through the path scheduler. When its response
  * applies (ascending-id, dueTick ≤ tick), deal concentric-ring slots to
- * every Pop sorted ascending-eid (leader on slot 0) and enqueue per-Pop
- * Move activities whose final waypoint is the slot-adjusted
- * destination.
+ * every Pop sorted ascending-eid (leader on slot 0) and enqueue one
+ * `hooks.buildHead(...)` activity per Pop whose final waypoint is the
+ * slot-adjusted destination.
  *
  * Member positions are captured at ISSUE time and reused at
  * application: between the two, this continuation is the only writer of
@@ -396,20 +413,20 @@ function nearestPassableTile(
  * observe identical inputs regardless of what the Pops were still doing
  * from an earlier order during the latency window.
  */
-function handleGroupMove(
+export function issueGroupRoute(
   world: World,
   comps: MovementComponents,
-  diagnostics: MovementDiagnostics,
+  diagnostics: MovementDiagnostics | undefined,
   paths: PathScheduler,
-  data: Readonly<Record<string, unknown>>,
+  order: GroupRouteOrder,
+  hooks: GroupRouteHooks,
 ): void {
-  const parsed = parseGroupMoveData(data);
-  const { x, y } = parsed;
+  const { x, y } = order;
   const passability = world.layers.derivedPassability;
   const size = world.layers.size;
 
   const members: { eid: number; x: number; y: number }[] = [];
-  for (const eid of parsed.entityIds) {
+  for (const eid of order.entityIds) {
     const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
     const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
     const queueRow = world.rowsByComponentId
@@ -453,6 +470,12 @@ function handleGroupMove(
   );
   if (!goal) return;
 
+  if (hooks.onIssue !== undefined) {
+    for (const member of members) {
+      hooks.onIssue(member.eid);
+    }
+  }
+
   // Deal slots: leader on the center slot, remaining Pops ascending.
   const ordered = [leader, ...members.filter((member) => member !== leader)];
 
@@ -475,7 +498,7 @@ function handleGroupMove(
       onApply: (response): void => {
         if (!response.ok) return; // unreachable destination: command is a no-op
 
-        diagnostics.groupMoves += 1;
+        if (diagnostics !== undefined) diagnostics.groupMoves += 1;
         // Pulled waypoints are tile indices; activities steer in continuous
         // coordinates, so convert every pair to its tile center first.
         const sharedWaypoints: number[] = [];
@@ -516,13 +539,29 @@ function handleGroupMove(
             waypoints = [...sharedWaypoints.slice(0, -2), finalX, finalY];
           }
           writeActivityQueue(world, comps, member.eid, [
-            moveActivity(waypoints),
+            hooks.buildHead(waypoints),
           ]);
           setMoveTarget(world, comps, member.eid, finalX, finalY);
         }
       },
     },
   );
+}
+
+/**
+ * Apply one group-move order through the shared route pipeline with
+ * plain Move heads.
+ */
+function handleGroupMove(
+  world: World,
+  comps: MovementComponents,
+  diagnostics: MovementDiagnostics,
+  paths: PathScheduler,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  issueGroupRoute(world, comps, diagnostics, paths, parseGroupMoveData(data), {
+    buildHead: moveActivity,
+  });
 }
 
 // ---- The system -------------------------------------------------------------

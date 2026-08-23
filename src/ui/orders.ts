@@ -25,6 +25,10 @@ export const GROUP_MOVE_KIND = "groupMove";
 export const GATHER_KIND = "gather";
 /** Build (assign villagers to a construction site) kind (M1-T10). */
 export const BUILD_KIND = "build";
+/** Attack-move command kind (M2-T6, SPEC §2.13 key A). */
+export const ATTACK_MOVE_KIND = "attackMove";
+/** Stop command kind (M2-T6, SPEC §2.13 key S). */
+export const STOP_KIND = "stop";
 
 /**
  * Validate, canonicalize (dedupe + ascending sort), and submit one
@@ -148,6 +152,71 @@ export function issueBuild(
   };
   inbox.submit(command);
   return command;
+}
+
+/**
+ * Validate, canonicalize (dedupe + ascending sort), and submit one
+ * attack-move order (M2-T6): march combat-ready to (x, y), acquiring
+ * enemies inside aggro radius en route. Delivered exactly on
+ * `currentTick + 1`. Same canonical-payload discipline as issueGroupMove.
+ */
+export function issueAttackMove(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+  x: number,
+  y: number,
+): SimCommand {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    throw new Error(
+      `attackMove destination must be finite, got (${String(x)}, ${String(y)})`,
+    );
+  }
+  const entityIds = canonicalIds(ids, "attackMove");
+  const command: SimCommand = {
+    kind: ATTACK_MOVE_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds, x, y },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+/**
+ * Validate, canonicalize, and submit one stop order (M2-T6, SPEC §2.13
+ * key S): cancel every queued activity and drop engagements.
+ */
+export function issueStop(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+): SimCommand {
+  const entityIds = canonicalIds(ids, "stop");
+  const command: SimCommand = {
+    kind: STOP_KIND,
+    targetTick: currentTick + 1,
+    data: { entityIds },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+/** Shared id canonicalization for the issuers above. */
+function canonicalIds(ids: readonly number[], label: string): number[] {
+  const out: number[] = [];
+  for (const id of ids) {
+    if (typeof id !== "number" || !Number.isInteger(id) || id < 1) {
+      throw new Error(
+        `${label} entity id must be a positive integer, got ${String(id)}`,
+      );
+    }
+    if (!out.includes(id)) out.push(id);
+  }
+  if (out.length === 0) {
+    throw new Error(`${label} requires at least one entity`);
+  }
+  out.sort((a, b) => a - b);
+  return out;
 }
 
 // ---- Order log (capped, newest-first) ---------------------------------------

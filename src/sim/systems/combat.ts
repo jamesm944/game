@@ -1,20 +1,27 @@
 /**
  * Combat system — SPEC §2.5 / M2-T5.
  *
- * Owns the Attack and attackMove activities plus every engagement state
- * transition, exclusively inside step():
+ * Owns the Attack, attackMove and stop activities plus every engagement
+ * state transition, exclusively inside step():
  *
  *   attack command   → replace the unit's whole queue with Attack{t}
  *                      (explicit orders always win; gather/build jobs
  *                      release their claims)
  *   attackMove       → march flagged combat-ready; enemies inside the
  *                      AGGRO radius (= definition sightRadius) pause the
- *                      march by inserting an Attack head; the march
- *                      resumes automatically when the fight ends
+ *                      march by inserting an Attack head; kill or
+ *                      lost-target drops the head and the march RESUMES
+ *                      automatically. With a PathScheduler attached the
+ *                      order reuses movement's group-route pipeline
+ *                      (ONE leader A* request, concentric-ring slots);
+ *                      schedulerless worlds keep the M2-T5 direct
+ *                      single-waypoint march.
  *   retaliation      → a damaged unit with no live engagement acquires
  *                      its striker when the striker stands inside aggro
  *                      range, pausing whatever it was doing (a chopped
  *                      tree keeps its slot and resumes after the kill)
+ *   stop             → cancel every queued activity, drop engagements
+ *                      and release job claims (SPEC §2.13 "stop (S)")
  *
  * Engagement mechanics per advancing unit (ascending eid):
  *   - out of range  → maintain a single-waypoint Move approach leg ahead
@@ -60,6 +67,7 @@ import {
 } from "../components/combat";
 import { clearAssignedSite } from "../components/buildings";
 import { clearAssignedNode } from "../components/economy";
+import { equipmentCountsOf } from "../components/equipment";
 import {
   readActivityQueue,
   writeActivityQueue,
@@ -78,11 +86,13 @@ import {
   type EntitySpatialHash,
 } from "../core/spatialHash";
 import { despawnEntity, type SimSystem, type World } from "../core/world";
-import { resetSteeringBookkeeping } from "./movement";
+import { issueGroupRoute, resetSteeringBookkeeping } from "./movement";
+import type { PathScheduler } from "../path/scheduler";
 
 /** Command kinds owned by this system. */
 export const ATTACK_COMMAND_KIND = "attack";
 export const ATTACK_MOVE_COMMAND_KIND = "attackMove";
+export const STOP_COMMAND_KIND = "stop";
 
 /**
  * An approach leg re-aims once the target strays this far from the
@@ -99,6 +109,8 @@ export interface CombatDiagnostics {
   attackCommands: number;
   /** attackMove commands applied. */
   attackMoveCommands: number;
+  /** stop commands applied. */
+  stopCommands: number;
   /** Strikes landed (ranged shots included). */
   strikes: number;
   /** Units killed. */
@@ -113,6 +125,7 @@ export function createCombatDiagnostics(): CombatDiagnostics {
   return {
     attackCommands: 0,
     attackMoveCommands: 0,
+    stopCommands: 0,
     strikes: 0,
     kills: 0,
     retaliations: 0,
@@ -151,22 +164,6 @@ function parseAttackData(data: Readonly<Record<string, unknown>>): AttackData {
   };
 }
 
-interface AttackMoveData {
-  readonly ids: readonly number[];
-  readonly x: number;
-  readonly y: number;
-}
-
-function parseAttackMoveData(
-  data: Readonly<Record<string, unknown>>,
-): AttackMoveData {
-  return {
-    ids: parseEntityIds(data.ids, "attackMove"),
-    x: requireFiniteNumber(data.x, "attackMove x"),
-    y: requireFiniteNumber(data.y, "attackMove y"),
-  };
-}
-
 function requirePositiveInt(value: unknown, label: string): number {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
     throw new Error(
@@ -189,10 +186,16 @@ function requireFiniteNumber(value: unknown, label: string): number {
  * Build the combat SimSystem. Register AFTER movement (and gather):
  * strikes and acquisitions must observe this tick's final positions,
  * and queues rewritten here must survive movement's write-back window.
+ *
+ * Pass the world's PathScheduler to upgrade attack-move orders from the
+ * M2-T5 direct march into the full group-route pipeline (leader A* +
+ * formation slots, SPEC §2.13). Schedulerless worlds (legacy fixtures)
+ * keep byte-identical T5 behavior.
  */
 export function createCombatSystem(
   comps: SimComponents,
   diagnostics: CombatDiagnostics = createCombatDiagnostics(),
+  paths?: PathScheduler | undefined,
 ): SimSystem {
   return (world: World, commands: readonly SimCommand[]): void => {
     const size = world.layers.size;
@@ -204,7 +207,17 @@ export function createCombatSystem(
         applyAttackCommand(world, comps, diagnostics, command.data);
       } else if (command.kind === ATTACK_MOVE_COMMAND_KIND) {
         if (!command.data) throw new Error("attackMove requires command data");
-        applyAttackMoveCommand(world, comps, diagnostics, command.data, size);
+        applyAttackMoveCommand(
+          world,
+          comps,
+          diagnostics,
+          paths,
+          command.data,
+          size,
+        );
+      } else if (command.kind === STOP_COMMAND_KIND) {
+        if (!command.data) throw new Error("stop requires command data");
+        applyStopCommand(world, comps, diagnostics, command.data);
       }
     }
 
@@ -259,9 +272,11 @@ export function createCombatSystem(
       combatantByEid.set(combatant.eid, combatant);
     }
 
-    // ---- 3) Per-tick stat derivation memo. Keys are defCode×owner —
-    // identical inputs collapse to one computation, nothing survives
-    // the tick (SPEC §2.5: derived, never stored).
+    // ---- 3) Per-tick stat derivation memo. Keys are defCode×owner×
+    // equipment — identical inputs collapse to one computation, nothing
+    // survives the tick (SPEC §2.5: derived, never stored). Equipped
+    // Forge commodities fold in here so an equipped and a default-fisted
+    // twin of the same definition derive DIFFERENT numbers.
     const techCodesByOwner = new Map<number, ReadonlySet<number>>();
     const statsMemo = new Map<string, DerivedStats>();
     const statsOf = (combatant: Combatant): DerivedStats => {
@@ -270,10 +285,14 @@ export function createCombatSystem(
         codes = new Set(researchedCodesLenient(world, comps, combatant.owner));
         techCodesByOwner.set(combatant.owner, codes);
       }
-      const key = `${combatant.row[0]}:${combatant.owner}`;
+      const equipment = equipmentCountsOf(world, comps, combatant.eid);
+      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a`;
       let stats = statsMemo.get(key);
       if (!stats) {
-        const ctx: StatContext = { researchedTechCodes: codes };
+        const ctx: StatContext = {
+          researchedTechCodes: codes,
+          equipment,
+        };
         stats = deriveUnitStats(combatant.def, ctx);
         statsMemo.set(key, stats);
       }
@@ -337,6 +356,28 @@ export function createCombatSystem(
       return false;
     };
 
+    /**
+     * Point MoveTarget back at a paused march once the engagement
+     * above it ends: approach legs overwrite MoveTarget with combat
+     * stand points while fighting, and any stall-recovery re-path
+     * during the RESUMED march must aim at the real destination, not
+     * the last stand point (M2-T6 resume contract).
+     */
+    const restoreMarchTarget = (combatant: Combatant): void => {
+      const head = combatant.queue[0];
+      if (
+        head === undefined ||
+        (head.kind !== "move" && head.kind !== "attackMove")
+      ) {
+        return;
+      }
+      const tailX = head.waypoints[head.waypoints.length - 2]!;
+      const tailY = head.waypoints[head.waypoints.length - 1]!;
+      world.rowsByComponentId
+        .get(comps.moveTargetId)
+        ?.set(combatant.eid, [tailX, tailY]);
+    };
+
     const dropEngagement = (combatant: Combatant): void => {
       const head = combatant.queue[0];
       if (head !== undefined && head.kind === "attack") {
@@ -349,6 +390,7 @@ export function createCombatSystem(
         }
       }
       combatant.row[3] = 0;
+      restoreMarchTarget(combatant);
       combatant.dirty = true;
     };
 
@@ -420,7 +462,10 @@ export function createCombatSystem(
           }
           removed = true;
         }
-        if (removed) combatant.dirty = true;
+        if (removed) {
+          restoreMarchTarget(combatant);
+          combatant.dirty = true;
+        }
       }
     };
 
@@ -657,12 +702,47 @@ function applyAttackMoveCommand(
   world: World,
   comps: SimComponents,
   diagnostics: CombatDiagnostics,
+  paths: PathScheduler | undefined,
   data: Readonly<Record<string, unknown>>,
   size: number,
 ): void {
-  const parsed = parseAttackMoveData(data);
-  // Basic T5 march: clamp into the world; formation + leader paths
-  // arrive with M2-T6's full acquire-en-route behavior.
+  const parsed = {
+    ids: parseEntityIds(data.ids, "attackMove"),
+    x: requireFiniteNumber(data.x, "attackMove x"),
+    y: requireFiniteNumber(data.y, "attackMove y"),
+  };
+
+  // Explicit orders always win: release job claims + drop engagements
+  // at ISSUE time (the route itself lands when the path response
+  // applies, mirroring groupMove's latency contract).
+  const releaseOrders = (eid: number): void => {
+    clearAssignedNode(world, comps, eid);
+    clearAssignedSite(world, comps, eid);
+    const row = getCombatRow(world, comps, eid);
+    if (row) row[3] = 0; // a fresh march drops any prior engagement
+  };
+
+  if (paths !== undefined) {
+    // M2-T6 formation march: ONE leader A* request through the FIFO
+    // scheduler; concentric-ring slots dealt on application (SPEC
+    // §2.13 — military moves reuse the group slots).
+    issueGroupRoute(
+      world,
+      comps,
+      undefined, // movement diagnostics stay movement-owned
+      paths,
+      { entityIds: parsed.ids, x: parsed.x, y: parsed.y },
+      {
+        onIssue: releaseOrders,
+        buildHead: attackMoveActivity,
+      },
+    );
+    diagnostics.attackMoveCommands += 1;
+    return;
+  }
+
+  // Schedulerless fallback (M2-T5 fixtures): clamp into the world and
+  // steer straight at the destination.
   const x = Math.min(Math.max(parsed.x, 0.5), size - 0.5);
   const y = Math.min(Math.max(parsed.y, 0.5), size - 0.5);
   for (const eid of parsed.ids) {
@@ -680,4 +760,37 @@ function applyAttackMoveCommand(
     if (velRow) resetSteeringBookkeeping(velRow);
   }
   diagnostics.attackMoveCommands += 1;
+}
+
+/**
+ * SPEC §2.13 "stop (S)": cancel every queued activity, drop any live
+ * engagement and release job claims. Applies to every ActivityQueue
+ * holder — villagers halt their gather chains exactly like soldiers
+ * break off fights. Units keep their positions (no steering head ⇒ the
+ * movement FSM parks them).
+ */
+function applyStopCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  for (const eid of parseEntityIds(data.entityIds, "stop")) {
+    if (!world.rowsByComponentId.get(comps.activityQueueId)?.has(eid)) {
+      continue; // not a live ordered unit (mirrors attack's stance)
+    }
+    clearAssignedNode(world, comps, eid);
+    clearAssignedSite(world, comps, eid);
+    const queue = readActivityQueue(world, comps, eid);
+    cancelActivities(queue);
+    writeActivityQueue(world, comps, eid, queue);
+    const combatRow = getCombatRow(world, comps, eid);
+    if (combatRow) combatRow[3] = 0;
+    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+    if (velRow) {
+      velRow[1] = 0; // Velocity layout: cruise speed second
+      resetSteeringBookkeeping(velRow);
+    }
+  }
+  diagnostics.stopCommands += 1;
 }

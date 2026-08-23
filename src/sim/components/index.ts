@@ -9,10 +9,10 @@
  *
  *   ActivityQueue, AgeAdvanced, AgeResearch, AgeState, AssignedNode,
  *   AssignedSite, Building, BuildingSite, CarryCapacity, Combat,
- *   CombatEvents, CommodityStockpile, DropOff, GateRejected, Inventory,
- *   MealConsumed, MoveTarget, Position, ProductionCycle, ProductionJob,
- *   ResearchedTechs, ResourceNode, Stockpile, TrainQueue, UnitTag,
- *   Velocity
+ *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
+ *   Inventory, MealConsumed, MoveTarget, Position, ProductionCycle,
+ *   ProductionJob, ResearchedTechs, ResourceNode, Stockpile, TrainQueue,
+ *   UnitTag, Velocity
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -66,6 +66,11 @@ import {
   type EconomyComponents,
 } from "./economy";
 import {
+  EQUIPMENT_COMPONENT_ARITIES,
+  EQUIPMENT,
+  type EquipmentComponents,
+} from "./equipment";
+import {
   COMMODITY_STOCKPILE,
   DROP_OFF,
   STOCKPILE,
@@ -105,6 +110,7 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...AGE_COMPONENT_ARITIES,
   ...BUILDING_COMPONENT_ARITIES,
   ...COMBAT_COMPONENT_ARITIES,
+  ...EQUIPMENT_COMPONENT_ARITIES,
   ...PRODUCTION_COMPONENT_ARITIES,
 ];
 
@@ -125,6 +131,7 @@ export interface SimComponents
     StockpileComponents,
     BuildingComponents,
     CombatComponents,
+    EquipmentComponents,
     ProductionComponents {}
 
 /**
@@ -147,6 +154,7 @@ export function defineSimComponents(world: World): SimComponents {
     combatEventsId: defineComponent(world, COMBAT_EVENTS),
     commodityStockpileId: defineComponent(world, COMMODITY_STOCKPILE),
     dropoffId: defineComponent(world, DROP_OFF),
+    equipmentId: defineComponent(world, EQUIPMENT),
     gateRejectedId: defineComponent(world, GATE_REJECTED),
     inventoryId: defineComponent(world, INVENTORY),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
@@ -341,4 +349,5 @@ export * from "./economy";
 export * from "./age";
 export * from "./buildings";
 export * from "./combat";
+export * from "./equipment";
 export * from "./production";

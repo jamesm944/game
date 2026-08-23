@@ -121,14 +121,18 @@ Extra damage vs a specific Armor class, defined in data. Creates the counter tri
 Emergent infantry → archer → cavalry → infantry loop (plus siege → buildings).
 
 **Derived stats**:
-Combat numbers (attack, per-class armor, speed, range, reload) computed ON READ from the Entity definition plus researched techs — never stored in a duplicate row. Traits and equipment contribute zero until M3/M2-T6.
+Combat numbers (attack, per-class armor, speed, range, reload) computed ON READ from the Entity definition plus equipped commodity counts plus researched techs — never stored in a duplicate row. Traits contribute zero until M3.
 _Avoid_: Stat block, cached stats
+
+**Equipment**:
+Forge Weapons/Armor commodities consumed onto a military Pop (SPEC §2.5 "equipment = commodities"): each piece adds a flat documented attack/armor delta in the Derived-stats read. There is no separate gear inventory — the CommodityStockpile IS the armory.
+_Avoid_: Item, gear slot inventory
 
 **Engagement**:
 The live attacker→target binding held in a unit's Combat row. Broken by death, disengagement validation after foreign orders, or purge when the target dies. Acquired three ways: explicit attack command, auto-retaliation when damaged in range, aggro acquisition while attack-moving.
 
 **Attack-move**:
-A march that watches for enemies inside the unit's sight radius and pauses to fight, resuming automatically once the engagement ends.
+A march that watches for enemies inside the unit's sight radius and pauses to fight, resuming automatically once the engagement ends. Group attack-marches reuse the formation slots of plain moves (one leader path, concentric-ring deal).
 
 **Retaliation**:
 Auto-acquiring your striker as target when damaged inside aggro range; pauses (never cancels) the current job, which resumes after the fight.

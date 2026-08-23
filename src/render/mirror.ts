@@ -26,6 +26,8 @@ export interface MirrorBuffer {
   eids: Int32Array;
   positions: Float32Array;
   headings: Float32Array;
+  /** Health 0..1 per rank (M2-T6 overlay feed). */
+  hpFractions: Float32Array;
 }
 
 export interface RenderMirror {
@@ -43,6 +45,8 @@ export interface MirrorSampleOut {
   positions: Float32Array;
   /** Facing radians; written up to returned count. */
   headings: Float32Array;
+  /** Health 0..1; written up to returned count (M2-T6 overlays). */
+  hpFractions: Float32Array;
 }
 
 const TICK_UNSET = -1;
@@ -72,6 +76,7 @@ function emptyBuffer(): MirrorBuffer {
     eids: new Int32Array(0),
     positions: new Float32Array(0),
     headings: new Float32Array(0),
+    hpFractions: new Float32Array(0),
   };
 }
 
@@ -104,9 +109,11 @@ export function pushFrame(mirror: RenderMirror, frame: SimSnapshotFrame): void {
   b.eids = ensureI32(b.eids, Math.max(a.count, 1));
   b.positions = ensureF32(b.positions, Math.max(a.count * 2, 2));
   b.headings = ensureF32(b.headings, Math.max(a.count, 1));
+  b.hpFractions = ensureF32(b.hpFractions, Math.max(a.count, 1));
   b.eids.set(a.eids.subarray(0, a.count));
   b.positions.set(a.positions.subarray(0, a.count * 2));
   b.headings.set(a.headings.subarray(0, a.count));
+  b.hpFractions.set(a.hpFractions.subarray(0, a.count));
   b.tick = a.tick;
   b.count = a.count;
 
@@ -114,9 +121,11 @@ export function pushFrame(mirror: RenderMirror, frame: SimSnapshotFrame): void {
   a.eids = ensureI32(a.eids, Math.max(frame.count, 1));
   a.positions = ensureF32(a.positions, Math.max(frame.count * 2, 2));
   a.headings = ensureF32(a.headings, Math.max(frame.count, 1));
+  a.hpFractions = ensureF32(a.hpFractions, Math.max(frame.count, 1));
   a.eids.set(frame.eids.subarray(0, frame.count));
   a.positions.set(frame.positions.subarray(0, frame.count * 2));
   a.headings.set(frame.headings.subarray(0, frame.count));
+  a.hpFractions.set(frame.hpFractions.subarray(0, frame.count));
   a.tick = frame.tick;
   a.count = frame.count;
 
@@ -147,8 +156,10 @@ export function sampleMirror(
   const capacity = Math.min(
     out.positions.length >> 1,
     out.headings.length,
+    out.hpFractions.length,
     a.positions.length >> 1,
     a.headings.length,
+    a.hpFractions.length,
   );
   const shared =
     b.count > 0 && a.tick === b.tick + 1 ? Math.min(a.count, b.count) : 0;
@@ -157,10 +168,13 @@ export function sampleMirror(
 
   const outPos = out.positions;
   const outHead = out.headings;
+  const outHp = out.hpFractions;
   const posA = a.positions;
   const posB = b.positions;
   const headA = a.headings;
   const headB = b.headings;
+  const hpA = a.hpFractions;
+  const hpB = b.hpFractions;
 
   // Interpolated prefix: both buffers describe the same ascending-eid
   // ranks, so plain index pairing is exact.
@@ -170,6 +184,7 @@ export function sampleMirror(
     outPos[p + 1] = posB[p + 1]! + (posA[p + 1]! - posB[p + 1]!) * t;
     const delta = wrapPi(headA[i]! - headB[i]!);
     outHead[i] = headB[i]! + delta * t;
+    outHp[i] = hpB[i]! + (hpA[i]! - hpB[i]!) * t;
   }
   // Tail beyond the shared prefix: newest state verbatim.
   for (let i = interpolated; i < copied; i++) {
@@ -177,6 +192,7 @@ export function sampleMirror(
     outPos[p] = posA[p]!;
     outPos[p + 1] = posA[p + 1]!;
     outHead[i] = headA[i]!;
+    outHp[i] = hpA[i]!;
   }
   return copied;
 }

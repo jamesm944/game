@@ -61,6 +61,7 @@ describe("render mirror", () => {
     return {
       positions: new Float32Array(ENTITY_COUNT * 2),
       headings: new Float32Array(ENTITY_COUNT),
+      hpFractions: new Float32Array(ENTITY_COUNT),
     };
   }
 
@@ -115,6 +116,7 @@ describe("render mirror", () => {
       eids: Int32Array.of(1),
       positions: Float32Array.of(5, 5),
       headings: Float32Array.of(0.1),
+      hpFractions: Float32Array.of(1),
     });
     pushFrame(mirror, {
       tick: 2,
@@ -122,12 +124,15 @@ describe("render mirror", () => {
       eids: Int32Array.of(1),
       positions: Float32Array.of(5, 5),
       headings: Float32Array.of(0.1 + 5.5), // raw gap 5.5 rad > π
+      hpFractions: Float32Array.of(0.5),
     });
     const out = makeOut();
     sampleMirror(mirror, 0.5, out);
     // Shortest arc: 5.5 wraps to 5.5 − 2π ≈ −0.783, so the midpoint
     // lands near 0.1 − 0.392, NOT halfway through π.
     expect(out.headings[0]).toBeCloseTo(0.1 - 0.7831853 / 2, 4);
+    // Health fractions lerp linearly like positions.
+    expect(out.hpFractions[0]).toBeCloseTo(0.75, 10);
   });
 
   it("renders population growth verbatim beyond the shared prefix", () => {
@@ -138,6 +143,7 @@ describe("render mirror", () => {
       eids: Int32Array.of(1, 2),
       positions: Float32Array.of(1, 1, 2, 2),
       headings: Float32Array.of(0, 0),
+      hpFractions: Float32Array.of(1, 1),
     });
     pushFrame(mirror, {
       tick: 2,
@@ -145,6 +151,7 @@ describe("render mirror", () => {
       eids: Int32Array.of(1, 2, 3),
       positions: Float32Array.of(3, 3, 4, 4, 5, 5),
       headings: Float32Array.of(1, 1, 1),
+      hpFractions: Float32Array.of(0.4, 0.6, 1),
     });
     const out = makeOut();
     const written = sampleMirror(mirror, 0.5, out);
