@@ -1,5 +1,6 @@
 /**
- * Day/night schedules & sleep — SPEC §2.4 / M3-T6 (issue #51).
+ * Day/night schedules & sleep — SPEC §2.4 / M3-T6 (issue #51), extended
+ * with the §2.4 weekly cycle in M3-T8 (issue #53).
  *
  * The §2.4 clock already exists (systems/lifecycle.ts `minuteOfDay`,
  * canonical 8-minute day = 14,400 ticks, integer sim minutes); this
@@ -38,6 +39,21 @@
  *           decay is FROZEN while asleep (needs.ts reads the sleep
  *           head) so the wake lump lands on the pre-sleep level.
  *
+ * WEEKLY CYCLE (M3-T8, SPEC §2.4 "7 named days; Sunday rest day"):
+ * days roll deterministically off `dayIndexOf` modulo seven — Monday-
+ * first naming so day 0 stays an ordinary workday and every existing
+ * fixture (all shorter than one week) is untouched. On the REST DAY
+ * (`isRestDay`, every seventh dawn) non-essential work windows are
+ * CLOSED: assigned gatherers/builders are released at WAKE time through
+ * the ordinary grace window (their close minute collapses to 05:00),
+ * the brain refuses gather/build candidates outright, and private
+ * leisure is re-weighted ABOVE work (SUNDAY_*_UTILITY_MULT consumed by
+ * systems/mass + popBrain). Essential roles stay staffed —
+ * REST_DAY_ESSENTIAL_ROLES keeps production open at half slot count
+ * (restDayProductionSlotsOf); TC training needs no schedule surface at
+ * all (the training queue consumes stock, never a villager's shift), so
+ * it runs straight through Sundays by construction.
+ *
  * DEPRIVATION ("deprivation ⇒ next-day work/combat penalties and
  * napping idle states", SPEC §2.4) derives from the Rest meter alone —
  * no stored flag: below DEPRIVED_REST_LEVEL the derived multiplier
@@ -50,7 +66,9 @@
  * Player orders win, with one v1 exception: the 22:00 bedding outranks
  * even direct orders for scheduled Pops (night rest is not optional);
  * essential roles would be exempt via ESSENTIAL_ROLES — the stub list
- * is empty until a milestone ships one.
+ * is empty until a milestone ships one (distinct from the rest-day
+ * roster above: ESSENTIAL_ROLES skips NIGHT steering, which no shipped
+ * role qualifies for yet).
  *
  * Like the IAUS brain (M3-T3), production scopes this system to chosen
  * players: the skirmish session wires [PLAYER_ONE] so the scripted AI
@@ -102,6 +120,53 @@ import type { World, SimSystem } from "../core/world";
 // ---- Clock exposure (SPEC §2.4 integer-minute clock) --------------------------
 
 export { minuteOfDay, dayIndexOf, DEFAULT_LIFECYCLE_CONFIG };
+
+// ---- Weekly cycle (M3-T8, SPEC §2.4 "7 named days; Sunday rest") --------------
+
+/** Days per §2.4 week — the named-day cycle length. */
+export const DAYS_PER_WEEK = 7;
+
+/**
+ * The seven day names, Monday-first: day index 0 (every fixture's first
+ * dawn) is an ordinary workday, and Sunday lands on index 6 — so no
+ * pre-M3-T8 world ever crosses a rest day.
+ */
+export const WEEKDAY_NAMES = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+
+export type WeekdayName = (typeof WEEKDAY_NAMES)[number];
+
+/** Weekday slot of `dayIndex` (0 = Monday … 6 = Sunday), wrap-safe. */
+export function weekdayIndexOf(dayIndex: number): number {
+  return (((dayIndex % DAYS_PER_WEEK) + DAYS_PER_WEEK) %
+    DAYS_PER_WEEK) as number;
+}
+
+/** The named §2.4 weekday of `dayIndex` (pure, deterministic). */
+export function weekdayNameOf(dayIndex: number): WeekdayName {
+  return WEEKDAY_NAMES[weekdayIndexOf(dayIndex)]!;
+}
+
+/** The rest-day slot inside WEEKDAY_NAMES (§2.4 "Sunday rest day"). */
+export const SUNDAY_DAY_INDEX = 6;
+
+/**
+ * True when `tick` falls on the weekly REST DAY — work windows close
+ * (essential roles excepted), the village keeps Sunday.
+ */
+export function isRestDay(
+  tick: number,
+  config: LifecycleConfig = DEFAULT_LIFECYCLE_CONFIG,
+): boolean {
+  return weekdayIndexOf(dayIndexOf(tick, config)) === SUNDAY_DAY_INDEX;
+}
 
 // ---- Documented tuning constants ---------------------------------------------
 
@@ -180,9 +245,11 @@ export const HOUSING_QUALITY_BY_BUILDING_ID: Readonly<Record<string, number>> =
 export const HOUSING_DEFAULT_QUALITY = 0.5;
 
 /**
- * Essential-role exception stub (§2.4 rest days / night fires arrive in
- * later milestones): roles listed here skip evening release AND night
- * bedding. Empty in M3 — the gate is wired, the roster is not.
+ * Essential-role exception stub (§2.4 night fires arrive in later
+ * milestones): roles listed here skip evening release AND night
+ * bedding. Empty in M3 — the gate is wired, the roster is not. This is
+ * the NIGHT-exemption surface, deliberately separate from
+ * {@link REST_DAY_ESSENTIAL_ROLES} (the Sunday surface below).
  */
 export const ESSENTIAL_ROLES: readonly string[] = [];
 
@@ -190,6 +257,48 @@ export const ESSENTIAL_ROLES: readonly string[] = [];
 export function isEssentialRole(role: ScheduleRole | undefined): boolean {
   return role !== undefined && ESSENTIAL_ROLES.includes(role);
 }
+
+// ---- Rest-day essentials (M3-T8, SPEC §2.4 "essential roles only") ------------
+
+/**
+ * Roles that keep working through the §2.4 Sunday rest day: production
+ * slots stay staffed (at reduced capacity — the village still eats).
+ * Gather/build close outright; TC training needs no schedule surface
+ * (its queue consumes stock, never a villager's shift) so it runs
+ * through Sundays by construction.
+ */
+export const REST_DAY_ESSENTIAL_ROLES: readonly ScheduleRole[] = ["produce"];
+
+/** True when `role` stays staffable on the weekly rest day. */
+export function isRestDayEssentialRole(
+  role: ScheduleRole | undefined,
+): boolean {
+  return role !== undefined && REST_DAY_ESSENTIAL_ROLES.includes(role);
+}
+
+/**
+ * Sunday staffing fraction for essential production slots (§2.4
+ * "essential roles only" at half crew): a 2-slot workshop runs one
+ * crafter, odd sizes round up so a lone baker never loses their oven.
+ */
+export const REST_DAY_PRODUCTION_SLOT_FRACTION = 0.5;
+
+/**
+ * Essential production slots allowed on the rest day for a building
+ * with `workSlots` ordinary slots (0 stays 0; otherwise ≥ 1).
+ */
+export function restDayProductionSlotsOf(workSlots: number): number {
+  if (workSlots <= 0) return 0;
+  return Math.max(1, Math.ceil(workSlots * REST_DAY_PRODUCTION_SLOT_FRACTION));
+}
+
+/**
+ * Rest-day utility weighting consumed by the pop brain (systems/mass +
+ * popBrain): leisure/home scores multiply UP, the surviving essential
+ * work scores multiply DOWN — §2.4 Sundays lean toward plain leisure.
+ */
+export const SUNDAY_LEISURE_UTILITY_MULT = 1.25;
+export const SUNDAY_WORK_UTILITY_MULT = 0.75;
 
 // ---- Pure schedule math ---------------------------------------------------------
 
@@ -605,7 +714,7 @@ export function createSchedulesSystem(
         continue;
       }
 
-      // -- 4) Evening release: end-of-work → home walk, then LEISURE.
+      // -- 4) Release: end-of-work → home walk, then LEISURE.
       //       M3-T7: the old Wait-hold is gone. The homeward Move still
       //       gives released Pops a destination (and keeps the evening
       //       pathfinding wave trickling), but on arrival they are idle
@@ -615,8 +724,18 @@ export function createSchedulesSystem(
       //       One outing per Pop per evening; the self cooldown stamped
       //       at assignment/completion runs through the 05:00 wake, and
       //       the 22:00 bedding cancels whatever is still standing.
+      //       M3-T8: on the weekly REST DAY non-essential windows are
+      //       CLOSED — their close minute collapses to the 05:00 wake,
+      //       so assigned gatherers/builders are released through the
+      //       ordinary staggered grace window at dawn and never work
+      //       that day. Rest-day essential roles keep their ordinary
+      //       window (production stays half-staffed all shift).
       if (role !== undefined && !isEssentialRole(role)) {
-        const close = roleWorkWindowMinutes(role)[1];
+        const restDay = isRestDay(tick, config);
+        const close =
+          restDay && !isRestDayEssentialRole(role)
+            ? WAKE_MINUTE
+            : roleWorkWindowMinutes(role)[1];
         const minute = minuteOfDay(tick, config);
         const closeTickOffset = Math.floor((close * config.dayTicks) / 1440);
         if (

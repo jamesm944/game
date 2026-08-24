@@ -264,3 +264,73 @@ describe("scorer honesty", () => {
     expect(skilled).toBeGreaterThan(novice);
   }, 20_000);
 });
+
+describe("rest-day brain (M3-T8)", () => {
+  function openRestDayWorld(seed: number) {
+    const scheduler = new PathScheduler(createSynchronousPathTransport());
+    const world = createWorld(seed, {
+      size: SIZE,
+      layers: buildLayers(
+        new Uint8Array(SIZE * SIZE).fill(TERRAIN_GRASS),
+        new Uint8Array(SIZE * SIZE),
+      ),
+      pathScheduler: scheduler,
+    });
+    const comps = defineSimComponents(world);
+    const brain = createPopBrainDiagnostics();
+    registerSystem(world, createMovementSystem(comps, scheduler));
+    registerSystem(world, createGatherSystem(comps, scheduler));
+    registerSystem(world, createConstructionSystem(comps));
+    registerSystem(world, createProductionSystem(comps));
+    registerSystem(world, createNeedsSystem(comps));
+    registerSystem(
+      world,
+      createPopBrainSystem({
+        comps,
+        players: [PLAYER_ONE],
+        diagnostics: brain,
+        // The whole run sits on a §2.4 Sunday.
+        restDay: () => true,
+      }),
+    );
+    createPlayerStockpile(world, comps, PLAYER_ONE, [100, 100, 50, 0, 0, 0, 0]);
+    createDropOffPoint(world, comps, 6.5, 6.5, PLAYER_ONE);
+    return { world, comps, brain };
+  }
+
+  it("refuses gather/build candidates but keeps essential production", () => {
+    const { world, comps, brain } = openRestDayWorld(20260930);
+    spawnResourceNode(world, comps, 12, 12, 1 /* wood */, 400);
+    spawnBuildingSite(world, comps, "house", 16, 16, { playerId: PLAYER_ONE });
+    stampFinishedBuilding(world, comps, "kitchen", 14, 6, {
+      playerId: PLAYER_ONE,
+    });
+    const eid = spawnUnit(world, comps, 12.5, 7.5, { identity: true });
+
+    const thinkAt = nextThinkTick(eid, 0);
+    while (world.tick < thinkAt + 1) step(world);
+
+    // The Sunday brain saw all three surfaces but spoke only for the
+    // essential one.
+    expect(brain.produces).toBe(1);
+    expect(brain.gathers).toBe(0);
+    expect(brain.builds).toBe(0);
+    expect(world.rowsByComponentId.get(comps.productionJobId)?.has(eid)).toBe(
+      true,
+    );
+  });
+
+  it("lets idle Pops keep the rest day when nothing essential remains", () => {
+    const { world, comps, brain } = openRestDayWorld(20261001);
+    spawnResourceNode(world, comps, 12, 12, 1, 400); // non-essential bait
+    const eid = spawnUnit(world, comps, 11.5, 11.5, { identity: true });
+
+    const thinkAt = nextThinkTick(eid, 0);
+    while (world.tick < thinkAt + 1) step(world);
+
+    expect(brain.idleThinks).toBe(1);
+    expect(brain.nothingViable).toBe(1);
+    expect(brain.gathers).toBe(0);
+    expect(getAssignedNode(world, comps, eid)).toBeUndefined();
+  });
+});

@@ -63,10 +63,12 @@ import { createNeedsSystem } from "../sim/systems/needs";
 import {
   DEFAULT_LIFECYCLE_CONFIG,
   createLifecycleSystem,
+  minuteOfDay,
 } from "../sim/systems/lifecycle";
 import { createHouseholdsSystem } from "../sim/systems/households";
 import { createSchoolSystem } from "../sim/systems/school";
-import { createSchedulesSystem } from "../sim/systems/schedules";
+import { createMassSystem, MASS_CLOSE_MINUTE } from "../sim/systems/mass";
+import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
 import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createVictorySystem } from "../sim/systems/victory";
@@ -168,6 +170,18 @@ export function createSkirmishWorld(
     createHouseholdsSystem(comps, DEFAULT_LIFECYCLE_CONFIG),
   );
   registerSystem(world, createSchoolSystem(comps, DEFAULT_LIFECYCLE_CONFIG));
+  // M3-T8: the Sunday Morning Mass planner books communal [Move,
+  // Leisure{MASS}] chains whenever a finished Church stands — before
+  // social (which executes arrivals) and schedules (whose night band
+  // still outranks any late booking).
+  registerSystem(
+    world,
+    createMassSystem({
+      comps,
+      players: [PLAYER_ONE],
+      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+    }),
+  );
   // M3-T7: social (leisure venues, bonds, rivals) consumes the brain's
   // leisure commands and runs before schedules so the 22:00 bedding
   // cancels still-standing outing chains on the same tick.
@@ -200,6 +214,11 @@ export function createSkirmishWorld(
       lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
       // M3-T7: evenings switch idle thinks from work to venue scoring.
       leisureWindow: (tick) => isLeisureTime(tick, DEFAULT_LIFECYCLE_CONFIG),
+      // M3-T8: Sundays run the rest-day space — essential-only work at
+      // reduced weight, private leisure once Morning Mass is over.
+      restDay: (tick) => isRestDay(tick, DEFAULT_LIFECYCLE_CONFIG),
+      restDayLeisureWindow: (tick) =>
+        minuteOfDay(tick, DEFAULT_LIFECYCLE_CONFIG) >= MASS_CLOSE_MINUTE,
     }),
   );
 

@@ -51,6 +51,19 @@
  * shape, same strict-`>` earliest-wins tiebreak. Winners submit a plain
  * `leisure` command and stamp a SELF JobCooldown through the next 05:00
  * wake, so one evening never books a Pop twice.
+ *
+ * REST-DAY EXTENSION (M3-T8, SPEC §2.4 "Sunday rest day"): on the
+ * weekly rest day (injected `restDay` predicate) the think switches to
+ * a combined utility space for the WHOLE day:
+ *   - gather/build candidates are refused outright (windows closed);
+ *   - essential production stays scoreable but at HALF slot count
+ *     (schedules.restDayProductionSlotsOf) and reduced utility
+ *     (SUNDAY_WORK_UTILITY_MULT) — the village keeps its essentials;
+ *   - private leisure scores at SUNDAY_LEISURE_UTILITY_MULT once the
+ *     Morning Mass band is over (injected `restDayLeisureWindow`) so
+ *     communal duty owns Sunday morning; after that, home/leisure beats
+ *     marginal work exactly as §2.4 prescribes.
+ * Mass itself is NEVER scored here — systems/mass.ts books it communally.
  */
 
 import {
@@ -72,7 +85,12 @@ import { ownerOfUnit } from "../components/owner";
 import { canDebitLedgerSlugs } from "../core/stockpile";
 import type { World, SimSystem } from "../core/world";
 import { leisureCandidatesFor, type LeisureCandidate } from "../systems/social";
-import { wakeTickFor } from "../systems/schedules";
+import {
+  restDayProductionSlotsOf,
+  SUNDAY_LEISURE_UTILITY_MULT,
+  SUNDAY_WORK_UTILITY_MULT,
+  wakeTickFor,
+} from "../systems/schedules";
 import { skillLevelOf, workTraitMultOf } from "../systems/skills";
 import {
   DEFAULT_LIFECYCLE_CONFIG,
@@ -171,6 +189,19 @@ export interface PopBrainOptions {
    * Undefined keeps the pre-M3-T7 all-hours work brain (legacy rosters).
    */
   readonly leisureWindow?: ((tick: number) => boolean) | undefined;
+  /**
+   * M3-T8: true on the weekly rest day (schedules isRestDay). While set,
+   * idle thinks run the combined rest-day space — essential-only work
+   * at reduced utility versus Sunday-weighted leisure. Undefined means
+   * every day is a workday (legacy rosters).
+   */
+  readonly restDay?: ((tick: number) => boolean) | undefined;
+  /**
+   * M3-T8: true when PRIVATE leisure may book on a rest day — after the
+   * Morning Mass band closes, so communal duty owns Sunday morning.
+   * Undefined defaults to always open.
+   */
+  readonly restDayLeisureWindow?: ((tick: number) => boolean) | undefined;
 }
 
 interface NodeCandidate {
@@ -217,6 +248,8 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
   const diagnostics = options.diagnostics ?? createPopBrainDiagnostics();
   const lifecycleConfig = options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG;
   const leisureWindow = options.leisureWindow;
+  const restDayPredicate = options.restDay;
+  const restDayLeisureWindow = options.restDayLeisureWindow;
 
   return (world: World): void => {
     const tick = world.tick;
@@ -382,13 +415,19 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
       return false;
     };
 
-    /** Score every candidate kind; keep the single best pick. */
+    /**
+     * Score every candidate kind; keep the single best pick. M3-T8:
+     * `essentialOnly` (rest days) refuses gather/build outright and
+     * caps production at the half-staff rest-day slot count — the
+     * §2.4 "essential roles only" surface of the Sunday brain.
+     */
     const bestPickFor = (
       popEid: number,
       popOwnerId: number,
       popX: number,
       popY: number,
       utilityMult: number,
+      essentialOnly = false,
     ): BestPick | undefined => {
       let best: BestPick | undefined;
 
@@ -404,64 +443,70 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
           ? 1 - Math.min(Math.max(needsRow[0]!, 0), 100) / 100
           : 0;
 
-      for (const node of nodes()) {
-        if (isOnCooldown(node.eid)) continue;
-        if (carrying && inventory!.resourceCode !== node.resourceCode) {
-          continue; // one cargo kind at a time (AoE2 rule)
+      if (!essentialOnly) {
+        for (const node of nodes()) {
+          if (isOnCooldown(node.eid)) continue;
+          if (carrying && inventory!.resourceCode !== node.resourceCode) {
+            continue; // one cargo kind at a time (AoE2 rule)
+          }
+          const workers = workersByNode().get(node.eid) ?? 0;
+          if (workers >= node.slots) continue;
+          const foodPull =
+            node.resourceCode === RESOURCE_FOOD ? hunger * 0.6 : 0;
+          const score = utilityFor(
+            popEid,
+            popX,
+            popY,
+            node.x,
+            node.y,
+            workers,
+            node.slots,
+            foodPull + skillBonus(popEid, "gathering"),
+            utilityMult,
+          );
+          consider({
+            score,
+            commandKind: "gather",
+            targetEid: node.eid,
+            data: { entityIds: [popEid], nodeId: node.eid },
+            cooldownTicks: NODE_COOLDOWN_TICKS,
+          });
         }
-        const workers = workersByNode().get(node.eid) ?? 0;
-        if (workers >= node.slots) continue;
-        const foodPull = node.resourceCode === RESOURCE_FOOD ? hunger * 0.6 : 0;
-        const score = utilityFor(
-          popEid,
-          popX,
-          popY,
-          node.x,
-          node.y,
-          workers,
-          node.slots,
-          foodPull + skillBonus(popEid, "gathering"),
-          utilityMult,
-        );
-        consider({
-          score,
-          commandKind: "gather",
-          targetEid: node.eid,
-          data: { entityIds: [popEid], nodeId: node.eid },
-          cooldownTicks: NODE_COOLDOWN_TICKS,
-        });
-      }
 
-      for (const site of sites()) {
-        if (site.ownerId !== popOwnerId) continue;
-        if (isOnCooldown(site.eid)) continue;
-        const builders = buildersBySite().get(site.eid) ?? 0;
-        if (builders >= BUILDERS_PER_SITE) continue;
-        const score = utilityFor(
-          popEid,
-          popX,
-          popY,
-          site.x,
-          site.y,
-          builders,
-          BUILDERS_PER_SITE,
-          skillBonus(popEid, "construction"),
-          utilityMult,
-        );
-        consider({
-          score,
-          commandKind: "build",
-          targetEid: site.eid,
-          data: { entityIds: [popEid], siteEid: site.eid },
-          cooldownTicks: SITE_COOLDOWN_TICKS,
-        });
+        for (const site of sites()) {
+          if (site.ownerId !== popOwnerId) continue;
+          if (isOnCooldown(site.eid)) continue;
+          const builders = buildersBySite().get(site.eid) ?? 0;
+          if (builders >= BUILDERS_PER_SITE) continue;
+          const score = utilityFor(
+            popEid,
+            popX,
+            popY,
+            site.x,
+            site.y,
+            builders,
+            BUILDERS_PER_SITE,
+            skillBonus(popEid, "construction"),
+            utilityMult,
+          );
+          consider({
+            score,
+            commandKind: "build",
+            targetEid: site.eid,
+            data: { entityIds: [popEid], siteEid: site.eid },
+            cooldownTicks: SITE_COOLDOWN_TICKS,
+          });
+        }
       }
 
       for (const building of productionBuildings()) {
         if (building.ownerId !== popOwnerId) continue;
         if (isOnCooldown(building.eid)) continue;
+        const slots = essentialOnly
+          ? restDayProductionSlotsOf(building.slots)
+          : building.slots;
         const crafters = craftersByBuilding().get(building.eid) ?? 0;
-        if (crafters >= building.slots) continue;
+        if (crafters >= slots) continue;
         const buildingRow = world.rowsByComponentId
           .get(comps.buildingId)
           ?.get(building.eid);
@@ -484,7 +529,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
           building.x,
           building.y,
           crafters,
-          building.slots,
+          slots,
           0,
           utilityMult,
         );
@@ -537,22 +582,60 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
       const utilityMult = stage === LIFE_STAGE_ELDER ? ELDER_UTILITY_MULT : 1;
       diagnostics.idleThinks += 1;
 
-      // M3-T7 leisure extension: while the evening window is open the
-      // think switches to venue scoring — work candidates stay closed
-      // (schedules released this Pop; §2.4 evenings are not for labor).
-      if (leisureWindow !== undefined && leisureWindow(tick)) {
-        const candidates = leisureCandidatesFor(
-          world,
-          comps,
-          eid,
-          tick,
-          lifecycleConfig,
-          utilityMult,
-        );
+      // M3-T8 rest-day surface: on the weekly REST DAY the think runs
+      // the combined space all day — essential production at reduced
+      // weight versus Sunday-weighted private leisure (opened only once
+      // the Morning Mass band is over). Weekdays keep the M3-T7 shape:
+      // the evening window switches thinks to pure leisure scoring —
+      // work candidates stay closed (§2.4 evenings are not for labor).
+      const restDay = restDayPredicate !== undefined && restDayPredicate(tick);
+      if ((leisureWindow !== undefined && leisureWindow(tick)) || restDay) {
         let best: LeisureCandidate | undefined;
-        for (const candidate of candidates) {
-          if (best === undefined || candidate.score > best.score) {
-            best = candidate;
+        const privateLeisureOpen =
+          !restDay || (restDayLeisureWindow?.(tick) ?? true);
+        if (privateLeisureOpen) {
+          const candidates = leisureCandidatesFor(
+            world,
+            comps,
+            eid,
+            tick,
+            lifecycleConfig,
+            utilityMult * (restDay ? SUNDAY_LEISURE_UTILITY_MULT : 1),
+          );
+          for (const candidate of candidates) {
+            if (best === undefined || candidate.score > best.score) {
+              best = candidate;
+            }
+          }
+        }
+        // Essential roles still staff Sundays: half-slot essential
+        // production competes in the same utility space, weighted down.
+        if (restDay) {
+          const work = bestPickFor(
+            eid,
+            ownerOfUnit(world, comps, eid),
+            pos[0]!,
+            pos[1]!,
+            utilityMult * SUNDAY_WORK_UTILITY_MULT,
+            true,
+          );
+          if (
+            work !== undefined &&
+            (best === undefined || work.score > best.score)
+          ) {
+            stampJobCooldown(
+              world,
+              comps,
+              work.targetEid,
+              tick + work.cooldownTicks,
+            );
+            world.inbox.submit({
+              kind: work.commandKind,
+              targetTick: tick + 1,
+              data: work.data,
+            });
+            diagnostics.produces += 1;
+            continue;
           }
         }
         if (best === undefined) {

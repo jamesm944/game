@@ -126,6 +126,10 @@ export interface SleepActivity {
  * roll) and drops the head. `venueCode` is one of the LEISURE_VENUE_*
  * stable codes; `targetEid` is the venue building eid (pay/study/
  * worship venues) or the visited host Pop's eid (visit), 0 = none.
+ *
+ * M3-T8 adds LEISURE_VENUE_MASS: same chain shape, but booked by the
+ * communal Sunday Mass planner (systems/mass.ts) rather than scored by
+ * the brain — §2.4 "community attends Morning Mass".
  */
 export interface LeisureActivity {
   readonly kind: "leisure";
@@ -161,6 +165,8 @@ export const LEISURE_VENUE_BROTHEL = 2;
 export const LEISURE_VENUE_SHRINE = 3;
 export const LEISURE_VENUE_STUDY = 4;
 export const LEISURE_VENUE_VISIT = 5;
+/** M3-T8: Sunday Morning Mass at a finished Church (communal booking). */
+export const LEISURE_VENUE_MASS = 6;
 
 export type ActivityQueue = Activity[];
 
@@ -293,7 +299,7 @@ export function leisureActivity(
   if (
     !Number.isInteger(venueCode) ||
     venueCode < LEISURE_VENUE_TAVERN ||
-    venueCode > LEISURE_VENUE_VISIT
+    venueCode > LEISURE_VENUE_MASS
   ) {
     throw new Error(`leisure venue code out of range: ${String(venueCode)}`);
   }
@@ -508,7 +514,7 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
       if (
         !Number.isInteger(venueCode) ||
         venueCode < LEISURE_VENUE_TAVERN ||
-        venueCode > LEISURE_VENUE_VISIT
+        venueCode > LEISURE_VENUE_MASS
       ) {
         throw new Error(
           `leisure activity ${String(i)} has malformed venue code`,

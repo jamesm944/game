@@ -5,7 +5,10 @@
  * A housed village week on a COMPRESSED clock (600-tick days) with the
  * full production-style roster — movement, gather, construction,
  * skills, needs, lifecycle, households, school, schedules, IAUS brain —
- * and not one command is ever submitted. Pinned here:
+ * and not one command is ever submitted. Since M3-T8 the seventh day of
+ * that week IS a §2.4 Sunday: the brain wires the same rest-day
+ * predicates as session.ts, so day 6 closes work windows and the
+ * village keeps it. Pinned here:
  *
  * - milestone digests every 300th tick plus final (Sleep activities and
  *   hold Waits ride the digest inside ActivityQueue rows like any other
@@ -15,10 +18,12 @@
  *   flowing), nights ASLEEP (every scheduled Pop's queue head is a
  *   Sleep activity parked at its household's bed slot);
  * - semantic acceptance gates: end-of-work releases and night beddings
- *   accumulate every single day (the village sleeps/wakes ON SCHEDULE
- *   across the golden week), wakes refill Rest to the housing-quality ×
- *   crowding ceiling so well-housed Pops never fall into deprivation,
- *   deposits grow day over day, and no naps fire without deprivation;
+ *   accumulate every WORKING day (the village sleeps/wakes ON SCHEDULE
+ *   across the golden week; Sunday contributes bedding but no evening
+ *   release wave — its windows never opened), wakes refill Rest to the
+ *   housing-quality × crowding ceiling so well-housed Pops never fall
+ *   into deprivation, deposits grow week over week, and no naps fire
+ *   without deprivation;
  * - the extended determinism canary (two identical runs agree
  *   byte-for-byte).
  */
@@ -82,6 +87,9 @@ import {
   createPopBrainSystem,
 } from "../../../src/sim/ai/popBrain";
 import { installSimPurityShims } from "../../helpers/sim-purity-shims";
+import { isRestDay } from "../../../src/sim/systems/schedules";
+import { MASS_CLOSE_MINUTE } from "../../../src/sim/systems/mass";
+import { minuteOfDay } from "../../../src/sim/systems/lifecycle";
 
 interface GoldenNode {
   readonly tile: readonly [number, number];
@@ -248,6 +256,12 @@ function runScenario(fixture: GoldenCase): VillageRunState {
       lifecycleConfig: cfg,
       diagnostics: brainDiagnostics,
       leisureWindow: (tick) => isLeisureTime(tick, cfg),
+      // M3-T8 parity with session.ts: day 6 of the golden week is a
+      // §2.4 Sunday — the brain refuses work candidates and keeps
+      // private leisure to the post-Mass afternoon onward.
+      restDay: (tick) => isRestDay(tick, cfg),
+      restDayLeisureWindow: (tick) =>
+        minuteOfDay(tick, cfg) >= MASS_CLOSE_MINUTE,
     }),
   );
 
@@ -407,11 +421,14 @@ describe("golden harness m3t6", () => {
   it("sleeps and wakes on schedule across the golden week", () => {
     const run = runScenario(fixture);
 
-    // Every day produced its evening release wave and its night
+    // Every WORKING day produced its evening release wave and its night
     // bedding; each night but the horizon's last gets its morning wake
     // refills inside the run (the village sleeps/wakes ON SCHEDULE
-    // across the golden week).
-    expect(run.diagnostics.releasedToHome).toBeGreaterThanOrEqual(4 * days);
+    // across the golden week). M3-T8: day 6 is a §2.4 Sunday — work
+    // windows never opened, so it contributes no evening releases.
+    expect(run.diagnostics.releasedToHome).toBeGreaterThanOrEqual(
+      4 * (days - 1),
+    );
     expect(run.diagnostics.beddedNights).toBeGreaterThanOrEqual(4 * days);
     expect(run.diagnostics.wakesCompleted).toBe(4 * (days - 1));
     // A healthy housed village never gets tired enough to nap.

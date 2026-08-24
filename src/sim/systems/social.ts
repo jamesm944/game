@@ -1,5 +1,6 @@
 /**
- * Leisure, social bonds & rivals — SPEC §2.4 / M3-T7 (issue #52).
+ * Leisure, social bonds & rivals — SPEC §2.4 / M3-T7 (issue #52),
+ * extended with Sunday Morning Mass in M3-T8 (issue #53).
  *
  * The evening half of §2.4 in one module. Schedules (M3-T6) still owns
  * all clock knowledge: it releases workers homeward at their role's
@@ -50,6 +51,15 @@
  *   - every completed leisure stamps a self JobCooldown through the next
  *     05:00 wake — one outing per Pop per evening, no gold-sink spam.
  *
+ * MASS (M3-T8, SPEC §2.4 "community attends Morning Mass"): the same
+ * Leisure head also carries LEISURE_VENUE_MASS — booked NOT by the
+ * brain but by the communal Sunday planner (systems/mass.ts) whenever a
+ * finished Church stands. On arrival this system applies the broad
+ * morale buff (extra for Pious — their §2.4 "extra weight") and
+ * reinforces bonds pairwise with every co-attendee currently gathered
+ * at the church, then logs a SocialEvent MASS row. Mass never appears in
+ * `leisureCandidatesFor`: it is communal duty, not a scored choice.
+ *
  * RIVALS: negative events push pairs toward RIVAL_THRESHOLD. M3 keeps
  * the scope combat-shaped (issue #52): when a bonded Pop dies to a
  * living killer, every survivor bonded to the victim takes a grudge
@@ -66,6 +76,7 @@ import {
   dequeueCurrentActivity,
   enqueueActivity,
   LEISURE_VENUE_BROTHEL,
+  LEISURE_VENUE_MASS,
   LEISURE_VENUE_SHRINE,
   LEISURE_VENUE_STUDY,
   LEISURE_VENUE_TAVERN,
@@ -102,6 +113,7 @@ import {
 import {
   appendSocialEvent,
   SOCIAL_EVENT_JEALOUSY,
+  SOCIAL_EVENT_MASS,
   SOCIAL_EVENT_RIVAL_FORMED,
   SOCIAL_EVENT_VISIT,
 } from "../components/socialEvents";
@@ -154,6 +166,20 @@ export const VISIT_BOND_INCREMENT = 10;
 export const VISIT_MORALE_RESTORE = 8;
 /** Visitor-only consolation when the host is not home. */
 export const VISIT_ALONE_MORALE_RESTORE = 4;
+
+/**
+ * Mass effects (M3-T8, §2.4 "broad morale buff + bond reinforcement
+ * across attendees, extra weight for Pious"): every completing attendee
+ * takes the broad restore (Pious add the bonus), plus one bond
+ * increment per co-attendee currently gathered at the church.
+ */
+export const MASS_MORALE_RESTORE = 18;
+/** The Pious attendee's §2.4 "extra weight" on top of the broad buff. */
+export const PIOUS_MASS_MORALE_BONUS = 8;
+/** Bond increment between an arriving attendee and each co-attendee. */
+export const MASS_BOND_INCREMENT = 8;
+/** Radius around the church that counts as "gathered for Mass". */
+export const MASS_BOND_RADIUS_TILES = 5;
 
 /** Base discovery chance per brothel evening for a married visitor. */
 export const JEALOUSY_DISCOVERY_CHANCE = 0.3;
@@ -218,6 +244,7 @@ export const VENUE_BUILDING_IDS: Readonly<Record<number, string>> = {
   [LEISURE_VENUE_BROTHEL]: "brothel",
   [LEISURE_VENUE_SHRINE]: "church",
   [LEISURE_VENUE_STUDY]: "school",
+  [LEISURE_VENUE_MASS]: "church",
 };
 
 /** Gold cost per venue kind (0 = free). */
@@ -412,6 +439,8 @@ export function leisureCandidatesFor(
   };
 
   // ---- Venue kinds -----------------------------------------------------
+  // LEISURE_VENUE_MASS is deliberately absent: Mass is communal duty
+  // booked by systems/mass.ts on Sunday mornings, never a scored choice.
   for (const venueCode of [
     LEISURE_VENUE_TAVERN,
     LEISURE_VENUE_BROTHEL,
@@ -541,6 +570,12 @@ export interface SocialDiagnostics {
   rivalriesFormed: number;
   /** Arrivals that cancelled because their owner could not pay. */
   brokeArrivals: number;
+  /** Sunday Mass attendances completed at a church (M3-T8). */
+  massesCompleted: number;
+  /** Bond increments applied between Mass co-attendees (M3-T8). */
+  massBondIncrements: number;
+  /** Total morale restored by completed Masses (M3-T8). */
+  massMoraleGranted: number;
 }
 
 export function createSocialDiagnostics(): SocialDiagnostics {
@@ -553,6 +588,9 @@ export function createSocialDiagnostics(): SocialDiagnostics {
     grudgesApplied: 0,
     rivalriesFormed: 0,
     brokeArrivals: 0,
+    massesCompleted: 0,
+    massBondIncrements: 0,
+    massMoraleGranted: 0,
   };
 }
 
@@ -761,6 +799,59 @@ export function createSocialSystem(options: SocialSystemOptions): SimSystem {
           logEvent(eid, SOCIAL_EVENT_VISIT, eid, targetEid, 0);
         }
         diagnostics.visitsCompleted += 1;
+        diagnostics.leisuresCompleted += 1;
+        dequeueCurrentActivity(queue);
+        writeActivityQueue(world, comps, eid, queue);
+        stampCooldown();
+        return;
+      }
+
+      // ---- Sunday Morning Mass (M3-T8) ------------------------------------
+      // Communal arrival behavior: broad morale buff (Pious add their
+      // §2.4 "extra weight"), pairwise bond reinforcement with every
+      // co-attendee currently gathered at the church, one digest-visible
+      // SocialEvent MASS row. No gold sink, no jealousy surface.
+      if (venueCode === LEISURE_VENUE_MASS) {
+        const churchRow = getBuildingRow(world, comps, targetEid);
+        const validChurch =
+          churchRow !== undefined &&
+          buildingIdOfCode(churchRow[1]!) === VENUE_BUILDING_IDS[venueCode];
+        if (!validChurch) {
+          // Church destroyed mid-walk (or the head strayed): cancel
+          // without effects — no congregation, no blessing.
+          cancelActivities(queue);
+          writeActivityQueue(world, comps, eid, queue);
+          return;
+        }
+        const traits = readTraits(world, comps, eid) ?? [];
+        const restore =
+          MASS_MORALE_RESTORE +
+          (traits.includes("pious") ? PIOUS_MASS_MORALE_BONUS : 0);
+        if (needsRow) {
+          needsRow[2] = Math.min(NEED_MAX, needsRow[2]! + restore);
+          diagnostics.massMoraleGranted += restore;
+        }
+        const churchOwnerId = churchRow[0]!;
+        const churchPos = requireRows(world, comps.positionId).get(targetEid)!;
+        const radiusSq = MASS_BOND_RADIUS_TILES ** 2;
+        const identityRowsMass = requireRows(world, comps.identityId);
+        const tagRowsMass = requireRows(world, comps.unitTagId);
+        let bondedCount = 0;
+        for (const other of identityRowsMass.keys()) {
+          if (other === eid) continue;
+          if (!tagRowsMass.has(other)) continue; // living named Pops only
+          if (ownerOfUnit(world, comps, other) !== churchOwnerId) continue;
+          const otherPos = requireRows(world, comps.positionId).get(other);
+          if (!otherPos) continue;
+          const dx = otherPos[0]! - churchPos[0]!;
+          const dy = otherPos[1]! - churchPos[1]!;
+          if (dx * dx + dy * dy > radiusSq) continue;
+          adjustRelationship(world, comps, eid, other, MASS_BOND_INCREMENT);
+          bondedCount += 1;
+        }
+        diagnostics.massBondIncrements += bondedCount;
+        logEvent(eid, SOCIAL_EVENT_MASS, eid, targetEid, bondedCount);
+        diagnostics.massesCompleted += 1;
         diagnostics.leisuresCompleted += 1;
         dequeueCurrentActivity(queue);
         writeActivityQueue(world, comps, eid, queue);

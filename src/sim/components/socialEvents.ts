@@ -13,9 +13,10 @@
  * M3-T7 kinds: VISIT (a completed leisure visit; amount = bond delta,
  * or −gold spent at pay venues), JEALOUSY (discovered brothel visit:
  * spouse morale shock + relationship damage), RIVAL_FORMED (a pair's
- * bond crossed the rival threshold downward). Every event is digest-
- * visible by construction, so golden digests pin the village's social
- * drama for free.
+ * bond crossed the rival threshold downward). M3-T8 adds MASS (a
+ * completed Sunday Morning Mass attendance; amount = co-attendees
+ * bonded with). Every event is digest-visible by construction, so
+ * golden digests pin the village's social drama for free.
  */
 
 import type { ComponentRows, World } from "../core/world";
@@ -37,6 +38,7 @@ export interface SocialEventComponents {
 export const SOCIAL_EVENT_VISIT = 0;
 export const SOCIAL_EVENT_JEALOUSY = 1;
 export const SOCIAL_EVENT_RIVAL_FORMED = 2;
+export const SOCIAL_EVENT_MASS = 3;
 
 function requireRows(world: World, componentId: number): ComponentRows {
   const rows = world.rowsByComponentId.get(componentId);

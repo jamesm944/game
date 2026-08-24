@@ -51,11 +51,11 @@ exports[`golden harness m3t6 > records milestone digests at every 300th tick plu
     "tick": 3600,
   },
   {
-    "digest": "fnv1a64:b179c59c627970b6",
+    "digest": "fnv1a64:21c9d67a0dd4d0a1",
     "tick": 3900,
   },
   {
-    "digest": "fnv1a64:615891f93a4c395d",
+    "digest": "fnv1a64:722365631bc9265a",
     "tick": 4200,
   },
 ]
@@ -505,14 +505,14 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
     "headKinds": [
       "none",
       "none",
-      "move",
-      "move",
+      "none",
+      "none",
     ],
     "homeDistances": [
       1.6221958451311573,
       1.571835189673918,
-      2.9748179954810974,
-      4.032936670335869,
+      1.934815804604401,
+      2.4237168938175118,
     ],
     "population": 4,
     "restLevels": [
@@ -528,14 +528,14 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
     "headKinds": [
       "move",
       "move",
-      "gather",
-      "gather",
+      "move",
+      "none",
     ],
     "homeDistances": [
-      1.6816902718422118,
-      1.7885302580915345,
-      5.625672081619523,
-      4.496194141271332,
+      1.6598910373322167,
+      1.5721070320840465,
+      1.9582765727492315,
+      2.418641073075862,
     ],
     "population": 4,
     "restLevels": [

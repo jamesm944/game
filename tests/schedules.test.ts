@@ -42,12 +42,19 @@ import {
 import { stampFinishedBuilding } from "../src/sim/systems/placement";
 import { spawnHousehold } from "../src/sim/components/household";
 import {
+  DAYS_PER_WEEK,
   DEPRIVATION_WORK_MULT,
   DEPRIVED_REST_LEVEL,
   ESSENTIAL_ROLES,
   NAP_REST_LEVEL,
   NAP_REST_RESTORE,
+  REST_DAY_ESSENTIAL_ROLES,
+  REST_DAY_PRODUCTION_SLOT_FRACTION,
+  SUNDAY_DAY_INDEX,
+  SUNDAY_LEISURE_UTILITY_MULT,
+  SUNDAY_WORK_UTILITY_MULT,
   TRANSITION_JITTER_SIM_SECONDS,
+  WEEKDAY_NAMES,
   bedTileFor,
   crowdingFactorOf,
   createSchedulesDiagnostics,
@@ -56,13 +63,18 @@ import {
   housingQualityOf,
   isCoreWorkTime,
   isEssentialRole,
+  isRestDay,
+  isRestDayEssentialRole,
   isRoleWorkTime,
   isSleepTime,
   napTicksFor,
+  restDayProductionSlotsOf,
   roleWorkWindowMinutes,
   sleepRestRefillOf,
   transitionJitterTicks,
   wakeTickFor,
+  weekdayIndexOf,
+  weekdayNameOf,
 } from "../src/sim/systems/schedules";
 import { lightingTintAtMinute, lightingTintAtTick } from "../src/render/mirror";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
@@ -423,6 +435,68 @@ describe("essential-role exception stub", () => {
     expect(ESSENTIAL_ROLES).toEqual([]);
     expect(isEssentialRole(undefined)).toBe(false);
     expect(isEssentialRole("gather")).toBe(false);
+  });
+});
+
+describe("weekly cycle (M3-T8, §2.4 7 named days / Sunday rest)", () => {
+  it("names seven days Monday-first with Sunday seventh", () => {
+    expect(DAYS_PER_WEEK).toBe(7);
+    expect([...WEEKDAY_NAMES]).toEqual([
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ]);
+    expect(SUNDAY_DAY_INDEX).toBe(6);
+    for (let day = 0; day < 21; day++) {
+      expect(weekdayNameOf(day)).toBe(WEEKDAY_NAMES[weekdayIndexOf(day)]);
+    }
+    // The cycle rolls: week two repeats week one, and negative indices
+    // wrap cleanly.
+    expect(weekdayNameOf(0)).toBe("monday");
+    expect(weekdayNameOf(6)).toBe("sunday");
+    expect(weekdayNameOf(7)).toBe("monday");
+    expect(weekdayNameOf(13)).toBe("sunday");
+    expect(weekdayNameOf(-1)).toBe("sunday");
+  });
+
+  it("flags exactly every seventh dawn as the rest day", () => {
+    // Canonical clock: day N starts at N × 14,400. Days 0–5 are
+    // workdays (every pre-T8 fixture stays put); day 6 is Sunday.
+    expect(isRestDay(0, CANONICAL)).toBe(false);
+    expect(isRestDay(14_400 * 5 + 14_399, CANONICAL)).toBe(false);
+    expect(isRestDay(14_400 * 6, CANONICAL)).toBe(true);
+    expect(isRestDay(14_400 * 6 + 7_200, CANONICAL)).toBe(true);
+    expect(isRestDay(14_400 * 7, CANONICAL)).toBe(false);
+    // Compressed clocks compress the calendar identically.
+    const day6 = 6 * COMPRESSED.dayTicks;
+    expect(isRestDay(day6 - 1, COMPRESSED)).toBe(false);
+    expect(isRestDay(day6, COMPRESSED)).toBe(true);
+    expect(isRestDay(day6 + COMPRESSED.dayTicks, COMPRESSED)).toBe(false);
+  });
+
+  it("rest-day essentials keep production staffed at half slots", () => {
+    expect(REST_DAY_ESSENTIAL_ROLES).toEqual(["produce"]);
+    expect(isRestDayEssentialRole("produce")).toBe(true);
+    expect(isRestDayEssentialRole("gather")).toBe(false);
+    expect(isRestDayEssentialRole("build")).toBe(false);
+    expect(isRestDayEssentialRole(undefined)).toBe(false);
+
+    // Half crew, rounding up so a lone baker never loses the oven; a
+    // slotless building stays slotless.
+    expect(REST_DAY_PRODUCTION_SLOT_FRACTION).toBe(0.5);
+    expect(restDayProductionSlotsOf(0)).toBe(0);
+    expect(restDayProductionSlotsOf(1)).toBe(1);
+    expect(restDayProductionSlotsOf(2)).toBe(1);
+    expect(restDayProductionSlotsOf(3)).toBe(2);
+    expect(restDayProductionSlotsOf(4)).toBe(2);
+
+    // And the brain's Sunday weighting leans leisure/home over work.
+    expect(SUNDAY_WORK_UTILITY_MULT).toBeLessThan(1);
+    expect(SUNDAY_LEISURE_UTILITY_MULT).toBeGreaterThan(1);
   });
 });
 

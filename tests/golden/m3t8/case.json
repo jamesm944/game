@@ -1,0 +1,35 @@
+{
+  "name": "m3t8",
+  "description": "A fortnight of §2.4 village life (issue #53): four housed founding adults (two households, one house each) live fourteen 2400-tick days under the full production-style roster — movement, gather, construction, skills, needs, lifecycle, households, Mass, social, schedules, IAUS brain with leisure/rest-day windows — and NO commands are ever submitted. The week rolls Monday-first off the day index, so days 6 and 13 are §2.4 Sundays: work windows close (the kitchen keeps half-staffed as the essential surface), the brain weights leisure/home above marginal work, and — when the variant stamps the Church — the whole congregation books Morning Mass through the communal planner, taking the broad morale buff (Pious their extra weight) while pairwise bonds reinforce across co-attendees. The no-Church variant runs the identical fortnight as the control: no bookings, no blessings, plain leisure only. Traits are staged (Hedonist/Pious west, Industrious/Sociable east) so weekdays gather and craft, evenings socialize (tavern gold sinks, shrine worship, friend visits), and both Sundays tell the story. Fixture pins milestone digests every 600th tick (Relationship/SocialEvents/activity rows ride the digest like any other state) for BOTH variants, the sampled daily arc, semantic acceptance gates (Mass fires only with the Church, attendees boosted and bonded, gather/build assignments never appear on a Sunday, essential production stays capped-staffed), and doubles as the extended double-run determinism canary.",
+  "seed": 20260922,
+  "size": 24,
+  "ticks": 33600,
+  "milestoneEvery": 600,
+  "dayTicks": 2400,
+  "adultAgeDays": 3,
+  "elderAgeDays": 200,
+  "lifespanDays": 201,
+  "nextBirthRollTick": 999999999,
+  "startingResources": [3000, 1500, 300, 200, 0, 0, 0],
+  "dropOff": [3.5, 20.5],
+  "nodes": [
+    { "tile": [6, 21], "resource": "food", "amount": 40000 },
+    { "tile": [9, 21], "resource": "wood", "amount": 40000 }
+  ],
+  "houseTiles": [
+    [6, 13],
+    [16, 13]
+  ],
+  "venueTiles": {
+    "tavern": [8, 16],
+    "kitchen": [10, 16],
+    "church": [14, 16]
+  },
+  "popSpawns": [
+    [5.5, 15.5],
+    [7.5, 15.5],
+    [15.5, 15.5],
+    [17.5, 15.5]
+  ],
+  "sampleMinuteOffsets": [240, 360, 720]
+}
