@@ -6,6 +6,7 @@
  *
  *   base definition stats + equipped commodity counts (M2-T6)
  *   + researched tech effects
+ *   + the unit's own combat-skill levels (M3-T2)
  *   + traits (M3: contributes zero today),
  *
  * never from any duplicate stat row. The Combat component stores only
@@ -37,6 +38,7 @@
 
 import { TECH_DEF_CODES, techDefOf } from "../../data/definitions";
 import type { EquipmentCounts } from "../components/equipment";
+import { attackMultiplierFor } from "../systems/skills";
 import {
   DEFAULT_RELOAD_TICKS,
   MELEE_RANGE,
@@ -58,6 +60,13 @@ export interface StatContext {
    * a default-fisted unit.
    */
   readonly equipment?: EquipmentCounts | undefined;
+  /**
+   * The unit's own skill levels by slug (M3-T2, Skills row decoded).
+   * Only the relevant combat skill (ranged when the definition's range
+   * beats melee, else melee) scales attack, ×(100+4·L)/100. Omit for
+   * legacy rowless units (multiplier exactly 1).
+   */
+  readonly skillLevels?: ReadonlyMap<string, number> | undefined;
 }
 
 /**
@@ -156,6 +165,24 @@ function applyEquipment(
 }
 
 /**
+ * Fold the unit's own combat-skill level into the accumulator (base →
+ * equipment → skills step of the derivation): the relevant skill is
+ * ranged when the definition outranges melee, else melee. Level 0
+ * contributes a multiplier of exactly 1.
+ */
+function applySkillLevels(
+  stats: StatAccumulator,
+  def: UnitDefinition,
+  skillLevels: ReadonlyMap<string, number>,
+): void {
+  const slug = (def.range ?? MELEE_RANGE) > MELEE_RANGE ? "ranged" : "melee";
+  const level = skillLevels.get(slug) ?? 0;
+  if (level > 0) {
+    stats.attack *= attackMultiplierFor(level);
+  }
+}
+
+/**
  * Derive one unit's combat stats from its definition, its equipped
  * commodity counts and the owning player's completed techs. Traits
  * contribute their documented zero until M3 lands its modifiers.
@@ -173,6 +200,9 @@ export function deriveUnitStats(
   };
   if (ctx.equipment !== undefined) {
     applyEquipment(stats, def, ctx.equipment);
+  }
+  if (ctx.skillLevels !== undefined) {
+    applySkillLevels(stats, def, ctx.skillLevels);
   }
   if (ctx.researchedTechCodes !== undefined) {
     for (const code of [...ctx.researchedTechCodes].sort((a, b) => a - b)) {

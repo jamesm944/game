@@ -83,6 +83,11 @@ import { findPath } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
 import type { SimSystem } from "../core/world";
 import {
+  awardPractice,
+  effectiveGatherTicksPerUnit,
+  GATHER_XP_PER_UNIT,
+} from "./skills";
+import {
   formationSlotOffset,
   isSteeringJammed,
   resetSteeringBookkeeping,
@@ -583,8 +588,10 @@ export function createGatherSystem(
 
     /**
      * Advance one gather head by a tick: extract at most one unit when
-     * the work interval elapses. Returns true when the activity is
-     * complete (carry full or node dry).
+     * the work interval elapses. The interval derives on read from the
+     * worker's gathering skill + work-speed traits (M3-T2) — rowless
+     * legacy workers keep the head's encoded base rate exactly. Returns
+     * true when the activity is complete (carry full or node dry).
      */
     const advanceGatherHead = (
       worker: ClaimedWorker,
@@ -596,8 +603,14 @@ export function createGatherSystem(
       const inv = getInventory(world, comps, worker.eid)!;
       const capacity = getCarryCapacity(world, comps, worker.eid);
       const remaining = worker.nodeRow[1]!;
+      const ticksPerUnit = effectiveGatherTicksPerUnit(
+        world,
+        comps,
+        worker.eid,
+        head.ticksPerUnit,
+      );
       if (
-        head.elapsedTicks >= head.ticksPerUnit &&
+        head.elapsedTicks >= ticksPerUnit &&
         remaining > 0 &&
         capacity > inv.amount
       ) {
@@ -610,6 +623,15 @@ export function createGatherSystem(
           inv.amount + 1,
         );
         diagnostics.extractedByResource[inv.resourceCode]! += 1;
+        // M3-T2: extraction is the practice event — the worker's
+        // gathering skill grows by the documented per-unit award.
+        awardPractice(
+          world,
+          comps,
+          worker.eid,
+          "gathering",
+          GATHER_XP_PER_UNIT,
+        );
         head.elapsedTicks = 0;
       }
       const amountNow = getInventory(world, comps, worker.eid)!.amount;

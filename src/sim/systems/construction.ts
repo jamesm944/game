@@ -52,6 +52,13 @@ import {
 } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
+import {
+  awardPractice,
+  builderMilliPerTickFor,
+  CONSTRUCTION_XP_PER_TICK,
+  skillLevelOf,
+  workTraitMultOf,
+} from "./skills";
 import { resetSteeringBookkeeping } from "./movement";
 
 /** Command kind owned by this system. */
@@ -347,11 +354,28 @@ export function createConstructionSystem(
       // contract, and center-based distance strands builders whose
       // approach door (blocked-terrain corrected) lands past the
       // center-radius while hugging a corner of the site.
+      // M3-T2: each builder's tier output scales by their derived work
+      // multiplier (construction level ×workSpeedMult traits, read on
+      // every contributing tick), and contributing is itself the
+      // practice event feeding that skill.
       let milliThisTick = 0;
       let contributingRank = 0;
       for (const builder of group.builders) {
         if (rectDistanceSq(builder.x, builder.y, group.rect) <= rangeSq) {
-          milliThisTick += builderWorkMilliPerTick(contributingRank);
+          const level =
+            skillLevelOf(world, comps, builder.eid, "construction") ?? 0;
+          milliThisTick += builderMilliPerTickFor(
+            builderWorkMilliPerTick(contributingRank),
+            level,
+            workTraitMultOf(world, comps, builder.eid),
+          );
+          awardPractice(
+            world,
+            comps,
+            builder.eid,
+            "construction",
+            CONSTRUCTION_XP_PER_TICK,
+          );
           contributingRank += 1;
         }
       }

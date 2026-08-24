@@ -1,0 +1,17 @@
+{
+  "name": "m3t2",
+  "description": "Learning-and-rusting arc on an open grass field: one named novice Pop (Identity/Traits/Skills rows via the spawnUnit identity branch) chops a large wood node continuously, practicing gathering from zero (+500 XP of granted theory at setup as its permanent knowledge floor). Around tick ~7000 the node depletes, the Pop idles, and the rare-tick rust accumulator machine drains all practice back toward the knowledge floor over the following simulated days: one-day grace, then 100 practice XP shed every 8 idle rare-ticks. Skill-sheet samples are pinned at day boundaries; digests every 30th tick plus final; doubles as the extended double-run determinism canary.",
+  "seed": 20260824,
+  "size": 24,
+  "ticks": 80000,
+  "milestoneEvery": 30,
+  "grantedKnowledgeXp": 500,
+  "nodeTile": [12, 12],
+  "nodeAmount": 260,
+  "villagerSpawn": [12.5, 11.5],
+  "dropOff": [10.5, 11.5],
+  "gatherCommandTick": 1,
+  "arcSampleTicks": [
+    1800, 3600, 5400, 7200, 14400, 28800, 43200, 57600, 72000, 80000
+  ]
+}

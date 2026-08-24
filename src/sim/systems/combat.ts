@@ -99,6 +99,13 @@ import {
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
 import { equipmentCountsOf } from "../components/equipment";
+import { hasSkillsRow } from "../components/skills";
+import {
+  awardPractice,
+  COMBAT_XP_PER_HIT,
+  COMBAT_XP_PER_KILL,
+  skillLevelOf,
+} from "./skills";
 import {
   readActivityQueue,
   writeActivityQueue,
@@ -384,12 +391,23 @@ export function createCombatSystem(
     }
 
     // ---- 3) Per-tick stat derivation memo. Keys are defCode×owner×
-    // equipment — identical inputs collapse to one computation, nothing
-    // survives the tick (SPEC §2.5: derived, never stored). Equipped
-    // Forge commodities fold in here so an equipped and a default-fisted
-    // twin of the same definition derive DIFFERENT numbers.
+    // equipment×own-skill-levels — identical inputs collapse to one
+    // computation, nothing survives the tick (SPEC §2.5: derived, never
+    // stored). Equipped Forge commodities fold in here so an equipped
+    // and a default-fisted twin of the same definition derive DIFFERENT
+    // numbers; the unit's melee/ranged levels (M3-T2) fold in so a
+    // veteran hits harder than its rowless recruit twin.
     const techCodesByOwner = new Map<number, ReadonlySet<number>>();
     const statsMemo = new Map<string, DerivedStats>();
+    const skillLevelsOf = (
+      eid: number,
+    ): ReadonlyMap<string, number> | undefined => {
+      if (!hasSkillsRow(world, comps, eid)) return undefined;
+      return new Map<string, number>([
+        ["melee", skillLevelOf(world, comps, eid, "melee") ?? 0],
+        ["ranged", skillLevelOf(world, comps, eid, "ranged") ?? 0],
+      ]);
+    };
     const statsOf = (combatant: Combatant): DerivedStats => {
       let codes = techCodesByOwner.get(combatant.owner);
       if (codes === undefined) {
@@ -397,12 +415,14 @@ export function createCombatSystem(
         techCodesByOwner.set(combatant.owner, codes);
       }
       const equipment = equipmentCountsOf(world, comps, combatant.eid);
-      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a`;
+      const skills = skillLevelsOf(combatant.eid);
+      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a:${skills?.get("melee") ?? "x"}m${skills?.get("ranged") ?? "x"}r`;
       let stats = statsMemo.get(key);
       if (!stats) {
         const ctx: StatContext = {
           researchedTechCodes: codes,
           equipment,
+          skillLevels: skills,
         };
         stats = deriveUnitStats(combatant.def, ctx);
         statsMemo.set(key, stats);
@@ -654,6 +674,17 @@ export function createCombatSystem(
         victimEid,
         amount: blow,
       });
+      // M3-T2: kills pay a bonus to the killer's combat skill.
+      const killer = combatantByEid.get(killerEid);
+      if (killer) {
+        awardPractice(
+          world,
+          comps,
+          killerEid,
+          (killer.def.range ?? MELEE_RANGE) > MELEE_RANGE ? "ranged" : "melee",
+          COMBAT_XP_PER_KILL,
+        );
+      }
       purgeReferencesToDead(victimEid);
       // Every row dies with the entity — work-slot and site claims are
       // released by construction (claims ARE those rows).
@@ -781,6 +812,15 @@ export function createCombatSystem(
         victimEid: targetEid,
         amount: damage,
       });
+      // M3-T2: every landed blow practices the relevant combat skill —
+      // ranged when the attacker's derived reach beats melee, else melee.
+      awardPractice(
+        world,
+        comps,
+        attacker.eid,
+        attackerStats.range > MELEE_RANGE ? "ranged" : "melee",
+        COMBAT_XP_PER_HIT,
+      );
       // First striker this tick owns retaliation credit (ascending-eid
       // order makes the pick deterministic).
       if (!damageThisTick.has(targetEid)) {

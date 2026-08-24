@@ -12,7 +12,7 @@
  *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
  *   Identity, Inventory, MealConsumed, MoveTarget, Owner, Position,
  *   ProductionCycle, ProductionJob, ResearchedTechs, ResourceNode,
- *   Rubble, Stockpile, TrainQueue, Traits, UnitTag, Velocity,
+ *   Rubble, Skills, Stockpile, TrainQueue, Traits, UnitTag, Velocity,
  *   VictoryCheck
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
@@ -81,6 +81,12 @@ import {
   type PopComponents,
 } from "./pop";
 import {
+  attachPopSkills,
+  SKILLS,
+  SKILLS_ARITY,
+  type SkillComponents,
+} from "./skills";
+import {
   COMMODITY_STOCKPILE,
   DROP_OFF,
   STOCKPILE,
@@ -124,7 +130,8 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * registry's alphabetical enforcement at registration time. Identity/
  * Traits (pop.ts, M3-T1) register mid-sequence alphabetically:
  * Identity between GateRejected and Inventory, Traits between
- * TrainQueue and UnitTag.
+ * TrainQueue and UnitTag. Skills (skills.ts, M3-T2) slots between
+ * Rubble and Stockpile.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -135,6 +142,7 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...EQUIPMENT_COMPONENT_ARITIES,
   ...PRODUCTION_COMPONENT_ARITIES,
   [IDENTITY, IDENTITY_ARITY],
+  [SKILLS, SKILLS_ARITY],
   [TRAITS, TRAITS_ARITY],
   ...VICTORY_COMPONENT_ARITIES,
 ];
@@ -160,6 +168,7 @@ export interface SimComponents
     EquipmentComponents,
     ProductionComponents,
     PopComponents,
+    SkillComponents,
     VictoryComponents {}
 
 /**
@@ -195,6 +204,7 @@ export function defineSimComponents(world: World): SimComponents {
     researchedTechsId: defineComponent(world, RESEARCHED_TECHS),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
     rubbleId: defineComponent(world, RUBBLE),
+    skillsId: defineComponent(world, SKILLS),
     stockpileId: defineComponent(world, STOCKPILE),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
     traitsId: defineComponent(world, TRAITS),
@@ -338,10 +348,11 @@ export interface SpawnUnitOptions {
    */
   readonly ownerId?: number | undefined;
   /**
-   * Attach Identity + Traits rows (M3-T1): named Pops with seeded
-   * conflict-free trait rolls on their own (seed, eid) stream. Wired at
-   * the villager spawn sites — training completions, AI bootstrap and
-   * skirmish starts; movement-only fixtures stay rowless.
+   * Attach Identity + Traits + Skills rows (M3-T1/T2): named Pops with
+   * seeded conflict-free trait rolls and a novice skill sheet on their
+   * own (seed, eid) stream. Wired at the villager spawn sites —
+   * training completions, AI bootstrap and skirmish starts;
+   * movement-only fixtures stay rowless.
    */
   readonly identity?: boolean | undefined;
 }
@@ -369,7 +380,10 @@ export function spawnUnit(
   world: World,
   comps: MovementComponents &
     Partial<Pick<OwnerComponents, "ownerId">> &
-    Partial<Pick<PopComponents, "identityId" | "traitsId">>,
+    Partial<
+      Pick<PopComponents, "identityId" | "traitsId"> &
+        Pick<SkillComponents, "skillsId">
+    >,
   x: number,
   y: number,
   options: SpawnUnitOptions = {},
@@ -401,6 +415,11 @@ export function spawnUnit(
       comps as Pick<PopComponents, "identityId" | "traitsId">,
       eid,
     );
+    if (typeof comps.skillsId === "number") {
+      // M3-T2: every named Pop carries a (novice) skill sheet; work and
+      // combat awards grow it, the rare-tick rust pass decays it.
+      attachPopSkills(world, comps as SkillComponents, eid);
+    }
   }
   // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
   // at the next tick-boundary flush.
@@ -419,3 +438,4 @@ export * from "./combat";
 export * from "./equipment";
 export * from "./production";
 export * from "./pop";
+export * from "./skills";

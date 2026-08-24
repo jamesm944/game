@@ -33,11 +33,23 @@ export interface TraitDefinition {
   readonly id: string;
   /** Relative pick weight; any positive number (normalized at roll time). */
   readonly commonality: number;
+  /**
+   * Multiplicative work-speed modifier (M3-T2): folded into the derived
+   * work multiplier read path (gather rate / build speed). Absent = 1.
+   */
+  readonly workSpeedMult?: number | undefined;
+  /**
+   * Multiplicative practice-XP modifier (M3-T2): scales skill XP
+   * awards on the Pop's own actions. Absent = 1.
+   */
+  readonly xpGainMult?: number | undefined;
 }
 
 const traitDefSchema = z.object({
   id: z.string().regex(TRAIT_SLUG_PATTERN),
   commonality: z.number().positive(),
+  workSpeedMult: z.number().positive().optional(),
+  xpGainMult: z.number().positive().optional(),
 });
 
 export const traitsFileSchema = z.object({
@@ -157,6 +169,34 @@ export function traitsConflict(a: string, b: string): boolean {
   requireTrait(a);
   requireTrait(b);
   return (CONTENT.conflicts.get(a) ?? []).includes(b);
+}
+
+// ---- Skill-system modifiers (M3-T2) ---------------------------------------------
+
+/**
+ * Product of every listed trait's workSpeedMult (1 when none declare
+ * one). Unknown slugs throw — callers pass readTraits output.
+ */
+export function traitWorkSpeedMult(slugs: readonly string[]): number {
+  let mult = 1;
+  for (const slug of slugs) {
+    const def = requireTrait(slug);
+    if (def.workSpeedMult !== undefined) mult *= def.workSpeedMult;
+  }
+  return mult;
+}
+
+/**
+ * Product of every listed trait's xpGainMult (1 when none declare one).
+ * Unknown slugs throw — callers pass readTraits output.
+ */
+export function traitXpGainMult(slugs: readonly string[]): number {
+  let mult = 1;
+  for (const slug of slugs) {
+    const def = requireTrait(slug);
+    if (def.xpGainMult !== undefined) mult *= def.xpGainMult;
+  }
+  return mult;
 }
 
 // ---- Weighted generation ------------------------------------------------------

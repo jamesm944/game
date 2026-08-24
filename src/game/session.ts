@@ -57,6 +57,7 @@ import { createProductionSystem } from "../sim/systems/production";
 import { createAgeSystem } from "../sim/systems/age";
 import { createCombatSystem } from "../sim/systems/combat";
 import { createEquipmentSystem } from "../sim/systems/equipment";
+import { createSkillsSystem } from "../sim/systems/skills";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
 import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "../sim/ai/bootstrap";
@@ -133,6 +134,9 @@ export function createSkirmishWorld(
   registerSystem(world, createProductionSystem(comps));
   registerSystem(world, createAgeSystem(comps));
   registerSystem(world, createCombatSystem(comps, undefined, scheduler));
+  // M3-T2: rare-tick rust pass runs after the awarding systems so it
+  // observes this tick's practice stamps.
+  registerSystem(world, createSkillsSystem(comps));
   registerSystem(world, createEquipmentSystem(comps));
   registerSystem(world, createVictorySystem(comps));
 
