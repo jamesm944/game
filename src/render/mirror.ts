@@ -16,6 +16,10 @@
  */
 
 import type { SimSnapshotFrame } from "../sim/mirror";
+import {
+  minuteOfDay,
+  DEFAULT_LIFECYCLE_CONFIG,
+} from "../sim/systems/lifecycle";
 
 /** One SoA buffer of unit state, indexed by ascending-eid rank. */
 export interface MirrorBuffer {
@@ -47,9 +51,69 @@ export interface MirrorSampleOut {
   headings: Float32Array;
   /** Health 0..1; written up to returned count (M2-T6 overlays). */
   hpFractions: Float32Array;
+  /**
+   * RGB lighting tint [r,g,b] ∈ [0,1]³ mapped from the newest buffer's
+   * sim-clock minute of day (M3-T6, §2.4 "visual = lighting tint on
+   * render mirror only"). Optional: callers that provide the buffer get
+   * it filled each sample; the sim stays numeric and render-only.
+   */
+  lightTint?: Float32Array | undefined;
 }
 
 const TICK_UNSET = -1;
+
+/**
+ * Day/night lighting keyframes (M3-T6): sim-clock minute → [r,g,b]
+ * ambient/sky tint, linearly interpolated between stops and wrapping at
+ * midnight. RENDER-SIDE ONLY — the sim tracks integer minutes and never
+ * sees a color. Stops: deep night → pre-dawn → warm sunrise → full day
+ * → golden sunset → violet dusk → back to night.
+ */
+const LIGHTING_KEYFRAMES: readonly {
+  readonly minute: number;
+  readonly tint: readonly [number, number, number];
+}[] = [
+  { minute: 0, tint: [0.16, 0.18, 0.3] },
+  { minute: 240, tint: [0.16, 0.18, 0.3] },
+  { minute: 300, tint: [0.55, 0.42, 0.45] },
+  { minute: 360, tint: [1.0, 0.78, 0.58] },
+  { minute: 480, tint: [1.0, 1.0, 1.0] },
+  { minute: 1080, tint: [1.0, 1.0, 1.0] },
+  { minute: 1140, tint: [1.0, 0.72, 0.5] },
+  { minute: 1260, tint: [0.45, 0.34, 0.48] },
+  { minute: 1320, tint: [0.16, 0.18, 0.3] },
+  { minute: 1440, tint: [0.16, 0.18, 0.3] },
+];
+
+/**
+ * Lighting tint for a sim-clock minute (0–1439, clamped): pure lerp
+ * across {@link LIGHTING_KEYFRAMES}. Exported for headless tests of the
+ * render-only table.
+ */
+export function lightingTintAtMinute(minute: number, out: Float32Array): void {
+  const m = Math.min(Math.max(Math.floor(minute), 0), 1439);
+  let lo = LIGHTING_KEYFRAMES[0]!;
+  let hi = LIGHTING_KEYFRAMES[LIGHTING_KEYFRAMES.length - 1]!;
+  for (let i = 0; i < LIGHTING_KEYFRAMES.length - 1; i++) {
+    const a = LIGHTING_KEYFRAMES[i]!;
+    const b = LIGHTING_KEYFRAMES[i + 1]!;
+    if (m >= a.minute && m <= b.minute) {
+      lo = a;
+      hi = b;
+      break;
+    }
+  }
+  const span = Math.max(1, hi.minute - lo.minute);
+  const t = Math.min(1, Math.max(0, (m - lo.minute) / span));
+  out[0] = lo.tint[0] + (hi.tint[0] - lo.tint[0]) * t;
+  out[1] = lo.tint[1] + (hi.tint[1] - lo.tint[1]) * t;
+  out[2] = lo.tint[2] + (hi.tint[2] - lo.tint[2]) * t;
+}
+
+/** Convenience wrapper mapping a world tick through the §2.4 clock. */
+export function lightingTintAtTick(tick: number, out: Float32Array): void {
+  lightingTintAtMinute(minuteOfDay(tick, DEFAULT_LIFECYCLE_CONFIG), out);
+}
 
 function ensureF32(array: Float32Array, needed: number): Float32Array {
   if (array.length >= needed) return array;
@@ -193,6 +257,11 @@ export function sampleMirror(
     outPos[p + 1] = posA[p + 1]!;
     outHead[i] = headA[i]!;
     outHp[i] = hpA[i]!;
+  }
+  // M3-T6: day/night tint rides the newest buffer's tick — render-side
+  // only, no interpolation (the sim clock is integer minutes).
+  if (out.lightTint !== undefined && a.tick >= 0) {
+    lightingTintAtTick(a.tick, out.lightTint);
   }
   return copied;
 }

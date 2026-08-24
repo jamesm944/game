@@ -826,13 +826,17 @@ export function createMovementSystem(
       // its ground here — out-of-range attackers get a Move approach leg
       // inserted ahead of the Attack head and steer through that.
       // M3-T3: Eat heads belong to the needs system the same way.
+      // M3-T6: Sleep heads belong to schedules (which pops them at
+      // wakeTick and applies the rest refill) — parked here, never
+      // decremented like wait.
       if (
         !current ||
         current.kind === "wait" ||
         current.kind === "gather" ||
         current.kind === "deliver" ||
         current.kind === "attack" ||
-        current.kind === "eat"
+        current.kind === "eat" ||
+        current.kind === "sleep"
       ) {
         if (current?.kind === "wait") {
           current.ticks -= 1;

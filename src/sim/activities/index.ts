@@ -102,6 +102,21 @@ export interface EatActivity {
   dropoffEid: number;
 }
 
+/**
+ * Sleep until `wakeTick` (SPEC §2.4 day/night / M3-T6): the schedules
+ * system plans [Move bed, Sleep] chains at the night band and owns this
+ * head exclusively — movement merely PARKS sleepers (no decrement, unlike
+ * wait), and when `world.tick` reaches wakeTick the schedules pass pops
+ * the head and applies the sleep-quality Rest refill exactly once.
+ * `isNap` marks daytime micro-sleeps (deprivation napping idles), which
+ * restore a small fixed amount instead of the housing-scaled refill.
+ */
+export interface SleepActivity {
+  readonly kind: "sleep";
+  wakeTick: number;
+  isNap: boolean;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
@@ -109,7 +124,8 @@ export type Activity =
   | DeliverActivity
   | AttackActivity
   | AttackMoveActivity
-  | EatActivity;
+  | EatActivity
+  | SleepActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -119,6 +135,7 @@ export const ACTIVITY_KIND_DELIVER = 4;
 export const ACTIVITY_KIND_ATTACK = 5;
 export const ACTIVITY_KIND_ATTACK_MOVE = 6;
 export const ACTIVITY_KIND_EAT = 7;
+export const ACTIVITY_KIND_SLEEP = 8;
 
 export type ActivityQueue = Activity[];
 
@@ -233,6 +250,16 @@ export function eatActivity(dropoffEid: number): EatActivity {
   return { kind: "eat", dropoffEid };
 }
 
+/** Build a Sleep activity ending at `wakeTick` (naps flag `isNap`). */
+export function sleepActivity(wakeTick: number, isNap = false): SleepActivity {
+  if (!Number.isInteger(wakeTick) || wakeTick < 0) {
+    throw new Error(
+      `sleep wake tick must be a non-negative integer, got ${String(wakeTick)}`,
+    );
+  }
+  return { kind: "sleep", wakeTick, isNap };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -260,6 +287,13 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
       row.push(ACTIVITY_KIND_ATTACK, 1, activity.targetEid);
     } else if (activity.kind === "eat") {
       row.push(ACTIVITY_KIND_EAT, 1, activity.dropoffEid);
+    } else if (activity.kind === "sleep") {
+      row.push(
+        ACTIVITY_KIND_SLEEP,
+        2,
+        activity.wakeTick,
+        activity.isNap ? 1 : 0,
+      );
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
       row.push(
@@ -396,6 +430,21 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "eat", dropoffEid });
+    } else if (kind === ACTIVITY_KIND_SLEEP) {
+      if (payloadLength !== 2) {
+        throw new Error(
+          `sleep activity ${String(i)} must carry exactly two values`,
+        );
+      }
+      const wakeTick = payload[0]!;
+      const napFlag = payload[1]!;
+      if (!Number.isInteger(wakeTick) || wakeTick < 0) {
+        throw new Error(`sleep activity ${String(i)} has malformed wake tick`);
+      }
+      if (napFlag !== 0 && napFlag !== 1) {
+        throw new Error(`sleep activity ${String(i)} has malformed nap flag`);
+      }
+      queue.push({ kind: "sleep", wakeTick, isNap: napFlag === 1 });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

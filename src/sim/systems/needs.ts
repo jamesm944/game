@@ -343,14 +343,22 @@ export function createNeedsSystem(
       if (needsRareTickDue(tick, eid)) {
         const starving = row[0]! <= 0;
         const exhausted = row[1]! <= 0;
+        // M3-T6: a sleeping Pop's rest meter is FROZEN — sleep restores
+        // via the schedules system's wake refill, so decay would just
+        // eat the lump before it lands. The exhaustion morale bleed is
+        // likewise suspended for the night.
+        const asleep =
+          peekActivity(readActivityQueue(world, comps, eid))?.kind === "sleep";
         row[0] = Math.max(0, row[0]! - FOOD_DECAY_PER_RARE_TICK);
-        row[1] = Math.max(0, row[1]! - REST_DECAY_PER_RARE_TICK);
+        if (!asleep) {
+          row[1] = Math.max(0, row[1]! - REST_DECAY_PER_RARE_TICK);
+        }
         row[2] = Math.max(
           0,
           row[2]! -
             MORALE_DECAY_PER_RARE_TICK -
             (starving ? STARVATION_MORALE_PENALTY : 0) -
-            (exhausted ? EXHAUSTION_MORALE_PENALTY : 0),
+            (exhausted && !asleep ? EXHAUSTION_MORALE_PENALTY : 0),
         );
         if (row[0]! <= 0) diagnostics.starvedPopTicks += 1;
       }

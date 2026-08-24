@@ -184,10 +184,19 @@ document.body.appendChild(renderer.domElement);
 const scene = new Scene();
 scene.background = new Color(0x10141c);
 
-scene.add(new HemisphereLight(0xcfd8e8, 0x3a4436, 1.05));
+const hemisphereLight = new HemisphereLight(0xcfd8e8, 0x3a4436, 1.05);
+scene.add(hemisphereLight);
 const sun = new DirectionalLight(0xfff2d9, 1.35);
 sun.position.set(0.55, 1, 0.35);
 scene.add(sun);
+
+// M3-T6 day/night lighting (render-only): the mirror sample's tint
+// scales the fixed rig every frame — background color and both light
+// intensities ride the §2.4 sim clock.
+const baseBackground = new Color(0x10141c);
+const scratchBackground = new Color();
+const BASE_SUN_INTENSITY = 1.35;
+const BASE_HEMI_INTENSITY = 1.05;
 
 // Fog DataTexture pair (SPEC §2.9): R=explored G=visible planes for the
 // human viewer, blended uFogPrev → uFogCurr across each tick interval.
@@ -208,6 +217,7 @@ const sampleOut: MirrorSampleOut = {
   positions: new Float32Array(RENDER_CAPACITY * 2),
   headings: new Float32Array(RENDER_CAPACITY),
   hpFractions: new Float32Array(RENDER_CAPACITY),
+  lightTint: new Float32Array(3),
 };
 const groundHeights = new Float32Array(RENDER_CAPACITY);
 /** 1 = selected, per mirror rank — forces health bars on. */
@@ -782,6 +792,19 @@ function frame(
   const alpha = Math.min(accumulator / TICK_DT_MS, 1);
   fogUniforms.uBlend.value = alpha;
   const sampledCount = sampleMirror(mirror, alpha, sampleOut);
+
+  // M3-T6: day/night tint from the sim clock — background and light rig
+  // scale together so nights are visibly navy and dawns warmly lit.
+  const tint = sampleOut.lightTint!;
+  const lum = Math.max(tint[0]!, tint[1]!, tint[2]!);
+  scratchBackground.setRGB(
+    baseBackground.r * (0.4 + 0.6 * tint[0]!),
+    baseBackground.g * (0.4 + 0.6 * tint[1]!),
+    baseBackground.b * (0.4 + 0.6 * tint[2]!),
+  );
+  scene.background = scratchBackground;
+  sun.intensity = BASE_SUN_INTENSITY * (0.25 + 0.75 * lum);
+  hemisphereLight.intensity = BASE_HEMI_INTENSITY * (0.35 + 0.65 * lum);
 
   // Entity CPU culling against the visible plane (SPEC §2.9) before
   // any instancing work.

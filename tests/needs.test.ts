@@ -258,9 +258,11 @@ describe("rest penalty on work", () => {
     });
 
     // Novice twins, only the rest meter differs: 30 ticks per unit
-    // rested versus exactly the 0.75× floor (40 ticks) exhausted.
+    // rested versus the M3-T6-deprived floor exhausted — rest 0 sits
+    // below DEPRIVED_REST_LEVEL, so the 0.75× M3-T3 rest slope stacks
+    // with the 0.75× deprivation multiplier (30 / 0.5625 ≈ 53).
     expect(resolveGatherInterval(world, comps, rested, 30)).toBe(30);
-    expect(resolveGatherInterval(world, comps, exhausted, 30)).toBe(40);
+    expect(resolveGatherInterval(world, comps, exhausted, 30)).toBe(53);
   });
 
   it("an exhausted gatherer measurably underperforms a rested twin", () => {

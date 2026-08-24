@@ -1,0 +1,30 @@
+{
+  "name": "m3t6",
+  "description": "Compressed-timescale scheduled week (SPEC §2.4 / issue #51): four housed founding adults (two pre-formed households, one house each) live seven 600-tick days under the day/night schedule system with NO commands ever submitted. Every day: the IAUS brain staffs gather work inside the 06:00-18:00 windows; end-of-work releases walk each Pop (staggered by the deterministic (eid, day) hash) to its household bed slot where a plain Wait holds them past nightfall; at 22:00(+jitter) the night band beds everyone with a Move/Sleep chain; 05:00 wakes pop the Sleep head exactly once and refill Rest by housing-quality x crowding (a perfect House night restores the full meter, so nobody is ever deprived here). Fixture pins milestone digests every 300th tick, the sampled daily arc (awake-and-working mornings/noons, all-asleep nights at home, rest refills), semantic gates (releases/beddings/wakes accumulate daily, deposits grow, no naps without deprivation), and doubles as the extended double-run determinism canary.",
+  "seed": 20260831,
+  "size": 24,
+  "ticks": 4200,
+  "milestoneEvery": 300,
+  "dayTicks": 600,
+  "adultAgeDays": 3,
+  "elderAgeDays": 12,
+  "lifespanDays": 15,
+  "nextBirthRollTick": 999999999,
+  "startingResources": [1200, 400, 0, 0, 0, 0, 0],
+  "dropOff": [3.5, 3.5],
+  "nodes": [
+    { "tile": [9, 12], "resource": "food", "amount": 5000 },
+    { "tile": [13, 13], "resource": "wood", "amount": 5000 }
+  ],
+  "houseTiles": [
+    [8, 7],
+    [13, 7]
+  ],
+  "popSpawns": [
+    [7.5, 9.5],
+    [8.5, 10.5],
+    [12.5, 9.5],
+    [13.5, 10.5]
+  ],
+  "sampleMinuteOffsets": [100, 200, 300]
+}

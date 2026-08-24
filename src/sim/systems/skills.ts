@@ -63,6 +63,7 @@ import type { SimComponents } from "../components";
 import type { NeedsComponents } from "../components/needs";
 import { injuryImpairmentOf } from "../components/body";
 import { restWorkMultiplierOf } from "./needs";
+import { deprivationWorkMultiplierOf } from "./schedules";
 import type { SimSystem, World } from "../core/world";
 
 /** Components the skill helpers/system need. */
@@ -312,11 +313,12 @@ export function effectiveGatherTicksPerUnit(
 }
 
 /**
- * The ONE gather-interval resolver (M3-T2 ×M3-T3 ×M3-T4): folds the
- * worker's gathering skill + work-speed traits AND the rest penalty AND
- * wound impairments into a single integer interval for a freshly
- * constructed work chain. Purely a function of digest-visible rows;
- * rowless/fully-rested/healthy workers get exactly `baseTicks`.
+ * The ONE gather-interval resolver (M3-T2 ×M3-T3 ×M3-T4 ×M3-T6): folds
+ * the worker's gathering skill + work-speed traits AND the rest penalty
+ * AND wound impairments AND sleep deprivation into a single integer
+ * interval for a freshly constructed work chain. Purely a function of
+ * digest-visible rows; rowless/fully-rested/healthy workers get exactly
+ * `baseTicks`.
  */
 export function resolveGatherInterval(
   world: World,
@@ -331,9 +333,13 @@ export function resolveGatherInterval(
   const restMult = restWorkMultiplierOf(world, comps, eid);
   // M3-T4: arm/vital wounds slow the swing exactly like exhaustion.
   const injuryWorkMult = injuryImpairmentOf(world, comps, eid).workMult;
+  // M3-T6: a bad night's sleep drags the whole next day (§2.4).
+  const deprivedMult = deprivationWorkMultiplierOf(world, comps, eid);
   return Math.max(
     1,
-    Math.round(baseTicks / (skillMult * restMult * injuryWorkMult)),
+    Math.round(
+      baseTicks / (skillMult * restMult * injuryWorkMult * deprivedMult),
+    ),
   );
 }
 

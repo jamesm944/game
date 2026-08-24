@@ -62,6 +62,7 @@ import {
 import { resetSteeringBookkeeping } from "./movement";
 import { injuryImpairmentOf } from "../components/body";
 import { restWorkMultiplierOf } from "./needs";
+import { deprivationWorkMultiplierOf } from "./schedules";
 import { isChildOf } from "./lifecycle";
 
 /** Command kind owned by this system. */
@@ -377,6 +378,13 @@ export function createConstructionSystem(
           // rowless Pops — legacy arithmetic untouched).
           const restMult = restWorkMultiplierOf(world, comps, builder.eid);
           if (restMult !== 1) milli = Math.round(milli * restMult);
+          // M3-T6: so does a deprived night's sleep.
+          const deprivedMult = deprivationWorkMultiplierOf(
+            world,
+            comps,
+            builder.eid,
+          );
+          if (deprivedMult !== 1) milli = Math.round(milli * deprivedMult);
           // M3-T4: arm/vital wounds slow it the same way.
           const injuryMult = injuryImpairmentOf(
             world,

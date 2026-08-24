@@ -1,0 +1,550 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m3t6 > records milestone digests at every 300th tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:b5ad557894752fdb",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:a2e08fbf9dbadc03",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:b250efb995f247f9",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:0f06efc6313bc062",
+    "tick": 1200,
+  },
+  {
+    "digest": "fnv1a64:9936abd89c8dbff3",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:2d1221ded0c73963",
+    "tick": 1800,
+  },
+  {
+    "digest": "fnv1a64:d75139b27aebd1e8",
+    "tick": 2100,
+  },
+  {
+    "digest": "fnv1a64:21a503d9c224b3d3",
+    "tick": 2400,
+  },
+  {
+    "digest": "fnv1a64:c215175333a4db2a",
+    "tick": 2700,
+  },
+  {
+    "digest": "fnv1a64:a3f0ce0c79238f20",
+    "tick": 3000,
+  },
+  {
+    "digest": "fnv1a64:522a60cd4477776e",
+    "tick": 3300,
+  },
+  {
+    "digest": "fnv1a64:2cbc87f83ae1f42b",
+    "tick": 3600,
+  },
+  {
+    "digest": "fnv1a64:02c5b37baafb01e1",
+    "tick": 3900,
+  },
+  {
+    "digest": "fnv1a64:4ca9f68638255045",
+    "tick": 4200,
+  },
+]
+`;
+
+exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden week 1`] = `
+[
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "gather",
+    ],
+    "homeDistances": [
+      2.121320343559643,
+      2.5495097567963927,
+      4.381675744921703,
+      4.471084363395012,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 100,
+  },
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "move",
+      "move",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      2.0129833280199274,
+      2.965184518391686,
+      5.653279339971542,
+      4.471084363395012,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 200,
+  },
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "move",
+      "move",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      3.5111020510614375,
+      3.3463258350147687,
+      5.653279339971542,
+      4.471084363395012,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 300,
+  },
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.6481177422383841,
+      1.6032418168741533,
+      2.236383324256612,
+      2.713378601551834,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      98,
+      98,
+      98,
+    ],
+    "tick": 700,
+  },
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.6481177422383841,
+      1.6032418168741533,
+      3.448531407091965,
+      4.525184946323629,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 800,
+  },
+  {
+    "depositedTotal": 10,
+    "headKinds": [
+      "move",
+      "move",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.7083863718769392,
+      1.6694891326007042,
+      4.743465144834159,
+      6.728939959552746,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 900,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.6461172175051089,
+      1.5957250550111446,
+      2.135466182488324,
+      1.6573864737986579,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      98,
+      98,
+      98,
+    ],
+    "tick": 1300,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.6461172175051089,
+      1.5957250550111446,
+      3.064391966942606,
+      3.1805749791296165,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 1400,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "move",
+      "move",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      1.7073610638230547,
+      1.6647568755641384,
+      4.4668380750371375,
+      5.6446462254100185,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 1500,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.658019851918144,
+      1.6416505208561984,
+      1.874048205555056,
+      2.75510628347574,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      98,
+      98,
+      98,
+    ],
+    "tick": 1900,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.658019851918144,
+      1.6416505208561984,
+      3.4329438235927023,
+      2.372032298853866,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 2000,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "move",
+      "move",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      1.7079700643287978,
+      1.7058408719609104,
+      5.6380374429677,
+      4.451292295203404,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 2100,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.639226682866265,
+      1.6429387167252327,
+      3.4629873163092597,
+      1.5939848382917547,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      98,
+      98,
+      98,
+    ],
+    "tick": 2500,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.639226682866265,
+      1.6429387167252327,
+      5.034808826698323,
+      2.4571642754625067,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 2600,
+  },
+  {
+    "depositedTotal": 20,
+    "headKinds": [
+      "move",
+      "move",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.6877741192532691,
+      1.6971258867859285,
+      7.411226715866482,
+      5.716987677200323,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 2700,
+  },
+  {
+    "depositedTotal": 40,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.6317587562706508,
+      1.6460418415338498,
+      2.178676458822348,
+      2.9432129341007274,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      99,
+      99,
+      99,
+    ],
+    "tick": 3100,
+  },
+  {
+    "depositedTotal": 40,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.6317587562706508,
+      1.6460418415338498,
+      3.085694403961435,
+      3.876543025395366,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 3200,
+  },
+  {
+    "depositedTotal": 40,
+    "headKinds": [
+      "move",
+      "move",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      1.6887265518124466,
+      1.7008299629292674,
+      4.458925545487907,
+      5.649556385411126,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 3300,
+  },
+  {
+    "depositedTotal": 40,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.6497211779338163,
+      1.6322573209337057,
+      1.8881123532310866,
+      2.8148325607634592,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      98,
+      98,
+      98,
+    ],
+    "tick": 3700,
+  },
+  {
+    "depositedTotal": 40,
+    "headKinds": [
+      "none",
+      "none",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      1.6497211779338163,
+      1.6322573209337057,
+      3.446337992406431,
+      2.407924296997066,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 3800,
+  },
+  {
+    "depositedTotal": 40,
+    "headKinds": [
+      "move",
+      "move",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      1.699674424613264,
+      1.6814314526637941,
+      5.644447291669217,
+      4.453928534816038,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 3900,
+  },
+]
+`;
