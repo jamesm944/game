@@ -104,6 +104,12 @@ import {
   type LessonComponents,
 } from "./lessons";
 import {
+  attachPopMorale,
+  MORALE,
+  MORALE_ARITY,
+  type MoraleComponents,
+} from "./morale";
+import {
   RELATIONSHIP,
   RELATIONSHIP_ARITY,
   type RelationshipComponents,
@@ -173,7 +179,8 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * Identity; Lessons (lessons.ts, M3-T5) between JobCooldown and
  * MealConsumed. Relationship (relationship.ts, M3-T7) slots between
  * ResearchedTechs and ResourceNode; SocialEvents (socialEvents.ts,
- * M3-T7) between Skills and Stockpile.
+ * M3-T7) between Skills and Stockpile. Morale (morale.ts, M3-T9)
+ * slots between MealConsumed and MoveTarget.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -200,6 +207,10 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // MealConsumed.
   [LESSONS, LESSONS_ARITY],
   ...PRODUCTION_COMPONENT_ARITIES,
+  // M3-T9: Morale registers alphabetically between MealConsumed
+  // (which PRODUCTION_COMPONENT_ARITIES lists first) and MoveTarget
+  // (which MOVEMENT_COMPONENT_ARITIES lists).
+  [MORALE, MORALE_ARITY],
   [IDENTITY, IDENTITY_ARITY],
   [SKILLS, SKILLS_ARITY],
   // M3-T7: SocialEvents registers alphabetically between Skills and
@@ -234,6 +245,7 @@ export interface SimComponents
     BrainCooldownComponents,
     LessonComponents,
     NeedsComponents,
+    MoraleComponents,
     PopComponents,
     RelationshipComponents,
     SkillComponents,
@@ -273,6 +285,9 @@ export function defineSimComponents(world: World): SimComponents {
     // MealConsumed.
     lessonsId: defineComponent(world, LESSONS),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
+    // M3-T9: Morale registers alphabetically between MealConsumed and
+    // MoveTarget.
+    moraleId: defineComponent(world, MORALE),
     moveTargetId: defineComponent(world, MOVE_TARGET),
     needsId: defineComponent(world, NEEDS),
     ownerId: defineComponent(world, OWNER),
@@ -453,6 +468,13 @@ export interface SpawnUnitOptions {
    * that pin pre-M3-T4 digests keep spawning bodyless Pops.
    */
   readonly body?: boolean | undefined;
+  /**
+   * Attach a Morale row (M3-T9): the routing state that combat morale
+   * shocks drive (break → flee → rally). Opt-in like `body` — golden
+   * fixtures pinning pre-M3-T9 digests stay byte-identical. Meaningful
+   * only alongside a Needs row: the meter it reads lives there.
+   */
+  readonly morale?: boolean | undefined;
 }
 
 /** Default M1 unit speed — SPEC ticket: 1.0 tile/sec constant. */
@@ -483,7 +505,8 @@ export function spawnUnit(
         Pick<SkillComponents, "skillsId"> &
         Pick<NeedsComponents, "needsId"> &
         Pick<LessonComponents, "lessonsId"> &
-        Pick<BodyComponents, "bodyId">
+        Pick<BodyComponents, "bodyId"> &
+        Pick<MoraleComponents, "moraleId">
     >,
   x: number,
   y: number,
@@ -539,6 +562,11 @@ export function spawnUnit(
       // against; empty at spawn, healed/scarring/deadly over time.
       attachBody(world, comps as BodyComponents, eid);
     }
+    if (options.morale === true && typeof comps.moraleId === "number") {
+      // M3-T9: the routing state combat morale shocks drive; steady at
+      // spawn, broken into flight by systems/morale.ts.
+      attachPopMorale(world, comps as MoraleComponents, eid);
+    }
   }
   // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
   // at the next tick-boundary flush.
@@ -559,6 +587,7 @@ export * from "./equipment";
 export * from "./household";
 export * from "./jobCooldown";
 export * from "./lessons";
+export * from "./morale";
 export * from "./needs";
 export * from "./production";
 export * from "./pop";

@@ -1,0 +1,285 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m3t9 > records milestone digests plus the battle trace (rally variant) 1`] = `
+[
+  {
+    "digest": "fnv1a64:5fb94e5bdba6922d",
+    "tick": 100,
+  },
+  {
+    "digest": "fnv1a64:5fb94e5bdba6922d",
+    "tick": 200,
+  },
+  {
+    "digest": "fnv1a64:0a566dcbba41f059",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:0a566dcbba41f059",
+    "tick": 400,
+  },
+  {
+    "digest": "fnv1a64:3dc4867d7218cbb4",
+    "tick": 500,
+  },
+  {
+    "digest": "fnv1a64:3dc4867d7218cbb4",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:3dc4867d7218cbb4",
+    "tick": 700,
+  },
+  {
+    "digest": "fnv1a64:8cdaf3e9678975f6",
+    "tick": 800,
+  },
+  {
+    "digest": "fnv1a64:8cdaf3e9678975f6",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:d5bd07aee06c4e10",
+    "tick": 1000,
+  },
+  {
+    "digest": "fnv1a64:d5bd07aee06c4e10",
+    "tick": 1100,
+  },
+  {
+    "digest": "fnv1a64:d5bd07aee06c4e10",
+    "tick": 1200,
+  },
+]
+`;
+
+exports[`golden harness m3t9 > records milestone digests plus the battle trace (rally variant) 2`] = `
+[
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 100,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 200,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 15,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 300,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 15,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 400,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 21,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 500,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 21,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 600,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 21,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 700,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 27,
+    "routing": false,
+    "threatAlive": true,
+    "tick": 800,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 27,
+    "routing": false,
+    "threatAlive": true,
+    "tick": 900,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 29,
+    "routing": false,
+    "threatAlive": true,
+    "tick": 1000,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 29,
+    "routing": false,
+    "threatAlive": true,
+    "tick": 1100,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 29,
+    "routing": false,
+    "threatAlive": true,
+    "tick": 1200,
+  },
+]
+`;
+
+exports[`golden harness m3t9 > records milestone digests plus the battle trace (safe variant) 1`] = `
+[
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 100,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 200,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 400,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 500,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 700,
+  },
+  {
+    "digest": "fnv1a64:9f1abc55f2bba0d5",
+    "tick": 800,
+  },
+  {
+    "digest": "fnv1a64:53224c8943ee0c20",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:81e110c3a4cd377c",
+    "tick": 1000,
+  },
+  {
+    "digest": "fnv1a64:81e110c3a4cd377c",
+    "tick": 1100,
+  },
+  {
+    "digest": "fnv1a64:81e110c3a4cd377c",
+    "tick": 1200,
+  },
+]
+`;
+
+exports[`golden harness m3t9 > records milestone digests plus the battle trace (safe variant) 2`] = `
+[
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 100,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 200,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 300,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 400,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 500,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 600,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 700,
+  },
+  {
+    "fleeTailX": 7.5,
+    "morale": 9,
+    "routing": true,
+    "threatAlive": true,
+    "tick": 800,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 9,
+    "routing": false,
+    "threatAlive": false,
+    "tick": 900,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 11,
+    "routing": false,
+    "threatAlive": false,
+    "tick": 1000,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 11,
+    "routing": false,
+    "threatAlive": false,
+    "tick": 1100,
+  },
+  {
+    "fleeTailX": null,
+    "morale": 11,
+    "routing": false,
+    "threatAlive": false,
+    "tick": 1200,
+  },
+]
+`;

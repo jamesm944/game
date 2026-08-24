@@ -97,6 +97,7 @@ import {
   spawnRubble,
 } from "../components/buildings";
 import { injuryImpairmentOf } from "../components/body";
+import { isRoutingOf } from "../components/morale";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
 import { equipmentCountsOf } from "../components/equipment";
@@ -894,12 +895,17 @@ export function createCombatSystem(
 
     // ---- 5) Engagement validation: foreign orders disengage, stale
     // targets clear (deaths already purge proactively; this is the
-    // replay-safe backstop).
+    // replay-safe backstop). M3-T9: ROUTERS shed any engagement before
+    // the advance pass below — broken units can be attacked down but
+    // never swing back, even on the tick an order landed.
     for (const combatant of combatants) {
       if (!alive.has(combatant.eid)) continue;
       if (combatant.row[3] === 0) continue;
       if (!engagementIntact(combatant)) dropEngagement(combatant);
       else if (!alive.has(combatant.row[3]!)) dropEngagement(combatant);
+      else if (isRoutingOf(world, comps, combatant.eid)) {
+        dropEngagement(combatant);
+      }
     }
 
     // ---- 6) Advance engagements ascending eid: reload cadence ticks
@@ -968,9 +974,12 @@ export function createCombatSystem(
 
     // ---- 7) Acquisition: retaliation first (this tick's damage
     // ledger), then aggro for attack-marchers — both pause-and-resume.
+    // M3-T9: ROUTERS never acquire — broken units can be attacked down
+    // but don't fight back (their morale system owns the flight).
     for (const combatant of combatants) {
       if (!alive.has(combatant.eid)) continue;
       if (combatant.row[3] !== 0) continue; // already engaged
+      if (isRoutingOf(world, comps, combatant.eid)) continue;
 
       const attackerEid = damageThisTick.get(combatant.eid);
       if (attackerEid !== undefined && alive.has(attackerEid)) {

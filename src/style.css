@@ -339,6 +339,102 @@ canvas {
   cursor: not-allowed;
 }
 
+/* Pop card — single-Pop selection sheet (M3-T9, SPEC §2.13). */
+#pop-card {
+  position: fixed;
+  left: 12px;
+  bottom: 118px;
+  width: 320px;
+  padding: 6px 10px 10px;
+  font:
+    12px/1.5 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border-radius: 6px;
+  user-select: none;
+}
+
+.pop-card-title {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.pop-card-traits {
+  margin-bottom: 4px;
+}
+
+.pop-card-trait-chip {
+  display: inline-block;
+  margin: 0 4px 2px 0;
+  padding: 0 6px;
+  font-size: 10px;
+  color: #10141c;
+  background: #9fc7e8;
+  border-radius: 8px;
+}
+
+.pop-card-skills {
+  margin-bottom: 4px;
+}
+
+.pop-card-skill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.pop-card-skill-bar {
+  position: relative;
+  flex: 0 0 110px;
+  height: 7px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.1);
+  border-radius: 3px;
+}
+
+/* Practice band (darker) with the knowledge share overlaid lighter. */
+.pop-card-skill-practice {
+  height: 100%;
+  background: #e08a4a;
+}
+
+.pop-card-skill-knowledge {
+  height: 100%;
+  background: #f0d9a0;
+}
+
+.pop-card-body {
+  color: #8fa3c7;
+}
+
+.pop-card-hp {
+  color: #7ec46f;
+}
+
+.pop-card-morale-bar {
+  height: 7px;
+}
+
+.pop-card-morale-fill {
+  background: #7ec46f;
+}
+
+.pop-card-morale-line {
+  color: #8fa3c7;
+}
+
+.pop-card-morale-line.pop-card-routing {
+  color: #ff7b6b;
+  font-weight: 700;
+}
+
+.pop-card-activity {
+  color: #f0d9a0;
+}
+
 .order-kind-build {
   background: #e08a4a;
 }

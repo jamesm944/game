@@ -70,6 +70,7 @@ import { createSchoolSystem } from "../sim/systems/school";
 import { createMassSystem, MASS_CLOSE_MINUTE } from "../sim/systems/mass";
 import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
 import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
+import { createMoraleSystem } from "../sim/systems/morale";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
@@ -193,6 +194,11 @@ export function createSkirmishWorld(
       lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
     }),
   );
+  // M3-T9: morale shocks/routing/rally consume combat's event logs and
+  // read the settled meters; registered after social (independent
+  // ledger cursors), before schedules so a rallied router's empty
+  // queue is employable the same tick its panic ends.
+  registerSystem(world, createMoraleSystem(comps));
   // M3-T6: day/night schedules steer the human village through work
   // windows, staggered evening releases and the 22:00–05:00 sleep band
   // (quality-scaled wake refills, deprivation napping). Scoped to the
@@ -270,6 +276,7 @@ export function createSkirmishWorld(
         ownerId: AI_PLAYER,
         identity: true,
         body: true,
+        morale: true,
       });
       spawned += 1;
     }
@@ -394,7 +401,11 @@ function spawnStartVillagers(
       }
     }
     if (covered) continue;
-    spawnUnit(world, comps, spot.x, spot.y, { identity: true, body: true });
+    spawnUnit(world, comps, spot.x, spot.y, {
+      identity: true,
+      body: true,
+      morale: true,
+    });
     if (populationOf(world, comps) >= STARTING_VILLAGERS) break;
   }
 }

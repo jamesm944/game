@@ -100,6 +100,9 @@ export function setupAiOpponent(
       // M3-T4: AI villagers carry the wound model (symmetric with the
       // human side's spawns).
       body: true,
+      // M3-T9: and the morale/routing state, symmetric with the human
+      // side's spawns.
+      morale: true,
     }),
   );
   return { player, tcEid, ledgerEid, villagerEids };

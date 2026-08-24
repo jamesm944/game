@@ -1,0 +1,19 @@
+{
+  "name": "m3t9",
+  "description": "Battle with routing (issue #54 / SPEC §2.5): a named militia pair holds the line against a raider while a rally ally stands by. One blow fells the bonded companion; the buffered grief shock (strong bond, T7 API) pushes the witness below its derived break point and it ROUTES — fleeing west away from the killer, ignoring a direct attack order issued mid-flight. Variant A parks the full-morale ally inside rally radius: staggered rare-tick rally restores walk the meter back above break-point-plus-margin and the episode ends RALLIED. Variant B omits that one stamp; at mid-run the raider warband turns on itself (ordered attack), the threat dies, and the router ends its episode SAFE with the meter still wounded. Fixture pins milestone digests every 100th tick plus a compact per-milestone trace (routing flag, meter, flee-leg heading, threat liveness), semantic acceptance gates for both exit doors, and doubles as the extended double-run determinism canary.",
+  "seed": 20260923,
+  "size": 24,
+  "ticks": 1200,
+  "milestoneEvery": 100,
+  "killTick": 900,
+  "victimHp": 2,
+  "witnessMorale": 20,
+  "witnessBond": 80,
+  "spawns": {
+    "victim": [12.5, 12.5],
+    "witness": [12.4, 12.5],
+    "ally": [10.5, 14.5],
+    "enemy": [13.1, 12.5],
+    "enemyB": [13.9, 12.5]
+  }
+}

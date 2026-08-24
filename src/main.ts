@@ -127,6 +127,8 @@ import {
   wireBuildMenu,
 } from "./ui/buildMenu";
 import { createBuildingPanel } from "./ui/buildingPanel";
+import { createPopCard } from "./ui/popCard";
+import { buildPopCard } from "./sim/popCard";
 import { wireControlGroups } from "./ui/controlGroups";
 import { createTopbar, formatStockpileLine } from "./ui/hud";
 import { createToastHost } from "./ui/toast";
@@ -699,6 +701,21 @@ const buildingPanel = createBuildingPanel({
   },
 });
 
+// Pop card (M3-T9): exactly one selected named Pop renders their
+// identity/traits/skills/body/morale sheet — fed by the pure sim
+// read-row exporter so chrome and digests cannot disagree.
+const popCard = createPopCard({
+  getData: () => {
+    const selected = getSelectedEids();
+    if (selected.length !== 1) return undefined;
+    const eid = selected[0]!;
+    if (world.rowsByComponentId.get(comps.identityId)?.has(eid) !== true) {
+      return undefined;
+    }
+    return buildPopCard(world, comps, eid);
+  },
+});
+
 // Paint chrome immediately; the loop refreshes it from here on.
 topbar.update(world.tick, "—");
 minimap.redraw();
@@ -997,6 +1014,7 @@ function frame(
   controlGroups.refreshChips();
   buildMenu.refresh();
   buildingPanel.refresh();
+  popCard.refresh();
   pollMatchOutcome();
   renderer.render(scene, cameraRig.camera);
 

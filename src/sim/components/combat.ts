@@ -36,6 +36,11 @@
 import { UNIT_DEF_CODES, unitCodeOf, unitDefOf } from "../../data/definitions";
 import type { UnitDefinition } from "../../data/schema";
 import { attachBody, type BodyComponents } from "./body";
+import { attachPopIdentity, type PopComponents } from "./pop";
+import { attachPopNeeds, type NeedsComponents } from "./needs";
+import { attachLessons, type LessonComponents } from "./lessons";
+import { attachPopSkills, type SkillComponents } from "./skills";
+import { attachPopMorale, type MoraleComponents } from "./morale";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
 
 export const COMBAT = "Combat" as const;
@@ -85,7 +90,29 @@ export interface SpawnCombatUnitOptions {
    * strikes allocate against. Opt-in — legacy fixtures stay bodyless.
    */
   readonly body?: boolean | undefined;
+  /**
+   * Attach the named-Pop rows (M3-T9): Identity + Traits + Skills +
+   * Needs + Lessons, exactly like spawnUnit's `identity` branch, so a
+   * soldier can carry a morale meter and ROUTE (SPEC §2.5). Opt-in —
+   * every M2 army stays rowless and byte-identical.
+   */
+  readonly identity?: boolean | undefined;
+  /**
+   * Attach a Morale row (M3-T9) without the full identity sheet:
+   * routing state for Pops whose Needs row came from elsewhere.
+   */
+  readonly morale?: boolean | undefined;
 }
+
+/** Component ids the identity/morale spawn options may touch. */
+type SpawnPopOptionComponents = Partial<
+  Pick<PopComponents, "identityId" | "traitsId"> &
+    Pick<SkillComponents, "skillsId"> &
+    Pick<NeedsComponents, "needsId"> &
+    Pick<LessonComponents, "lessonsId"> &
+    Pick<BodyComponents, "bodyId"> &
+    Pick<MoraleComponents, "moraleId">
+>;
 
 /**
  * Spawn one attack-capable unit: the full movement component set plus a
@@ -101,7 +128,7 @@ export function spawnCombatUnit(
     unitTagId: number;
     moveTargetId: number;
     activityQueueId: number;
-  } & Partial<Pick<BodyComponents, "bodyId">>,
+  } & SpawnPopOptionComponents,
   defId: string,
   x: number,
   y: number,
@@ -140,6 +167,34 @@ export function spawnCombatUnit(
   if (options.body === true && typeof comps.bodyId === "number") {
     // M3-T4: the six-part wound model combat strikes allocate against.
     attachBody(world, comps as BodyComponents, eid);
+  }
+  if (
+    options.identity === true &&
+    typeof comps.identityId === "number" &&
+    typeof comps.traitsId === "number"
+  ) {
+    // M3-T9: named soldiers — the same sheet spawnUnit's identity
+    // branch stamps, so military Pops carry traits, skills and the
+    // needs meter the morale system reads.
+    attachPopIdentity(
+      world,
+      comps as Pick<PopComponents, "identityId" | "traitsId">,
+      eid,
+    );
+    if (typeof comps.skillsId === "number") {
+      attachPopSkills(world, comps as SkillComponents, eid);
+    }
+    if (typeof comps.needsId === "number") {
+      attachPopNeeds(world, comps as NeedsComponents, eid);
+    }
+    if (typeof comps.lessonsId === "number") {
+      attachLessons(world, comps as LessonComponents, eid);
+    }
+  }
+  if (options.morale === true && typeof comps.moraleId === "number") {
+    // M3-T9: routing state; steady at spawn, broken into flight by
+    // systems/morale.ts when shocks push morale past the break point.
+    attachPopMorale(world, comps as MoraleComponents, eid);
   }
   // Fog dirty mark (SPEC §2.9): the unit's sight circle (from its
   // definition's sightRadius) stamps at the next tick-boundary flush.

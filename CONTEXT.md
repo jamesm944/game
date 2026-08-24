@@ -199,6 +199,20 @@ _Avoid_: Building combat
 The residue entity spawned over a destroyed structure's footprint (M2-T7). Pure marker state on its own entity id; rebuild/repair flows arrive later.
 _Avoid_: Wreck, ruin tile
 
+**Morale shock**:
+A morale-meter hit triggered by combat events (M3-T9): family/companion deaths and blows taken. Every shock funnels through the bond buffer — a Pop's strongest Relationship softens the landing — so bonded Pops measurably out-grieve strangers.
+
+**Break point**:
+The individual morale threshold, derived on read from nerve traits (brave/coward/optimistic/pessimistic), melee veterancy and open wounds. Dropping to or below it ON A SHOCK breaks the Pop.
+_Avoid_: Courage stat, stored threshold
+
+**Routing**:
+Post-break flight (SPEC §2.5, M3-T9): the Pop flees its living threat, sheds engagements, ignores every order, can be attacked down but never fights back — until RALLIED or SAFE.
+_Avoid_: Fleeing (bare), retreat
+
+**Rally**:
+Recovery of a router: nearby same-owner allies whose own morale is high restore meter per rare tick until break-point-plus-margin clears (rallied exit); a dead or far-away threat ends the episode immediately instead (safe exit).
+
 **Unit death**:
 A combatant's death, logged on the victim owner's ledger with its own CombatEvents kind (M2-T10) so fallen units count separately from razed structures — the stats recap reads exactly this.
 _Avoid_: Casualty (bare), kill (from the victim side)
