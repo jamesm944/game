@@ -376,6 +376,11 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
       }[] = [];
       for (const entity of knownEntities()) {
         if (entity.owner === player) continue;
+        // Targetable entities only: villagers carry no Combat row and
+        // are untargetable per the M2-T5 contract, so an attack draft
+        // naming one would be rejected loudly at application. Military
+        // units AND structures stay legitimate strike targets.
+        if (entity.defId === "villager") continue;
         out.push(entity);
       }
       return out;

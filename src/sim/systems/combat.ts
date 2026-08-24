@@ -552,6 +552,62 @@ export function createCombatSystem(
     };
 
     /**
+     * Approach legs must aim at a PASSABLE tile. The reach ring lies
+     * outside the TARGET's own footprint, but a packed base can put a
+     * NEIGHBOR's impassable tiles under the geometric stand point — an
+     * unreachable path goal makes movement fail the route and cancel
+     * the whole queue (engagement silently lost, M2 sign-off e2e).
+     * Rescue: expand Chebyshev rings around the ideal point and take
+     * the closest passable tile center (strict < keeps the first of
+     * equal distances — deterministic). Bounded so a truly boxed-in
+     * structure falls back to the raw point and fails honestly.
+     */
+    const APPROACH_STANDPOINT_SEARCH_RING = 3;
+    const passableApproachPoint = (point: {
+      x: number;
+      y: number;
+    }): { x: number; y: number } => {
+      const size = world.layers.size;
+      const passability = world.layers.derivedPassability;
+      const baseX = Math.floor(point.x);
+      const baseY = Math.floor(point.y);
+      const tilePassable = (tx: number, ty: number): boolean =>
+        tx >= 0 &&
+        ty >= 0 &&
+        tx < size &&
+        ty < size &&
+        passability[ty * size + tx] === PASSABLE;
+      // Happy path: the ideal stand point already sits on passable
+      // ground — return it UNTOUCHED so approach geometry (and every
+      // digest downstream of it) stays byte-identical to pre-rescue.
+      if (tilePassable(baseX, baseY)) return point;
+      let best: { x: number; y: number } | undefined;
+      let bestD = Number.POSITIVE_INFINITY;
+      for (
+        let ring = 1;
+        ring <= APPROACH_STANDPOINT_SEARCH_RING && best === undefined;
+        ring++
+      ) {
+        for (let dy = -ring; dy <= ring; dy++) {
+          for (let dx = -ring; dx <= ring; dx++) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+            const tx = baseX + dx;
+            const ty = baseY + dy;
+            if (!tilePassable(tx, ty)) continue;
+            const cx = tx + 0.5;
+            const cy = ty + 0.5;
+            const d = (cx - point.x) ** 2 + (cy - point.y) ** 2;
+            if (d < bestD) {
+              bestD = d;
+              best = { x: cx, y: cy };
+            }
+          }
+        }
+      }
+      return best ?? { x: point.x, y: point.y };
+    };
+
+    /**
      * Remove every queued reference to a freshly dead entity: Attack
      * heads targeting it (plus their directly-paired approach leg) and
      * dangling Combat target columns. Paused jobs resume untouched.
@@ -813,7 +869,9 @@ export function createCombatSystem(
       }
 
       // Out of reach: keep a Move approach leg ahead of the Attack head.
-      const standPoint = standPointOf(combatant, targetBody, reach);
+      const standPoint = passableApproachPoint(
+        standPointOf(combatant, targetBody, reach),
+      );
       const head = peekActivity(combatant.queue);
       if (head === undefined || head.kind === "attack") {
         combatant.queue.unshift(moveActivity([standPoint.x, standPoint.y]));

@@ -346,9 +346,25 @@ Shipped-scope checklist (M1-T11 sign-off):
 - [x] Demo checklist sim-half executed end-to-end headlessly (`tests/e2e/m1-demo.test.ts`: chop → construct house+barracks → train to pop cap); browser-only visual items documented as manual checks in `docs/m1-budget.md`
 - [ ] Manual browser demo pass (visual 60 fps, drag-box feel) — instructions in `docs/m1-budget.md`; not blocking M2 start
 
-### M2 — Feudal economy + combat
+### M2 — Feudal economy + combat ✅ (shipped, sign-off ticket M2-T11)
 
 Expanded gatherables (Iron/Coal/Clay) + Sawpit/Kiln/Smithy/Forge/Kitchen recipes (depth-1) with tools/meals effects; Age advancement II/III gating buildings/units; military units with ~8-armor-class counter table, attack-move, health bars/rings overlays; building damage/destruction + repath invalidation; full fog-of-war planes + KnowledgeView + minimap projection + memory ghosts; AI build-order + economy layers speaking the command interface; **Conquest victory**; drop-off filters, farm re-seeding. **Demo:** beat the scripted AI by conquest on a 120×120 map.
+
+Shipped-scope checklist (M2-T11 sign-off):
+
+- [x] Definition pipeline (Zod three-round load, stable u8 codes) + Feudal/Castle content: units, buildings, techs, recipes (M2-T1)
+- [x] Expanded gatherables (Iron/Coal/Clay) + drop-off filter acceptance (M2-T2)
+- [x] Depth-1 commodity production chains with tools/meals effects (M2-T3)
+- [x] Age advancement ladder (Feudal/Castle) gating placement, training, research (M2-T4)
+- [x] Combat core: ~8-armor-class counter table, derived stats, strikes, deaths, digest-visible event logs (M2-T5)
+- [x] Military training via trainUnit, Forge equipment, attack-move, health-bar/ring overlays (M2-T6)
+- [x] Building damage/destruction as attackable structures + repath-storm invalidation + rubble (M2-T7)
+- [x] Real fog-of-war planes (explored/visible/contributor counts), KnowledgeView seam, minimap projection, memory ghosts (M2-T8)
+- [x] AI opponent: build-order strategies + economy manager speaking the player command interface through one shared inbox, fog-honest by construction (M2-T9)
+- [x] Conquest victory evaluator (symmetric, replay-safe) + skirmish game flow with restart-to-fresh-world (`src/game/session.ts`) (M2-T10)
+- [x] Perf budget re-gate at M2 workload (combat+fog active, 500-unit mixed load): p95 tick < 8 ms and mirror copy < 2 ms asserted in CI (`tests/perf/budget-m2.test.ts`); recorded run in `docs/m2-budget.md` (measured p95 ≈ 6.4–6.7 ms, mirror ≈ 0.02–0.08 ms; M1 economy gate unchanged at ≈ 1.8–3.2 ms)
+- [x] Demo checklist sim-half executed end-to-end headlessly vs the AI (`tests/e2e/m2-full-game.test.ts`: FC → knights → conquest push on 120×120; victory at tick 13,290 on the pinned seed); browser-only visual items documented in `docs/m2-manual.md`
+- [ ] Manual browser pass (visual fps under fog+overlays, minimap readability, ghost/fog rendering) — checklist in `docs/m2-manual.md`; not blocking M3 start
 
 ### M3 — Pops deep-sim + schedules
 
