@@ -1,7 +1,8 @@
 /**
- * Knowledge & Culture victory paths — SPEC §2.11 / M4-T4 (issue #59).
+ * Knowledge, Culture, Wonder, Relic & Economic victory paths — SPEC
+ * §2.11 / M4-T4 (issue #59) + M4-T5 (issue #60).
  *
- * Unit-grade coverage behind the two m4t4 goldens:
+ * Unit-grade coverage behind the m4t4/m4t5 goldens:
  *
  *   - KNOWLEDGE GENERATOR: teacher-scaled KP per attended lesson
  *     (School JSON's knowledgePerLesson × 1000 × teacher level) and the
@@ -12,8 +13,18 @@
  *   - TIMED FRAME: the sustain timer PAUSES when the condition breaks
  *     mid-hold and RESUMES where it left off — derived purely from the
  *     digest-visible SUSTAINING statuses in the VictoryCheck log;
+ *   - HOLD-ONLY FRAME (M4-T5): the Wonder timer runs while it stands,
+ *     its destruction cancels (freezes) the hold, and rebuilding
+ *     resumes where it left off; the Relic act demands ALL relics in
+ *     own monasteries — a partial hold never arms the timer;
+ *   - RELIC LIFECYCLE: collectRelic/depositRelic command semantics and
+ *     their validation walls, plus capture-on-destruction grounding;
+ *   - ECONOMIC GENERATOR: branch output market value accrues to the
+ *     owner's ledger at branch credit events only (never direct
+ *     workplaces), full value not just the treasury share;
  *   - SYMMETRY: the SAME evaluators crown the AI side through the same
- *     code path when IT completes the Knowledge act;
+ *     code path when IT completes an act (knowledge here; wonder,
+ *     relic and economic below);
  *   - HUD line formatting for every panel state.
  */
 import { describe, expect, it } from "vitest";
@@ -33,7 +44,9 @@ import {
 } from "../src/sim/core/stockpile";
 import {
   createWorld,
+  despawnEntity,
   registerSystem,
+  spawnEntity,
   step,
   type World,
 } from "../src/sim/core/world";
@@ -57,7 +70,10 @@ import {
 } from "../src/sim/systems/culture";
 import {
   KNOWLEDGE_EVALUATOR,
+  RELIC_EVALUATOR,
   VICTORY_CHECK_CADENCE_TICKS,
+  WONDER_EVALUATOR,
+  ECONOMIC_EVALUATOR,
   createVictorySystem,
   evaluateOutcome,
   sustainedHoldTicksOf,
@@ -71,6 +87,21 @@ import { createSchoolSystem } from "../src/sim/systems/school";
 import { normalizeLifecycleConfig } from "../src/sim/systems/lifecycle";
 import { formatVictoryPathLine } from "../src/ui/victoryPaths";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
+import {
+  dropStoredRelicsOf,
+  relicRowOf,
+  spawnRelic,
+} from "../src/sim/components/relic";
+import {
+  COLLECT_RELIC_COMMAND_KIND,
+  DEPOSIT_RELIC_COMMAND_KIND,
+  createRelicSystem,
+} from "../src/sim/systems/relics";
+import { setCompanyRow } from "../src/sim/components/company";
+import {
+  creditBranchOutput,
+  branchOutputOf,
+} from "../src/sim/components/branchOutput";
 
 const SIZE = 28;
 
@@ -365,6 +396,7 @@ describe("HUD progress lines (§2.13 chrome)", () => {
       actComplete: false,
       holdTicks: 0,
       timerTicks: 900 as number | undefined,
+      metricNoun: "capacity",
     };
     expect(formatVictoryPathLine(base)).toBe(
       "Knowledge · 0.0/min sustained · act missing",
@@ -395,7 +427,429 @@ describe("HUD progress lines (§2.13 chrome)", () => {
         actComplete: true,
         holdTicks: 0,
         timerTicks: undefined,
+        metricNoun: "capacity",
       }),
     ).toBe("Conquest · capacity 2 · act ready");
+    // M4-T5 hold-only paths: the act standing IS the qualifying
+    // condition, so progress reads as a bare hold race.
+    expect(
+      formatVictoryPathLine({
+        ...base,
+        id: "wonder",
+        pathCode: 3,
+        metric: 1,
+        ratePerMinMilli: undefined,
+        thresholdPerMin: undefined,
+        actComplete: true,
+        metricNoun: "wonders",
+      }),
+    ).toBe("Wonder · wonders 1 · holding 0/900t");
+    expect(
+      formatVictoryPathLine({
+        ...base,
+        id: "relic",
+        pathCode: 4,
+        metric: 1,
+        ratePerMinMilli: undefined,
+        thresholdPerMin: undefined,
+        metricNoun: "relics",
+      }),
+    ).toBe("Relic · relics 1 · act missing");
+    expect(
+      formatVictoryPathLine({
+        id: "economic",
+        pathCode: 5,
+        metric: 90_000,
+        ratePerMinMilli: 60_000,
+        thresholdPerMin: 40,
+        actComplete: true,
+        holdTicks: 300,
+        timerTicks: 900,
+        metricNoun: "capacity",
+      }),
+    ).toBe("Economic · 60.0/min sustained · need 40/min · holding 300/900t");
+  });
+});
+
+// ---- M4-T5: Wonder / Relic / Economic -------------------------------------------
+
+/** Harness with the relic system registered BEFORE the victory frame. */
+function harness5(seed = 60): Harness {
+  const world = createWorld(seed, {
+    size: SIZE,
+    layers: buildLayers(
+      new Uint8Array(SIZE * SIZE).fill(TERRAIN_GRASS),
+      new Uint8Array(SIZE * SIZE),
+    ),
+  });
+  const comps = defineSimComponents(world);
+  registerSystem(world, createRelicSystem({ comps }));
+  registerSystem(world, createVictorySystem(comps));
+  return { world, comps };
+}
+
+function submit(h: Harness, kind: string, data: Record<string, unknown>): void {
+  h.world.inbox.submit({ kind, targetTick: h.world.tick + 1, data });
+}
+
+function runUntilDecided(h: Harness, guardTicks = 6000): number {
+  let guard = 0;
+  while (!evaluateOutcome(h.world, h.comps).decided && guard++ < guardTicks) {
+    step(h.world);
+  }
+  if (!evaluateOutcome(h.world, h.comps).decided) {
+    throw new Error("match never decided within the guard window");
+  }
+  return h.world.tick;
+}
+
+describe("wonder path (§2.11 M4-T5)", () => {
+  it("wins when the Wonder stands through its hold timer", () => {
+    const h = harness5(71);
+    addLedgers(h);
+    stampFinishedBuilding(h.world, h.comps, "wonder", 8, 8, {
+      playerId: PLAYER_ONE,
+    });
+    const decidedTick = runUntilDecided(h);
+    // The act stands from tick 0: SUSTAINING heartbeats from the first
+    // cadence cover the timer one interval later.
+    expect(decidedTick).toBeGreaterThan(WONDER_EVALUATOR.timerTicks!);
+    expect(evaluateOutcome(h.world, h.comps)).toEqual({
+      decided: true,
+      winners: [PLAYER_ONE],
+      losers: [{ playerId: 1, reason: "wonder" }],
+    });
+  });
+
+  it("cancels on destruction — and resumes where it left off on rebuild", () => {
+    const h = harness5(72);
+    addLedgers(h);
+    stampFinishedBuilding(h.world, h.comps, "wonder", 8, 8, {
+      playerId: PLAYER_ONE,
+    });
+    let wonderEid = 0;
+    for (const eid of h.world.entities) {
+      if (
+        h.world.rowsByComponentId.get(h.comps.buildingId)?.has(eid) === true
+      ) {
+        wonderEid = eid;
+      }
+    }
+    expect(wonderEid).toBeGreaterThan(0);
+
+    // Bank ~half the hold, then raze the Wonder mid-timer.
+    while (h.world.tick < VICTORY_CHECK_CADENCE_TICKS * 15) step(h.world);
+    const bankedAtRaze = sustainedHoldTicksOf(
+      { world: h.world, comps: h.comps },
+      WONDER_EVALUATOR,
+      PLAYER_ONE,
+    );
+    expect(bankedAtRaze).toBeGreaterThan(0);
+    despawnEntity(h.world, wonderEid);
+
+    // The hold freezes while no Wonder stands — even with many ticks.
+    const frozenFrom = h.world.tick;
+    while (h.world.tick < frozenFrom + VICTORY_CHECK_CADENCE_TICKS * 10) {
+      step(h.world);
+    }
+    expect(
+      sustainedHoldTicksOf(
+        { world: h.world, comps: h.comps },
+        WONDER_EVALUATOR,
+        PLAYER_ONE,
+      ),
+    ).toBe(bankedAtRaze);
+    expect(evaluateOutcome(h.world, h.comps).decided).toBe(false);
+
+    // Rebuilding resumes exactly where the destruction left it.
+    stampFinishedBuilding(h.world, h.comps, "wonder", 20, 8, {
+      playerId: PLAYER_ONE,
+    });
+    const decidedTick = runUntilDecided(h);
+    expect(decidedTick).toBeGreaterThanOrEqual(frozenFrom);
+    expect(WONDER_EVALUATOR.timerTicks! - bankedAtRaze).toBeLessThan(
+      h.world.tick - frozenFrom,
+    );
+    expect(evaluateOutcome(h.world, h.comps).winners).toEqual([PLAYER_ONE]);
+    expect(evaluateOutcome(h.world, h.comps).losers[0]?.reason).toBe("wonder");
+  });
+});
+
+describe("relic path (§2.11 M4-T5)", () => {
+  interface RelicStage {
+    readonly monastery: number;
+    readonly monk: number;
+    readonly relics: [number, number];
+  }
+
+  /** One monastery + monk for each side and two neutral relics. */
+  function stageRelics(seed: number): RelicStage & Harness {
+    const h = harness5(seed);
+    addLedgers(h);
+    const mine = stampFinishedBuilding(h.world, h.comps, "monastery", 6, 6, {
+      playerId: PLAYER_ONE,
+    });
+    const monk = spawnUnit(h.world, h.comps, 9.5, 9.5, { ownerId: PLAYER_ONE });
+    const relics: [number, number] = [
+      spawnRelic(h.world, h.comps, 12.5, 6.5),
+      spawnRelic(h.world, h.comps, 12.5, 9.5),
+    ];
+    return { monastery: mine, monk, relics, ...h };
+  }
+
+  it("moves relics ground → monk → monastery through real commands", () => {
+    const stage = stageRelics(73);
+    submit(stage, COLLECT_RELIC_COMMAND_KIND, {
+      unitEid: stage.monk,
+      relicEid: stage.relics[0],
+    });
+    step(stage.world);
+    expect(relicRowOf(stage.world, stage.comps, stage.relics[0])).toEqual({
+      state: 1,
+      holderEid: stage.monk,
+    });
+    submit(stage, DEPOSIT_RELIC_COMMAND_KIND, {
+      unitEid: stage.monk,
+      monasteryEid: stage.monastery,
+    });
+    step(stage.world);
+    expect(relicRowOf(stage.world, stage.comps, stage.relics[0])).toEqual({
+      state: 2,
+      holderEid: stage.monastery,
+    });
+    expect(
+      RELIC_EVALUATOR.metric(
+        { world: stage.world, comps: stage.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(1);
+    // A partial hold is NOT the completing act.
+    expect(
+      RELIC_EVALUATOR.actComplete(
+        { world: stage.world, comps: stage.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(false);
+  });
+
+  it("wins only when ALL relics rest in own monasteries", () => {
+    const stage = stageRelics(74);
+    for (const relic of stage.relics) {
+      submit(stage, COLLECT_RELIC_COMMAND_KIND, {
+        unitEid: stage.monk,
+        relicEid: relic,
+      });
+      step(stage.world);
+      submit(stage, DEPOSIT_RELIC_COMMAND_KIND, {
+        unitEid: stage.monk,
+        monasteryEid: stage.monastery,
+      });
+      step(stage.world);
+    }
+    expect(
+      RELIC_EVALUATOR.actComplete(
+        { world: stage.world, comps: stage.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(true);
+    const decidedTick = runUntilDecided(stage);
+    expect(evaluateOutcome(stage.world, stage.comps)).toEqual({
+      decided: true,
+      winners: [PLAYER_ONE],
+      losers: [{ playerId: 1, reason: "relic" }],
+    });
+    void decidedTick;
+  });
+
+  it("grounds stored relics when their monastery dies (capture-on-destruction)", () => {
+    const stage = stageRelics(75);
+    for (const relic of stage.relics) {
+      submit(stage, COLLECT_RELIC_COMMAND_KIND, {
+        unitEid: stage.monk,
+        relicEid: relic,
+      });
+      step(stage.world);
+      submit(stage, DEPOSIT_RELIC_COMMAND_KIND, {
+        unitEid: stage.monk,
+        monasteryEid: stage.monastery,
+      });
+      step(stage.world);
+    }
+    expect(
+      RELIC_EVALUATOR.actComplete(
+        { world: stage.world, comps: stage.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(true);
+    // The exact hook combat's destroyStructure runs before the despawn.
+    expect(dropStoredRelicsOf(stage.world, stage.comps, stage.monastery)).toBe(
+      2,
+    );
+    despawnEntity(stage.world, stage.monastery);
+    for (const relic of stage.relics) {
+      expect(relicRowOf(stage.world, stage.comps, relic)).toEqual({
+        state: 0,
+        holderEid: 0,
+      });
+    }
+    expect(
+      RELIC_EVALUATOR.actComplete(
+        { world: stage.world, comps: stage.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(false);
+    // Zero stored anywhere: nobody holds anything again.
+    expect(
+      RELIC_EVALUATOR.metric(
+        { world: stage.world, comps: stage.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(0);
+  });
+
+  it("rejects collect/deposit misuse loudly", () => {
+    const stage = stageRelics(76);
+    // Collecting a relic that is not on the ground throws…
+    submit(stage, COLLECT_RELIC_COMMAND_KIND, {
+      unitEid: stage.monk,
+      relicEid: 999999,
+    });
+    expect(() => step(stage.world)).toThrow(/no Relic row/);
+    // …and so does depositing without carrying anything.
+    submit(stage, DEPOSIT_RELIC_COMMAND_KIND, {
+      unitEid: stage.monk,
+      monasteryEid: stage.monastery,
+    });
+    expect(() => step(stage.world)).toThrow(/carries no relic/);
+  });
+});
+
+describe("economic path (§2.11 M4-T5)", () => {
+  function stageCompany(h: Harness, ownerId: number): number {
+    const co = spawnEntity(h.world);
+    setCompanyRow(h.world, h.comps, co, {
+      ownerPlayerId: ownerId,
+      focusDomain: 3,
+      name: "Deepvein Combine",
+    });
+    return co;
+  }
+
+  it("wins once branch output sustains ≥N/min while owning ≥1 company", () => {
+    const h = harness5(77);
+    addLedgers(h);
+    createPlayerStockpile(h.world, h.comps, 1);
+    stageCompany(h, PLAYER_ONE);
+
+    let decidedTick = -1;
+    for (let guard = 0; guard < 4000 && decidedTick < 0; guard++) {
+      const next = h.world.tick + 1;
+      if (next % VICTORY_CHECK_CADENCE_TICKS === 0) {
+        // Steady branch output: 1000 milli per cadence ⇒ 60k/min,
+        // comfortably above the def's 40/min sustain gate.
+        creditBranchOutput(h.world, h.comps, PLAYER_ONE, 1000);
+      }
+      step(h.world);
+      if (evaluateOutcome(h.world, h.comps).decided) decidedTick = h.world.tick;
+    }
+    expect(decidedTick).toBeGreaterThan(ECONOMIC_EVALUATOR.timerTicks!);
+    expect(evaluateOutcome(h.world, h.comps)).toEqual({
+      decided: true,
+      winners: [PLAYER_ONE],
+      losers: [{ playerId: 1, reason: "economic" }],
+    });
+    // The metric IS the digest-visible cumulative ledger.
+    expect(
+      ECONOMIC_EVALUATOR.metric({ world: h.world, comps: h.comps }, PLAYER_ONE),
+    ).toBe(branchOutputOf(h.world, h.comps, PLAYER_ONE));
+  });
+
+  it("never counts output without an owning company (act missing)", () => {
+    const h = harness5(78);
+    addLedgers(h);
+    createPlayerStockpile(h.world, h.comps, 1);
+    creditBranchOutput(h.world, h.comps, PLAYER_ONE, 5000);
+    expect(
+      ECONOMIC_EVALUATOR.actComplete(
+        { world: h.world, comps: h.comps },
+        PLAYER_ONE,
+      ),
+    ).toBe(false);
+    for (let i = 0; i < VICTORY_CHECK_CADENCE_TICKS * 4; i++) step(h.world);
+    expect(evaluateOutcome(h.world, h.comps).decided).toBe(false);
+  });
+});
+
+describe("symmetric evaluation of the M4-T5 paths (§2.11)", () => {
+  it("crowns the AI side through wonder, relic and economic alike", () => {
+    // Wonder: the AI's Wonder holds its full timer.
+    const w = harness5(79);
+    addLedgers(w);
+    stampFinishedBuilding(w.world, w.comps, "wonder", 8, 8, { playerId: 1 });
+    runUntilDecided(w);
+    expect(evaluateOutcome(w.world, w.comps).winners).toEqual([1]);
+    expect(evaluateOutcome(w.world, w.comps).losers[0]?.reason).toBe("wonder");
+
+    // Relic: the AI monastery banks both relics first.
+    const r = harness5(80);
+    addLedgers(r);
+    const aiMonastery = stampFinishedBuilding(
+      r.world,
+      r.comps,
+      "monastery",
+      8,
+      8,
+      { playerId: 1 },
+    );
+    const aiMonk = spawnUnit(r.world, r.comps, 11.5, 11.5, { ownerId: 1 });
+    for (const tile of [
+      [14.5, 8.5],
+      [14.5, 11.5],
+    ] as const) {
+      const relic = spawnRelic(r.world, r.comps, tile[0], tile[1]);
+      submit(r, COLLECT_RELIC_COMMAND_KIND, {
+        unitEid: aiMonk,
+        relicEid: relic,
+      });
+      step(r.world);
+      submit(r, DEPOSIT_RELIC_COMMAND_KIND, {
+        unitEid: aiMonk,
+        monasteryEid: aiMonastery,
+      });
+      step(r.world);
+    }
+    runUntilDecided(r);
+    expect(evaluateOutcome(r.world, r.comps).winners).toEqual([1]);
+    expect(evaluateOutcome(r.world, r.comps).losers[0]?.reason).toBe("relic");
+
+    // Economic: an AI-owned company with steady branch output.
+    const e = harness5(81);
+    addLedgers(e);
+    createPlayerStockpile(e.world, e.comps, 1);
+    const aiCo = spawnEntity(e.world);
+    setCompanyRow(e.world, e.comps, aiCo, {
+      ownerPlayerId: 1,
+      focusDomain: 3,
+      name: "Rival Ventures",
+    });
+    let aiDecidedTick = -1;
+    for (let guard = 0; guard < 4000 && aiDecidedTick < 0; guard++) {
+      if ((e.world.tick + 1) % VICTORY_CHECK_CADENCE_TICKS === 0) {
+        creditBranchOutput(e.world, e.comps, 1, 2000);
+      }
+      step(e.world);
+      if (evaluateOutcome(e.world, e.comps).decided) {
+        aiDecidedTick = e.world.tick;
+      }
+    }
+    expect(aiDecidedTick).toBeGreaterThan(0);
+    expect(evaluateOutcome(e.world, e.comps).winners).toEqual([1]);
+    expect(evaluateOutcome(e.world, e.comps).losers[0]?.reason).toBe(
+      "economic",
+    );
+    // One evaluator object, opposite verdicts on the final states.
+    const ctxE = { world: e.world, comps: e.comps };
+    expect(ECONOMIC_EVALUATOR.actComplete(ctxE, 1)).toBe(true);
+    expect(ECONOMIC_EVALUATOR.actComplete(ctxE, PLAYER_ONE)).toBe(false);
   });
 });

@@ -98,6 +98,7 @@ import {
 } from "../components/buildings";
 import { injuryImpairmentOf } from "../components/body";
 import { isRoutingOf } from "../components/morale";
+import { dropCarriedRelicsOf, dropStoredRelicsOf } from "../components/relic";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
 import { equipmentCountsOf } from "../components/equipment";
@@ -698,6 +699,9 @@ export function createCombatSystem(
         );
       }
       purgeReferencesToDead(victimEid);
+      // M4-T5 §2.11: a fallen carrier grounds its carried relic at the
+      // corpse's position before the rows die.
+      dropCarriedRelicsOf(world, comps, victimEid);
       // Every row dies with the entity — work-slot and site claims are
       // released by construction (claims ARE those rows).
       despawnEntity(world, victimEid);
@@ -783,6 +787,10 @@ export function createCombatSystem(
       spawnRubble(world, comps, structure.defCode, originX, originY);
 
       purgeReferencesToDead(victimEid);
+      // M4-T5 §2.11: a destroyed monastery (or any building) grounds its
+      // stored relics at the footprint center BEFORE the despawn wipes
+      // the holder's rows — capture-on-destruction.
+      dropStoredRelicsOf(world, comps, victimEid);
       despawnEntity(world, victimEid);
       alive.delete(victimEid);
       structures.delete(victimEid);

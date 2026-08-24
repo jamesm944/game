@@ -55,6 +55,12 @@ import {
 } from "./buildings";
 import { BODY, BODY_ARITY, type BodyComponents } from "./body";
 import {
+  BRANCH_OUTPUT_LEDGER,
+  BRANCH_OUTPUT_LEDGER_ARITY,
+  type BranchLedgerComponents,
+} from "./branchOutput";
+import { RELIC, RELIC_ARITY, type RelicComponents } from "./relic";
+import {
   APPROVAL_MODE,
   APPROVAL_MODE_ARITY,
   BRANCH,
@@ -238,7 +244,11 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * M4-T4 adds the two §2.11 generator ledgers, also lazily attached:
  * KnowledgePoints between JobCooldown and Lessons ("Job…" < "Kno" <
  * "Les"); PrestigeLedger between Position and ProductionCycle
- * ("Position" < "Prestige…" < "Production…").
+ * ("Position" < "Prestige…" < "Production…"). M4-T5 adds the Relic
+ * rows (between Relationship and ResearchedTechs — "Rela…" < "Relic" <
+ * "Res…") and the BranchOutputLedger (between Branch and Building —
+ * "Branch" < "BranchOutput…" < "Bu…"), both attached only when their
+ * features are exercised.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -266,6 +276,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M4-T2: Branch registers alphabetically between Body ("Bo") and
   // Building ("Bu").
   [BRANCH, BRANCH_ARITY],
+  // M4-T5: BranchOutputLedger registers alphabetically after Branch
+  // ("Branch" < "BranchOutputLedger") and before Building.
+  [BRANCH_OUTPUT_LEDGER, BRANCH_OUTPUT_LEDGER_ARITY],
   ...BUILDING_COMPONENT_ARITIES,
   // M3-T5: Household registers alphabetically after GateRejected
   // (which AGE_COMPONENT_ARITIES lists last) and before Identity.
@@ -281,6 +294,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // (which PRODUCTION_COMPONENT_ARITIES lists last) and ResearchedTechs
   // (which COMBAT_COMPONENT_ARITIES lists).
   [RELATIONSHIP, RELATIONSHIP_ARITY],
+  // M4-T5: Relic registers alphabetically between Relationship and
+  // ResearchedTechs ("Rela…" < "Relic" < "Res…").
+  [RELIC, RELIC_ARITY],
   ...EQUIPMENT_COMPONENT_ARITIES,
   // M4-T3: ExpansionLog registers alphabetically between Equipment
   // (which EQUIPMENT_COMPONENT_ARITIES lists last) and Foreman.
@@ -338,6 +354,7 @@ export interface SimComponents
     AgeComponents,
     EconomyComponents,
     StockpileComponents,
+    BranchLedgerComponents,
     BuildingComponents,
     BodyComponents,
     CombatComponents,
@@ -353,6 +370,7 @@ export interface SimComponents
     NeedsComponents,
     MoraleComponents,
     PopComponents,
+    RelicComponents,
     RelationshipComponents,
     SkillComponents,
     SocialEventComponents,
@@ -378,6 +396,10 @@ export function defineSimComponents(world: World): SimComponents {
     bodyId: defineComponent(world, BODY),
     // M4-T2: Branch registers alphabetically between Body and Building.
     branchId: defineComponent(world, BRANCH),
+    // M4-T5: BranchOutputLedger registers alphabetically after Branch
+    // ("Branch" < "BranchOutputLedger") and before Building. Lazily
+    // attached on the first branch output credit.
+    branchOutputLedgerId: defineComponent(world, BRANCH_OUTPUT_LEDGER),
     buildingId: defineComponent(world, BUILDING),
     buildingSiteId: defineComponent(world, BUILDING_SITE),
     carryCapacityId: defineComponent(world, CARRY_CAPACITY),
@@ -439,6 +461,9 @@ export function defineSimComponents(world: World): SimComponents {
     // M3-T7: Relationship registers alphabetically before ResearchedTechs
     // ("Rel" < "Res") and after ProductionJob.
     relationshipId: defineComponent(world, RELATIONSHIP),
+    // M4-T5: Relic registers alphabetically between Relationship and
+    // ResearchedTechs. Rows exist only in worlds that spawn relics.
+    relicId: defineComponent(world, RELIC),
     researchedTechsId: defineComponent(world, RESEARCHED_TECHS),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
     rubbleId: defineComponent(world, RUBBLE),
@@ -729,6 +754,7 @@ export * from "./economy";
 export * from "./owner";
 export * from "./age";
 export * from "./body";
+export * from "./branchOutput";
 export * from "./buildings";
 export * from "./combat";
 export * from "./company";
@@ -743,4 +769,5 @@ export * from "./morale";
 export * from "./needs";
 export * from "./production";
 export * from "./pop";
+export * from "./relic";
 export * from "./skills";

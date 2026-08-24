@@ -71,6 +71,7 @@ import { createHouseholdsSystem } from "../sim/systems/households";
 import { createSchoolSystem } from "../sim/systems/school";
 import { createKnowledgeSystem } from "../sim/systems/knowledge";
 import { createCultureSystem } from "../sim/systems/culture";
+import { createRelicSystem } from "../sim/systems/relics";
 import { createMassSystem, MASS_CLOSE_MINUTE } from "../sim/systems/mass";
 import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
 import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
@@ -210,6 +211,10 @@ export function createSkirmishWorld(
   // M4-T4: the §2.11 Culture generator — monument income, happiness
   // surplus accrual and festival commands feed the PrestigeLedger.
   registerSystem(world, createCultureSystem(comps));
+  // M4-T5: the §2.11 Relic lifecycle — collectRelic/depositRelic move
+  // map relics between the ground, monk carries and Monastery storage;
+  // the victory evaluator reads the resulting rows on its own cadence.
+  registerSystem(world, createRelicSystem({ comps }));
   // M3-T8: the Sunday Morning Mass planner books communal [Move,
   // Leisure{MASS}] chains whenever a finished Church stands — before
   // social (which executes arrivals) and schedules (whose night band

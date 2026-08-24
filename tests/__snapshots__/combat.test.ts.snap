@@ -66,6 +66,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 4,
     "mill": 4,
     "mining-camp": 4,
+    "monastery": 4,
     "monument": 4,
     "sawpit": 4,
     "school": 4,
@@ -74,6 +75,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 4,
     "town-center": 4,
     "watch-tower": 4,
+    "wonder": 4,
   },
   "knight": {
     "archery-range": 10,
@@ -91,6 +93,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 10,
     "mill": 10,
     "mining-camp": 10,
+    "monastery": 10,
     "monument": 10,
     "sawpit": 10,
     "school": 10,
@@ -99,6 +102,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 10,
     "town-center": 10,
     "watch-tower": 10,
+    "wonder": 10,
   },
   "man-at-arms": {
     "archery-range": 6,
@@ -116,6 +120,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 6,
     "mill": 6,
     "mining-camp": 6,
+    "monastery": 6,
     "monument": 6,
     "sawpit": 6,
     "school": 6,
@@ -124,6 +129,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 6,
     "town-center": 6,
     "watch-tower": 6,
+    "wonder": 6,
   },
   "militia": {
     "archery-range": 4,
@@ -141,6 +147,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 4,
     "mill": 4,
     "mining-camp": 4,
+    "monastery": 4,
     "monument": 4,
     "sawpit": 4,
     "school": 4,
@@ -149,6 +156,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 4,
     "town-center": 4,
     "watch-tower": 4,
+    "wonder": 4,
   },
   "monk": {
     "archery-range": 1,
@@ -166,6 +174,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 1,
     "mill": 1,
     "mining-camp": 1,
+    "monastery": 1,
     "monument": 1,
     "sawpit": 1,
     "school": 1,
@@ -174,6 +183,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 1,
     "town-center": 1,
     "watch-tower": 1,
+    "wonder": 1,
   },
   "scout-cavalry": {
     "archery-range": 3,
@@ -191,6 +201,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 3,
     "mill": 3,
     "mining-camp": 3,
+    "monastery": 3,
     "monument": 3,
     "sawpit": 3,
     "school": 3,
@@ -199,6 +210,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 3,
     "town-center": 3,
     "watch-tower": 3,
+    "wonder": 3,
   },
   "skirmisher": {
     "archery-range": 2,
@@ -216,6 +228,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 2,
     "mill": 2,
     "mining-camp": 2,
+    "monastery": 2,
     "monument": 2,
     "sawpit": 2,
     "school": 2,
@@ -224,6 +237,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 2,
     "town-center": 2,
     "watch-tower": 2,
+    "wonder": 2,
   },
   "villager": {
     "archery-range": 3,
@@ -241,6 +255,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "lumber-camp": 3,
     "mill": 3,
     "mining-camp": 3,
+    "monastery": 3,
     "monument": 3,
     "sawpit": 3,
     "school": 3,
@@ -249,6 +264,7 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × buildin
     "tavern": 3,
     "town-center": 3,
     "watch-tower": 3,
+    "wonder": 3,
   },
 }
 `;

@@ -307,6 +307,27 @@ _Avoid_: Win checker, victory logic
 **Relic victory**: hold all Relics through timer.
 **Knowledge victory**: build the Grand Academy and sustain ≥N KP/min for T minutes. Generators: School lessons (KP scaled by teacher level) plus a lump award per completed research.
 **Culture victory**: build the Grand Monument and sustain ≥N prestige/min for T minutes. Generators: Monuments' ongoing income, population happiness/morale surplus, and Festivals.
+**Economic victory** (M4-T5): own ≥1 Company and sustain ≥N credits/min of aggregate Branch output market value for T minutes. The gate lives in the `economic-path` victory-path definition — the act is company ownership itself, no completing-act building.
+
+**Relic**:
+A neutral map pickup (grounded → carried → stored) tracked in one Relic row per entity. A player "holds" a relic only while it rests STORED inside their own finished Monastery; holding ALL relics arms the timer.
+_Avoid_: Artifact, holy item (bare)
+
+**Monk**:
+The unit that carries relics to Monastery storage via the `collectRelic`/`depositRelic` commands. The v1 carry is a command-driven stub — no walk-to-pickup activity chain yet.
+_Avoid_: Priest, cleric
+
+**Hold-only path**:
+A timed path with NO sustain threshold (Wonder, Relic): every heartbeat interval whose closing check finds the act standing counts toward the hold. Destruction is the cancel key — razing the Wonder or losing any relic freezes (and later resumes) the timer exactly like a broken sustain gate.
+_Avoid_: Instant win, untimed path
+
+**Branch output ledger**:
+The economic path's cumulative counter — one BranchOutputLedger row per player in integer milli-credits, fed by the companies layer's output observer at every branch credit event (full market value, never just the treasury share).
+_Avoid_: Treasury (that's the company's virtual share), income
+
+**Victory-path definition**:
+A fifth definition family (`kind: "victoryPath"` under `src/data/definitions/victory/`) pinning gates for paths whose completing act is not a building — the Economic threshold/timer today.
+_Avoid_: Hardcoded threshold
 
 **Knowledge Points (KP)**:
 The cumulative per-player knowledge output on the ledger entity's KnowledgePoints row, carried in integer milli-units. The sustained KP/min metric is derived from this counter's deltas across the player's own VictoryCheck log — never from hidden state.
@@ -321,7 +342,7 @@ A `hostFestival` command that converts Food+Gold into a timed prestige burst; co
 _Avoid_: Party, celebration (bare)
 
 **Completing act**:
-The building that arms a timed path's win condition — Grand Academy (knowledge) or Grand Monument (culture). Until it stands, no interval counts toward the hold timer even while output flows.
+The building (or, for the economic path, the owned Company) that arms a timed path's win condition — Grand Academy (knowledge), Grand Monument (culture), the Wonder itself (wonder). Until it stands, no interval counts toward the hold timer even while output flows.
 _Avoid_: Victory building, win structure
 
 **Sustain gate**:

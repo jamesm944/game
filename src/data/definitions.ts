@@ -19,6 +19,7 @@ import type {
   RecipeDefinition,
   TechDefinition,
   UnitDefinition,
+  VictoryPathDefinition,
 } from "./schema";
 
 const REGISTRY = loadDefinitions(builtinSources());
@@ -27,6 +28,7 @@ export const UNIT_DEFINITIONS = REGISTRY.units;
 export const BUILDING_DEFINITIONS = REGISTRY.buildings;
 export const TECH_DEFINITIONS = REGISTRY.techs;
 export const RECIPE_DEFINITIONS = REGISTRY.recipes;
+export const VICTORY_PATH_DEFINITIONS = REGISTRY.victoryPaths;
 
 /** u8 def codes assigned by ascending slug over each loaded family. */
 function assignCodes<T extends { id: string }>(
@@ -68,6 +70,15 @@ export function techDefOf(id: string): TechDefinition {
 export function recipeDefOf(id: string): RecipeDefinition {
   const def = REGISTRY.recipes.get(id);
   if (!def) throw new Error(`unknown recipe definition: ${JSON.stringify(id)}`);
+  return def;
+}
+
+/** §2.11 victory-path constants (M4-T5 economic gate and friends). */
+export function victoryPathDefOf(id: string): VictoryPathDefinition {
+  const def = REGISTRY.victoryPaths.get(id);
+  if (!def) {
+    throw new Error(`unknown victory path definition: ${JSON.stringify(id)}`);
+  }
   return def;
 }
 

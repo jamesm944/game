@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t5b — player relic victory > records milestone digests and replays byte-identically 1`] = `
+[
+  {
+    "digest": "fnv1a64:40049935a47f73ea",
+    "tick": 250,
+  },
+  {
+    "digest": "fnv1a64:5b0533f9a2c971a9",
+    "tick": 500,
+  },
+  {
+    "digest": "fnv1a64:86fda47a6d562cb0",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:d003f6f5528224fc",
+    "tick": 1000,
+  },
+  {
+    "digest": "fnv1a64:182f7501ec1a392d",
+    "tick": 1250,
+  },
+  {
+    "digest": "fnv1a64:ab7c3c4fb7a7a6ee",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:bb0f085051161c9e",
+    "tick": 1750,
+  },
+  {
+    "digest": "fnv1a64:8d816c652bb65b42",
+    "tick": 2000,
+  },
+  {
+    "digest": "fnv1a64:a8c55e9c8a35b39a",
+    "tick": 2250,
+  },
+]
+`;

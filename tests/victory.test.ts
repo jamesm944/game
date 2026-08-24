@@ -192,11 +192,15 @@ describe("§2.11 frame", () => {
 
   it("still rejects half-specified timed paths loudly", () => {
     const { world, comps } = harness();
-    const timerNoThreshold = () =>
+    // M4-T5: a hold-only path (timer, no threshold) is now LEGAL — the
+    // Wonder/Relic paths register exactly that shape — so the loud
+    // failure moves to the genuinely broken shapes: a threshold
+    // without a timer, and non-positive gates.
+    const holdOnly = () =>
       createVictorySystem(comps, {
         paths: [
           {
-            id: "wonder",
+            id: "hold-only",
             pathCode: 7,
             timerTicks: 3000,
             metric: () => 0,
@@ -204,7 +208,7 @@ describe("§2.11 frame", () => {
           },
         ],
       });
-    expect(timerNoThreshold).toThrow(/sustain threshold/);
+    expect(holdOnly).not.toThrow();
     void world;
     const thresholdNoTimer = () =>
       createVictorySystem(comps, {
@@ -220,6 +224,19 @@ describe("§2.11 frame", () => {
         ],
       });
     expect(thresholdNoTimer).toThrow(/no hold timer/);
+    const zeroTimer = () =>
+      createVictorySystem(comps, {
+        paths: [
+          {
+            id: "wonder",
+            pathCode: 7,
+            timerTicks: 0,
+            metric: () => 0,
+            actComplete: () => true,
+          },
+        ],
+      });
+    expect(zeroTimer).toThrow(/positive hold timer/);
   });
 
   it("registers VictoryCheck alphabetically last and rides the digest", () => {
@@ -287,9 +304,10 @@ describe("conquest (SPEC §2.11)", () => {
         h.comps,
         playerId,
       ).filter((entry) => entry.pathCode === VICTORY_PATH_CONQUEST);
-      // M4-T4: the log carries one entry per path per check (conquest +
-      // knowledge + culture); the conquest slice is four heartbeats.
-      expect(readVictoryChecks(h.world, h.comps, playerId).length).toBe(12);
+      // M4-T4/T5: the log carries one entry per path per check (conquest
+      // + knowledge + culture + wonder + relic + economic); the conquest
+      // slice is four heartbeats.
+      expect(readVictoryChecks(h.world, h.comps, playerId).length).toBe(24);
       for (const entry of conquestChecks) {
         expect(entry.status).toBe(VICTORY_STATUS_ONGOING);
         expect(entry.metric).toBe(0);

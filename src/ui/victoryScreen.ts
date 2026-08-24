@@ -26,7 +26,13 @@ export interface VictoryRecapStats {
 export type VictorySide = "victory" | "defeat";
 
 export type VictoryEndReason =
-  "conquest" | "surrender" | "knowledge" | "culture";
+  | "conquest"
+  | "surrender"
+  | "knowledge"
+  | "culture"
+  | "wonder"
+  | "relic"
+  | "economic";
 
 /** "Victory" / "Defeat" headline from the viewer's perspective. */
 export function formatVictoryTitle(side: VictorySide): string {
@@ -56,6 +62,21 @@ export function formatVictoryReason(
     return side === "victory"
       ? "Culture — the Grand Monument sustained its prestige"
       : "Culture — your rival's Grand Monument sustained its prestige";
+  }
+  if (reason === "wonder") {
+    return side === "victory"
+      ? "Wonder — the Wonder stood through the victory timer"
+      : "Wonder — your rival's Wonder stood through the victory timer";
+  }
+  if (reason === "relic") {
+    return side === "victory"
+      ? "Relic — the Monastery secured every Relic"
+      : "Relic — your rival's Monastery secured every Relic";
+  }
+  if (reason === "economic") {
+    return side === "victory"
+      ? "Economic — the Company sustained its branch output"
+      : "Economic — your rival's Company sustained its branch output";
   }
   return side === "victory"
     ? "Conquest — enemy military production destroyed"

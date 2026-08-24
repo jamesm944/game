@@ -1,0 +1,20 @@
+{
+  "id": "wonder",
+  "name": "Wonder",
+  "kind": "building",
+  "costs": { "wood": 600, "gold": 1000, "stone": 1200 },
+  "ageGate": "imperial",
+  "techPrereqs": ["imperial-age"],
+  "buildTime": 8000,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 3000,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 8,
+  "populationCap": 0,
+  "victory": {
+    "path": "wonder",
+    "holdTicks": 900
+  }
+}

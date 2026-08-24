@@ -2,7 +2,7 @@
  * Definition pipeline loader — SPEC §3 / M2-T1.
  *
  * Collects every JSON under src/data/definitions/{units,buildings,
- * techs,recipes}/ and applies the Factorio three-round prototype-stage
+ * techs,recipes,victory}/ and applies the Factorio three-round prototype-stage
  * discipline: parse ALL sources → validate ALL definitions → fail
  * LOUDLY with ONE aggregated error listing every problem at once. A
  * broken file must never hide its siblings' failures.
@@ -27,10 +27,12 @@ import {
   recipeSchema,
   techSchema,
   unitSchema,
+  victoryPathDefinitionSchema,
   type BuildingDefinition,
   type RecipeDefinition,
   type TechDefinition,
   type UnitDefinition,
+  type VictoryPathDefinition,
 } from "./schema";
 
 /** One raw definition file: its label (for errors) and JSON text. */
@@ -45,6 +47,7 @@ export interface DefinitionRegistry {
   readonly buildings: ReadonlyMap<string, BuildingDefinition>;
   readonly techs: ReadonlyMap<string, TechDefinition>;
   readonly recipes: ReadonlyMap<string, RecipeDefinition>;
+  readonly victoryPaths: ReadonlyMap<string, VictoryPathDefinition>;
 }
 
 export interface LoadDefinitionsOptions {
@@ -72,8 +75,14 @@ interface GlobImportMeta {
 }
 
 const DEFINITIONS_GLOB_PATTERN =
-  "./definitions/{units,buildings,techs,recipes}/*.json";
-const DEFINITIONS_KIND_DIRS = ["units", "buildings", "techs", "recipes"];
+  "./definitions/{units,buildings,techs,recipes,victory}/*.json";
+const DEFINITIONS_KIND_DIRS = [
+  "units",
+  "buildings",
+  "techs",
+  "recipes",
+  "victory",
+];
 
 /**
  * Every built-in definition file as raw text, sorted by label so error
@@ -154,10 +163,15 @@ const KIND_SCHEMAS = {
   building: buildingSchema,
   tech: techSchema,
   recipe: recipeSchema,
+  victoryPath: victoryPathDefinitionSchema,
 } as const;
 
 type ParsedDefinition =
-  UnitDefinition | BuildingDefinition | TechDefinition | RecipeDefinition;
+  | UnitDefinition
+  | BuildingDefinition
+  | TechDefinition
+  | RecipeDefinition
+  | VictoryPathDefinition;
 
 function formatIssues(
   prefix: string,
@@ -200,6 +214,7 @@ export function loadDefinitions(
   const buildings = new Map<string, BuildingDefinition>();
   const techs = new Map<string, TechDefinition>();
   const recipes = new Map<string, RecipeDefinition>();
+  const victoryPaths = new Map<string, VictoryPathDefinition>();
   const validated: {
     readonly label: string;
     readonly def: ParsedDefinition;
@@ -236,7 +251,8 @@ export function loadDefinitions(
     if (def.kind === "unit") units.set(def.id, def);
     else if (def.kind === "building") buildings.set(def.id, def);
     else if (def.kind === "tech") techs.set(def.id, def);
-    else recipes.set(def.id, def);
+    else if (def.kind === "recipe") recipes.set(def.id, def);
+    else victoryPaths.set(def.id, def);
   }
 
   // ---- Round 3: cross-validate references between loaded sets.
@@ -378,5 +394,5 @@ export function loadDefinitions(
       `definition validation failed (${String(errors.length)}):\n  - ${errors.join("\n  - ")}`,
     );
   }
-  return { units, buildings, techs, recipes };
+  return { units, buildings, techs, recipes, victoryPaths };
 }

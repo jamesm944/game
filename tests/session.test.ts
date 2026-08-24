@@ -94,15 +94,16 @@ describe("createSkirmishWorld", () => {
     expect(session.aiKnowledge.villagerEids().length).toBe(5);
     expect(session.aiKnowledge.population()).toBe(5);
 
-    // One heartbeat, no decision on an untouched world. M4-T4: the log
-    // carries one ONGOING entry per §2.11 path (conquest + knowledge +
-    // culture), all zero on an untouched world.
+    // One heartbeat, no decision on an untouched world. M4-T4/T5: the
+    // log carries one ONGOING entry per §2.11 path (conquest +
+    // knowledge + culture + wonder + relic + economic), all zero on an
+    // untouched world.
     step(world);
     while (world.tick < VICTORY_CHECK_CADENCE_TICKS) step(world);
     expect(evaluateOutcome(world, comps).decided).toBe(false);
     for (const playerId of [PLAYER_ONE, AI_PLAYER]) {
       const checks = readVictoryChecks(world, comps, playerId);
-      expect(checks.length).toBe(3);
+      expect(checks.length).toBe(6);
       for (const entry of checks) {
         expect(entry.status).toBe(VICTORY_STATUS_ONGOING);
         expect(entry.metric).toBe(0); // nobody built production yet

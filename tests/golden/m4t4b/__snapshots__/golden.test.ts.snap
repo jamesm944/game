@@ -3,75 +3,75 @@
 exports[`golden harness m4t4b — player culture victory > records milestone digests and replays byte-identically 1`] = `
 [
   {
-    "digest": "fnv1a64:e540506c0b8dc84b",
+    "digest": "fnv1a64:0542ff3c3ae5ca22",
     "tick": 150,
   },
   {
-    "digest": "fnv1a64:554326a0d7d38e2f",
+    "digest": "fnv1a64:82af1c80373759ae",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:7dcd4a05c559c559",
+    "digest": "fnv1a64:b07029ddbbdf39ac",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:050d93130749b9e9",
+    "digest": "fnv1a64:ede85aa54ada7748",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:46746f80744b8090",
+    "digest": "fnv1a64:1545bccca544dbe9",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:8b607ab17c17270a",
+    "digest": "fnv1a64:65e1cfed2764f69f",
     "tick": 900,
   },
   {
-    "digest": "fnv1a64:e5b604cb3ddd10b0",
+    "digest": "fnv1a64:d43e6df5ebdf16d3",
     "tick": 1050,
   },
   {
-    "digest": "fnv1a64:441f6c0f5110808c",
+    "digest": "fnv1a64:ec3d082df741827f",
     "tick": 1200,
   },
   {
-    "digest": "fnv1a64:fc204d782c6c128c",
+    "digest": "fnv1a64:b4c13e275b07c183",
     "tick": 1350,
   },
   {
-    "digest": "fnv1a64:b53a00cab131c7f5",
+    "digest": "fnv1a64:dc9a5f7a29302396",
     "tick": 1500,
   },
   {
-    "digest": "fnv1a64:01058fa77edf166e",
+    "digest": "fnv1a64:4c4d8a34d69459b9",
     "tick": 1650,
   },
   {
-    "digest": "fnv1a64:f77ab5946618e630",
+    "digest": "fnv1a64:d568ff37b150c74f",
     "tick": 1800,
   },
   {
-    "digest": "fnv1a64:b487ef3dc91e315f",
+    "digest": "fnv1a64:9668245d144fd0b0",
     "tick": 1950,
   },
   {
-    "digest": "fnv1a64:c5ee9c95cedb88b9",
+    "digest": "fnv1a64:ba5d11b6c84c4666",
     "tick": 2100,
   },
   {
-    "digest": "fnv1a64:563a025f079137cb",
+    "digest": "fnv1a64:1a6e1a467ae49688",
     "tick": 2250,
   },
   {
-    "digest": "fnv1a64:e5df56f74301bc7f",
+    "digest": "fnv1a64:f8647b525e262f08",
     "tick": 2400,
   },
   {
-    "digest": "fnv1a64:694c91d58f01e756",
+    "digest": "fnv1a64:8e0057d0e738d895",
     "tick": 2550,
   },
   {
-    "digest": "fnv1a64:41ff27e6814fc259",
+    "digest": "fnv1a64:77dfdd2acf907f3e",
     "tick": 2700,
   },
 ]

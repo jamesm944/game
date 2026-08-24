@@ -1,0 +1,10 @@
+{
+  "id": "economic-path",
+  "name": "Economic Path",
+  "kind": "victoryPath",
+  "costs": {},
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "sustainPerMin": 40,
+  "holdTicks": 900
+}

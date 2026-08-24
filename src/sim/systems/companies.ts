@@ -124,6 +124,7 @@ import {
   setPendingExpansion,
   spendTreasuryMilli,
 } from "../components/company";
+import { creditBranchOutput } from "../components/branchOutput";
 import {
   buildingRectOf,
   getBuildingRow,
@@ -472,7 +473,6 @@ export function createCompaniesSystem(
     qty,
   ): void => {
     void _ownerId;
-    void outputSlug;
     // Profitability stamp (M4-T3): every credited workplace counts,
     // branch or direct — the organic scan reads exactly this map.
     lastOutputTickByBuilding.set(buildingEid, stepWorld.tick);
@@ -480,6 +480,23 @@ export function createCompaniesSystem(
     if (branch === undefined) return; // directly-owned workplace: no tithe
     const company = companyRowOf(stepWorld, stepComps, branch.companyEid);
     if (company === undefined) return; // defensive: dangling branch row
+    // §2.11 Economic generator (M4-T5): the FULL market value of every
+    // branch credit event feeds the owner's cumulative ledger — the
+    // metric the victory evaluator derives its sustained rate from.
+    // Integer-exact: qty × value × 1000 milli, mirroring the tithe math
+    // below (the share is an accounting split of this same value).
+    const value = MARKET_VALUE_PER_UNIT[outputSlug];
+    if (value === undefined) {
+      throw new Error(
+        `no market value registered for output ${JSON.stringify(outputSlug)}`,
+      );
+    }
+    creditBranchOutput(
+      stepWorld,
+      stepComps,
+      company.ownerPlayerId,
+      qty * value * 1000,
+    );
     const milli = branchShareMilli(qty, outputSlug, company.sharePct);
     if (milli <= 0) return; // zero-share companies keep a silent ledger
     pendingMilli.set(

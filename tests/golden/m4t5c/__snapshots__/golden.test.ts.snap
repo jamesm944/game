@@ -1,0 +1,98 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t5c — player economic victory > records milestone digests and replays byte-identically 1`] = `
+[
+  {
+    "digest": "fnv1a64:e5a0c6d2d29efdfa",
+    "tick": 250,
+  },
+  {
+    "digest": "fnv1a64:fd19e24361606888",
+    "tick": 500,
+  },
+  {
+    "digest": "fnv1a64:87478855e8474a10",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:83287610376c51ea",
+    "tick": 1000,
+  },
+  {
+    "digest": "fnv1a64:f318ccb9c42c2f37",
+    "tick": 1250,
+  },
+  {
+    "digest": "fnv1a64:889b217619ff3ece",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:f6a66ae08e7b7299",
+    "tick": 1750,
+  },
+  {
+    "digest": "fnv1a64:95b0254c948612a3",
+    "tick": 2000,
+  },
+  {
+    "digest": "fnv1a64:c63d6ce212a6f35d",
+    "tick": 2250,
+  },
+  {
+    "digest": "fnv1a64:d202a7e8101d7b77",
+    "tick": 2500,
+  },
+  {
+    "digest": "fnv1a64:9a6e1ab6b7a4966b",
+    "tick": 2750,
+  },
+  {
+    "digest": "fnv1a64:5f7c26816ced8a6c",
+    "tick": 3000,
+  },
+  {
+    "digest": "fnv1a64:1d4ba08b23bf8cbb",
+    "tick": 3250,
+  },
+  {
+    "digest": "fnv1a64:5c328113b6ec97f4",
+    "tick": 3500,
+  },
+  {
+    "digest": "fnv1a64:a09f80bfdec220da",
+    "tick": 3750,
+  },
+  {
+    "digest": "fnv1a64:909ca5fb8e2040b5",
+    "tick": 4000,
+  },
+  {
+    "digest": "fnv1a64:f8a1461bcec283cd",
+    "tick": 4250,
+  },
+  {
+    "digest": "fnv1a64:d5ce435d79ad646a",
+    "tick": 4500,
+  },
+  {
+    "digest": "fnv1a64:61894157f6e19906",
+    "tick": 4750,
+  },
+  {
+    "digest": "fnv1a64:cfe31cc38c296b20",
+    "tick": 5000,
+  },
+  {
+    "digest": "fnv1a64:ef9425ebe3c9def6",
+    "tick": 5250,
+  },
+  {
+    "digest": "fnv1a64:9e219616f7f60ff3",
+    "tick": 5500,
+  },
+  {
+    "digest": "fnv1a64:5d6bb268079bb146",
+    "tick": 5750,
+  },
+]
+`;

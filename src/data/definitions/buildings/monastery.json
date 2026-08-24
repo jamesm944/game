@@ -1,0 +1,24 @@
+{
+  "id": "monastery",
+  "name": "Monastery",
+  "kind": "building",
+  "costs": { "wood": 150, "stone": 200 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "buildTime": 3000,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 1200,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 8,
+  "populationCap": 0,
+  "trainQueue": {
+    "capacity": 5,
+    "trainable": [{ "unitId": "monk" }]
+  },
+  "victory": {
+    "path": "relic",
+    "holdTicks": 900
+  }
+}

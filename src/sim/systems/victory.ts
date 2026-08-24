@@ -1,5 +1,6 @@
 /**
- * Victory evaluators — SPEC §2.11 / M2-T10 (issue #44) + M4-T4 (#59).
+ * Victory evaluators — SPEC §2.11 / M2-T10 (issue #44) + M4-T4 (#59) +
+ * M4-T5 (#60).
  *
  * The §2.11 shared frame: every path = generator → accumulating metric →
  * completing act → victory timer (win on hold; Conquest timerless). The
@@ -9,18 +10,29 @@
  * per-player metric sampler for the digest rows and a per-player
  * completing-act probe.
  *
- * TIMED PATHS (M4-T4: Knowledge, Culture): the recorded metric is the
- * player's cumulative generator ledger (integer milli-units), and each
- * heartbeat stamps the extra SUSTAINING status when the completing act
- * stands AND the interval since the previous check held the path's
- * threshold rate. The win needs the act standing while accumulated
- * SUSTAINING spans cover timerTicks. Hold progress is derived purely
- * from the player's own VictoryCheck log — the exact rows the digests
- * hash: an interval contributes its tick span when the LATER check is
- * SUSTAINING and nothing otherwise. That makes the timer PAUSE whenever
- * the sustaining condition breaks and RESUME where it left off,
- * replay-safe with zero hidden state; decisions quantize to the 30-tick
- * cadence.
+ * TIMED PATHS (M4-T4: Knowledge, Culture; M4-T5: Economic): the
+ * recorded metric is the player's cumulative generator ledger (integer
+ * milli-units), and each heartbeat stamps the extra SUSTAINING status
+ * when the completing act stands AND the interval since the previous
+ * check held the path's threshold rate. The win needs the act standing
+ * while accumulated SUSTAINING spans cover timerTicks.
+ *
+ * HOLD-ONLY PATHS (M4-T5: Wonder, Relic) share the same timer with NO
+ * threshold: every interval whose closing heartbeat finds the act
+ * standing counts its full tick span. A completed Wonder holds through
+ * the timer; a player holding ALL relics (every Relic row STORED in
+ * their own finished Monasteries, at least one relic existing) does the
+ * same. Destruction is the cancel key: razing the Wonder (or losing any
+ * relic — capture-on-destruction grounds it again) breaks the act, the
+ * heartbeats fall back to ONGOING and the hold freezes until the act
+ * stands once more.
+ *
+ * Hold progress is derived purely from the player's own VictoryCheck
+ * log — the exact rows the digests hash: an interval contributes its
+ * tick span when the LATER check is SUSTAINING and nothing otherwise.
+ * That makes the timer PAUSE whenever the sustaining condition breaks
+ * and RESUME where it left off, replay-safe with zero hidden state;
+ * decisions quantize to the 30-tick cadence.
  *
  * CONQUEST: "enemy military production capacity destroyed". The watched
  * quantity is the §2.6 military-production set (barracks / archery
@@ -39,7 +51,10 @@
  *
  * SYMMETRY: every side runs the SAME evaluators through the SAME code
  * path — conquest reaches its verdict per side through one shared
- * predicate, Knowledge/Culture read each player's OWN ledger rows.
+ * predicate, Knowledge/Culture/Economic read each player's OWN ledger
+ * rows, and Wonder/Relic probe each side's own buildings and relics.
+ * The v1 AI charters no companies (SPEC §2.7) but an AI-owned Company
+ * row would win through this identical code path.
  *
  * SURRENDER (§2.13 game flow): the `surrender` command marks its player
  * defeated immediately; every surviving opponent wins. After any
@@ -59,6 +74,9 @@ import {
   VICTORY_PATH_CONQUEST,
   VICTORY_PATH_KNOWLEDGE,
   VICTORY_PATH_CULTURE,
+  VICTORY_PATH_WONDER,
+  VICTORY_PATH_RELIC,
+  VICTORY_PATH_ECONOMIC,
   VICTORY_STATUS_LOST,
   VICTORY_STATUS_ONGOING,
   VICTORY_STATUS_SUSTAINING,
@@ -70,15 +88,11 @@ import {
   readCombatEvents,
   COMBAT_EVENT_UNIT_DEATH,
 } from "../components/combat";
-import {
-  knowledgePointsOf,
-  type KnowledgeLedgerComponents,
-} from "../components/knowledge";
-import {
-  prestigeOf,
-  type CultureLedgerComponents,
-} from "../components/culture";
-import { buildingIdOfCode } from "../../data/definitions";
+import { knowledgePointsOf } from "../components/knowledge";
+import { prestigeOf } from "../components/culture";
+import { branchOutputOf } from "../components/branchOutput";
+import { relicsOf, RELIC_STORED } from "../components/relic";
+import { buildingIdOfCode, victoryPathDefOf } from "../../data/definitions";
 import {
   buildingDefsForVictoryPath,
   completingActDefOf,
@@ -182,7 +196,7 @@ export const CONQUEST_EVALUATOR: VictoryPathEvaluator = {
     ),
 };
 
-// ---- Timed paths (§2.11 Knowledge / Culture) -----------------------------------
+// ---- Timed paths (§2.11 Knowledge / Culture / Economic / hold-only) ------------
 
 /**
  * Trailing span the HUD/decision readouts average the rate over: the
@@ -198,24 +212,6 @@ export const TICKS_PER_SIM_MINUTE = 1800;
 
 /** Milli-units per whole unit — thresholds are declared per minute. */
 const MILLI_PER_UNIT = 1000;
-
-type LedgerVictoryComponents = SimComponents &
-  KnowledgeLedgerComponents &
-  CultureLedgerComponents;
-
-function requireLedgerComps(comps: SimComponents): LedgerVictoryComponents {
-  if (
-    typeof (comps as Partial<KnowledgeLedgerComponents>).knowledgePointsId !==
-      "number" ||
-    typeof (comps as Partial<CultureLedgerComponents>).prestigeLedgerId !==
-      "number"
-  ) {
-    throw new Error(
-      "timed victory paths need the KnowledgePoints/PrestigeLedger components",
-    );
-  }
-  return comps as LedgerVictoryComponents;
-}
 
 /**
  * One player's non-decisive check history for one path — the ONGOING/
@@ -248,27 +244,22 @@ export function intervalRateMilliOf(
 }
 
 /**
- * The sustained rate for one player's timed path right now: the
+ * The sustained rate for one gated timed path right now: the
  * cumulative counter's delta across the trailing window scaled to a
  * per-minute milli figure, anchored on the OLDEST recorded heartbeat
- * inside the window. Pure read of digest-visible rows.
+ * inside the window. Pure read of digest-visible rows. Hold-only paths
+ * (no thresholdPerMin) have no rate to sustain — callers skip this.
  */
 function trailingRateMilliOf(
   ctx: VictoryContext,
+  path: VictoryPathEvaluator,
   playerId: number,
-  pathCode: number,
-  cumulativeOf: (
-    world: World,
-    comps: LedgerVictoryComponents,
-    playerId: number,
-  ) => number,
 ): number {
-  const comps = requireLedgerComps(ctx.comps);
-  const now = cumulativeOf(ctx.world, comps, playerId);
+  const now = path.metric(ctx, playerId);
   // Heartbeats ascend by tick; the first one inside the window is the
   // oldest anchor. A zero-span anchor (only this very tick's own row)
   // has no elapsed time to average over.
-  const anchor = heartbeatHistoryOf(ctx, playerId, pathCode).find(
+  const anchor = heartbeatHistoryOf(ctx, playerId, path.pathCode).find(
     (entry) => ctx.world.tick - entry.tick <= VICTORY_RATE_WINDOW_TICKS,
   );
   if (anchor === undefined || anchor.tick >= ctx.world.tick) return 0;
@@ -278,17 +269,16 @@ function trailingRateMilliOf(
 /**
  * Accumulated hold ticks for ONE timed path from the player's own log:
  * every interval between consecutive heartbeats counts its tick span
- * when the LATER check carries SUSTAINING (act standing + interval rate
- * at/above threshold). Intervals under a broken condition count
- * nothing — the timer pauses and resumes exactly as §2.11 prescribes.
- * Decisions quantize to the cadence.
+ * when the LATER check carries SUSTAINING (act standing +, on gated
+ * paths, the interval rate at/above threshold). Intervals under a
+ * broken condition count nothing — the timer pauses and resumes
+ * exactly as §2.11 prescribes. Decisions quantize to the cadence.
  */
 export function sustainedHoldTicksOf(
   ctx: VictoryContext,
   path: Pick<VictoryPathEvaluator, "pathCode" | "thresholdPerMin">,
   playerId: number,
 ): number {
-  if (path.thresholdPerMin === undefined) return 0;
   const history = heartbeatHistoryOf(ctx, playerId, path.pathCode);
   let hold = 0;
   for (let i = 1; i < history.length; i++) {
@@ -337,12 +327,27 @@ function timedPathGate(path: VictoryRolePath): TimedPathGate {
   return { timerTicks: act.holdTicks, thresholdPerMin: act.sustainPerMin };
 }
 
+/** Resolve the completing-act hold timer for one hold-only path. */
+function holdOnlyGate(path: "wonder" | "relic"): number {
+  const act = completingActDefOf(path)?.victory;
+  if (act?.holdTicks === undefined || act.holdTicks <= 0) {
+    throw new Error(
+      `victory path ${JSON.stringify(path)} has no completing-act hold timer in its definition set`,
+    );
+  }
+  return act.holdTicks;
+}
+
 /** Finished-building probe over the path's completing-act defs. */
 function makeCompletingActProbe(
   path: VictoryRolePath,
 ): (ctx: VictoryContext, playerId: number) => boolean {
   const defIds = buildingDefsForVictoryPath(path)
-    .filter((def) => def.victory?.sustainPerMin !== undefined)
+    .filter(
+      (def) =>
+        def.victory?.sustainPerMin !== undefined ||
+        def.victory?.holdTicks !== undefined,
+    )
     .map((def) => def.id);
   return (ctx, playerId) => ownsFinishedBuilding(ctx, playerId, defIds);
 }
@@ -356,7 +361,7 @@ export const KNOWLEDGE_EVALUATOR: VictoryPathEvaluator = (() => {
     timerTicks: gate.timerTicks,
     thresholdPerMin: gate.thresholdPerMin,
     metric: (ctx, playerId) =>
-      knowledgePointsOf(ctx.world, requireLedgerComps(ctx.comps), playerId),
+      knowledgePointsOf(ctx.world, ctx.comps, playerId),
     actComplete: makeCompletingActProbe("knowledge"),
   };
 })();
@@ -369,20 +374,141 @@ export const CULTURE_EVALUATOR: VictoryPathEvaluator = (() => {
     pathCode: VICTORY_PATH_CULTURE,
     timerTicks: gate.timerTicks,
     thresholdPerMin: gate.thresholdPerMin,
-    metric: (ctx, playerId) =>
-      prestigeOf(ctx.world, requireLedgerComps(ctx.comps), playerId),
+    metric: (ctx, playerId) => prestigeOf(ctx.world, ctx.comps, playerId),
     actComplete: makeCompletingActProbe("culture"),
+  };
+})();
+
+// ---- M4-T5: Wonder / Relic / Economic -------------------------------------------
+
+/** This player's live count of finished Wonder buildings. */
+export function wonderCountOf(ctx: VictoryContext, playerId: number): number {
+  const defIds = buildingDefsForVictoryPath("wonder").map((def) => def.id);
+  let count = 0;
+  const buildingRows = ctx.world.rowsByComponentId.get(ctx.comps.buildingId);
+  if (!buildingRows) return 0;
+  for (const row of buildingRows.values()) {
+    if (row[0] !== playerId) continue;
+    if (defIds.includes(buildingIdOfCode(row[1]!))) count += 1;
+  }
+  return count;
+}
+
+/**
+ * The finished Monastery defs — the relic path's storage targets.
+ * Empty while the content set ships no such building.
+ */
+function monasteryDefIds(): string[] {
+  return buildingDefsForVictoryPath("relic")
+    .filter((def) => def.victory?.holdTicks !== undefined)
+    .map((def) => def.id);
+}
+
+/** Relics of THIS player stored inside their own finished monasteries. */
+export function relicsHeldOf(ctx: VictoryContext, playerId: number): number {
+  const monasteryIds = monasteryDefIds();
+  if (monasteryIds.length === 0) return 0;
+  let held = 0;
+  for (const { row } of relicsOf(ctx.world, ctx.comps)) {
+    if (row.state !== RELIC_STORED) continue;
+    // Stored in a FINISHED monastery this player owns (a razed holder
+    // has no Building row left to satisfy the probe).
+    const holderRow = ctx.world.rowsByComponentId
+      .get(ctx.comps.buildingId)
+      ?.get(row.holderEid);
+    if (
+      holderRow &&
+      holderRow[0] === playerId &&
+      monasteryIds.includes(buildingIdOfCode(holderRow[1]!))
+    ) {
+      held += 1;
+    }
+  }
+  return held;
+}
+
+/**
+ * The §2.11 Relic completing act: at least one relic exists and THIS
+ * player holds ALL of them inside their own finished monasteries. The
+ * zero-relic vacuous truth is explicitly NOT an act — a monastery
+ * alone must never win.
+ */
+export function relicActCompleteOf(
+  ctx: VictoryContext,
+  playerId: number,
+): boolean {
+  const all = relicsOf(ctx.world, ctx.comps);
+  if (all.length === 0) return false;
+  return relicsHeldOf(ctx, playerId) === all.length;
+}
+
+/**
+ * The §2.11 Economic completing act: owning ≥1 Company (SPEC §2.11 —
+ * no completing-act building). Reads Company rows only.
+ */
+export function ownsCompanyOf(ctx: VictoryContext, playerId: number): boolean {
+  for (const [, row] of ctx.world.rowsByComponentId.get(ctx.comps.companyId) ??
+    []) {
+    if (row[0] === playerId) return true;
+  }
+  return false;
+}
+
+/** The §2.11 Wonder path: complete the Wonder, hold through the timer. */
+export const WONDER_EVALUATOR: VictoryPathEvaluator = (() => {
+  const timer = holdOnlyGate("wonder");
+  return {
+    id: "wonder",
+    pathCode: VICTORY_PATH_WONDER,
+    timerTicks: timer,
+    thresholdPerMin: undefined, // hold-only: standing Wonder suffices
+    metric: wonderCountOf,
+    actComplete: (ctx, playerId) => wonderCountOf(ctx, playerId) > 0,
+  };
+})();
+
+/** The §2.11 Relic path: hold ALL Relics through the timer. */
+export const RELIC_EVALUATOR: VictoryPathEvaluator = (() => {
+  const timer = holdOnlyGate("relic");
+  return {
+    id: "relic",
+    pathCode: VICTORY_PATH_RELIC,
+    timerTicks: timer,
+    thresholdPerMin: undefined, // hold-only: holding every relic suffices
+    metric: relicsHeldOf,
+    actComplete: relicActCompleteOf,
+  };
+})();
+
+/**
+ * The §2.11 Economic path: aggregate Branch output market-value/min
+ * sustained ≥N while owning ≥1 Company for T minutes. Gate lives in
+ * the victory-path definition JSON ("economic-path"), not a building —
+ * the act is company ownership itself.
+ */
+export const ECONOMIC_EVALUATOR: VictoryPathEvaluator = (() => {
+  const gate = victoryPathDefOf("economic-path");
+  return {
+    id: "economic",
+    pathCode: VICTORY_PATH_ECONOMIC,
+    timerTicks: gate.holdTicks,
+    thresholdPerMin: gate.sustainPerMin,
+    metric: (ctx, playerId) => branchOutputOf(ctx.world, ctx.comps, playerId),
+    actComplete: ownsCompanyOf,
   };
 })();
 
 /**
  * Default evaluators registered by createVictorySystem: conquest plus
- * both M4-T4 timed paths, running symmetrically for every side.
+ * the M4-T4/M4-T5 timed paths, running symmetrically for every side.
  */
 export const DEFAULT_VICTORY_PATHS: readonly VictoryPathEvaluator[] = [
   CONQUEST_EVALUATOR,
   KNOWLEDGE_EVALUATOR,
   CULTURE_EVALUATOR,
+  WONDER_EVALUATOR,
+  RELIC_EVALUATOR,
+  ECONOMIC_EVALUATOR,
 ];
 
 // ---- Player enumeration & outcome ------------------------------------------------
@@ -398,7 +524,14 @@ export function victoryPlayerIds(world: World, comps: SimComponents): number[] {
 }
 
 /** Why a player left the match. */
-export type DefeatReason = "conquest" | "surrender" | "knowledge" | "culture";
+export type DefeatReason =
+  | "conquest"
+  | "surrender"
+  | "knowledge"
+  | "culture"
+  | "wonder"
+  | "relic"
+  | "economic";
 
 /** Defeat reason for a decisive LOST tail entry, by its path code. */
 function defeatReasonOfPathCode(pathCode: number): DefeatReason {
@@ -407,6 +540,12 @@ function defeatReasonOfPathCode(pathCode: number): DefeatReason {
       return "knowledge";
     case VICTORY_PATH_CULTURE:
       return "culture";
+    case VICTORY_PATH_WONDER:
+      return "wonder";
+    case VICTORY_PATH_RELIC:
+      return "relic";
+    case VICTORY_PATH_ECONOMIC:
+      return "economic";
     default:
       return "conquest";
   }
@@ -460,7 +599,7 @@ export function evaluateOutcome(
 // ---- The system ------------------------------------------------------------------
 
 export interface VictorySystemOptions {
-  /** Evaluators to run; defaults to conquest + the M4-T4 timed paths. */
+  /** Evaluators to run; defaults to conquest + the M4-T4/T5 timed paths. */
   readonly paths?: readonly VictoryPathEvaluator[] | undefined;
 }
 
@@ -468,15 +607,32 @@ export interface VictorySystemOptions {
 export interface VictoryPathReadout {
   readonly id: string;
   readonly pathCode: number;
-  /** Current metric sample (conquest capacity; timed: cumulative milli). */
+  /** Current metric sample (capacity / standing counts; timed: cumulative milli). */
   readonly metric: number;
-  /** Sustained per-minute rate for timed paths (undefined timerless). */
+  /**
+   * Sustained per-minute rate for gated timed paths (undefined on
+   * timerless and hold-only paths).
+   */
   readonly ratePerMinMilli: number | undefined;
   readonly thresholdPerMin: number | undefined;
   readonly actComplete: boolean;
   /** Accumulated qualifying hold ticks (0 on timerless paths). */
   readonly holdTicks: number;
   readonly timerTicks: number | undefined;
+  /** Noun the panel prints the metric with ("capacity", "relics"…). */
+  readonly metricNoun: string;
+}
+
+/** The metric noun each default path displays in the HUD panel. */
+function metricNounOf(path: VictoryPathEvaluator): string {
+  switch (path.id) {
+    case "wonder":
+      return "wonders";
+    case "relic":
+      return "relics";
+    default:
+      return "capacity";
+  }
 }
 
 /**
@@ -489,25 +645,19 @@ export function victoryPathReadout(
   path: VictoryPathEvaluator,
   playerId: number,
 ): VictoryPathReadout {
-  const timed = path.thresholdPerMin !== undefined;
+  const gated = path.thresholdPerMin !== undefined;
   return {
     id: path.id,
     pathCode: path.pathCode,
     metric: path.metric(ctx, playerId),
-    ratePerMinMilli: timed
-      ? trailingRateMilliOf(
-          ctx,
-          playerId,
-          path.pathCode,
-          path.pathCode === VICTORY_PATH_KNOWLEDGE
-            ? knowledgePointsOf
-            : prestigeOf,
-        )
+    ratePerMinMilli: gated
+      ? trailingRateMilliOf(ctx, path, playerId)
       : undefined,
     thresholdPerMin: path.thresholdPerMin,
     actComplete: path.actComplete(ctx, playerId),
     holdTicks: sustainedHoldTicksOf(ctx, path, playerId),
     timerTicks: path.timerTicks,
+    metricNoun: metricNounOf(path),
   };
 }
 
@@ -528,9 +678,10 @@ export function victoryPathReadouts(
  * planner) so checks observe fully settled state: destruction torn down,
  * rubble spawned, planner drafts already submitted for next tick.
  *
- * Timed paths must declare BOTH a hold timer and a positive sustain
- * threshold — a half-specified timed path could never win or would
- * win without sustaining, so it fails loudly at registration.
+ * Timed paths must declare a positive hold timer; a sustain threshold
+ * is optional (hold-only Wonder/Relic) but when declared it must be
+ * positive — a half-specified gated path could never win or would win
+ * without sustaining, so it fails loudly at registration.
  */
 export function createVictorySystem(
   comps: SimComponents,
@@ -546,13 +697,15 @@ export function createVictorySystem(
       }
       continue;
     }
-    if (
-      path.timerTicks <= 0 ||
-      path.thresholdPerMin === undefined ||
-      path.thresholdPerMin <= 0
-    ) {
+    if (path.timerTicks <= 0) {
       throw new Error(
-        `timed victory path ${JSON.stringify(path.id)} needs a positive hold timer and sustain threshold`,
+        `timed victory path ${JSON.stringify(path.id)} needs a positive hold timer`,
+      );
+    }
+    const threshold = path.thresholdPerMin;
+    if (threshold !== undefined && threshold <= 0) {
+      throw new Error(
+        `gated victory path ${JSON.stringify(path.id)} needs a positive sustain threshold`,
       );
     }
   }
@@ -653,26 +806,28 @@ function runChecks(
   }
 
   // Routine heartbeat: one entry per player and path, ascending. Timed
-  // paths stamp SUSTAINING when the completing act stands AND the
-  // interval since their previous heartbeat held the threshold rate —
-  // that status bit is exactly what the hold-timer sum reads, so the
-  // pause/resume ledger lives in digest rows only.
+  // paths stamp SUSTAINING when the completing act stands AND — on
+  // gated paths (Knowledge/Culture/Economic) — the interval since
+  // their previous heartbeat held the threshold rate. Hold-only paths
+  // (Wonder/Relic) stamp whenever the act stands. That status bit is
+  // exactly what the hold-timer sum reads, so the pause/resume ledger
+  // lives in digest rows only.
   for (const playerId of players) {
     for (const path of paths) {
       const metric = path.metric(ctx, playerId);
       let status = VICTORY_STATUS_ONGOING;
-      if (path.thresholdPerMin !== undefined) {
+      const actStands = path.actComplete(ctx, playerId);
+      if (actStands && path.thresholdPerMin !== undefined) {
         const tail = heartbeatHistoryOf(ctx, playerId, path.pathCode).at(-1);
         const rate =
           tail === undefined
             ? 0
             : intervalRateMilliOf(tail, { tick: world.tick, metric });
-        if (
-          rate >= path.thresholdPerMin * MILLI_PER_UNIT &&
-          path.actComplete(ctx, playerId)
-        ) {
+        if (rate >= path.thresholdPerMin * MILLI_PER_UNIT) {
           status = VICTORY_STATUS_SUSTAINING;
         }
+      } else if (actStands && path.timerTicks !== undefined) {
+        status = VICTORY_STATUS_SUSTAINING;
       }
       appendVictoryCheck(world, comps, playerId, {
         tick: world.tick,

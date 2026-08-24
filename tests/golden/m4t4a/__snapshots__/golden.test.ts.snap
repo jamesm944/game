@@ -3,67 +3,67 @@
 exports[`golden harness m4t4a — player knowledge victory > records milestone digests and replays byte-identically 1`] = `
 [
   {
-    "digest": "fnv1a64:82ff187ce8558d8c",
+    "digest": "fnv1a64:d047dfcdfbfc5827",
     "tick": 250,
   },
   {
-    "digest": "fnv1a64:ba6734360c2b3a88",
+    "digest": "fnv1a64:683a8e3e7b0819e7",
     "tick": 500,
   },
   {
-    "digest": "fnv1a64:6b27e8a17aff56c4",
+    "digest": "fnv1a64:5d46f039a2610977",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:d1a3b67113b8d749",
+    "digest": "fnv1a64:f3a746496b866152",
     "tick": 1000,
   },
   {
-    "digest": "fnv1a64:0683181a6db88f39",
+    "digest": "fnv1a64:cc54939eb88688da",
     "tick": 1250,
   },
   {
-    "digest": "fnv1a64:b43e9f87f8400ccf",
+    "digest": "fnv1a64:59eb5363050c5e7e",
     "tick": 1500,
   },
   {
-    "digest": "fnv1a64:9222cde484f25abd",
+    "digest": "fnv1a64:c372f00f7403ef72",
     "tick": 1750,
   },
   {
-    "digest": "fnv1a64:b8851ee98a4cd6ea",
+    "digest": "fnv1a64:14e3b50d7ec15e9d",
     "tick": 2000,
   },
   {
-    "digest": "fnv1a64:8f7345437336a06b",
+    "digest": "fnv1a64:359b7115c5885710",
     "tick": 2250,
   },
   {
-    "digest": "fnv1a64:b8c0817169763257",
+    "digest": "fnv1a64:415c8106e245370c",
     "tick": 2500,
   },
   {
-    "digest": "fnv1a64:ba867e82bc298ad2",
+    "digest": "fnv1a64:a5f585554e992dc9",
     "tick": 2750,
   },
   {
-    "digest": "fnv1a64:f20b33abd0420ca6",
+    "digest": "fnv1a64:8d9d77051e9392ef",
     "tick": 3000,
   },
   {
-    "digest": "fnv1a64:e53135e8741cc74d",
+    "digest": "fnv1a64:90b864dec757e1f2",
     "tick": 3250,
   },
   {
-    "digest": "fnv1a64:caceba76220d0348",
+    "digest": "fnv1a64:961b39ab65c3e96d",
     "tick": 3500,
   },
   {
-    "digest": "fnv1a64:377d61f6a9d7109c",
+    "digest": "fnv1a64:92b7f986994b7d01",
     "tick": 3750,
   },
   {
-    "digest": "fnv1a64:71b18893d76ea453",
+    "digest": "fnv1a64:1ccf89e7970c51e2",
     "tick": 4000,
   },
 ]

@@ -3,7 +3,8 @@
  *
  * Zod schemas are the single source of truth; TS types come from
  * z.infer. Definitions live as JSON under
- * src/data/definitions/{units,buildings,techs,recipes}/ and load with
+ * src/data/definitions/{units,buildings,techs,recipes,victory}/ and load
+ * with
  * the Factorio three-round discipline (see ./load.ts): parse all →
  * validate all → fail loudly listing EVERY error. M2-T1 grew the M1
  * stubs into the full kind set: age gates became the dark|feudal|
@@ -14,7 +15,13 @@
 
 import { z } from "zod";
 
-export const KIND = z.enum(["unit", "building", "tech", "recipe"]);
+export const KIND = z.enum([
+  "unit",
+  "building",
+  "tech",
+  "recipe",
+  "victoryPath",
+]);
 
 /** Age names used by every `ageGate` field (SPEC §3). */
 export const AGES = ["dark", "feudal", "castle", "imperial"] as const;
@@ -145,19 +152,20 @@ export const footprintSchema = z.object({
 });
 
 /**
- * §2.11 victory-path role carried by a building definition (M4-T4). All
- * thresholds/rates live in Entity-definition JSON (SPEC §2.11), so the
- * completing-act buildings declare their sustain gate here and the
- * generator buildings their yield — the evaluators read these tables,
- * never hardcoded numbers.
+ * §2.11 victory-path role carried by a building definition (M4-T4,
+ * extended M4-T5). All thresholds/rates live in Entity-definition JSON
+ * (SPEC §2.11), so the completing-act buildings declare their sustain
+ * gate here and the generator buildings their yield — the evaluators
+ * read these tables, never hardcoded numbers.
  */
 export const victoryRoleSchema = z
   .object({
     /** Which §2.11 path this building serves. */
-    path: z.enum(["knowledge", "culture"]),
+    path: z.enum(["knowledge", "culture", "wonder", "relic", "economic"]),
     /**
      * Completing-act buildings only: minimum sustained metric per sim
-     * minute that must hold for holdTicks to win the path.
+     * minute that must hold for holdTicks to win the path. Hold-only
+     * paths (Wonder) declare holdTicks WITHOUT a sustain gate.
      */
     sustainPerMin: z.number().int().positive().optional(),
     /** Completing-act buildings only: required sustained hold, in ticks. */
@@ -172,18 +180,33 @@ export const victoryRoleSchema = z
     festivalPrestige: z.number().int().nonnegative().optional(),
   })
   .superRefine((role, ctx) => {
-    const sustaining = role.sustainPerMin !== undefined;
-    const timed = role.holdTicks !== undefined;
-    if (sustaining !== timed) {
+    if (role.sustainPerMin !== undefined && role.holdTicks === undefined) {
       ctx.addIssue({
         code: "custom",
-        message: "victory roles declare sustainPerMin and holdTicks together",
+        message: "victory roles declare sustainPerMin only alongside holdTicks",
         path: ["sustainPerMin"],
       });
     }
   });
 
 export type VictoryRole = z.infer<typeof victoryRoleSchema>;
+
+/**
+ * §2.11 victory-path constants as their own definition family (M4-T5):
+ * paths whose completing act is NOT a building — the Economic gate is
+ * "owning ≥1 Company" — still pin their threshold/timer in JSON under
+ * src/data/definitions/victory/ and ride the same three-round load.
+ */
+export const victoryPathDefinitionSchema = z.object({
+  ...commonFields,
+  kind: z.literal("victoryPath"),
+  /** Minimum sustained metric per sim minute each check must record. */
+  sustainPerMin: z.number().int().positive(),
+  /** Required accumulated qualifying hold, in ticks. */
+  holdTicks: z.number().int().positive(),
+});
+
+export type VictoryPathDefinition = z.infer<typeof victoryPathDefinitionSchema>;
 
 /** One trainable unit entry inside a production building's queue config. */
 const trainQueueEntrySchema = z.object({ unitId: z.string().min(1) });

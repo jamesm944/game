@@ -36,10 +36,13 @@ export interface VictoryComponents {
   readonly victoryCheckId: number;
 }
 
-/** §2.11 path codes. Conquest ships in M2; Knowledge/Culture in M4-T4. */
+/** §2.11 path codes. Conquest ships M2; Knowledge/Culture M4-T4; the Wonder/Relic/Economic trio M4-T5. */
 export const VICTORY_PATH_CONQUEST = 0;
 export const VICTORY_PATH_KNOWLEDGE = 1;
 export const VICTORY_PATH_CULTURE = 2;
+export const VICTORY_PATH_WONDER = 3;
+export const VICTORY_PATH_RELIC = 4;
+export const VICTORY_PATH_ECONOMIC = 5;
 
 /** VictoryCheck status codes. */
 export const VICTORY_STATUS_ONGOING = 0;
@@ -48,10 +51,12 @@ export const VICTORY_STATUS_LOST = 2;
 /** A player conceded via the surrender command (§2.13 game flow). */
 export const VICTORY_STATUS_SURRENDERED = 3;
 /**
- * Timed-path heartbeat (M4-T4): the completing act stands AND the
- * interval since the previous check sustained at/above the path's
- * threshold — this check's interval counts toward the hold timer.
- * Plain ONGOING means the interval did not qualify (timer paused).
+ * Timed-path heartbeat (M4-T4): the completing act stands AND — on
+ * paths with a sustain gate — the interval since the previous check
+ * held at/above the threshold. This check's interval counts toward the
+ * hold timer. Plain ONGOING means the interval did not qualify (timer
+ * paused). M4-T5: hold-only paths (Wonder/Relic, no gate) stamp this
+ * whenever the act stands.
  */
 export const VICTORY_STATUS_SUSTAINING = 4;
 

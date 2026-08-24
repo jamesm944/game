@@ -22,11 +22,13 @@ import {
   TECH_DEFINITIONS,
   UNIT_DEFINITIONS,
   UNIT_DEF_CODES,
+  VICTORY_PATH_DEFINITIONS,
   buildingCodeOf,
   buildingDefOf,
   techDefOf,
   unitCodeOf,
   unitDefOf,
+  victoryPathDefOf,
 } from "../../src/data/definitions";
 
 describe("definition loader happy path", () => {
@@ -35,9 +37,15 @@ describe("definition loader happy path", () => {
     // M3-T5: the §2.3 school joins the building set (17). M3-T7 adds
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
     // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).
-    expect(BUILDING_DEFINITIONS.size).toBe(23);
+    // M4-T5: the wonder + monastery completing acts (25).
+    expect(BUILDING_DEFINITIONS.size).toBe(25);
     expect(TECH_DEFINITIONS.size).toBe(8);
     expect(RECIPE_DEFINITIONS.size).toBe(6);
+    // M4-T5: the §2.11 victory-path constants are their own family.
+    expect(VICTORY_PATH_DEFINITIONS.size).toBe(1);
+    const economicPath = victoryPathDefOf("economic-path");
+    expect(economicPath.sustainPerMin).toBeGreaterThan(0);
+    expect(economicPath.holdTicks).toBeGreaterThan(0);
 
     // Spot-check a unit: AoE2-baseline villager fields survive the round
     // trip with schema defaults applied.
@@ -74,7 +82,7 @@ describe("definition loader happy path", () => {
       (a, b) => a[1] - b[1],
     );
     expect(buildingCodes[0]).toEqual(["archery-range", 1]);
-    expect(buildingCodes.at(-1)?.[0]).toBe("watch-tower");
+    expect(buildingCodes.at(-1)?.[0]).toBe("wonder");
 
     expect(unitCodeOf("militia")).toBeGreaterThan(unitCodeOf("knight"));
     expect(buildingCodeOf("town-center")).toBeGreaterThan(

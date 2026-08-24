@@ -23,6 +23,8 @@ function formatPerMin(milli: number | undefined): string {
  *   `Knowledge · 12.0/min sustained · need 40/min · paused 120/900t`
  *   `Culture · act missing`
  *   `Conquest · capacity 2 · act ready`
+ *   `Wonder · wonders 1 · holding 300/900t`   (hold-only paths)
+ *   `Relic · relics 1 · act missing`
  */
 export function formatVictoryPathLine(readout: VictoryPathReadout): string {
   const label = readout.id.charAt(0).toUpperCase() + readout.id.slice(1);
@@ -30,23 +32,28 @@ export function formatVictoryPathLine(readout: VictoryPathReadout): string {
     const metric =
       readout.ratePerMinMilli !== undefined
         ? `${formatPerMin(readout.ratePerMinMilli)}/min sustained`
-        : `capacity ${String(readout.metric)}`;
+        : `${readout.metricNoun} ${String(readout.metric)}`;
     return `${label} · ${metric} · act missing`;
   }
-  // Act complete from here: timed paths show the sustain race,
-  // conquest (timerless) simply stands ready to win.
+  // Act complete from here: gated timed paths show the sustain race…
   if (
-    readout.thresholdPerMin === undefined ||
-    readout.timerTicks === undefined ||
-    readout.ratePerMinMilli === undefined
+    readout.thresholdPerMin !== undefined &&
+    readout.timerTicks !== undefined &&
+    readout.ratePerMinMilli !== undefined
   ) {
-    return `${label} · capacity ${String(readout.metric)} · act ready`;
+    const state =
+      readout.ratePerMinMilli >= readout.thresholdPerMin * 1000
+        ? "holding"
+        : "paused";
+    return `${label} · ${formatPerMin(readout.ratePerMinMilli)}/min sustained · need ${String(readout.thresholdPerMin)}/min · ${state} ${String(readout.holdTicks)}/${String(readout.timerTicks)}t`;
   }
-  const state =
-    readout.ratePerMinMilli >= readout.thresholdPerMin * 1000
-      ? "holding"
-      : "paused";
-  return `${label} · ${formatPerMin(readout.ratePerMinMilli)}/min sustained · need ${String(readout.thresholdPerMin)}/min · ${state} ${String(readout.holdTicks)}/${String(readout.timerTicks)}t`;
+  // …hold-only paths show the bare hold race (the act standing IS the
+  // qualifying condition — no rate to fall below)…
+  if (readout.timerTicks !== undefined) {
+    return `${label} · ${readout.metricNoun} ${String(readout.metric)} · holding ${String(readout.holdTicks)}/${String(readout.timerTicks)}t`;
+  }
+  // …and conquest (timerless) simply stands ready to win.
+  return `${label} · capacity ${String(readout.metric)} · act ready`;
 }
 
 export interface VictoryPathsPanelHandle {

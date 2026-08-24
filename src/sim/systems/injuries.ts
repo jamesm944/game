@@ -62,6 +62,7 @@ import {
   ledgerEidOf,
 } from "../components/combat";
 import { despawnEntity, type SimSystem, type World } from "../core/world";
+import { dropCarriedRelicsOf } from "../components/relic";
 import { RARE_TICK_INTERVAL, rareTickDue } from "./skills";
 
 /** Components the injury helpers/system need (SimComponents satisfies). */
@@ -70,6 +71,9 @@ export type InjurySystemComponents = BodyComponents & {
   readonly combatId: number;
   readonly combatEventsId: number;
   readonly stockpileId: number;
+  /** M4-T5: carried relics ground at the corpse's position on death. */
+  readonly positionId: number;
+  readonly relicId: number;
 };
 
 // ---- Documented tuning constants ---------------------------------------------
@@ -237,6 +241,9 @@ export function killUnitByWounds(
       amount: totalSeverity,
     });
   }
+  // M4-T5 §2.11: a wound-dead carrier grounds its carried relic before
+  // the rows die (combat kills take the same hook).
+  dropCarriedRelicsOf(world, comps, victimEid);
   despawnEntity(world, victimEid);
 }
 
