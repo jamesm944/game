@@ -61,6 +61,7 @@ import {
 import { traitWorkSpeedMult, traitXpGainMult } from "../data/traits";
 import type { SimComponents } from "../components";
 import type { NeedsComponents } from "../components/needs";
+import { injuryImpairmentOf } from "../components/body";
 import { restWorkMultiplierOf } from "./needs";
 import type { SimSystem, World } from "../core/world";
 
@@ -311,11 +312,11 @@ export function effectiveGatherTicksPerUnit(
 }
 
 /**
- * The ONE gather-interval resolver (M3-T2 ×M3-T3): folds the worker's
- * gathering skill + work-speed traits AND the rest penalty into a
- * single integer interval for a freshly constructed work chain. Purely
- * a function of digest-visible rows; rowless/fully-rested workers get
- * exactly `baseTicks`.
+ * The ONE gather-interval resolver (M3-T2 ×M3-T3 ×M3-T4): folds the
+ * worker's gathering skill + work-speed traits AND the rest penalty AND
+ * wound impairments into a single integer interval for a freshly
+ * constructed work chain. Purely a function of digest-visible rows;
+ * rowless/fully-rested/healthy workers get exactly `baseTicks`.
  */
 export function resolveGatherInterval(
   world: World,
@@ -328,7 +329,12 @@ export function resolveGatherInterval(
     workTraitMultOf(world, comps, eid),
   );
   const restMult = restWorkMultiplierOf(world, comps, eid);
-  return Math.max(1, Math.round(baseTicks / (skillMult * restMult)));
+  // M3-T4: arm/vital wounds slow the swing exactly like exhaustion.
+  const injuryWorkMult = injuryImpairmentOf(world, comps, eid).workMult;
+  return Math.max(
+    1,
+    Math.round(baseTicks / (skillMult * restMult * injuryWorkMult)),
+  );
 }
 
 /** Attack multiplier contributed by a combat skill level (exact float). */

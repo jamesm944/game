@@ -422,7 +422,12 @@ function spawnTrainedUnit(
       ownerId: playerId,
       // M3-T1: trained villagers are named Pops with seeded traits.
       identity: true,
+      // M3-T4: trained villagers carry the wound model.
+      body: true,
     });
   }
-  return spawnCombatUnit(world, comps, unitId, x, y, playerId);
+  return spawnCombatUnit(world, comps, unitId, x, y, playerId, {
+    // M3-T4: trained soldiers carry the wound model too.
+    body: true,
+  });
 }

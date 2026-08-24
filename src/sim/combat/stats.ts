@@ -67,6 +67,15 @@ export interface StatContext {
    * legacy rowless units (multiplier exactly 1).
    */
   readonly skillLevels?: ReadonlyMap<string, number> | undefined;
+  /**
+   * Wound impairment multipliers (M3-T4, Body row decoded via
+   * injuryImpairmentOf): arms/head/torso scale attack down, legs scale
+   * speed down. Omit for unwounded/rowless units (multipliers exactly
+   * 1) — applied LAST so open trauma scales the fully-equipped,
+   * skilled, tech'd loadout.
+   */
+  readonly impairment?:
+    { readonly attackMult: number; readonly speedMult: number } | undefined;
 }
 
 /**
@@ -183,6 +192,24 @@ function applySkillLevels(
 }
 
 /**
+ * Fold wound impairments into the accumulator (final step of the
+ * derivation): arms/vitals dull the aim (attack), legs/vitals drag the
+ * feet (speed). Exactly-1 multipliers are skipped outright so unwounded
+ * derivations stay bit-identical to pre-M3-T4 arithmetic.
+ */
+function applyImpairment(
+  stats: StatAccumulator,
+  impairment: NonNullable<StatContext["impairment"]>,
+): void {
+  if (impairment.attackMult !== 1) {
+    stats.attack *= impairment.attackMult;
+  }
+  if (impairment.speedMult !== 1) {
+    stats.speed = Math.max(stats.speed * impairment.speedMult, Number.EPSILON);
+  }
+}
+
+/**
  * Derive one unit's combat stats from its definition, its equipped
  * commodity counts and the owning player's completed techs. Traits
  * contribute their documented zero until M3 lands its modifiers.
@@ -213,6 +240,9 @@ export function deriveUnitStats(
         applyEffect(stats, effect);
       }
     }
+  }
+  if (ctx.impairment !== undefined) {
+    applyImpairment(stats, ctx.impairment);
   }
   return stats;
 }

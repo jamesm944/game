@@ -33,10 +33,14 @@ import {
 } from "../src/sim/components";
 import { assignNode } from "../src/sim/components/economy";
 import {
+  COMBAT_EVENT_DAMAGE,
+  COMBAT_EVENT_UNIT_DEATH,
   getCombatRow,
   markTechResearched,
+  readCombatEvents,
   researchedTechCodesOf,
 } from "../src/sim/components/combat";
+import { readInjuries, readScars } from "../src/sim/components/body";
 import { PLAYER_ONE, createPlayerStockpile } from "../src/sim/core/stockpile";
 import {
   computeWorldDigest,
@@ -52,6 +56,7 @@ import {
   createCombatDiagnostics,
   createCombatSystem,
 } from "../src/sim/systems/combat";
+import { createInjuriesSystem } from "../src/sim/systems/injuries";
 import {
   bonusMultiplierOf,
   BUILDING_ARMOR_CLASSES,
@@ -374,3 +379,120 @@ describe("stop command (M2-T6, SPEC §2.13)", () => {
 function rowsCount(world: World, componentId: number): number {
   return world.rowsByComponentId.get(componentId)!.size;
 }
+
+// ---- M3-T4: wounds in battle (SPEC §2.5, issue #49) ----------------------------
+
+describe("M3-T4 wounds in battle", () => {
+  /** The AI opponent's player id (PLAYER_ONE is the legacy zero). */
+  const PLAYER_TWO = 1;
+  /**
+   * Knight mirror duel, both fighters carrying Body rows: strikes
+   * allocate hediff severity to seeded body parts, impairment
+   * multipliers re-price the fighters mid-duel, and accumulated trauma
+   * kills through the SAME pipeline as hp death. Everything below is a
+   * pure function of the pinned seed — snapshot-extended, never broken.
+   */
+  interface DuelRunState {
+    readonly deathTick: number | undefined;
+    /** UNIT_DEATH events on either ledger (kind code 3). */
+    readonly unitDeaths: {
+      readonly tick: number;
+      readonly victimEid: number;
+      readonly attackerEid: number;
+      readonly amount: number;
+    }[];
+    /** Total damage dealt to the loser before death (< knight hp ⇒ wounds). */
+    readonly damageToLoser: number;
+    readonly survivorInjuries: {
+      part: string;
+      severity: number;
+      ticksRemaining: number;
+    }[];
+    readonly survivorScars: { part: string; severity: number }[];
+  }
+
+  function runDuel(): DuelRunState {
+    const world = createWorld(20260824);
+    const comps = defineSimComponents(world);
+    registerSystem(world, createCombatSystem(comps, createCombatDiagnostics()));
+    registerSystem(world, createInjuriesSystem(comps));
+    createPlayerStockpile(world, comps, PLAYER_ONE);
+    createPlayerStockpile(world, comps, PLAYER_TWO);
+
+    // Spawn inside melee reach so no movement system is needed.
+    const a = spawnCombatUnit(world, comps, "knight", 5.5, 5.5, PLAYER_ONE, {
+      body: true,
+    });
+    const b = spawnCombatUnit(world, comps, "knight", 5.9, 5.5, PLAYER_TWO, {
+      body: true,
+    });
+    world.inbox.submit({
+      kind: "attack",
+      targetTick: world.tick + 1,
+      data: { attackerIds: [a], targetId: b },
+    });
+
+    let deathTick: number | undefined;
+    while (world.tick < 700 && deathTick === undefined) {
+      step(world);
+      for (const player of [PLAYER_ONE, PLAYER_TWO]) {
+        for (const event of readCombatEvents(world, comps, player)) {
+          if (
+            event.kind === COMBAT_EVENT_UNIT_DEATH &&
+            deathTick === undefined
+          ) {
+            deathTick = world.tick;
+          }
+        }
+      }
+    }
+
+    const unitDeaths: DuelRunState["unitDeaths"] = [];
+    let damageToLoser = 0;
+    const loserEid =
+      getCombatRow(world, comps, a) === undefined
+        ? a
+        : getCombatRow(world, comps, b) === undefined
+          ? b
+          : -1;
+    for (const player of [PLAYER_ONE, PLAYER_TWO]) {
+      for (const event of readCombatEvents(world, comps, player)) {
+        if (event.kind === COMBAT_EVENT_UNIT_DEATH) {
+          unitDeaths.push({
+            tick: event.tick,
+            victimEid: event.victimEid,
+            attackerEid: event.attackerEid,
+            amount: event.amount,
+          });
+        }
+        if (
+          event.kind === COMBAT_EVENT_DAMAGE &&
+          event.victimEid === loserEid
+        ) {
+          damageToLoser += event.amount;
+        }
+      }
+    }
+
+    const survivorEid = loserEid === a ? b : a;
+    return {
+      deathTick,
+      unitDeaths,
+      damageToLoser,
+      survivorInjuries: readInjuries(world, comps, survivorEid) ?? [],
+      survivorScars: readScars(world, comps, survivorEid) ?? [],
+    };
+  }
+
+  it("duels wound through body parts and kill by trauma, snapshotted", () => {
+    const run = runDuel();
+    expect(run.deathTick).toBeDefined();
+    // The loser died of TRAUMA: total damage received stayed under the
+    // knight's 70 hp — cumulative severity crossed the threshold first.
+    expect(run.damageToLoser).toBeLessThan(70);
+    expect(run.unitDeaths.length).toBe(1);
+    // Snapshot extension point: injury/scar readouts + death ledger row
+    // pin the seeded allocation arc for this duel.
+    expect(run).toMatchSnapshot();
+  });
+});

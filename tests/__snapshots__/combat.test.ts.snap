@@ -1,5 +1,53 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`M3-T4 wounds in battle > duels wound through body parts and kill by trauma, snapshotted 1`] = `
+{
+  "damageToLoser": 58,
+  "deathTick": 361,
+  "survivorInjuries": [
+    {
+      "part": "torso",
+      "severity": 15,
+      "ticksRemaining": 1250,
+    },
+    {
+      "part": "torso",
+      "severity": 13,
+      "ticksRemaining": 1250,
+    },
+    {
+      "part": "legR",
+      "severity": 11,
+      "ticksRemaining": 1250,
+    },
+    {
+      "part": "legL",
+      "severity": 9,
+      "ticksRemaining": 1250,
+    },
+    {
+      "part": "armR",
+      "severity": 7,
+      "ticksRemaining": 1250,
+    },
+    {
+      "part": "torso",
+      "severity": 10,
+      "ticksRemaining": 1500,
+    },
+  ],
+  "survivorScars": [],
+  "unitDeaths": [
+    {
+      "amount": 7,
+      "attackerEid": 3,
+      "tick": 361,
+      "victimEid": 4,
+    },
+  ],
+}
+`;
+
 exports[`damage counter table (SPEC §2.5) > snapshots every attacker × building-defender pairing (M2-T7) 1`] = `
 {
   "archer": {

@@ -96,6 +96,7 @@ import {
   getBuildingSiteRow,
   spawnRubble,
 } from "../components/buildings";
+import { injuryImpairmentOf } from "../components/body";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
 import { equipmentCountsOf } from "../components/equipment";
@@ -119,6 +120,7 @@ import {
   type DerivedStats,
   type StatContext,
 } from "../combat/stats";
+import { applyStrikeInjuries } from "./injuries";
 import type { SimCommand } from "../core/inbox";
 import {
   createEntitySpatialHash,
@@ -416,13 +418,21 @@ export function createCombatSystem(
       }
       const equipment = equipmentCountsOf(world, comps, combatant.eid);
       const skills = skillLevelsOf(combatant.eid);
-      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a:${skills?.get("melee") ?? "x"}m${skills?.get("ranged") ?? "x"}r`;
+      // M3-T4: open wounds re-price a fighter mid-duel (an arm hits
+      // softer, legs chase slower), so the impairment multipliers join
+      // the memo key — wounded and unwounded twins never collapse.
+      const impairment = injuryImpairmentOf(world, comps, combatant.eid);
+      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a:${skills?.get("melee") ?? "x"}m${skills?.get("ranged") ?? "x"}r:${impairment.attackMult}at${impairment.speedMult}sp`;
       let stats = statsMemo.get(key);
       if (!stats) {
         const ctx: StatContext = {
           researchedTechCodes: codes,
           equipment,
           skillLevels: skills,
+          impairment: {
+            attackMult: impairment.attackMult,
+            speedMult: impairment.speedMult,
+          },
         };
         stats = deriveUnitStats(combatant.def, ctx);
         statsMemo.set(key, stats);
@@ -812,6 +822,10 @@ export function createCombatSystem(
         victimEid: targetEid,
         amount: damage,
       });
+      // M3-T4: every landed blow also wounds (SPEC §2.5 "wounds in
+      // battle") — severity lands on one seeded body part; trauma
+      // past the death threshold kills through the SAME pipeline.
+      const wounds = applyStrikeInjuries(world, comps, targetEid, damage);
       // M3-T2: every landed blow practices the relevant combat skill —
       // ranged when the attacker's derived reach beats melee, else melee.
       awardPractice(
@@ -826,7 +840,9 @@ export function createCombatSystem(
       if (!damageThisTick.has(targetEid)) {
         damageThisTick.set(targetEid, attacker.eid);
       }
-      if (targetRow[2]! <= 0) kill(targetEid, attacker.eid, damage);
+      if (targetRow[2]! <= 0 || wounds.fatal) {
+        kill(targetEid, attacker.eid, damage);
+      }
     };
 
     /**

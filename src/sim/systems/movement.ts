@@ -50,6 +50,7 @@ import {
 } from "../core/trig";
 import { TICK_HZ, type SimSystem, type World } from "../core/world";
 import type { SimCommand } from "../core/inbox";
+import { type BodyComponents, injuryImpairmentOf } from "../components/body";
 import { hasLineOfSight } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
 
@@ -574,7 +575,7 @@ function handleGroupMove(
  * or telemetry.
  */
 export function createMovementSystem(
-  comps: MovementComponents,
+  comps: MovementComponents & Partial<Pick<BodyComponents, "bodyId">>,
   paths: PathScheduler,
   diagnostics: MovementDiagnostics = createMovementDiagnostics(),
 ): SimSystem {
@@ -858,7 +859,10 @@ export function createMovementSystem(
 
       const move = current; // movement head (move | attackMove)
       const waypoints = move.waypoints;
-      const baseSpeed = unit.tagRow[0]!;
+      // M3-T4: leg/vital wounds drag the cruise speed (multiplier
+      // exactly 1 for rowless units — legacy arithmetic untouched).
+      const baseSpeed =
+        unit.tagRow[0]! * injuryImpairmentOf(world, comps, unit.eid).speedMult;
       const turnRate = unit.tagRow[1]!;
 
       // Consume reached intermediate waypoints.

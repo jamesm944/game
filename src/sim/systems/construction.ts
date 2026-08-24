@@ -60,6 +60,7 @@ import {
   workTraitMultOf,
 } from "./skills";
 import { resetSteeringBookkeeping } from "./movement";
+import { injuryImpairmentOf } from "../components/body";
 import { restWorkMultiplierOf } from "./needs";
 
 /** Command kind owned by this system. */
@@ -374,6 +375,13 @@ export function createConstructionSystem(
           // rowless Pops — legacy arithmetic untouched).
           const restMult = restWorkMultiplierOf(world, comps, builder.eid);
           if (restMult !== 1) milli = Math.round(milli * restMult);
+          // M3-T4: arm/vital wounds slow it the same way.
+          const injuryMult = injuryImpairmentOf(
+            world,
+            comps,
+            builder.eid,
+          ).workMult;
+          if (injuryMult !== 1) milli = Math.round(milli * injuryMult);
           milliThisTick += milli;
           awardPractice(
             world,

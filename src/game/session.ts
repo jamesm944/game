@@ -58,6 +58,7 @@ import { createAgeSystem } from "../sim/systems/age";
 import { createCombatSystem } from "../sim/systems/combat";
 import { createEquipmentSystem } from "../sim/systems/equipment";
 import { createSkillsSystem } from "../sim/systems/skills";
+import { createInjuriesSystem } from "../sim/systems/injuries";
 import { createNeedsSystem } from "../sim/systems/needs";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createVictorySystem } from "../sim/systems/victory";
@@ -136,6 +137,9 @@ export function createSkirmishWorld(
   registerSystem(world, createProductionSystem(comps));
   registerSystem(world, createAgeSystem(comps));
   registerSystem(world, createCombatSystem(comps, undefined, scheduler));
+  // M3-T4: rare-tick wound pass runs after combat (strikes allocate
+  // during the combat step; this pass heals/scars/kills over time).
+  registerSystem(world, createInjuriesSystem(comps));
   // M3-T2: rare-tick rust pass runs after the awarding systems so it
   // observes this tick's practice stamps.
   registerSystem(world, createSkillsSystem(comps));
@@ -195,6 +199,7 @@ export function createSkirmishWorld(
       spawnUnit(world, comps, spot.x, spot.y, {
         ownerId: AI_PLAYER,
         identity: true,
+        body: true,
       });
       spawned += 1;
     }
@@ -319,7 +324,7 @@ function spawnStartVillagers(
       }
     }
     if (covered) continue;
-    spawnUnit(world, comps, spot.x, spot.y, { identity: true });
+    spawnUnit(world, comps, spot.x, spot.y, { identity: true, body: true });
     if (populationOf(world, comps) >= STARTING_VILLAGERS) break;
   }
 }

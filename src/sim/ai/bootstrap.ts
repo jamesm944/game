@@ -97,6 +97,9 @@ export function setupAiOpponent(
       ownerId: player,
       // M3-T1: AI starting villagers are named Pops with seeded traits.
       identity: true,
+      // M3-T4: AI villagers carry the wound model (symmetric with the
+      // human side's spawns).
+      body: true,
     }),
   );
   return { player, tcEid, ledgerEid, villagerEids };

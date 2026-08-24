@@ -53,6 +53,7 @@ import {
   TRAIN_QUEUE,
   type BuildingComponents,
 } from "./buildings";
+import { BODY, BODY_ARITY, type BodyComponents } from "./body";
 import {
   COMBAT_COMPONENT_ARITIES,
   COMBAT,
@@ -113,6 +114,7 @@ import {
 } from "./production";
 import { defineComponent, spawnEntity, type World } from "../core/world";
 import { attachPopIdentity } from "./pop";
+import { attachBody } from "./body";
 import { VICTORY_CHECK, VICTORY_COMPONENT_ARITIES } from "./victory";
 
 export const ACTIVITY_QUEUE = "ActivityQueue" as const;
@@ -145,6 +147,7 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * Rubble and Stockpile. JobCooldown (jobCooldown.ts) and Needs
  * (needs.ts, M3-T3) slot alphabetically between Inventory and
  * MealConsumed, and between MoveTarget and Owner, respectively.
+ * Body (body.ts, M3-T4) slots before Building ("Bo" < "Bu").
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -152,6 +155,8 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   [NEEDS, NEEDS_ARITY],
   ...OWNER_COMPONENT_ARITIES,
   ...AGE_COMPONENT_ARITIES,
+  // M3-T4: Body registers alphabetically before Building.
+  [BODY, BODY_ARITY],
   ...BUILDING_COMPONENT_ARITIES,
   ...COMBAT_COMPONENT_ARITIES,
   ...EQUIPMENT_COMPONENT_ARITIES,
@@ -182,6 +187,7 @@ export interface SimComponents
     EconomyComponents,
     StockpileComponents,
     BuildingComponents,
+    BodyComponents,
     CombatComponents,
     EquipmentComponents,
     ProductionComponents,
@@ -204,6 +210,7 @@ export function defineSimComponents(world: World): SimComponents {
     ageStateId: defineComponent(world, AGE_STATE),
     assignedNodeId: defineComponent(world, ASSIGNED_NODE),
     assignedSiteId: defineComponent(world, ASSIGNED_SITE),
+    bodyId: defineComponent(world, BODY),
     buildingId: defineComponent(world, BUILDING),
     buildingSiteId: defineComponent(world, BUILDING_SITE),
     carryCapacityId: defineComponent(world, CARRY_CAPACITY),
@@ -377,6 +384,12 @@ export interface SpawnUnitOptions {
    * bootstrap and skirmish starts; movement-only fixtures stay rowless.
    */
   readonly identity?: boolean | undefined;
+  /**
+   * Attach a Body row (M3-T4): the six-part wound model that combat
+   * strikes allocate against. Deliberately opt-in — golden fixtures
+   * that pin pre-M3-T4 digests keep spawning bodyless Pops.
+   */
+  readonly body?: boolean | undefined;
 }
 
 /** Default M1 unit speed — SPEC ticket: 1.0 tile/sec constant. */
@@ -405,7 +418,8 @@ export function spawnUnit(
     Partial<
       Pick<PopComponents, "identityId" | "traitsId"> &
         Pick<SkillComponents, "skillsId"> &
-        Pick<NeedsComponents, "needsId">
+        Pick<NeedsComponents, "needsId"> &
+        Pick<BodyComponents, "bodyId">
     >,
   x: number,
   y: number,
@@ -448,6 +462,11 @@ export function spawnUnit(
       // the rare-tick decay pass and eat chains own them from here.
       attachPopNeeds(world, comps as NeedsComponents, eid);
     }
+    if (options.body === true && typeof comps.bodyId === "number") {
+      // M3-T4: the six-part wound model combat strikes allocate
+      // against; empty at spawn, healed/scarring/deadly over time.
+      attachBody(world, comps as BodyComponents, eid);
+    }
   }
   // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
   // at the next tick-boundary flush.
@@ -461,6 +480,7 @@ export const DEFAULT_UNIT_RADIUS = 0.25;
 export * from "./economy";
 export * from "./owner";
 export * from "./age";
+export * from "./body";
 export * from "./buildings";
 export * from "./combat";
 export * from "./equipment";

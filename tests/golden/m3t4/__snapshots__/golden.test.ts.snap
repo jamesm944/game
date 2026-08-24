@@ -1,0 +1,417 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m3t4 > records milestone digests at every milestone tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:3cc91714384bc21e",
+    "tick": 60,
+  },
+  {
+    "digest": "fnv1a64:761bef17d7dd2f76",
+    "tick": 120,
+  },
+  {
+    "digest": "fnv1a64:6ca36cb0d783a933",
+    "tick": 180,
+  },
+  {
+    "digest": "fnv1a64:9060f7b1c01c9ab0",
+    "tick": 240,
+  },
+  {
+    "digest": "fnv1a64:4f07c69888dc787a",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:e0347458eacd26fb",
+    "tick": 360,
+  },
+  {
+    "digest": "fnv1a64:cbf8d07bfa1cacbf",
+    "tick": 420,
+  },
+  {
+    "digest": "fnv1a64:f3bcbab791c95aa1",
+    "tick": 480,
+  },
+  {
+    "digest": "fnv1a64:0799af8c8fa9228f",
+    "tick": 540,
+  },
+  {
+    "digest": "fnv1a64:7b84a947823a3ba2",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:51e5dfbab394d183",
+    "tick": 660,
+  },
+  {
+    "digest": "fnv1a64:51e5dfbab394d183",
+    "tick": 720,
+  },
+  {
+    "digest": "fnv1a64:5da584bc85f3c7e8",
+    "tick": 780,
+  },
+  {
+    "digest": "fnv1a64:5da584bc85f3c7e8",
+    "tick": 840,
+  },
+  {
+    "digest": "fnv1a64:5da584bc85f3c7e8",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:5da584bc85f3c7e8",
+    "tick": 960,
+  },
+  {
+    "digest": "fnv1a64:9c6f42e520299764",
+    "tick": 1020,
+  },
+  {
+    "digest": "fnv1a64:9c6f42e520299764",
+    "tick": 1080,
+  },
+  {
+    "digest": "fnv1a64:9c6f42e520299764",
+    "tick": 1140,
+  },
+  {
+    "digest": "fnv1a64:9c6f42e520299764",
+    "tick": 1200,
+  },
+  {
+    "digest": "fnv1a64:0119fd2a5fae7fda",
+    "tick": 1260,
+  },
+  {
+    "digest": "fnv1a64:0119fd2a5fae7fda",
+    "tick": 1320,
+  },
+  {
+    "digest": "fnv1a64:0119fd2a5fae7fda",
+    "tick": 1380,
+  },
+  {
+    "digest": "fnv1a64:0119fd2a5fae7fda",
+    "tick": 1440,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1560,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1620,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1680,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1740,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1800,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1860,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1920,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 1980,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2040,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2100,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2160,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2220,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2280,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2340,
+  },
+  {
+    "digest": "fnv1a64:42c07e972e441af9",
+    "tick": 2400,
+  },
+]
+`;
+
+exports[`golden harness m3t4 > runs a duel that kills by trauma and scars its survivors 1`] = `34`;
+
+exports[`golden harness m3t4 > runs a duel that kills by trauma and scars its survivors 2`] = `
+[
+  {
+    "knightA": {
+      "injuries": [
+        {
+          "part": "legR",
+          "severity": 17,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "torso",
+          "severity": 15,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "armR",
+          "severity": 13,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "head",
+          "severity": 11,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "legL",
+          "severity": 9,
+          "ticksRemaining": 1250,
+        },
+      ],
+      "scars": [],
+    },
+    "tick": 300,
+    "unitDeaths": 0,
+    "villager": {
+      "injuries": [],
+      "scars": [],
+    },
+  },
+  {
+    "knightA": {
+      "injuries": [
+        {
+          "part": "legR",
+          "severity": 17,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "torso",
+          "severity": 15,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "armR",
+          "severity": 13,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "head",
+          "severity": 11,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "legL",
+          "severity": 9,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "torso",
+          "severity": 14,
+          "ticksRemaining": 1500,
+        },
+      ],
+      "scars": [],
+    },
+    "tick": 380,
+    "unitDeaths": 1,
+    "villager": {
+      "injuries": [],
+      "scars": [],
+    },
+  },
+  {
+    "knightA": {
+      "injuries": [
+        {
+          "part": "legR",
+          "severity": 17,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "torso",
+          "severity": 15,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "armR",
+          "severity": 13,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "head",
+          "severity": 11,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "legL",
+          "severity": 9,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "torso",
+          "severity": 14,
+          "ticksRemaining": 1500,
+        },
+      ],
+      "scars": [],
+    },
+    "tick": 460,
+    "unitDeaths": 1,
+    "villager": {
+      "injuries": [],
+      "scars": [],
+    },
+  },
+  {
+    "knightA": {
+      "injuries": [
+        {
+          "part": "legR",
+          "severity": 14,
+          "ticksRemaining": 1000,
+        },
+        {
+          "part": "torso",
+          "severity": 12,
+          "ticksRemaining": 1000,
+        },
+        {
+          "part": "armR",
+          "severity": 10,
+          "ticksRemaining": 1000,
+        },
+        {
+          "part": "head",
+          "severity": 8,
+          "ticksRemaining": 1000,
+        },
+        {
+          "part": "legL",
+          "severity": 6,
+          "ticksRemaining": 1000,
+        },
+        {
+          "part": "torso",
+          "severity": 11,
+          "ticksRemaining": 1250,
+        },
+        {
+          "part": "torso",
+          "severity": 6,
+          "ticksRemaining": 1500,
+        },
+        {
+          "part": "armL",
+          "severity": 4,
+          "ticksRemaining": 1500,
+        },
+      ],
+      "scars": [],
+    },
+    "tick": 700,
+    "unitDeaths": 2,
+    "villager": {
+      "injuries": undefined,
+      "scars": undefined,
+    },
+  },
+  {
+    "knightA": {
+      "injuries": [
+        {
+          "part": "legR",
+          "severity": 5,
+          "ticksRemaining": 250,
+        },
+        {
+          "part": "torso",
+          "severity": 3,
+          "ticksRemaining": 250,
+        },
+        {
+          "part": "armR",
+          "severity": 1,
+          "ticksRemaining": 250,
+        },
+        {
+          "part": "torso",
+          "severity": 2,
+          "ticksRemaining": 500,
+        },
+      ],
+      "scars": [],
+    },
+    "tick": 1400,
+    "unitDeaths": 2,
+    "villager": {
+      "injuries": undefined,
+      "scars": undefined,
+    },
+  },
+  {
+    "knightA": {
+      "injuries": [],
+      "scars": [
+        {
+          "part": "legR",
+          "severity": 2,
+        },
+      ],
+    },
+    "tick": 2050,
+    "unitDeaths": 2,
+    "villager": {
+      "injuries": undefined,
+      "scars": undefined,
+    },
+  },
+  {
+    "knightA": {
+      "injuries": [],
+      "scars": [
+        {
+          "part": "legR",
+          "severity": 2,
+        },
+      ],
+    },
+    "tick": 2399,
+    "unitDeaths": 2,
+    "villager": {
+      "injuries": undefined,
+      "scars": undefined,
+    },
+  },
+]
+`;

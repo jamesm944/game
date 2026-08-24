@@ -35,6 +35,7 @@
 
 import { UNIT_DEF_CODES, unitCodeOf, unitDefOf } from "../../data/definitions";
 import type { UnitDefinition } from "../../data/schema";
+import { attachBody, type BodyComponents } from "./body";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
 
 export const COMBAT = "Combat" as const;
@@ -79,6 +80,11 @@ function requireRows(world: World, componentId: number): ComponentRows {
 export interface SpawnCombatUnitOptions {
   readonly turnRate?: number | undefined;
   readonly radius?: number | undefined;
+  /**
+   * Attach an empty Body row (M3-T4): the six-part wound model combat
+   * strikes allocate against. Opt-in — legacy fixtures stay bodyless.
+   */
+  readonly body?: boolean | undefined;
 }
 
 /**
@@ -95,7 +101,7 @@ export function spawnCombatUnit(
     unitTagId: number;
     moveTargetId: number;
     activityQueueId: number;
-  },
+  } & Partial<Pick<BodyComponents, "bodyId">>,
   defId: string,
   x: number,
   y: number,
@@ -131,6 +137,10 @@ export function spawnCombatUnit(
     0, // targetEid — disengaged
     0, // cooldownTicks — free to strike
   ]);
+  if (options.body === true && typeof comps.bodyId === "number") {
+    // M3-T4: the six-part wound model combat strikes allocate against.
+    attachBody(world, comps as BodyComponents, eid);
+  }
   // Fog dirty mark (SPEC §2.9): the unit's sight circle (from its
   // definition's sightRadius) stamps at the next tick-boundary flush.
   world.visibility.markDirty("spawned", eid);

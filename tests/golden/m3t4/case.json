@@ -1,0 +1,21 @@
+{
+  "name": "m3t4",
+  "description": "Duel-with-wounds: two body-carrying knights fight a seeded mirror duel beside an idle attackable villager unit (all spawned with Body rows via the spawner body options). Strikes allocate hediff severity across the six parts (torso/head 50%, arms 30%, legs 20% via the pure seeded roll); the duel loser dies BY TRAUMA — cumulative active severity crosses the whole-body threshold while hp remains — through the same UNIT_DEATH pipeline as hp kills. The surviving knight (leg-impaired from the duel) then marches onto the villager and cuts it down by plain HP exhaustion — both death modes coexist in one run. The long tail runs the rare-tick machine: light wounds drain clean inside their recovery windows while severe ones heal-at-full-severity into permanent scars. Fixture pins milestone digests every 60th tick, a wound/scar arc sampled at fixed ticks, the death-ledger rows, and doubles as the extended double-run determinism canary.",
+  "seed": 20260830,
+  "size": 16,
+  "ticks": 2400,
+  "milestoneEvery": 60,
+  "arcSampleTicks": [300, 380, 460, 700, 1400, 2050, 2399],
+  "knightASpawn": [5.5, 5.5],
+  "kBSpawn": [5.9, 5.5],
+  "villagerSpawn": [8.5, 8.5],
+  "commands": [
+    { "tick": 2, "kind": "attack", "actor": "knightA", "targetId": "knightB" },
+    {
+      "tick": 400,
+      "kind": "attack",
+      "actor": "knightA",
+      "targetId": "villager"
+    }
+  ]
+}
