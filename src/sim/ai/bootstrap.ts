@@ -95,6 +95,8 @@ export function setupAiOpponent(
     spawnUnit(world, comps, x, y, {
       baseSpeed: 1.0,
       ownerId: player,
+      // M3-T1: AI starting villagers are named Pops with seeded traits.
+      identity: true,
     }),
   );
   return { player, tcEid, ledgerEid, villagerEids };

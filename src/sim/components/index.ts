@@ -10,9 +10,10 @@
  *   ActivityQueue, AgeAdvanced, AgeResearch, AgeState, AssignedNode,
  *   AssignedSite, Building, BuildingSite, CarryCapacity, Combat,
  *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
- *   Inventory, MealConsumed, MoveTarget, Position, ProductionCycle,
- *   ProductionJob, ResearchedTechs, ResourceNode, Rubble, Stockpile,
- *   TrainQueue, UnitTag, Velocity, VictoryCheck
+ *   Identity, Inventory, MealConsumed, MoveTarget, Owner, Position,
+ *   ProductionCycle, ProductionJob, ResearchedTechs, ResourceNode,
+ *   Rubble, Stockpile, TrainQueue, Traits, UnitTag, Velocity,
+ *   VictoryCheck
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -73,6 +74,13 @@ import {
 } from "./equipment";
 import { attachOwner, OWNER, OWNER_ARITY, type OwnerComponents } from "./owner";
 import {
+  IDENTITY,
+  IDENTITY_ARITY,
+  TRAITS,
+  TRAITS_ARITY,
+  type PopComponents,
+} from "./pop";
+import {
   COMMODITY_STOCKPILE,
   DROP_OFF,
   STOCKPILE,
@@ -87,6 +95,7 @@ import {
   type ProductionComponents,
 } from "./production";
 import { defineComponent, spawnEntity, type World } from "../core/world";
+import { attachPopIdentity } from "./pop";
 import { VICTORY_CHECK, VICTORY_COMPONENT_ARITIES } from "./victory";
 
 export const ACTIVITY_QUEUE = "ActivityQueue" as const;
@@ -112,7 +121,10 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
 /**
  * Every component family's arities in one table, in canonical registry
  * order — documentation of the digest contract, re-validated by the
- * registry's alphabetical enforcement at registration time.
+ * registry's alphabetical enforcement at registration time. Identity/
+ * Traits (pop.ts, M3-T1) register mid-sequence alphabetically:
+ * Identity between GateRejected and Inventory, Traits between
+ * TrainQueue and UnitTag.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -122,6 +134,8 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...COMBAT_COMPONENT_ARITIES,
   ...EQUIPMENT_COMPONENT_ARITIES,
   ...PRODUCTION_COMPONENT_ARITIES,
+  [IDENTITY, IDENTITY_ARITY],
+  [TRAITS, TRAITS_ARITY],
   ...VICTORY_COMPONENT_ARITIES,
 ];
 
@@ -145,6 +159,7 @@ export interface SimComponents
     CombatComponents,
     EquipmentComponents,
     ProductionComponents,
+    PopComponents,
     VictoryComponents {}
 
 /**
@@ -169,6 +184,7 @@ export function defineSimComponents(world: World): SimComponents {
     dropoffId: defineComponent(world, DROP_OFF),
     equipmentId: defineComponent(world, EQUIPMENT),
     gateRejectedId: defineComponent(world, GATE_REJECTED),
+    identityId: defineComponent(world, IDENTITY),
     inventoryId: defineComponent(world, INVENTORY),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
     moveTargetId: defineComponent(world, MOVE_TARGET),
@@ -181,6 +197,7 @@ export function defineSimComponents(world: World): SimComponents {
     rubbleId: defineComponent(world, RUBBLE),
     stockpileId: defineComponent(world, STOCKPILE),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
+    traitsId: defineComponent(world, TRAITS),
     unitTagId: defineComponent(world, UNIT_TAG),
     velocityId: defineComponent(world, VELOCITY),
     victoryCheckId: defineComponent(world, VICTORY_CHECK),
@@ -320,6 +337,13 @@ export interface SpawnUnitOptions {
    * digest is untouched.
    */
   readonly ownerId?: number | undefined;
+  /**
+   * Attach Identity + Traits rows (M3-T1): named Pops with seeded
+   * conflict-free trait rolls on their own (seed, eid) stream. Wired at
+   * the villager spawn sites — training completions, AI bootstrap and
+   * skirmish starts; movement-only fixtures stay rowless.
+   */
+  readonly identity?: boolean | undefined;
 }
 
 /** Default M1 unit speed — SPEC ticket: 1.0 tile/sec constant. */
@@ -343,7 +367,9 @@ function defaultTurnRate(seed: number, eid: number): number {
 /** Spawn one movable Pop with every movement component attached. */
 export function spawnUnit(
   world: World,
-  comps: MovementComponents & Partial<Pick<OwnerComponents, "ownerId">>,
+  comps: MovementComponents &
+    Partial<Pick<OwnerComponents, "ownerId">> &
+    Partial<Pick<PopComponents, "identityId" | "traitsId">>,
   x: number,
   y: number,
   options: SpawnUnitOptions = {},
@@ -365,6 +391,17 @@ export function spawnUnit(
   if (options.ownerId !== undefined && comps.ownerId !== undefined) {
     attachOwner(world, comps as OwnerComponents, eid, options.ownerId);
   }
+  if (
+    options.identity === true &&
+    comps.identityId !== undefined &&
+    comps.traitsId !== undefined
+  ) {
+    attachPopIdentity(
+      world,
+      comps as Pick<PopComponents, "identityId" | "traitsId">,
+      eid,
+    );
+  }
   // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
   // at the next tick-boundary flush.
   world.visibility.markDirty("spawned", eid);
@@ -381,3 +418,4 @@ export * from "./buildings";
 export * from "./combat";
 export * from "./equipment";
 export * from "./production";
+export * from "./pop";

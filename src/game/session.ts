@@ -180,7 +180,10 @@ export function createSkirmishWorld(
     let spawned = 0;
     for (const spot of spots) {
       if (spawned >= STARTING_VILLAGERS) break;
-      spawnUnit(world, comps, spot.x, spot.y, { ownerId: AI_PLAYER });
+      spawnUnit(world, comps, spot.x, spot.y, {
+        ownerId: AI_PLAYER,
+        identity: true,
+      });
       spawned += 1;
     }
   }
@@ -304,7 +307,7 @@ function spawnStartVillagers(
       }
     }
     if (covered) continue;
-    spawnUnit(world, comps, spot.x, spot.y);
+    spawnUnit(world, comps, spot.x, spot.y, { identity: true });
     if (populationOf(world, comps) >= STARTING_VILLAGERS) break;
   }
 }

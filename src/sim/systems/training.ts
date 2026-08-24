@@ -420,6 +420,8 @@ function spawnTrainedUnit(
       // producing player's economy can attribute (and manage) its own
       // villagers; player zero stays rowless for digest stability.
       ownerId: playerId,
+      // M3-T1: trained villagers are named Pops with seeded traits.
+      identity: true,
     });
   }
   return spawnCombatUnit(world, comps, unitId, x, y, playerId);
