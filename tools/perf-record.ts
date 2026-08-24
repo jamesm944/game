@@ -1,10 +1,11 @@
 /**
- * Perf budget recorder — SPEC §7 / M1-T11 + M2-T11 + M3-T10.
+ * Perf budget recorder — SPEC §7 / M1-T11 + M2-T11 + M3-T10 + M4-T7.
  *
  * Runs the canonical §7 budget scenarios and prints markdown table
  * fragments for docs/m1-budget.md (economy workload),
- * docs/m2-budget.md (combat+fog workload) and docs/m3-budget.md
- * (deep-sim + schedules workload).
+ * docs/m2-budget.md (combat+fog workload),
+ * docs/m3-budget.md (deep-sim + schedules workload) and
+ * docs/m4-budget.md (delegation + companies workload).
  * Usage: npx tsx tools/perf-record.ts [runs]
  */
 
@@ -20,6 +21,10 @@ import {
   runBudgetScenarioM3,
   type BudgetM3RunResult,
 } from "../tests/helpers/budget-scenario-m3";
+import {
+  runBudgetScenarioM4,
+  type BudgetM4RunResult,
+} from "../tests/helpers/budget-scenario-m4";
 
 const runs = Math.max(1, Number.parseInt(process.argv[2] ?? "3", 10));
 
@@ -47,12 +52,23 @@ for (let i = 0; i < runs; i++) {
   resultsM3.push(runBudgetScenarioM3());
 }
 
+console.log("");
+console.log(
+  `Running the §7 M4 budget scenario ${String(runs)}× (management+companies active)…`,
+);
+const resultsM4: BudgetM4RunResult[] = [];
+for (let i = 0; i < runs; i++) {
+  resultsM4.push(runBudgetScenarioM4());
+}
+
 const pick = (key: keyof BudgetRunResult): number[] =>
   results.map((r) => r[key]);
 const pickM2 = (key: keyof BudgetM2RunResult): number[] =>
   resultsM2.map((r) => r[key] as number);
 const pickM3 = (key: keyof BudgetM3RunResult): number[] =>
   resultsM3.map((r) => r[key] as number);
+const pickM4 = (key: keyof BudgetM4RunResult): number[] =>
+  resultsM4.map((r) => r[key] as number);
 const fmt = (xs: number[]): string => xs.map((x) => x.toFixed(3)).join(" / ");
 const min = (xs: number[]): number => Math.min(...xs);
 const med = (xs: number[]): number =>
@@ -75,6 +91,14 @@ for (const r of resultsM3) {
   console.log(
     `m3: mean ${r.meanTickMs.toFixed(3)} ms · p95 ${r.p95TickMs.toFixed(3)} ms · ` +
       `max ${r.maxTickMs.toFixed(3)} ms · mirror copy ${r.mirrorCopyMs.toFixed(4)} ms · ` +
+      `households ${String(r.householdsFormed)} · population ${String(r.populationEnd)}`,
+  );
+}
+for (const r of resultsM4) {
+  console.log(
+    `m4: mean ${r.meanTickMs.toFixed(3)} ms · p95 ${r.p95TickMs.toFixed(3)} ms · ` +
+      `max ${r.maxTickMs.toFixed(3)} ms · mirror copy ${r.mirrorCopyMs.toFixed(4)} ms · ` +
+      `companies ${String(r.companies)} · branches ${String(r.branches)} · foremen ${String(r.foremen)} · treasury ${String(r.treasuryMilli)} milli · ` +
       `households ${String(r.householdsFormed)} · population ${String(r.populationEnd)}`,
   );
 }
@@ -126,4 +150,21 @@ console.log(
       " / ",
     )} | ${min(pickM3("mirrorCopyMs")).toFixed(4)} | ${med(pickM3("mirrorCopyMs")).toFixed(4)} | ≤ 2 @500 inst |
 | Draw calls (static approximation) | — | ${String(resultsM3[0]!.drawCallApprox)} | ${String(resultsM3[0]!.drawCallApprox)} | ≤ 90 typ / ≤ 150 hard |`,
+);
+console.log("");
+console.log(
+  "### M4 workload — management+companies active (305 deep Pops · 600 ticks)",
+);
+console.log(
+  `| Metric | Runs (${String(runs)}) | Best | Median | §7 cap |
+| ---------------------------------- | ----------- | ---- | ------ | ------ |
+| Sim tick mean (ms) | ${fmt(pickM4("meanTickMs"))} | ${min(pickM4("meanTickMs")).toFixed(3)} | ${med(pickM4("meanTickMs")).toFixed(3)} | — |
+| Sim tick p95 (ms) | ${fmt(pickM4("p95TickMs"))} | ${min(pickM4("p95TickMs")).toFixed(3)} | ${med(pickM4("p95TickMs")).toFixed(3)} | ≤ 8 hard |
+| Sim tick max (ms) | ${fmt(pickM4("maxTickMs"))} | ${min(pickM4("maxTickMs")).toFixed(3)} | ${med(pickM4("maxTickMs")).toFixed(3)} | — |
+| Mirror snapshot copy (ms) | ${pickM4("mirrorCopyMs")
+    .map((x) => x.toFixed(4))
+    .join(
+      " / ",
+    )} | ${min(pickM4("mirrorCopyMs")).toFixed(4)} | ${med(pickM4("mirrorCopyMs")).toFixed(4)} | ≤ 2 @500 inst |
+| Draw calls (static approximation) | — | ${String(resultsM4[0]!.drawCallApprox)} | ${String(resultsM4[0]!.drawCallApprox)} | ≤ 90 typ / ≤ 150 hard |`,
 );

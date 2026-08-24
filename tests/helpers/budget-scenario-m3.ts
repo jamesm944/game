@@ -93,15 +93,17 @@ export interface BudgetM3RunResult {
  * Stamp `defId` finished for `playerId` at the first valid non-
  * overlapping spot ring-searched outward from an anchor (bootstrap
  * privilege, mirrors stampFinishedBuilding's own validation).
+ * Exported for the M4 budget scenario, which layers the delegation +
+ * companies workload on top of this same village.
  */
-function stampVillageBuilding(
+export function stampVillageBuilding(
   world: World,
   comps: SimComponents,
   defId: string,
   anchorX: number,
   anchorY: number,
   acceptedRects: { x: number; y: number; width: number; height: number }[],
-): void {
+): number {
   const size = world.layers.size;
   const def = buildingDefOf(defId);
   for (let ring = 3; ring <= 20; ring++) {
@@ -125,11 +127,11 @@ function stampVillageBuilding(
           }).ok
         )
           continue;
-        stampFinishedBuilding(world, comps, defId, x, y, {
+        const eid = stampFinishedBuilding(world, comps, defId, x, y, {
           playerId: PLAYER_ONE,
         });
         acceptedRects.push(rect);
-        return;
+        return eid;
       }
     }
   }
@@ -297,9 +299,10 @@ function townCenterAnchor(
 /**
  * Spawn `count` units ringed outward around an anchor on passable
  * tiles, starting at `minRing` so separate populations don't stack;
- * deterministic ring scan (same idiom as the M1/M2 helpers).
+ * deterministic ring scan (same idiom as the M1/M2 helpers). Exported
+ * for the M4 budget scenario.
  */
-function spawnRinged(
+export function spawnRinged(
   world: World,
   comps: SimComponents,
   anchorX: number,

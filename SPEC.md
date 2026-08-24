@@ -385,9 +385,21 @@ Shipped-scope checklist (M3-T10 sign-off):
 - [x] Demo checklist sim-half executed end-to-end headlessly (`tests/e2e/m3-village-week.test.ts`: one fully unattended week — 5 kids graduated, 10 households formed, 5 births, 87 outings incl. 3 tavern rounds, 7 Masses, economy grew on every resource, zero player commands); browser-only visual items documented in `docs/m3-manual.md`
 - [ ] Manual browser pass (Pop card visuals, lighting tint, minimap social dots, unattended-week feel) — checklist in `docs/m3-manual.md`; not blocking M4 start
 
-### M4 — Management, companies & victory paths
+### M4 — Management, companies & victory paths ✅ (shipped, sign-off ticket M4-T7)
 
 Foremen + domain Managers with strategy sliders (override rule); Companies commissioned AND organic (treasury, branch share routing, autonomous expansion proposals, exclusive staffing, freeze/seize/dissolve, oversight panel); Knowledge/Culture/Economic generators + Grand Academy/Grand Monument/Festivals; Wonder/Relic timers; shared victory evaluator frame running symmetrically; AI military manager + disclosed difficulty knobs. **Demo:** win via each path against the AI; charter a mining company and watch it expand itself.
+
+Shipped-scope checklist (M4-T7 sign-off):
+
+- [x] Delegation layer: foremen + domain managers with strategy sliders, direct-order override rule at 1 Hz cadence (M4-T1)
+- [x] Companies: charters, virtual treasury fed by branch output share, exclusive staffing from management-rated Pops, freeze flag (M4-T2)
+- [x] Autonomous expansion (treasury-paid, AI-scorer sited, always-ask/auto-approve) AND organic foundings with grace window + severance (M4-T3)
+- [x] Knowledge + Culture paths: teacher-scaled KP per lesson, research lumps, monument/happiness prestige, festivals; Grand Academy/Grand Monument sustain gates (M4-T4)
+- [x] Wonder/Relic hold timers + Economic path keyed off aggregate branch market value; pause/resume hold ledger derived purely from digest rows (M4-T5)
+- [x] AI military manager (rally-to-defense, density raids, counter composition) + disclosed difficulty knobs incl. hard income multiplier (M4-T6)
+- [x] Perf budget re-gate at the M4 workload (305 deep Pops PLUS delegation + companies active: chartered branches tithe live deliveries, expansion thinks run, foremen seated): p95 tick < 8 ms and mirror copy < 2 ms asserted in CI (`tests/perf/budget-m4.test.ts`); recorded run in `docs/m4-budget.md` (measured p95 ≈ 2.09–2.19 ms, mirror ≈ 0.012–0.014 ms)
+- [x] Demo checklist sim-half executed end-to-end headlessly vs the AI (`tests/e2e/m4-paths.test.ts`: all SIX §2.11 paths decided for the scripted player against the real fast-castle-knights AI on pinned seed 20260902 — conquest t16,800, knowledge t3,870, culture/wonder/relic t960, economic t4,380) plus BOTH company origins in one unattended run (`tests/e2e/m4-company-growth.test.ts`: commissioned self-expansion THEN an organic founding absorbing three profitable direct workplaces); browser-only visual items documented in `docs/m4-manual.md`
+- [ ] Manual browser pass (oversight panel, victory HUD, difficulty badge, fps under the full stack) — checklist in `docs/m4-manual.md`; not blocking M5 start
 
 ### M5 — Polish, audio, save/replay, ship
 
