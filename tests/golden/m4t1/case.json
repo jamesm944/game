@@ -1,0 +1,46 @@
+{
+  "name": "m4t1",
+  "description": "Delegated management week (SPEC §2.7 / issue #56): a five-Pop village runs one foreman-appointed kitchen, one food-domain manager obeying player strategy sliders, and a mid-run DIRECT produce override that crosses domains onto an unmanaged sawpit. The delegation layer speaks the shared inbox (delegated produce commands fill and rotate; OrderLock rows fence off directly-ordered Pops); management skill XP accrues per serving pass. Fixture pins milestone digests every 150th tick plus a legible staffing/lock/xp trace, the §2.7 acceptance beats (saturation under a foreman, slider consolidation within the hour, override sticking against continued delegation pressure), and doubles as the extended double-run determinism canary.",
+  "seed": 20260826,
+  "size": 24,
+  "ticks": 1200,
+  "milestoneEvery": 150,
+  "startingResources": [400, 400, 100, 0, 50, 50, 0],
+  "dropOff": [6.5, 6.5],
+  "workplaces": {
+    "kitchenA": [9, 4],
+    "kitchenB": [15, 4],
+    "sawpit": [9, 14]
+  },
+  "popSpawns": {
+    "foremanA": [10.5, 7.5],
+    "managerFood": [13.5, 3.5],
+    "w1": [11.5, 8.5],
+    "w2": [12.5, 8.5],
+    "w3": [16.5, 8.5]
+  },
+  "commands": [
+    {
+      "tick": 1,
+      "kind": "appointForeman",
+      "data": { "buildingEid": "kitchenA", "popId": "foremanA" }
+    },
+    {
+      "tick": 2,
+      "kind": "appointManager",
+      "data": { "popId": "managerFood", "domain": 0 }
+    },
+    {
+      "tick": 60,
+      "kind": "setStrategy",
+      "data": { "domain": 0, "weights": [3, 1] }
+    },
+    {
+      "tick": 300,
+      "kind": "produce",
+      "data": { "entityIds": ["w3"], "buildingEid": "sawpit" }
+    }
+  ],
+  "traceWorkplaces": ["kitchenA", "kitchenB", "sawpit"],
+  "xpProbes": ["foremanA", "managerFood"]
+}

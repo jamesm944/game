@@ -74,6 +74,7 @@ import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
 import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
 import { createMoraleSystem } from "../sim/systems/morale";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
+import { createManagementSystem } from "../sim/systems/management";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
 import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "../sim/ai/bootstrap";
@@ -234,6 +235,15 @@ export function createSkirmishWorld(
       restDayLeisureWindow: (tick) =>
         minuteOfDay(tick, lifecycleConfig) >= MASS_CLOSE_MINUTE,
     }),
+  );
+  // M4-T1: the §2.7 delegation layer — foremen + domain managers serve
+  // the HUMAN side at the same 1 Hz cadence as the pop brain they sit
+  // above; direct player orders ride OrderLock rows and always win.
+  // Registered after every labor system so same-tick order rows exist
+  // before the lock sweep validates them.
+  registerSystem(
+    world,
+    createManagementSystem({ comps, players: [PLAYER_ONE] }),
   );
 
   // ---- Human start: ledger + age ladder + central TC + villagers ------

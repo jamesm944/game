@@ -98,6 +98,17 @@ import {
   evaluateOutcome,
   unitsLostOf,
 } from "./sim/systems/victory";
+import {
+  managementCandidatesOf,
+  managementRatingOf,
+  managerOfDomain,
+} from "./sim/systems/management";
+import {
+  DOMAIN_NAMES,
+  domainOfBuildingDef,
+  foremanRowOf,
+  strategyWeightsOf,
+} from "./sim/components/management";
 import { RtsCamera } from "./render/camera";
 import { createBuildingLayer } from "./render/buildings";
 import {
@@ -127,6 +138,8 @@ import {
   wireBuildMenu,
 } from "./ui/buildMenu";
 import { createBuildingPanel } from "./ui/buildingPanel";
+import { createDomainPanel, type DomainPanelData } from "./ui/domainPanel";
+import { popNameOf } from "./sim/components/pop";
 import { createPopCard } from "./ui/popCard";
 import { buildPopCard } from "./sim/popCard";
 import { wireControlGroups } from "./ui/controlGroups";
@@ -646,7 +659,8 @@ const buildingPanel = createBuildingPanel({
     const def = buildingDefOf(buildingIdOfCode(builtRow[1]!));
     // M2-T3: recipe workshops show their current recipe, live per-input
     // availability across both ledgers and the run/stall state — the
-    // exact rows golden digests hash.
+    // exact rows golden digests hash. M4-T1: workplaces also surface
+    // their serving foreman and the ranked appointment list.
     const recipes = recipesForBuilding(def.id);
     if (recipes.length > 0) {
       const cycle = getProductionCycleRow(world, comps, eid);
@@ -668,8 +682,15 @@ const buildingPanel = createBuildingPanel({
       } else {
         state = "idle — no crafter";
       }
+      const domain = domainOfBuildingDef(def.id) ?? 0;
+      const foremanEntry = foremanRowOf(world, comps, eid);
+      const foremanLabel =
+        foremanEntry === undefined
+          ? undefined
+          : `Foreman ${popNameOf(world, comps, foremanEntry.foremanPopEid) ?? "??"} · rating ${managementRatingOf(world, comps, foremanEntry.foremanPopEid, domain).toFixed(1)}`;
       return {
         title: def.name,
+        buildingEid: eid,
         pop: {
           current: populationOf(world, comps),
           cap: populationCapOf(world, comps),
@@ -683,6 +704,13 @@ const buildingPanel = createBuildingPanel({
             )
             .join(" · ")} · ${state}`,
         },
+        foreman: foremanLabel,
+        candidates: managementCandidatesOf(world, comps, PLAYER_ONE, domain)
+          .slice(0, 5)
+          .map((candidate) => ({
+            popId: candidate.popEid,
+            label: `${candidate.name} · rating ${candidate.rating.toFixed(1)}`,
+          })),
       };
     }
     if (!def.trainQueue) return { title: def.name };
@@ -713,6 +741,59 @@ const popCard = createPopCard({
       return undefined;
     }
     return buildPopCard(world, comps, eid);
+  },
+});
+
+// Domain strategy sliders (M4-T1, §2.7): one block per managed domain,
+// fed from the same Manager/StrategySliders rows the sim enforces.
+const DOMAIN_PANEL_WORKPLACE_CAP = 6;
+
+const domainPanel = createDomainPanel({
+  currentTick: () => world.tick,
+  inbox: world.inbox,
+  getData: (): DomainPanelData => {
+    const buildingRows = world.rowsByComponentId.get(comps.buildingId);
+    const domains = DOMAIN_NAMES.map((domainSlug, domain) => {
+      const managerEid = managerOfDomain(world, comps, PLAYER_ONE, domain);
+      const workplaces: number[] = [];
+      if (buildingRows) {
+        for (const eid of world.entities) {
+          const row = buildingRows.get(eid);
+          if (!row || row[0] !== PLAYER_ONE) continue;
+          const def = buildingDefOf(buildingIdOfCode(row[1]!));
+          if (domainOfBuildingDef(def.id) !== domain) continue;
+          if (def.workSlots <= 0) continue;
+          workplaces.push(eid);
+          if (workplaces.length >= DOMAIN_PANEL_WORKPLACE_CAP) break;
+        }
+      }
+      const stored =
+        managerEid !== undefined
+          ? strategyWeightsOf(world, comps, managerEid)
+          : undefined;
+      return {
+        domainSlug,
+        managerLabel:
+          managerEid === undefined
+            ? undefined
+            : `Manager ${popNameOf(world, comps, managerEid) ?? "??"} · rating ${managementRatingOf(world, comps, managerEid, domain).toFixed(1)}`,
+        weights: workplaces.map((eid, index) => ({
+          workplaceEid: eid,
+          label: `#${String(eid)} workplace`,
+          weight: stored?.[index] ?? 1,
+        })),
+      };
+    });
+    return { domains };
+  },
+  issueStrategy: ({ domainSlug, weights }) => {
+    const domain = DOMAIN_NAMES.indexOf(domainSlug);
+    if (domain < 0) return;
+    world.inbox.submit({
+      kind: "setStrategy",
+      targetTick: world.tick + 1,
+      data: { domain, weights },
+    });
   },
 });
 
@@ -1015,6 +1096,7 @@ function frame(
   buildMenu.refresh();
   buildingPanel.refresh();
   popCard.refresh();
+  domainPanel.refresh();
   pollMatchOutcome();
   renderer.render(scene, cameraRig.camera);
 

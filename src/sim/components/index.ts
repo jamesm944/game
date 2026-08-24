@@ -104,6 +104,19 @@ import {
   type LessonComponents,
 } from "./lessons";
 import {
+  FOREMAN,
+  FOREMAN_ARITY,
+  MANAGEMENT_SKILL,
+  MANAGEMENT_SKILL_ARITY,
+  MANAGER,
+  MANAGER_ARITY,
+  ORDER_LOCK,
+  ORDER_LOCK_ARITY,
+  STRATEGY_SLIDERS,
+  STRATEGY_SLIDERS_ARITY,
+  type ManagementComponents,
+} from "./management";
+import {
   attachPopMorale,
   MORALE,
   MORALE_ARITY,
@@ -180,12 +193,19 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * MealConsumed. Relationship (relationship.ts, M3-T7) slots between
  * ResearchedTechs and ResourceNode; SocialEvents (socialEvents.ts,
  * M3-T7) between Skills and Stockpile. Morale (morale.ts, M3-T9)
- * slots between MealConsumed and MoveTarget.
+ * slots between MealConsumed and MoveTarget. The five M4-T1 delegated-
+ * management names slot in without disturbing any neighbor: Foreman
+ * between Equipment and GateRejected; ManagementSkill + Manager
+ * between Lessons and MealConsumed; OrderLock between Needs and
+ * Owner; StrategySliders between Stockpile and TrainQueue.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
   // M3-T3: Needs registers alphabetically between MoveTarget and Owner.
   [NEEDS, NEEDS_ARITY],
+  // M4-T1: OrderLock registers alphabetically between Needs and Owner
+  // ("Ord" < "Ow").
+  [ORDER_LOCK, ORDER_LOCK_ARITY],
   ...OWNER_COMPONENT_ARITIES,
   ...AGE_COMPONENT_ARITIES,
   // M3-T4: Body registers alphabetically before Building.
@@ -200,12 +220,20 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // (which COMBAT_COMPONENT_ARITIES lists).
   [RELATIONSHIP, RELATIONSHIP_ARITY],
   ...EQUIPMENT_COMPONENT_ARITIES,
+  // M4-T1: Foreman registers alphabetically between Equipment
+  // (which EQUIPMENT_COMPONENT_ARITIES lists last) and GateRejected.
+  [FOREMAN, FOREMAN_ARITY],
   // M3-T3: JobCooldown registers alphabetically between Inventory
   // (economy.ts, not tabulated here) and MealConsumed below.
   [JOB_COOLDOWN, JOB_COOLDOWN_ARITY],
   // M3-T5: Lessons registers alphabetically between JobCooldown and
   // MealConsumed.
   [LESSONS, LESSONS_ARITY],
+  // M4-T1: ManagementSkill + Manager register alphabetically between
+  // Lessons ("Le") and MealConsumed ("Mea"); "ManagementSkill" <
+  // "Manager" < "MealConsumed".
+  [MANAGEMENT_SKILL, MANAGEMENT_SKILL_ARITY],
+  [MANAGER, MANAGER_ARITY],
   ...PRODUCTION_COMPONENT_ARITIES,
   // M3-T9: Morale registers alphabetically between MealConsumed
   // (which PRODUCTION_COMPONENT_ARITIES lists first) and MoveTarget
@@ -216,6 +244,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M3-T7: SocialEvents registers alphabetically between Skills and
   // Stockpile (core/stockpile.ts, not tabulated here).
   [SOCIAL_EVENTS, SOCIAL_EVENTS_ARITY],
+  // M4-T1: StrategySliders registers alphabetically between Stockpile
+  // (core/stockpile.ts, not tabulated here) and TrainQueue.
+  [STRATEGY_SLIDERS, STRATEGY_SLIDERS_ARITY],
   [TRAITS, TRAITS_ARITY],
   ...VICTORY_COMPONENT_ARITIES,
 ];
@@ -241,6 +272,7 @@ export interface SimComponents
     CombatComponents,
     EquipmentComponents,
     HouseholdComponents,
+    ManagementComponents,
     ProductionComponents,
     BrainCooldownComponents,
     LessonComponents,
@@ -274,6 +306,9 @@ export function defineSimComponents(world: World): SimComponents {
     commodityStockpileId: defineComponent(world, COMMODITY_STOCKPILE),
     dropoffId: defineComponent(world, DROP_OFF),
     equipmentId: defineComponent(world, EQUIPMENT),
+    // M4-T1: Foreman registers alphabetically between Equipment and
+    // GateRejected.
+    foremanId: defineComponent(world, FOREMAN),
     gateRejectedId: defineComponent(world, GATE_REJECTED),
     // M3-T5: Household registers alphabetically between GateRejected
     // and Identity.
@@ -284,12 +319,19 @@ export function defineSimComponents(world: World): SimComponents {
     // M3-T5: Lessons registers alphabetically between JobCooldown and
     // MealConsumed.
     lessonsId: defineComponent(world, LESSONS),
+    // M4-T1: ManagementSkill + Manager register alphabetically between
+    // Lessons and MealConsumed.
+    managementSkillId: defineComponent(world, MANAGEMENT_SKILL),
+    managerId: defineComponent(world, MANAGER),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
     // M3-T9: Morale registers alphabetically between MealConsumed and
     // MoveTarget.
     moraleId: defineComponent(world, MORALE),
     moveTargetId: defineComponent(world, MOVE_TARGET),
+    // M3-T3: Needs registers alphabetically between MoveTarget and
+    // Owner; M4-T1: OrderLock slots between Needs and Owner.
     needsId: defineComponent(world, NEEDS),
+    orderLockId: defineComponent(world, ORDER_LOCK),
     ownerId: defineComponent(world, OWNER),
     positionId: defineComponent(world, POSITION),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
@@ -305,6 +347,9 @@ export function defineSimComponents(world: World): SimComponents {
     // Stockpile.
     socialEventsId: defineComponent(world, SOCIAL_EVENTS),
     stockpileId: defineComponent(world, STOCKPILE),
+    // M4-T1: StrategySliders registers alphabetically between Stockpile
+    // and TrainQueue.
+    strategySlidersId: defineComponent(world, STRATEGY_SLIDERS),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
     traitsId: defineComponent(world, TRAITS),
     unitTagId: defineComponent(world, UNIT_TAG),
@@ -587,6 +632,7 @@ export * from "./equipment";
 export * from "./household";
 export * from "./jobCooldown";
 export * from "./lessons";
+export * from "./management";
 export * from "./morale";
 export * from "./needs";
 export * from "./production";

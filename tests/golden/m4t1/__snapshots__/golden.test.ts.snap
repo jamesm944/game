@@ -1,0 +1,155 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t1 > records milestone digests plus the delegation trace 1`] = `
+[
+  {
+    "digest": "fnv1a64:d496a0c0184c7ca2",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:75f472bbb006df1e",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:80174e58816170a0",
+    "tick": 450,
+  },
+  {
+    "digest": "fnv1a64:68c86147ad08402b",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:7deb4da350360347",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:b66d9973f14147dc",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:4e68f8c6e6a64dfe",
+    "tick": 1050,
+  },
+  {
+    "digest": "fnv1a64:ea65a1c3b5418c15",
+    "tick": 1200,
+  },
+]
+`;
+
+exports[`golden harness m4t1 > records milestone digests plus the delegation trace 2`] = `
+[
+  {
+    "digest": "fnv1a64:d496a0c0184c7ca2",
+    "locks": 0,
+    "staffing": [
+      2,
+      0,
+      0,
+    ],
+    "tick": 150,
+    "xp": [
+      10,
+      10,
+    ],
+  },
+  {
+    "digest": "fnv1a64:75f472bbb006df1e",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 300,
+    "xp": [
+      20,
+      20,
+    ],
+  },
+  {
+    "digest": "fnv1a64:80174e58816170a0",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 450,
+    "xp": [
+      30,
+      30,
+    ],
+  },
+  {
+    "digest": "fnv1a64:68c86147ad08402b",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 600,
+    "xp": [
+      40,
+      40,
+    ],
+  },
+  {
+    "digest": "fnv1a64:7deb4da350360347",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 750,
+    "xp": [
+      50,
+      50,
+    ],
+  },
+  {
+    "digest": "fnv1a64:b66d9973f14147dc",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 900,
+    "xp": [
+      60,
+      60,
+    ],
+  },
+  {
+    "digest": "fnv1a64:4e68f8c6e6a64dfe",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 1050,
+    "xp": [
+      70,
+      70,
+    ],
+  },
+  {
+    "digest": "fnv1a64:ea65a1c3b5418c15",
+    "locks": 1,
+    "staffing": [
+      2,
+      0,
+      1,
+    ],
+    "tick": 1200,
+    "xp": [
+      80,
+      80,
+    ],
+  },
+]
+`;

@@ -16,7 +16,16 @@ export interface BuildingPanelQueueEntry {
   readonly remainingTicks: number;
 }
 
+/** One ranked appointment candidate (M4-T1 §2.7). */
+export interface BuildingPanelCandidate {
+  readonly popId: number;
+  /** e.g. "Alric · rating 3.4". */
+  readonly label: string;
+}
+
 export interface BuildingPanelData {
+  /** The selected building's entity id (appointment target). */
+  readonly buildingEid?: number | undefined;
   /** e.g. "Town Center" / "House — under construction". */
   readonly title: string;
   /** Construction progress clamped [0,1] (sites only). */
@@ -36,9 +45,15 @@ export interface BuildingPanelData {
    */
   readonly production?:
     { readonly recipeLabel: string; readonly line: string } | undefined;
+  /** Serving foreman label, e.g. "Foreman Alric · rating 3.4" (M4-T1). */
+  readonly foreman?: string | undefined;
+  /** Appointment candidates, best first (workplaces only). */
+  readonly candidates?: readonly BuildingPanelCandidate[] | undefined;
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
+/** M4-T1 appointment command kind — validated by systems/management.ts. */
+export const APPOINT_FOREMAN_KIND = "appointForeman";
 
 /** Issue one authoritative trainVillager order for `currentTick + 1`. */
 export function issueTrainVillager(
@@ -49,6 +64,20 @@ export function issueTrainVillager(
     kind: TRAIN_VILLAGER_KIND,
     targetTick: currentTick + 1,
     data: {},
+  });
+}
+
+/** Issue one authoritative foreman appointment for `currentTick + 1`. */
+export function issueAppointForeman(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEid: number,
+  popId: number,
+): void {
+  inbox.submit({
+    kind: APPOINT_FOREMAN_KIND,
+    targetTick: currentTick + 1,
+    data: { buildingEid, popId },
   });
 }
 
@@ -74,6 +103,10 @@ export function createBuildingPanel(deps: {
   queueEl.className = "panel-queue";
   const productionEl = document.createElement("div");
   productionEl.className = "panel-production";
+  const foremanEl = document.createElement("div");
+  foremanEl.className = "panel-foreman";
+  const appointWrap = document.createElement("div");
+  appointWrap.className = "panel-appoint";
   const trainButton = document.createElement("button");
   trainButton.type = "button";
   trainButton.className = "panel-train";
@@ -103,12 +136,49 @@ export function createBuildingPanel(deps: {
         lastKey = key;
         panel.style.display = "block";
         while (panel.firstChild) panel.firstChild.remove();
-        panel.append(titleEl, barWrap, metaEl, queueEl, productionEl);
+        panel.append(
+          titleEl,
+          barWrap,
+          metaEl,
+          queueEl,
+          productionEl,
+          foremanEl,
+          appointWrap,
+        );
         titleEl.textContent = data.title;
         metaEl.textContent = "";
         queueEl.textContent = "";
+        foremanEl.textContent = "";
+        appointWrap.textContent = "";
         if (data.queue !== undefined) panel.appendChild(trainButton);
         trainButton.disabled = !(data.canTrain ?? false);
+        // M4-T1 appointment section: ranked candidates, one button each
+        // (best first), issuing the authoritative appointForeman command.
+        if (
+          data.buildingEid !== undefined &&
+          data.candidates !== undefined &&
+          data.candidates.length > 0
+        ) {
+          const heading = document.createElement("div");
+          heading.className = "panel-appoint-heading";
+          heading.textContent = "Appoint Foreman";
+          appointWrap.appendChild(heading);
+          for (const candidate of data.candidates) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "panel-appoint-candidate";
+            button.textContent = candidate.label;
+            button.addEventListener("click", () => {
+              issueAppointForeman(
+                deps.inbox,
+                deps.currentTick(),
+                data.buildingEid!,
+                candidate.popId,
+              );
+            });
+            appointWrap.appendChild(button);
+          }
+        }
       }
 
       // Progress bar repaints every frame during construction.
@@ -152,6 +222,13 @@ export function createBuildingPanel(deps: {
       }
       if (productionEl.textContent !== productionText) {
         productionEl.textContent = productionText;
+      }
+
+      // Serving foreman line repaints through text comparison like the
+      // production line (ratings drift as service XP grows).
+      const foremanText = data.foreman ?? "";
+      if (foremanEl.textContent !== foremanText) {
+        foremanEl.textContent = foremanText;
       }
     },
   };
