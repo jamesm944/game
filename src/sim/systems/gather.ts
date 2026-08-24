@@ -84,8 +84,8 @@ import type { PathScheduler } from "../path/scheduler";
 import type { SimSystem } from "../core/world";
 import {
   awardPractice,
-  effectiveGatherTicksPerUnit,
   GATHER_XP_PER_UNIT,
+  resolveGatherInterval,
 } from "./skills";
 import {
   formationSlotOffset,
@@ -589,9 +589,10 @@ export function createGatherSystem(
     /**
      * Advance one gather head by a tick: extract at most one unit when
      * the work interval elapses. The interval derives on read from the
-     * worker's gathering skill + work-speed traits (M3-T2) — rowless
-     * legacy workers keep the head's encoded base rate exactly. Returns
-     * true when the activity is complete (carry full or node dry).
+     * worker's gathering skill + work-speed traits (M3-T2) and the
+     * M3-T3 rest penalty (tired workers swing slower; rowless legacy
+     * workers keep the head's encoded base rate exactly). Returns true
+     * when the activity is complete (carry full or node dry).
      */
     const advanceGatherHead = (
       worker: ClaimedWorker,
@@ -603,14 +604,16 @@ export function createGatherSystem(
       const inv = getInventory(world, comps, worker.eid)!;
       const capacity = getCarryCapacity(world, comps, worker.eid);
       const remaining = worker.nodeRow[1]!;
-      const ticksPerUnit = effectiveGatherTicksPerUnit(
-        world,
-        comps,
-        worker.eid,
-        head.ticksPerUnit,
-      );
+      // M3-T3 refactor: the work interval is RESOLVED ONCE at chain
+      // construction (resolveGatherInterval folds the M3-T2 skill/
+      // trait multiplier AND the M3-T3 rest penalty) and consumed
+      // verbatim from the encoded head. Deriving per-tick could let
+      // the live interval exceed its encoded base (mid-chain skill
+      // growth aside: a lazy/rested stretch), writing an elapsedTicks
+      // that fails decode validation on the next read. Encoded ==
+      // effective by construction closes that class of crash.
       if (
-        head.elapsedTicks >= ticksPerUnit &&
+        head.elapsedTicks >= head.ticksPerUnit &&
         remaining > 0 &&
         capacity > inv.amount
       ) {
@@ -750,7 +753,21 @@ export function createGatherSystem(
       const ddx = worker.posX - slot.x;
       const ddy = worker.posY - slot.y;
       if (ddx * ddx + ddy * ddy <= SLOT_ARRIVAL_RADIUS ** 2) {
-        enqueueActivity(queue, gatherActivity(DEFAULT_GATHER_TICKS_PER_UNIT));
+        // M3-T2/T3: the work interval resolves ONCE per chain from the
+        // worker's skill, traits and rest meter (see
+        // resolveGatherInterval) — the encoded head stays the single
+        // source of truth while it advances.
+        enqueueActivity(
+          queue,
+          gatherActivity(
+            resolveGatherInterval(
+              world,
+              comps,
+              worker.eid,
+              DEFAULT_GATHER_TICKS_PER_UNIT,
+            ),
+          ),
+        );
         return true;
       }
       enqueueActivity(queue, moveActivity([slot.x, slot.y]));

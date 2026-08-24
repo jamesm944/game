@@ -824,12 +824,14 @@ export function createMovementSystem(
       // Combat heads owned by the combat system: an engaged unit stands
       // its ground here — out-of-range attackers get a Move approach leg
       // inserted ahead of the Attack head and steer through that.
+      // M3-T3: Eat heads belong to the needs system the same way.
       if (
         !current ||
         current.kind === "wait" ||
         current.kind === "gather" ||
         current.kind === "deliver" ||
-        current.kind === "attack"
+        current.kind === "attack" ||
+        current.kind === "eat"
       ) {
         if (current?.kind === "wait") {
           current.ticks -= 1;

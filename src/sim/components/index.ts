@@ -10,10 +10,10 @@
  *   ActivityQueue, AgeAdvanced, AgeResearch, AgeState, AssignedNode,
  *   AssignedSite, Building, BuildingSite, CarryCapacity, Combat,
  *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
- *   Identity, Inventory, MealConsumed, MoveTarget, Owner, Position,
- *   ProductionCycle, ProductionJob, ResearchedTechs, ResourceNode,
- *   Rubble, Skills, Stockpile, TrainQueue, Traits, UnitTag, Velocity,
- *   VictoryCheck
+ *   Identity, Inventory, JobCooldown, MealConsumed, MoveTarget, Needs,
+ *   Owner, Position, ProductionCycle, ProductionJob, ResearchedTechs,
+ *   ResourceNode, Rubble, Skills, Stockpile, TrainQueue, Traits,
+ *   UnitTag, Velocity, VictoryCheck
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -72,6 +72,11 @@ import {
   EQUIPMENT,
   type EquipmentComponents,
 } from "./equipment";
+import {
+  type BrainCooldownComponents,
+  JOB_COOLDOWN,
+  JOB_COOLDOWN_ARITY,
+} from "./jobCooldown";
 import { attachOwner, OWNER, OWNER_ARITY, type OwnerComponents } from "./owner";
 import {
   IDENTITY,
@@ -80,6 +85,12 @@ import {
   TRAITS_ARITY,
   type PopComponents,
 } from "./pop";
+import {
+  attachPopNeeds,
+  NEEDS,
+  NEEDS_ARITY,
+  type NeedsComponents,
+} from "./needs";
 import {
   attachPopSkills,
   SKILLS,
@@ -131,15 +142,22 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * Traits (pop.ts, M3-T1) register mid-sequence alphabetically:
  * Identity between GateRejected and Inventory, Traits between
  * TrainQueue and UnitTag. Skills (skills.ts, M3-T2) slots between
- * Rubble and Stockpile.
+ * Rubble and Stockpile. JobCooldown (jobCooldown.ts) and Needs
+ * (needs.ts, M3-T3) slot alphabetically between Inventory and
+ * MealConsumed, and between MoveTarget and Owner, respectively.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
+  // M3-T3: Needs registers alphabetically between MoveTarget and Owner.
+  [NEEDS, NEEDS_ARITY],
   ...OWNER_COMPONENT_ARITIES,
   ...AGE_COMPONENT_ARITIES,
   ...BUILDING_COMPONENT_ARITIES,
   ...COMBAT_COMPONENT_ARITIES,
   ...EQUIPMENT_COMPONENT_ARITIES,
+  // M3-T3: JobCooldown registers alphabetically between Inventory
+  // (economy.ts, not tabulated here) and MealConsumed below.
+  [JOB_COOLDOWN, JOB_COOLDOWN_ARITY],
   ...PRODUCTION_COMPONENT_ARITIES,
   [IDENTITY, IDENTITY_ARITY],
   [SKILLS, SKILLS_ARITY],
@@ -167,6 +185,8 @@ export interface SimComponents
     CombatComponents,
     EquipmentComponents,
     ProductionComponents,
+    BrainCooldownComponents,
+    NeedsComponents,
     PopComponents,
     SkillComponents,
     VictoryComponents {}
@@ -195,8 +215,10 @@ export function defineSimComponents(world: World): SimComponents {
     gateRejectedId: defineComponent(world, GATE_REJECTED),
     identityId: defineComponent(world, IDENTITY),
     inventoryId: defineComponent(world, INVENTORY),
+    jobCooldownId: defineComponent(world, JOB_COOLDOWN),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
     moveTargetId: defineComponent(world, MOVE_TARGET),
+    needsId: defineComponent(world, NEEDS),
     ownerId: defineComponent(world, OWNER),
     positionId: defineComponent(world, POSITION),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
@@ -348,11 +370,11 @@ export interface SpawnUnitOptions {
    */
   readonly ownerId?: number | undefined;
   /**
-   * Attach Identity + Traits + Skills rows (M3-T1/T2): named Pops with
-   * seeded conflict-free trait rolls and a novice skill sheet on their
-   * own (seed, eid) stream. Wired at the villager spawn sites —
-   * training completions, AI bootstrap and skirmish starts;
-   * movement-only fixtures stay rowless.
+   * Attach Identity + Traits + Skills + Needs rows (M3-T1/T2/T3):
+   * named Pops with seeded conflict-free trait rolls, a novice skill
+   * sheet and full needs meters on their own (seed, eid) streams.
+   * Wired at the villager spawn sites — training completions, AI
+   * bootstrap and skirmish starts; movement-only fixtures stay rowless.
    */
   readonly identity?: boolean | undefined;
 }
@@ -382,7 +404,8 @@ export function spawnUnit(
     Partial<Pick<OwnerComponents, "ownerId">> &
     Partial<
       Pick<PopComponents, "identityId" | "traitsId"> &
-        Pick<SkillComponents, "skillsId">
+        Pick<SkillComponents, "skillsId"> &
+        Pick<NeedsComponents, "needsId">
     >,
   x: number,
   y: number,
@@ -420,6 +443,11 @@ export function spawnUnit(
       // combat awards grow it, the rare-tick rust pass decays it.
       attachPopSkills(world, comps as SkillComponents, eid);
     }
+    if (typeof comps.needsId === "number") {
+      // M3-T3: every named Pop carries full food/rest/morale meters;
+      // the rare-tick decay pass and eat chains own them from here.
+      attachPopNeeds(world, comps as NeedsComponents, eid);
+    }
   }
   // Fog dirty mark (SPEC §2.9): stamped into its owner's sight planes
   // at the next tick-boundary flush.
@@ -436,6 +464,8 @@ export * from "./age";
 export * from "./buildings";
 export * from "./combat";
 export * from "./equipment";
+export * from "./jobCooldown";
+export * from "./needs";
 export * from "./production";
 export * from "./pop";
 export * from "./skills";

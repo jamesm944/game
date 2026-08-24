@@ -90,13 +90,26 @@ export interface AttackMoveActivity {
   cursor: number;
 }
 
+/**
+ * Eat at `dropoffEid` (SPEC §2.3 needs / M3-T3): the needs system plans
+ * [Move door, Eat] chains for hungry Pops and advances the head — while
+ * out of range it inserts a fresh approach leg AHEAD (movement steers
+ * only the head), and within reach it debits the drop-off owner's food
+ * ledger once and restores the eater's meters.
+ */
+export interface EatActivity {
+  readonly kind: "eat";
+  dropoffEid: number;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
   | GatherActivity
   | DeliverActivity
   | AttackActivity
-  | AttackMoveActivity;
+  | AttackMoveActivity
+  | EatActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -105,6 +118,7 @@ export const ACTIVITY_KIND_GATHER = 3;
 export const ACTIVITY_KIND_DELIVER = 4;
 export const ACTIVITY_KIND_ATTACK = 5;
 export const ACTIVITY_KIND_ATTACK_MOVE = 6;
+export const ACTIVITY_KIND_EAT = 7;
 
 export type ActivityQueue = Activity[];
 
@@ -209,6 +223,16 @@ export function attackMoveActivity(
   return { kind: "attackMove", waypoints: [...waypoints], cursor: 0 };
 }
 
+/** Build an Eat activity targeting the drop-off entity `dropoffEid`. */
+export function eatActivity(dropoffEid: number): EatActivity {
+  if (!Number.isInteger(dropoffEid) || dropoffEid < 1) {
+    throw new Error(
+      `eat drop-off entity id must be a positive integer, got ${String(dropoffEid)}`,
+    );
+  }
+  return { kind: "eat", dropoffEid };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -234,6 +258,8 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
       row.push(ACTIVITY_KIND_DELIVER, 1, activity.dropoffEid);
     } else if (activity.kind === "attack") {
       row.push(ACTIVITY_KIND_ATTACK, 1, activity.targetEid);
+    } else if (activity.kind === "eat") {
+      row.push(ACTIVITY_KIND_EAT, 1, activity.dropoffEid);
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
       row.push(
@@ -357,6 +383,19 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "attack", targetEid });
+    } else if (kind === ACTIVITY_KIND_EAT) {
+      if (payloadLength !== 1) {
+        throw new Error(
+          `eat activity ${String(i)} must carry exactly one value`,
+        );
+      }
+      const dropoffEid = payload[0]!;
+      if (!Number.isInteger(dropoffEid) || dropoffEid < 1) {
+        throw new Error(
+          `eat activity ${String(i)} has malformed drop-off entity id`,
+        );
+      }
+      queue.push({ kind: "eat", dropoffEid });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

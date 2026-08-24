@@ -58,6 +58,8 @@ import { createAgeSystem } from "../sim/systems/age";
 import { createCombatSystem } from "../sim/systems/combat";
 import { createEquipmentSystem } from "../sim/systems/equipment";
 import { createSkillsSystem } from "../sim/systems/skills";
+import { createNeedsSystem } from "../sim/systems/needs";
+import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
 import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "../sim/ai/bootstrap";
@@ -139,6 +141,12 @@ export function createSkirmishWorld(
   registerSystem(world, createSkillsSystem(comps));
   registerSystem(world, createEquipmentSystem(comps));
   registerSystem(world, createVictorySystem(comps));
+  // M3-T3: needs decay/eating runs after the labor planners so an
+  // emergency hunger release sticks until the next tick; the IAUS pop
+  // brain serves the HUMAN side's idle Pops only — the AI opponent
+  // keeps its own planner stack (SPEC §2.8 layering).
+  registerSystem(world, createNeedsSystem(comps));
+  registerSystem(world, createPopBrainSystem({ comps, players: [PLAYER_ONE] }));
 
   // ---- Human start: ledger + age ladder + central TC + villagers ------
   const centerSpot = centralPassableTiles(world, 1)[0]!;

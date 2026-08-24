@@ -59,6 +59,9 @@ import {
   skillCodeOf,
 } from "../data/skills";
 import { traitWorkSpeedMult, traitXpGainMult } from "../data/traits";
+import type { SimComponents } from "../components";
+import type { NeedsComponents } from "../components/needs";
+import { restWorkMultiplierOf } from "./needs";
 import type { SimSystem, World } from "../core/world";
 
 /** Components the skill helpers/system need. */
@@ -281,6 +284,11 @@ export function builderMilliPerTickFor(
  * Effective gather ticks per resource unit for one worker entity:
  * derived on read from its gathering level + workSpeedMult traits.
  * Rowless entities return `baseTicks` unchanged (legacy byte-compat).
+ *
+ * M3-T3 NOTE: this per-read derivation is now only correct for
+ * SHRINKING intervals (skill growth). Chain construction must use
+ * {@link resolveGatherInterval} instead — see the gather system's
+ * advanceGatherHead for why encoded==effective is an invariant.
  */
 export function effectiveGatherTicksPerUnit(
   world: World,
@@ -300,6 +308,27 @@ export function effectiveGatherTicksPerUnit(
     level,
     workTraitMultOf(world, comps, eid),
   );
+}
+
+/**
+ * The ONE gather-interval resolver (M3-T2 ×M3-T3): folds the worker's
+ * gathering skill + work-speed traits AND the rest penalty into a
+ * single integer interval for a freshly constructed work chain. Purely
+ * a function of digest-visible rows; rowless/fully-rested workers get
+ * exactly `baseTicks`.
+ */
+export function resolveGatherInterval(
+  world: World,
+  comps: SimComponents & NeedsComponents,
+  eid: number,
+  baseTicks: number,
+): number {
+  const skillMult = workMultiplierFor(
+    skillLevelOf(world, comps, eid, "gathering") ?? 0,
+    workTraitMultOf(world, comps, eid),
+  );
+  const restMult = restWorkMultiplierOf(world, comps, eid);
+  return Math.max(1, Math.round(baseTicks / (skillMult * restMult)));
 }
 
 /** Attack multiplier contributed by a combat skill level (exact float). */

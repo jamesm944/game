@@ -60,6 +60,7 @@ import {
   workTraitMultOf,
 } from "./skills";
 import { resetSteeringBookkeeping } from "./movement";
+import { restWorkMultiplierOf } from "./needs";
 
 /** Command kind owned by this system. */
 export const BUILD_KIND = "build";
@@ -364,11 +365,16 @@ export function createConstructionSystem(
         if (rectDistanceSq(builder.x, builder.y, group.rect) <= rangeSq) {
           const level =
             skillLevelOf(world, comps, builder.eid, "construction") ?? 0;
-          milliThisTick += builderMilliPerTickFor(
+          let milli = builderMilliPerTickFor(
             builderWorkMilliPerTick(contributingRank),
             level,
             workTraitMultOf(world, comps, builder.eid),
           );
+          // M3-T3: exhaustion slows the swing (multiplier exactly 1 for
+          // rowless Pops — legacy arithmetic untouched).
+          const restMult = restWorkMultiplierOf(world, comps, builder.eid);
+          if (restMult !== 1) milli = Math.round(milli * restMult);
+          milliThisTick += milli;
           awardPractice(
             world,
             comps,

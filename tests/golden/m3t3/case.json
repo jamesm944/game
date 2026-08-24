@@ -1,0 +1,30 @@
+{
+  "name": "m3t3",
+  "description": "Zero-idle village self-runs 600 ticks unattended: six named Pops (full Needs meters via the spawnUnit identity branch) spawn around a drop-off depot on an open field with nine mixed resource nodes and one house foundation — and NO commands are ever submitted. The IAUS pop brain self-assigns every idle Pop at its staggered 1 Hz think (gather/build candidates scored by traits/skills/needs/distance), stamping digest-visible JobCooldown rows as it goes; needs decay rides each Pop's hash-offset rare tick (~2 rare ticks inside the window, so nobody gets hungry yet). Fixture asserts milestone digests every 30th tick, stockpile growth from unattended labor, zero idle Pops at the horizon, and doubles as the extended double-run determinism canary.",
+  "seed": 20260825,
+  "size": 24,
+  "ticks": 600,
+  "milestoneEvery": 30,
+  "startingResources": [200, 100, 0, 0, 0, 0, 0],
+  "dropOff": [6.5, 6.5],
+  "nodes": [
+    { "tile": [9, 9], "resource": "wood", "amount": 500 },
+    { "tile": [11, 8], "resource": "food", "amount": 500 },
+    { "tile": [8, 12], "resource": "gold", "amount": 400 },
+    { "tile": [14, 10], "resource": "wood", "amount": 500 },
+    { "tile": [13, 13], "resource": "stone", "amount": 400 },
+    { "tile": [16, 8], "resource": "food", "amount": 500 },
+    { "tile": [17, 12], "resource": "iron", "amount": 300 },
+    { "tile": [6, 15], "resource": "coal", "amount": 300 },
+    { "tile": [18, 15], "resource": "clay", "amount": 300 }
+  ],
+  "houseSiteTile": [19, 18],
+  "popSpawns": [
+    [7.5, 7.5],
+    [10.5, 10.5],
+    [12.5, 7.5],
+    [9.5, 13.5],
+    [15.5, 11.5],
+    [12.5, 14.5]
+  ]
+}

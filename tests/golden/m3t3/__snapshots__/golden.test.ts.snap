@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m3t3 > records milestone digests at every 30th tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:7a21810e22b70f11",
+    "tick": 30,
+  },
+  {
+    "digest": "fnv1a64:237d2a820511c4ab",
+    "tick": 60,
+  },
+  {
+    "digest": "fnv1a64:21be95cfb7641aa2",
+    "tick": 90,
+  },
+  {
+    "digest": "fnv1a64:b7a70df2bef8d04b",
+    "tick": 120,
+  },
+  {
+    "digest": "fnv1a64:6c4e969edd88da61",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:3edfea559a8823e3",
+    "tick": 180,
+  },
+  {
+    "digest": "fnv1a64:bfb7b343f77919d0",
+    "tick": 210,
+  },
+  {
+    "digest": "fnv1a64:5c6dce2603efbaca",
+    "tick": 240,
+  },
+  {
+    "digest": "fnv1a64:d69be8b1ea44ef84",
+    "tick": 270,
+  },
+  {
+    "digest": "fnv1a64:0e30e77aa8c20a52",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:e469086c32241b68",
+    "tick": 330,
+  },
+  {
+    "digest": "fnv1a64:19cb8c934e733b85",
+    "tick": 360,
+  },
+  {
+    "digest": "fnv1a64:da2fb42b5bd1e542",
+    "tick": 390,
+  },
+  {
+    "digest": "fnv1a64:5679b715e9e562c7",
+    "tick": 420,
+  },
+  {
+    "digest": "fnv1a64:bd9ddd9700f624c8",
+    "tick": 450,
+  },
+  {
+    "digest": "fnv1a64:69cc4b32bc5103b1",
+    "tick": 480,
+  },
+  {
+    "digest": "fnv1a64:1840d54fcc96f16f",
+    "tick": 510,
+  },
+  {
+    "digest": "fnv1a64:3e79f16ae122cc03",
+    "tick": 540,
+  },
+  {
+    "digest": "fnv1a64:37022b35c94c213a",
+    "tick": 570,
+  },
+  {
+    "digest": "fnv1a64:09b95ddac773200f",
+    "tick": 600,
+  },
+]
+`;

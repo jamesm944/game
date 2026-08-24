@@ -38,6 +38,22 @@ _Avoid_: Perk, feature
 **Injury**:
 Damage to a specific Pop that persists across ticks: impairs work/combat while present, heals over time or maims permanently.
 
+**Needs**:
+The three per-Pop meters — food, rest, morale — decayed only on the Pop's hash-offset rare tick. Hunger sends a Pop to eat from the stockpile; starvation crashes morale; a drained rest meter slows work until full sleep arrives (T6).
+_Avoid_: Happiness, hunger bar (bare), stats
+
+**Rare tick**:
+An entity's personal slow-update slot, `(tick + eid) % 250`, shared by needs decay and skill rust — expensive per-Pop bookkeeping amortized across the population instead of spiked every tick.
+_Avoid_: Lazy tick, timer
+
+**IAUS job brain**:
+The 1 Hz utility scorer that self-assigns IDLE named Pops to gather nodes, build sites and production slots through the plain command interface. Player orders always win: ordered Pops are simply invisible to it.
+_Avoid_: Auto-worker, AI (bare), macro
+
+**Job cooldown**:
+The DFHack-style window stamped ON a target after a brain assignment, refusing further brain assignments there until it lapses — anti-thrash plus natural labor spreading. Digest-visible state on the target entity.
+_Avoid_: Lock, blacklist
+
 **School**:
 The building where Children spend childhood gaining traits and early skills before entering the workforce.
 
