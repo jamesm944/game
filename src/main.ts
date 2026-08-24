@@ -139,6 +139,17 @@ import {
 } from "./ui/buildMenu";
 import { createBuildingPanel } from "./ui/buildingPanel";
 import { createDomainPanel, type DomainPanelData } from "./ui/domainPanel";
+import {
+  createCompanyPanel,
+  type CharterPayload,
+  type CompanyPanelData,
+} from "./ui/companyPanel";
+import {
+  branchRowOf,
+  companyRowOf,
+  treasuryDeltasOf,
+} from "./sim/components/company";
+import type { CompanyPanelBranch, CompanyPanelEntry } from "./ui/companyPanel";
 import { popNameOf } from "./sim/components/pop";
 import { createPopCard } from "./ui/popCard";
 import { buildPopCard } from "./sim/popCard";
@@ -797,6 +808,117 @@ const domainPanel = createDomainPanel({
   },
 });
 
+// Company oversight panel (M4-T2, §2.7): one block per chartered
+// company — branches, ledger tail, share/freeze controls — plus a
+// charter form whenever the selection holds seed-able workplaces. All
+// data comes from the same Company/Branch/TreasuryDelta rows digests
+// hash; actions ride the shared inbox as authoritative commands.
+const formatCredits = (milli: number): string => (milli / 1000).toFixed(2);
+
+/** Selected eids that could join a charter right now (finished, own,
+ * §2.7-domain buildings not already branches). */
+const charterableSelection = (): number[] => {
+  const out: number[] = [];
+  for (const eid of getSelectedEids()) {
+    const row = getBuildingRow(world, comps, eid);
+    if (!row || row[0] !== PLAYER_ONE) continue;
+    if (domainOfBuildingDef(buildingIdOfCode(row[1]!)) === undefined) continue;
+    if (branchRowOf(world, comps, eid) !== undefined) continue;
+    out.push(eid);
+  }
+  return out;
+};
+
+const companyPanel = createCompanyPanel({
+  currentTick: () => world.tick,
+  inbox: world.inbox,
+  selectedSeedBuildingIds: charterableSelection,
+  getData: (): CompanyPanelData | undefined => {
+    const companyRows = world.rowsByComponentId.get(comps.companyId);
+    const branchRows = world.rowsByComponentId.get(comps.branchId);
+    const companies: CompanyPanelEntry[] = [];
+    if (companyRows) {
+      for (const [eid] of [...companyRows].sort((a, b) => a[0] - b[0])) {
+        const row = companyRowOf(world, comps, eid);
+        if (!row) continue;
+        const branches: CompanyPanelBranch[] = [];
+        for (const [buildingEid, branchRow] of [...(branchRows ?? [])].sort(
+          (a, b) => a[0] - b[0],
+        )) {
+          if (branchRow[0] !== eid) continue;
+          const buildingRow = getBuildingRow(world, comps, buildingEid);
+          const label = buildingRow
+            ? `${buildingDefOf(buildingIdOfCode(buildingRow[1]!)).name} #${String(buildingEid)}`
+            : `#${String(buildingEid)}`;
+          const foremanEntry = foremanRowOf(world, comps, buildingEid);
+          branches.push({
+            buildingEid,
+            label,
+            foremanLabel:
+              foremanEntry === undefined
+                ? undefined
+                : `Foreman ${popNameOf(world, comps, foremanEntry.foremanPopEid) ?? "??"}`,
+          });
+        }
+        companies.push({
+          companyId: eid,
+          name: row.name,
+          focusSlug: DOMAIN_NAMES[row.focusDomain] ?? "?",
+          treasuryLabel: `${formatCredits(row.treasuryMilli)} cr`,
+          sharePct: row.sharePct,
+          frozen: row.frozen,
+          branches,
+          ledgerTail: treasuryDeltasOf(world, comps, eid)
+            .slice()
+            .reverse()
+            .map((entry) => ({
+              tick: entry.tick,
+              credits: formatCredits(entry.milli),
+            })),
+        });
+      }
+    }
+    const seeds = charterableSelection();
+    const charterOffer =
+      seeds.length > 0
+        ? {
+            focusSlugs: [...DOMAIN_NAMES],
+            seedLabels: seeds.map((eid) => {
+              const row = getBuildingRow(world, comps, eid)!;
+              return `${buildingDefOf(buildingIdOfCode(row[1]!)).name} #${String(eid)}`;
+            }),
+          }
+        : undefined;
+    if (companies.length === 0 && charterOffer === undefined) return undefined;
+    return { companies, charterOffer };
+  },
+  issueCharter: (payload: CharterPayload) => {
+    world.inbox.submit({
+      kind: "charterCompany",
+      targetTick: world.tick + 1,
+      data: {
+        name: payload.name,
+        focus: payload.focusDomain,
+        seedBuildingIds: [...payload.seedBuildingIds],
+      },
+    });
+  },
+  issueShare: ({ companyId, sharePct }) => {
+    world.inbox.submit({
+      kind: "setCompanyShare",
+      targetTick: world.tick + 1,
+      data: { companyId, sharePct },
+    });
+  },
+  issueFrozen: ({ companyId, frozen }) => {
+    world.inbox.submit({
+      kind: "setCompanyFrozen",
+      targetTick: world.tick + 1,
+      data: { companyId, frozen },
+    });
+  },
+});
+
 // Paint chrome immediately; the loop refreshes it from here on.
 topbar.update(world.tick, "—");
 minimap.redraw();
@@ -1097,6 +1219,7 @@ function frame(
   buildingPanel.refresh();
   popCard.refresh();
   domainPanel.refresh();
+  companyPanel.refresh();
   pollMatchOutcome();
   renderer.render(scene, cameraRig.camera);
 

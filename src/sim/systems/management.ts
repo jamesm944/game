@@ -77,6 +77,7 @@ import {
   strategyWeightsOf,
 } from "../components/management";
 import { getAssignedSite, getBuildingRow } from "../components/buildings";
+import { branchRowOf } from "../components/company";
 import { getAssignedNode } from "../components/economy";
 import { needsRowOf } from "../components/needs";
 import { ownerOfUnit } from "../components/owner";
@@ -475,6 +476,13 @@ export function createManagementSystem(
     if (def.workSlots <= 0 || recipesForBuilding(def.id).length === 0) {
       throw new Error(`building ${def.id} is not a workplace`);
     }
+    // M4-T2 staffing rule (SPEC §2.7): branch foremen are appointed
+    // EXCLUSIVELY by the company staffing pass — no player appointment.
+    if (branchRowOf(world!, comps, buildingEid) !== undefined) {
+      throw new Error(
+        `building ${def.id} is a company Branch — its foreman answers to the company, not the player`,
+      );
+    }
     const owner = requireEligibleOfficer(popEid);
     if (managerRowOf(world!, comps, popEid) !== undefined) {
       throw new Error(
@@ -485,12 +493,19 @@ export function createManagementSystem(
       throw new Error("appointForeman pop does not belong to the building");
     }
     // Re-appointment moves the office: any other Foreman row naming
-    // this Pop dies (ascending-eid scan keeps it deterministic).
+    // this Pop dies (ascending-eid scan keeps it deterministic). A Pop
+    // serving a BRANCH post cannot be re-posted by the player either —
+    // vacating it indirectly would be a veto in disguise.
     const foremanRows = world!.rowsByComponentId.get(comps.foremanId)!;
     for (const [otherBuilding, row] of [...foremanRows].sort(
       (a, b) => a[0] - b[0],
     )) {
       if (row[0] === popEid && otherBuilding !== buildingEid) {
+        if (branchRowOf(world!, comps, otherBuilding) !== undefined) {
+          throw new Error(
+            `pop ${String(popEid)} foremans a company Branch and cannot be re-posted by the player`,
+          );
+        }
         foremanRows.delete(otherBuilding);
         diagnostics.dismissals += 1;
       }
@@ -507,6 +522,10 @@ export function createManagementSystem(
     data: Readonly<Record<string, unknown>>,
   ): void => {
     const buildingEid = parsePositiveInt(data, "buildingEid");
+    // M4-T2 staffing rule: no player veto over branch foremen either.
+    if (branchRowOf(world!, comps, buildingEid) !== undefined) {
+      throw new Error("dismissForeman cannot unseat a company Branch foreman");
+    }
     if (clearForemanRow(world!, comps, buildingEid)) {
       diagnostics.dismissals += 1;
     }
@@ -542,11 +561,18 @@ export function createManagementSystem(
       }
     }
     // Managers stop working the line; any Foreman post they held dies.
+    // A BRANCH post, though, is company property (M4-T2): promoting its
+    // foreman away would be a player veto in disguise — refuse instead.
     const foremanRows = world!.rowsByComponentId.get(comps.foremanId)!;
     for (const [building, row] of [...foremanRows].sort(
       (a, b) => a[0] - b[0],
     )) {
       if (row[0] === popEid) {
+        if (branchRowOf(world!, comps, building) !== undefined) {
+          throw new Error(
+            `pop ${String(popEid)} foremans a company Branch and cannot be taken over`,
+          );
+        }
         foremanRows.delete(building);
         diagnostics.dismissals += 1;
       }

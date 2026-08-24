@@ -75,6 +75,10 @@ import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
 import { createMoraleSystem } from "../sim/systems/morale";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createManagementSystem } from "../sim/systems/management";
+import {
+  createCompaniesSystem,
+  type OutputObservers,
+} from "../sim/systems/companies";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
 import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "../sim/ai/bootstrap";
@@ -152,12 +156,23 @@ export function createSkirmishWorld(
   // System roster mirrors production registration order; the victory
   // evaluator runs after combat (settled destruction state) and the AI
   // planner stays LAST per its contract.
+  // M4-T2: the companies ledger observes every output credit event, so
+  // its observer wires into gather + production BEFORE they register;
+  // the companies system itself runs after the delegation layer.
+  const companies = createCompaniesSystem({ comps, players: [PLAYER_ONE] });
+  const outputObservers: OutputObservers = { onOutput: companies.onOutput };
   registerSystem(world, createMovementSystem(comps, scheduler));
-  registerSystem(world, createGatherSystem(comps, scheduler));
+  registerSystem(
+    world,
+    createGatherSystem(comps, scheduler, undefined, outputObservers),
+  );
   registerSystem(world, createPlacementSystem(comps));
   registerSystem(world, createConstructionSystem(comps));
   registerSystem(world, createTrainingSystem(comps));
-  registerSystem(world, createProductionSystem(comps));
+  registerSystem(
+    world,
+    createProductionSystem(comps, undefined, undefined, outputObservers),
+  );
   registerSystem(world, createAgeSystem(comps));
   registerSystem(world, createCombatSystem(comps, undefined, scheduler));
   // M3-T4: rare-tick wound pass runs after combat (strikes allocate
@@ -245,6 +260,11 @@ export function createSkirmishWorld(
     world,
     createManagementSystem({ comps, players: [PLAYER_ONE] }),
   );
+  // M4-T2: the §2.7 companies layer — charters, branch treasuries fed
+  // by the output share, exclusive branch staffing, freeze flag. Runs
+  // after delegation so staffing sees this tick's lock sweep, before
+  // the AI planner per its last-on-the-roster contract.
+  registerSystem(world, companies.system);
 
   // ---- Human start: ledger + age ladder + central TC + villagers ------
   const centerSpot = centralPassableTiles(world, 1)[0]!;

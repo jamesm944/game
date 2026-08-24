@@ -142,6 +142,15 @@ export interface ProductionGates {
   readonly isRecipeUnlocked?: (recipe: RecipeDefinition) => boolean;
 }
 
+/**
+ * Output observers (M4-T2): invoked at every cycle-completion credit
+ * event with the credited building, output slug and unit count — the
+ * companies ledger taps this to route branch shares to treasuries.
+ */
+export interface ProductionOutputObservers {
+  readonly onOutput?: import("./companies").BranchOutputObserver | undefined;
+}
+
 // ---- Command parsing ------------------------------------------------------------
 
 function parseProduceData(data: Readonly<Record<string, unknown>>): {
@@ -211,6 +220,7 @@ export function createProductionSystem(
   comps: SimComponents,
   diagnostics: ProductionDiagnostics = createProductionDiagnostics(),
   gates: ProductionGates = {},
+  observers: ProductionOutputObservers = {},
 ): SimSystem {
   return (world: World, commands: readonly SimCommand[]): void => {
     // ---- 1) Commands consumed exactly on their target tick boundary;
@@ -344,7 +354,7 @@ export function createProductionSystem(
       }
       row[2] = row[2]! - 1;
       if (row[2] === 0)
-        completeCycle(world, comps, diagnostics, eid, row, recipe);
+        completeCycle(world, comps, diagnostics, eid, row, recipe, observers);
 
       // Completion-tick restart attempt (inputs may have just freed up
       // or the previous check passed before the outputs landed).
@@ -396,6 +406,7 @@ function completeCycle(
   eid: number,
   row: number[],
   recipe: RecipeDefinition,
+  observers: ProductionOutputObservers,
 ): void {
   const { defId, qty } = recipe.output;
   const resourceCode = slugIndexIn(RESOURCE_SLUGS, defId);
@@ -415,6 +426,9 @@ function completeCycle(
       });
     }
   }
+  // M4-T2: branch output share routing taps the same credit event the
+  // player ledger saw — one source of truth, no double counting.
+  observers.onOutput?.(world, comps, row[0]!, eid, defId, qty);
   diagnostics.cyclesCompleted += 1;
 }
 

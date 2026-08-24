@@ -55,6 +55,15 @@ import {
 } from "./buildings";
 import { BODY, BODY_ARITY, type BodyComponents } from "./body";
 import {
+  BRANCH,
+  BRANCH_ARITY,
+  COMPANY,
+  COMPANY_ARITY,
+  TREASURY_DELTA,
+  TREASURY_DELTA_ARITY,
+  type CompanyComponents,
+} from "./company";
+import {
   COMBAT_COMPONENT_ARITIES,
   COMBAT,
   COMBAT_EVENTS,
@@ -198,6 +207,10 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * between Equipment and GateRejected; ManagementSkill + Manager
  * between Lessons and MealConsumed; OrderLock between Needs and
  * Owner; StrategySliders between Stockpile and TrainQueue.
+ * M4-T2 adds the three company names: Branch between Body and
+ * Building ("Bo" < "Br" < "Bu"); Company between CommodityStockpile
+ * and DropOff ("Comm" < "Comp" < "Dro"); TreasuryDelta after Traits
+ * ("Trai…" < "Tre…").
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -210,11 +223,17 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...AGE_COMPONENT_ARITIES,
   // M3-T4: Body registers alphabetically before Building.
   [BODY, BODY_ARITY],
+  // M4-T2: Branch registers alphabetically between Body ("Bo") and
+  // Building ("Bu").
+  [BRANCH, BRANCH_ARITY],
   ...BUILDING_COMPONENT_ARITIES,
   // M3-T5: Household registers alphabetically after GateRejected
   // (which AGE_COMPONENT_ARITIES lists last) and before Identity.
   [HOUSEHOLD, HOUSEHOLD_ARITY],
   ...COMBAT_COMPONENT_ARITIES,
+  // M4-T2: Company registers alphabetically between CommodityStockpile
+  // (core/stockpile.ts, not tabulated here) and DropOff (same module).
+  [COMPANY, COMPANY_ARITY],
   // M3-T7: Relationship registers alphabetically between ProductionJob
   // (which PRODUCTION_COMPONENT_ARITIES lists last) and ResearchedTechs
   // (which COMBAT_COMPONENT_ARITIES lists).
@@ -248,6 +267,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // (core/stockpile.ts, not tabulated here) and TrainQueue.
   [STRATEGY_SLIDERS, STRATEGY_SLIDERS_ARITY],
   [TRAITS, TRAITS_ARITY],
+  // M4-T2: TreasuryDelta registers alphabetically after Traits
+  // ("Trai…" < "Tre…") and before VictoryCheck.
+  [TREASURY_DELTA, TREASURY_DELTA_ARITY],
   ...VICTORY_COMPONENT_ARITIES,
 ];
 
@@ -270,6 +292,7 @@ export interface SimComponents
     BuildingComponents,
     BodyComponents,
     CombatComponents,
+    CompanyComponents,
     EquipmentComponents,
     HouseholdComponents,
     ManagementComponents,
@@ -298,12 +321,17 @@ export function defineSimComponents(world: World): SimComponents {
     assignedNodeId: defineComponent(world, ASSIGNED_NODE),
     assignedSiteId: defineComponent(world, ASSIGNED_SITE),
     bodyId: defineComponent(world, BODY),
+    // M4-T2: Branch registers alphabetically between Body and Building.
+    branchId: defineComponent(world, BRANCH),
     buildingId: defineComponent(world, BUILDING),
     buildingSiteId: defineComponent(world, BUILDING_SITE),
     carryCapacityId: defineComponent(world, CARRY_CAPACITY),
     combatId: defineComponent(world, COMBAT),
     combatEventsId: defineComponent(world, COMBAT_EVENTS),
     commodityStockpileId: defineComponent(world, COMMODITY_STOCKPILE),
+    // M4-T2: Company registers alphabetically between CommodityStockpile
+    // and DropOff ("Comm" < "Comp" < "Dro").
+    companyId: defineComponent(world, COMPANY),
     dropoffId: defineComponent(world, DROP_OFF),
     equipmentId: defineComponent(world, EQUIPMENT),
     // M4-T1: Foreman registers alphabetically between Equipment and
@@ -352,6 +380,9 @@ export function defineSimComponents(world: World): SimComponents {
     strategySlidersId: defineComponent(world, STRATEGY_SLIDERS),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
     traitsId: defineComponent(world, TRAITS),
+    // M4-T2: TreasuryDelta registers alphabetically after Traits and
+    // before VictoryCheck.
+    treasuryDeltaId: defineComponent(world, TREASURY_DELTA),
     unitTagId: defineComponent(world, UNIT_TAG),
     velocityId: defineComponent(world, VELOCITY),
     victoryCheckId: defineComponent(world, VICTORY_CHECK),
@@ -628,6 +659,7 @@ export * from "./age";
 export * from "./body";
 export * from "./buildings";
 export * from "./combat";
+export * from "./company";
 export * from "./equipment";
 export * from "./household";
 export * from "./jobCooldown";

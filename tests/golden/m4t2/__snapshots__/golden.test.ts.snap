@@ -1,0 +1,131 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t2 > records milestone digests plus the company trace 1`] = `
+[
+  {
+    "digest": "fnv1a64:082e976265ae4664",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:db06e953eb9f7e27",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:3432b641dba95219",
+    "tick": 450,
+  },
+  {
+    "digest": "fnv1a64:546e26e260def5bc",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:0bcf13c36e3adf63",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:00f68636efca9b4b",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:4024a902f91b9c6f",
+    "tick": 1050,
+  },
+  {
+    "digest": "fnv1a64:394f99439984b002",
+    "tick": 1200,
+  },
+]
+`;
+
+exports[`golden harness m4t2 > records milestone digests plus the company trace 2`] = `
+[
+  {
+    "digest": "fnv1a64:082e976265ae4664",
+    "frozen": false,
+    "ledgerTailEntries": 0,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 150,
+    "treasuryMilli": 0,
+  },
+  {
+    "digest": "fnv1a64:db06e953eb9f7e27",
+    "frozen": false,
+    "ledgerTailEntries": 0,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 300,
+    "treasuryMilli": 0,
+  },
+  {
+    "digest": "fnv1a64:3432b641dba95219",
+    "frozen": false,
+    "ledgerTailEntries": 3,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 450,
+    "treasuryMilli": 6000,
+  },
+  {
+    "digest": "fnv1a64:546e26e260def5bc",
+    "frozen": false,
+    "ledgerTailEntries": 3,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 600,
+    "treasuryMilli": 6000,
+  },
+  {
+    "digest": "fnv1a64:0bcf13c36e3adf63",
+    "frozen": true,
+    "ledgerTailEntries": 6,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 750,
+    "treasuryMilli": 12000,
+  },
+  {
+    "digest": "fnv1a64:00f68636efca9b4b",
+    "frozen": true,
+    "ledgerTailEntries": 6,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 900,
+    "treasuryMilli": 12000,
+  },
+  {
+    "digest": "fnv1a64:4024a902f91b9c6f",
+    "frozen": false,
+    "ledgerTailEntries": 9,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 1050,
+    "treasuryMilli": 18000,
+  },
+  {
+    "digest": "fnv1a64:394f99439984b002",
+    "frozen": false,
+    "ledgerTailEntries": 9,
+    "staffing": [
+      1,
+      1,
+    ],
+    "tick": 1200,
+    "treasuryMilli": 18000,
+  },
+]
+`;

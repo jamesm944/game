@@ -82,6 +82,7 @@ import {
 import { findPath } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
 import type { SimSystem } from "../core/world";
+import { RESOURCE_SLUGS } from "../../data/schema";
 import {
   awardPractice,
   GATHER_XP_PER_UNIT,
@@ -96,6 +97,15 @@ import { isChildOf } from "./lifecycle";
 
 /** Ticks of slot work per extracted resource unit (1 s at 30 Hz). */
 export const DEFAULT_GATHER_TICKS_PER_UNIT = 30;
+
+/**
+ * Output observers (M4-T2): invoked at every Deliver credit event with
+ * the credited drop-off building, resource slug and unit count — the
+ * companies ledger taps this to route branch shares to treasuries.
+ */
+export interface GatherOutputObservers {
+  readonly onOutput?: import("./companies").BranchOutputObserver | undefined;
+}
 /** Distance from the slot center within which slot work may begin. */
 const SLOT_ARRIVAL_RADIUS = 0.35;
 /** Distance from the holding point within which an overflow settles. */
@@ -333,6 +343,7 @@ export function createGatherSystem(
   comps: SimComponents,
   paths?: PathScheduler | undefined,
   diagnostics: GatherDiagnostics = createGatherDiagnostics(),
+  observers: GatherOutputObservers = {},
 ): SimSystem {
   const costCache: DropOffCostCache = { version: -1, costs: new Map() };
   /** Per-tick memo for drop-off enumeration (ranks must stay stable). */
@@ -681,6 +692,16 @@ export function createGatherSystem(
       depositIntoStockpile(world, comps, owner, inv.resourceCode, inv.amount);
       diagnostics.depositedByResource[inv.resourceCode]! += inv.amount;
       recordDelivery(head.dropoffEid);
+      // M4-T2: branch drop-off output routing taps the same credit
+      // event — one source of truth, no double counting.
+      observers.onOutput?.(
+        world,
+        comps,
+        owner,
+        head.dropoffEid,
+        RESOURCE_SLUGS[inv.resourceCode]!,
+        inv.amount,
+      );
       setInventory(world, comps, worker.eid, inv.resourceCode, 0);
       return true;
     };
