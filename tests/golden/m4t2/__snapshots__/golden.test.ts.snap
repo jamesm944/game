@@ -3,35 +3,35 @@
 exports[`golden harness m4t2 > records milestone digests plus the company trace 1`] = `
 [
   {
-    "digest": "fnv1a64:082e976265ae4664",
+    "digest": "fnv1a64:8ff11c081e9d51a0",
     "tick": 150,
   },
   {
-    "digest": "fnv1a64:db06e953eb9f7e27",
+    "digest": "fnv1a64:a8fcda1c4e069a23",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:3432b641dba95219",
+    "digest": "fnv1a64:6a5ef3918f8b6415",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:546e26e260def5bc",
+    "digest": "fnv1a64:0d9a5b39c6548c20",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:0bcf13c36e3adf63",
+    "digest": "fnv1a64:be47a22724d4a307",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:00f68636efca9b4b",
+    "digest": "fnv1a64:83ead78147cae127",
     "tick": 900,
   },
   {
-    "digest": "fnv1a64:4024a902f91b9c6f",
+    "digest": "fnv1a64:ff2c8046ebf69ad3",
     "tick": 1050,
   },
   {
-    "digest": "fnv1a64:394f99439984b002",
+    "digest": "fnv1a64:b8761c7bfb9aa216",
     "tick": 1200,
   },
 ]
@@ -40,7 +40,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
 exports[`golden harness m4t2 > records milestone digests plus the company trace 2`] = `
 [
   {
-    "digest": "fnv1a64:082e976265ae4664",
+    "digest": "fnv1a64:8ff11c081e9d51a0",
     "frozen": false,
     "ledgerTailEntries": 0,
     "staffing": [
@@ -51,7 +51,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 0,
   },
   {
-    "digest": "fnv1a64:db06e953eb9f7e27",
+    "digest": "fnv1a64:a8fcda1c4e069a23",
     "frozen": false,
     "ledgerTailEntries": 0,
     "staffing": [
@@ -62,7 +62,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 0,
   },
   {
-    "digest": "fnv1a64:3432b641dba95219",
+    "digest": "fnv1a64:6a5ef3918f8b6415",
     "frozen": false,
     "ledgerTailEntries": 3,
     "staffing": [
@@ -73,7 +73,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 6000,
   },
   {
-    "digest": "fnv1a64:546e26e260def5bc",
+    "digest": "fnv1a64:0d9a5b39c6548c20",
     "frozen": false,
     "ledgerTailEntries": 3,
     "staffing": [
@@ -84,7 +84,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 6000,
   },
   {
-    "digest": "fnv1a64:0bcf13c36e3adf63",
+    "digest": "fnv1a64:be47a22724d4a307",
     "frozen": true,
     "ledgerTailEntries": 6,
     "staffing": [
@@ -95,7 +95,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 12000,
   },
   {
-    "digest": "fnv1a64:00f68636efca9b4b",
+    "digest": "fnv1a64:83ead78147cae127",
     "frozen": true,
     "ledgerTailEntries": 6,
     "staffing": [
@@ -106,7 +106,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 12000,
   },
   {
-    "digest": "fnv1a64:4024a902f91b9c6f",
+    "digest": "fnv1a64:ff2c8046ebf69ad3",
     "frozen": false,
     "ledgerTailEntries": 9,
     "staffing": [
@@ -117,7 +117,7 @@ exports[`golden harness m4t2 > records milestone digests plus the company trace 
     "treasuryMilli": 18000,
   },
   {
-    "digest": "fnv1a64:394f99439984b002",
+    "digest": "fnv1a64:b8761c7bfb9aa216",
     "frozen": false,
     "ledgerTailEntries": 9,
     "staffing": [

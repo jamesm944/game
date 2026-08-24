@@ -287,6 +287,17 @@ export function loadDefinitions(
             );
           }
         }
+        // M4-T4: §2.11 role blocks must reference real gatherable slugs
+        // (festival costs debit the resource ledger).
+        if (def.victory?.festivalCosts !== undefined) {
+          for (const slug of Object.keys(def.victory.festivalCosts)) {
+            if (!gatherables.has(slug)) {
+              errors.push(
+                `building ${def.id}: festivalCosts reference unknown resource ${JSON.stringify(slug)} (known: ${RESOURCE_SLUGS.join(", ")})`,
+              );
+            }
+          }
+        }
         break;
       }
       case "tech": {

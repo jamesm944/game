@@ -1,0 +1,70 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t4a — player knowledge victory > records milestone digests and replays byte-identically 1`] = `
+[
+  {
+    "digest": "fnv1a64:82ff187ce8558d8c",
+    "tick": 250,
+  },
+  {
+    "digest": "fnv1a64:ba6734360c2b3a88",
+    "tick": 500,
+  },
+  {
+    "digest": "fnv1a64:6b27e8a17aff56c4",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:d1a3b67113b8d749",
+    "tick": 1000,
+  },
+  {
+    "digest": "fnv1a64:0683181a6db88f39",
+    "tick": 1250,
+  },
+  {
+    "digest": "fnv1a64:b43e9f87f8400ccf",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:9222cde484f25abd",
+    "tick": 1750,
+  },
+  {
+    "digest": "fnv1a64:b8851ee98a4cd6ea",
+    "tick": 2000,
+  },
+  {
+    "digest": "fnv1a64:8f7345437336a06b",
+    "tick": 2250,
+  },
+  {
+    "digest": "fnv1a64:b8c0817169763257",
+    "tick": 2500,
+  },
+  {
+    "digest": "fnv1a64:ba867e82bc298ad2",
+    "tick": 2750,
+  },
+  {
+    "digest": "fnv1a64:f20b33abd0420ca6",
+    "tick": 3000,
+  },
+  {
+    "digest": "fnv1a64:e53135e8741cc74d",
+    "tick": 3250,
+  },
+  {
+    "digest": "fnv1a64:caceba76220d0348",
+    "tick": 3500,
+  },
+  {
+    "digest": "fnv1a64:377d61f6a9d7109c",
+    "tick": 3750,
+  },
+  {
+    "digest": "fnv1a64:71b18893d76ea453",
+    "tick": 4000,
+  },
+]
+`;

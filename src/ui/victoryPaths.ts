@@ -1,0 +1,82 @@
+/**
+ * Victory-path progress panel — SPEC §2.11 / M4-T4.
+ *
+ * Framework-free DOM chrome (§2.13): one line per §2.11 path showing
+ * the viewer's current metric against the path's threshold plus the
+ * sustain-timer state (holding x/y, paused, or act missing). Every
+ * number comes from {@link VictoryPathReadout} — the same digest-row
+ * derivation the evaluator decides on — so the panel cannot disagree
+ * with the sim. Formatting helpers are pure functions so tests cover
+ * them without a DOM; only createVictoryPathsPanel touches document.
+ */
+
+import type { VictoryPathReadout } from "../sim/systems/victory";
+
+/** Whole units for display: milli-rate → e.g. `3.5`. */
+function formatPerMin(milli: number | undefined): string {
+  return milli === undefined ? "—" : (milli / 1000).toFixed(1);
+}
+
+/**
+ * One legible status line per path, e.g.
+ *   `Knowledge · 240.0/min sustained · need 40/min · holding 450/900t`
+ *   `Knowledge · 12.0/min sustained · need 40/min · paused 120/900t`
+ *   `Culture · act missing`
+ *   `Conquest · capacity 2 · act ready`
+ */
+export function formatVictoryPathLine(readout: VictoryPathReadout): string {
+  const label = readout.id.charAt(0).toUpperCase() + readout.id.slice(1);
+  if (!readout.actComplete) {
+    const metric =
+      readout.ratePerMinMilli !== undefined
+        ? `${formatPerMin(readout.ratePerMinMilli)}/min sustained`
+        : `capacity ${String(readout.metric)}`;
+    return `${label} · ${metric} · act missing`;
+  }
+  // Act complete from here: timed paths show the sustain race,
+  // conquest (timerless) simply stands ready to win.
+  if (
+    readout.thresholdPerMin === undefined ||
+    readout.timerTicks === undefined ||
+    readout.ratePerMinMilli === undefined
+  ) {
+    return `${label} · capacity ${String(readout.metric)} · act ready`;
+  }
+  const state =
+    readout.ratePerMinMilli >= readout.thresholdPerMin * 1000
+      ? "holding"
+      : "paused";
+  return `${label} · ${formatPerMin(readout.ratePerMinMilli)}/min sustained · need ${String(readout.thresholdPerMin)}/min · ${state} ${String(readout.holdTicks)}/${String(readout.timerTicks)}t`;
+}
+
+export interface VictoryPathsPanelHandle {
+  /** Repaint from a fresh readout array (diffed to avoid DOM churn). */
+  update(readouts: readonly VictoryPathReadout[]): void;
+  readonly element: HTMLElement;
+}
+
+export function createVictoryPathsPanel(): VictoryPathsPanelHandle {
+  const element = document.createElement("div");
+  element.id = "victory-paths";
+  document.body.appendChild(element);
+
+  let lastText = "";
+  return {
+    update(readouts) {
+      const next = readouts.map(formatVictoryPathLine).join("\n");
+      if (next === lastText) return;
+      lastText = next;
+      element.replaceChildren(
+        ...readouts.map((readout) => {
+          const line = document.createElement("div");
+          line.className = "victory-path-line";
+          line.dataset.pathId = readout.id;
+          line.textContent = formatVictoryPathLine(readout);
+          if (readout.actComplete) line.dataset.active = "true";
+          return line;
+        }),
+      );
+    },
+    element,
+  };
+}

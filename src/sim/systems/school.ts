@@ -319,6 +319,22 @@ export function createSchoolDiagnostics(): SchoolDiagnostics {
 // ---- The system ---------------------------------------------------------------
 
 /**
+ * Observer hooks other systems may attach to the lesson stream. Like
+ * the companies ledger's output observers (M4-T2), callbacks fire
+ * INSIDE step() so every credit stays a deterministic replay event.
+ */
+export interface SchoolHooks {
+  /**
+   * One attended lesson: the stepping world, the pupil's owner and the
+   * teacher's best skill level (the §2.11 Knowledge generator scales
+   * its KP credit by it).
+   */
+  readonly onLesson?:
+    | ((world: World, playerId: number, teacherLevel: number) => void)
+    | undefined;
+}
+
+/**
  * Build the school SimSystem. Register after skills (knowledge grants
  * fold into the same rows the rust pass reads) and after lifecycle
  * helpers exist — it reads derived stages only, so ordering is soft.
@@ -328,6 +344,7 @@ export function createSchoolSystem(
   comps: SchoolSystemComponents,
   config: LifecycleConfig,
   diagnostics: SchoolDiagnostics = createSchoolDiagnostics(),
+  hooks: SchoolHooks = {},
 ): SimSystem {
   const normalized = normalizeLifecycleConfig(config);
   const adultTicks = adultTicksOf(normalized);
@@ -392,6 +409,9 @@ export function createSchoolSystem(
       // Attendance credit lands regardless of subject headroom.
       stampLesson(world, comps, eid, tick);
       diagnostics.lessonsTaught += 1;
+      // M4-T4: the §2.11 Knowledge generator observes every attended
+      // lesson (teacher-scaled KP lands on the owner's ledger).
+      hooks.onLesson?.(world, playerId, teacherLevel);
 
       // Knowledge XP gated by the teacher's subject ceiling.
       const ceiling = Math.min(TEACHER_SUBJECT_CAP, teacherLevel);

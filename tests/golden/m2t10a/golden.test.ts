@@ -95,6 +95,7 @@ import {
   unitsLostOf,
 } from "../../../src/sim/systems/victory";
 import {
+  VICTORY_PATH_CONQUEST,
   VICTORY_STATUS_LOST,
   VICTORY_STATUS_ONGOING,
   VICTORY_STATUS_WON,
@@ -351,7 +352,11 @@ function runScenario(): RunState {
     stableDestroyTick,
     outcome: evaluateOutcome(world, comps),
     aiOngoingMetrics: aiEntries
-      .filter((entry) => entry.status === VICTORY_STATUS_ONGOING)
+      .filter(
+        (entry) =>
+          entry.status === VICTORY_STATUS_ONGOING &&
+          entry.pathCode === VICTORY_PATH_CONQUEST,
+      )
       .map((entry) => entry.metric),
     aiTail: tailOf(aiEntries),
     p0Tail: tailOf(p0Entries),

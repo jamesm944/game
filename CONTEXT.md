@@ -305,6 +305,31 @@ _Avoid_: Win checker, victory logic
 **Conquest victory**: destroy enemy military production capacity (standard) — the live count of Barracks, Archery Range and Stable buildings per player (M2-T7 helper, consumed by the T10 evaluator). A player is defeated only after having HELD such capacity (read off their VictoryCheck log); economic-only play cannot be conquered until the other paths exist.
 **Wonder victory**: complete a Wonder, hold through timer.
 **Relic victory**: hold all Relics through timer.
+**Knowledge victory**: build the Grand Academy and sustain ≥N KP/min for T minutes. Generators: School lessons (KP scaled by teacher level) plus a lump award per completed research.
+**Culture victory**: build the Grand Monument and sustain ≥N prestige/min for T minutes. Generators: Monuments' ongoing income, population happiness/morale surplus, and Festivals.
+
+**Knowledge Points (KP)**:
+The cumulative per-player knowledge output on the ledger entity's KnowledgePoints row, carried in integer milli-units. The sustained KP/min metric is derived from this counter's deltas across the player's own VictoryCheck log — never from hidden state.
+_Avoid_: Research points, science
+
+**Prestige**:
+The cultural counterpart of KP — one cumulative PrestigeLedger row per player, integer milli-units, fed by monuments, happiness surplus and festivals; the culture path sustains its rate off the same log-delta derivation.
+_Avoid_: Culture points, glory
+
+**Festival**:
+A `hostFestival` command that converts Food+Gold into a timed prestige burst; costs and burst size live in the monument definition's §2.11 role block.
+_Avoid_: Party, celebration (bare)
+
+**Completing act**:
+The building that arms a timed path's win condition — Grand Academy (knowledge) or Grand Monument (culture). Until it stands, no interval counts toward the hold timer even while output flows.
+_Avoid_: Victory building, win structure
+
+**Sustain gate**:
+The completing act's paired JSON fields sustainPerMin + holdTicks: the minimum generator rate each cadence check must record, and how long the accumulated hold must last, to win.
+
+**Sustaining heartbeat**:
+A VictoryCheck status marking that, at that check, the completing act stood AND the interval since the previous check held the threshold rate — exactly the intervals the hold-timer sum reads, so pause/resume lives in digest rows only.
+_Avoid_: Timer tick, progress flag
 
 **VictoryCheck log**:
 The append-only per-player evaluation record on each ledger entity — one entry every 30 ticks with the current metric, then the decisive WON/LOST/SURRENDERED tail. Digest-visible by construction.

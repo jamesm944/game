@@ -215,51 +215,51 @@ exports[`golden harness m3t7 > an evening of village social life, every evening 
 exports[`golden harness m3t7 > records milestone digests at every 600th tick plus final 1`] = `
 [
   {
-    "digest": "fnv1a64:1c21f8cadfed1e98",
+    "digest": "fnv1a64:9fa99600810b32d3",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:548054cb5ab2107e",
+    "digest": "fnv1a64:da631925bcd0ea6d",
     "tick": 1200,
   },
   {
-    "digest": "fnv1a64:656b8493ad03ad91",
+    "digest": "fnv1a64:04971c5f308bf154",
     "tick": 1800,
   },
   {
-    "digest": "fnv1a64:d3e1c3d13deb4965",
+    "digest": "fnv1a64:2208a45b66cf06a2",
     "tick": 2400,
   },
   {
-    "digest": "fnv1a64:174f17b53098573c",
+    "digest": "fnv1a64:2d050fc35b45b89f",
     "tick": 3000,
   },
   {
-    "digest": "fnv1a64:aa600cade0118e27",
+    "digest": "fnv1a64:7c9fc7472a93bb00",
     "tick": 3600,
   },
   {
-    "digest": "fnv1a64:9b06759e4eda7d26",
+    "digest": "fnv1a64:2c46e96e30bc1545",
     "tick": 4200,
   },
   {
-    "digest": "fnv1a64:15de07db17e6a5a5",
+    "digest": "fnv1a64:1a207fd9646dea16",
     "tick": 4800,
   },
   {
-    "digest": "fnv1a64:0795917c3e71332e",
+    "digest": "fnv1a64:a8c7bc4c520a08d5",
     "tick": 5400,
   },
   {
-    "digest": "fnv1a64:2687fba79df540b1",
+    "digest": "fnv1a64:c07edb09168a6996",
     "tick": 6000,
   },
   {
-    "digest": "fnv1a64:82b816271ffc793f",
+    "digest": "fnv1a64:c1eac5a69da83be0",
     "tick": 6600,
   },
   {
-    "digest": "fnv1a64:c95c4f99c25346eb",
+    "digest": "fnv1a64:9e6c4c050b07d026",
     "tick": 7200,
   },
 ]

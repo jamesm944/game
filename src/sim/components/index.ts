@@ -102,6 +102,16 @@ import {
 } from "./household";
 import { attachOwner, OWNER, OWNER_ARITY, type OwnerComponents } from "./owner";
 import {
+  PRESTIGE_LEDGER,
+  PRESTIGE_LEDGER_ARITY,
+  type CultureLedgerComponents,
+} from "./culture";
+import {
+  KNOWLEDGE_POINTS,
+  KNOWLEDGE_POINTS_ARITY,
+  type KnowledgeLedgerComponents,
+} from "./knowledge";
+import {
   IDENTITY,
   IDENTITY_ARITY,
   TRAITS,
@@ -225,6 +235,10 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * Company and DropOff ("Company" < "CompanyOrigin"); ExpansionLog
  * between Equipment and Foreman ("Eq" < "Ex" < "Fo"); PendingExpansion
  * between Owner and Position ("Ow" < "Pen…" < "Po…").
+ * M4-T4 adds the two §2.11 generator ledgers, also lazily attached:
+ * KnowledgePoints between JobCooldown and Lessons ("Job…" < "Kno" <
+ * "Les"); PrestigeLedger between Position and ProductionCycle
+ * ("Position" < "Prestige…" < "Production…").
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -239,6 +253,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // trails the movement head in this table even though Position sorts
   // inside it.
   [PENDING_EXPANSION, PENDING_EXPANSION_ARITY],
+  // M4-T4: PrestigeLedger registers alphabetically between Position
+  // and ProductionCycle ("Position" < "Prestige…" < "Production…").
+  [PRESTIGE_LEDGER, PRESTIGE_LEDGER_ARITY],
   ...AGE_COMPONENT_ARITIES,
   // M4-T3: ApprovalMode registers alphabetically after AgeState (the
   // last "Age…" entry AGE_COMPONENT_ARITIES lists) and before the
@@ -274,6 +291,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M3-T3: JobCooldown registers alphabetically between Inventory
   // (economy.ts, not tabulated here) and MealConsumed below.
   [JOB_COOLDOWN, JOB_COOLDOWN_ARITY],
+  // M4-T4: KnowledgePoints registers alphabetically between JobCooldown
+  // and Lessons ("Job…" < "Kno" < "Les").
+  [KNOWLEDGE_POINTS, KNOWLEDGE_POINTS_ARITY],
   // M3-T5: Lessons registers alphabetically between JobCooldown and
   // MealConsumed.
   [LESSONS, LESSONS_ARITY],
@@ -322,8 +342,10 @@ export interface SimComponents
     BodyComponents,
     CombatComponents,
     CompanyComponents,
+    CultureLedgerComponents,
     EquipmentComponents,
     HouseholdComponents,
+    KnowledgeLedgerComponents,
     ManagementComponents,
     ProductionComponents,
     BrainCooldownComponents,
@@ -383,6 +405,10 @@ export function defineSimComponents(world: World): SimComponents {
     identityId: defineComponent(world, IDENTITY),
     inventoryId: defineComponent(world, INVENTORY),
     jobCooldownId: defineComponent(world, JOB_COOLDOWN),
+    // M4-T4: KnowledgePoints registers alphabetically between JobCooldown
+    // and Lessons ("Job…" < "Kno" < "Les"). Lazily attached on the first
+    // generator credit.
+    knowledgePointsId: defineComponent(world, KNOWLEDGE_POINTS),
     // M3-T5: Lessons registers alphabetically between JobCooldown and
     // MealConsumed.
     lessonsId: defineComponent(world, LESSONS),
@@ -404,6 +430,10 @@ export function defineSimComponents(world: World): SimComponents {
     // ("Ow" < "Pen…" < "Po…"). Lazily attached while a proposal waits.
     pendingExpansionId: defineComponent(world, PENDING_EXPANSION),
     positionId: defineComponent(world, POSITION),
+    // M4-T4: PrestigeLedger registers alphabetically between Position
+    // and ProductionCycle ("Position" < "Prestige…" < "Production…").
+    // Lazily attached on the first generator credit.
+    prestigeLedgerId: defineComponent(world, PRESTIGE_LEDGER),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
     productionJobId: defineComponent(world, PRODUCTION_JOB),
     // M3-T7: Relationship registers alphabetically before ResearchedTechs
@@ -702,9 +732,11 @@ export * from "./body";
 export * from "./buildings";
 export * from "./combat";
 export * from "./company";
+export * from "./culture";
 export * from "./equipment";
 export * from "./household";
 export * from "./jobCooldown";
+export * from "./knowledge";
 export * from "./lessons";
 export * from "./management";
 export * from "./morale";

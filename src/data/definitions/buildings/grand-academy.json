@@ -1,0 +1,21 @@
+{
+  "id": "grand-academy",
+  "name": "Grand Academy",
+  "kind": "building",
+  "costs": { "wood": 600, "gold": 300, "stone": 300 },
+  "ageGate": "imperial",
+  "techPrereqs": ["imperial-age"],
+  "buildTime": 4000,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 2000,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 8,
+  "populationCap": 0,
+  "victory": {
+    "path": "knowledge",
+    "sustainPerMin": 40,
+    "holdTicks": 900
+  }
+}

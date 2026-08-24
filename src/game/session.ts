@@ -69,6 +69,8 @@ import {
 } from "../sim/systems/lifecycle";
 import { createHouseholdsSystem } from "../sim/systems/households";
 import { createSchoolSystem } from "../sim/systems/school";
+import { createKnowledgeSystem } from "../sim/systems/knowledge";
+import { createCultureSystem } from "../sim/systems/culture";
 import { createMassSystem, MASS_CLOSE_MINUTE } from "../sim/systems/mass";
 import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
 import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
@@ -194,7 +196,20 @@ export function createSkirmishWorld(
   // tick's transitions.
   registerSystem(world, createLifecycleSystem(comps, lifecycleConfig));
   registerSystem(world, createHouseholdsSystem(comps, lifecycleConfig));
-  registerSystem(world, createSchoolSystem(comps, lifecycleConfig));
+  // M4-T4: the §2.11 Knowledge generator observes every attended lesson
+  // through the school pass's hook, so its credits are replay events;
+  // the research-lump sweep runs as its own system beside the school.
+  const knowledge = createKnowledgeSystem({ comps });
+  registerSystem(
+    world,
+    createSchoolSystem(comps, lifecycleConfig, undefined, {
+      onLesson: knowledge.onLesson,
+    }),
+  );
+  registerSystem(world, knowledge.system);
+  // M4-T4: the §2.11 Culture generator — monument income, happiness
+  // surplus accrual and festival commands feed the PrestigeLedger.
+  registerSystem(world, createCultureSystem(comps));
   // M3-T8: the Sunday Morning Mass planner books communal [Move,
   // Leisure{MASS}] chains whenever a finished Church stands — before
   // social (which executes arrivals) and schedules (whose night band

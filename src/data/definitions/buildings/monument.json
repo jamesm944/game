@@ -1,0 +1,22 @@
+{
+  "id": "monument",
+  "name": "Monument",
+  "kind": "building",
+  "costs": { "wood": 100, "stone": 150 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "buildTime": 2500,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 1200,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 6,
+  "populationCap": 0,
+  "victory": {
+    "path": "culture",
+    "prestigePerMin": 15,
+    "festivalCosts": { "food": 120, "gold": 80 },
+    "festivalPrestige": 20
+  }
+}

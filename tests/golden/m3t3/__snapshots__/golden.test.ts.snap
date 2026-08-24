@@ -3,83 +3,83 @@
 exports[`golden harness m3t3 > records milestone digests at every 30th tick plus final 1`] = `
 [
   {
-    "digest": "fnv1a64:0c8992a3415b540e",
+    "digest": "fnv1a64:d4fb4855cacfc05a",
     "tick": 30,
   },
   {
-    "digest": "fnv1a64:d822756884233480",
+    "digest": "fnv1a64:891ad31602df51b4",
     "tick": 60,
   },
   {
-    "digest": "fnv1a64:ff9128a7272bd00b",
+    "digest": "fnv1a64:592529546e3120e7",
     "tick": 90,
   },
   {
-    "digest": "fnv1a64:a86366efb37fba2e",
+    "digest": "fnv1a64:55f84d4f0e0bd3d2",
     "tick": 120,
   },
   {
-    "digest": "fnv1a64:43f0add84da11310",
+    "digest": "fnv1a64:837aa61ce6074674",
     "tick": 150,
   },
   {
-    "digest": "fnv1a64:dd9fcca85fc46262",
+    "digest": "fnv1a64:83f96aa247215db6",
     "tick": 180,
   },
   {
-    "digest": "fnv1a64:5af98da2e8a91b0d",
+    "digest": "fnv1a64:5bd02fd0009754a1",
     "tick": 210,
   },
   {
-    "digest": "fnv1a64:6f4177bad400ac5b",
+    "digest": "fnv1a64:48f16b9cf818c927",
     "tick": 240,
   },
   {
-    "digest": "fnv1a64:d685e643f88fe241",
+    "digest": "fnv1a64:d3ee92ac59189afd",
     "tick": 270,
   },
   {
-    "digest": "fnv1a64:9d126fe1d7a9f90d",
+    "digest": "fnv1a64:c48f1893898d0b09",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:6513923da9886e4b",
+    "digest": "fnv1a64:bed06e015f7dea27",
     "tick": 330,
   },
   {
-    "digest": "fnv1a64:d9f17770583a985e",
+    "digest": "fnv1a64:19836a9105d6e5a2",
     "tick": 360,
   },
   {
-    "digest": "fnv1a64:a5e1e5bf3e19feb5",
+    "digest": "fnv1a64:cc61232cc59cfd61",
     "tick": 390,
   },
   {
-    "digest": "fnv1a64:a302babfdbc50a20",
+    "digest": "fnv1a64:892ecad04c72791c",
     "tick": 420,
   },
   {
-    "digest": "fnv1a64:0c039ddd81733b1f",
+    "digest": "fnv1a64:d0b425cbf3bfcf23",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:7b880bf8e0054652",
+    "digest": "fnv1a64:1c7b0ef7b995194e",
     "tick": 480,
   },
   {
-    "digest": "fnv1a64:964eedeb0317f3e0",
+    "digest": "fnv1a64:b4bdca07db3df6a4",
     "tick": 510,
   },
   {
-    "digest": "fnv1a64:47f5c1350755f358",
+    "digest": "fnv1a64:e358de69a449c50c",
     "tick": 540,
   },
   {
-    "digest": "fnv1a64:535bdebb155ced2d",
+    "digest": "fnv1a64:5689a0962bcc8029",
     "tick": 570,
   },
   {
-    "digest": "fnv1a64:2aab5e3a962fa26c",
+    "digest": "fnv1a64:4334e6ceec1040e8",
     "tick": 600,
   },
 ]

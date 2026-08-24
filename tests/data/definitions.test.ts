@@ -34,7 +34,8 @@ describe("definition loader happy path", () => {
     expect(UNIT_DEFINITIONS.size).toBe(8);
     // M3-T5: the §2.3 school joins the building set (17). M3-T7 adds
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
-    expect(BUILDING_DEFINITIONS.size).toBe(20);
+    // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).
+    expect(BUILDING_DEFINITIONS.size).toBe(23);
     expect(TECH_DEFINITIONS.size).toBe(8);
     expect(RECIPE_DEFINITIONS.size).toBe(6);
 
@@ -465,6 +466,10 @@ describe("shipped M2-T1 content integrity", () => {
       "smithy",
       "forge",
       "kitchen",
+      // M4-T4: the §2.11 Knowledge/Culture content set.
+      "grand-academy",
+      "monument",
+      "grand-monument",
     ]) {
       expect(BUILDING_DEFINITIONS.has(id)).toBe(true);
     }

@@ -168,6 +168,8 @@ import { createPopCard } from "./ui/popCard";
 import { buildPopCard } from "./sim/popCard";
 import { wireControlGroups } from "./ui/controlGroups";
 import { createTopbar, formatStockpileLine } from "./ui/hud";
+import { victoryPathReadouts } from "./sim/systems/victory";
+import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createToastHost } from "./ui/toast";
 import { MINIMAP_REDRAW_MS, createMinimap } from "./ui/minimap";
 import { wireOrderInput } from "./ui/orders";
@@ -594,6 +596,11 @@ const minimap = createMinimap({
 });
 
 const topbar = createTopbar(world.seed);
+
+// Victory-path progress panel (M4-T4, §2.11): per-path sustained metric
+// vs threshold plus timer state, fed from the same digest-row derivation
+// the evaluator decides on.
+const victoryPathsPanel = createVictoryPathsPanel();
 
 // ---- Game flow (M2-T10): surrender control + victory overlay -----------------
 //
@@ -1343,6 +1350,7 @@ function frame(
     `${formatStockpileLine(stockRow ?? [])} · ${popLine}`,
   );
   topbar.updateAge(currentAgeRankOf(world, comps, PLAYER_ONE));
+  victoryPathsPanel.update(victoryPathReadouts(world, comps, VIEWER));
   controlGroups.refreshChips();
   buildMenu.refresh();
   buildingPanel.refresh();

@@ -1,0 +1,21 @@
+{
+  "id": "grand-monument",
+  "name": "Grand Monument",
+  "kind": "building",
+  "costs": { "stone": 800, "gold": 400 },
+  "ageGate": "imperial",
+  "techPrereqs": ["imperial-age"],
+  "buildTime": 4000,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 2400,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 8,
+  "populationCap": 0,
+  "victory": {
+    "path": "culture",
+    "sustainPerMin": 20,
+    "holdTicks": 900
+  }
+}

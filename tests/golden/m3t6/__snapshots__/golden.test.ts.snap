@@ -3,59 +3,59 @@
 exports[`golden harness m3t6 > records milestone digests at every 300th tick plus final 1`] = `
 [
   {
-    "digest": "fnv1a64:05dd648bb4ae07cb",
+    "digest": "fnv1a64:0b08d4fe5cfe1e5b",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:db68e7044a4327b9",
+    "digest": "fnv1a64:063e5fc54080b689",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:b937a967a499b581",
+    "digest": "fnv1a64:5ac544e220eeb3b1",
     "tick": 900,
   },
   {
-    "digest": "fnv1a64:0adf01e16dac52e6",
+    "digest": "fnv1a64:1a791cc79e707b16",
     "tick": 1200,
   },
   {
-    "digest": "fnv1a64:08b302fd8ff1f3da",
+    "digest": "fnv1a64:213dd63c8b4926ca",
     "tick": 1500,
   },
   {
-    "digest": "fnv1a64:9ac69f044b0ce4e9",
+    "digest": "fnv1a64:56224c501a170c99",
     "tick": 1800,
   },
   {
-    "digest": "fnv1a64:5a58f2f88c4832c9",
+    "digest": "fnv1a64:d19a1f28fefc55d9",
     "tick": 2100,
   },
   {
-    "digest": "fnv1a64:e7811edca702ceac",
+    "digest": "fnv1a64:4c6f91791129c93c",
     "tick": 2400,
   },
   {
-    "digest": "fnv1a64:5d1285a5852fe7b2",
+    "digest": "fnv1a64:6bead289b3615e42",
     "tick": 2700,
   },
   {
-    "digest": "fnv1a64:ca9dc82ec341e7b0",
+    "digest": "fnv1a64:fca23c841cf1bbe0",
     "tick": 3000,
   },
   {
-    "digest": "fnv1a64:d4f384f11470f10f",
+    "digest": "fnv1a64:c9b81b403c336c3f",
     "tick": 3300,
   },
   {
-    "digest": "fnv1a64:258fe16d44d63483",
+    "digest": "fnv1a64:1660d161ff415813",
     "tick": 3600,
   },
   {
-    "digest": "fnv1a64:21c9d67a0dd4d0a1",
+    "digest": "fnv1a64:ebe422ebacf25d91",
     "tick": 3900,
   },
   {
-    "digest": "fnv1a64:722365631bc9265a",
+    "digest": "fnv1a64:697c04e9da2c11ca",
     "tick": 4200,
   },
 ]

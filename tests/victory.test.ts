@@ -63,6 +63,7 @@ import {
   VICTORY_STATUS_WON,
   latestVictoryCheck,
   readVictoryChecks,
+  type VictoryCheckEntry,
 } from "../src/sim/components/victory";
 import {
   AI_DIFFICULTY_LATENCY,
@@ -102,6 +103,17 @@ function steps(world: World, count: number): void {
   for (let i = 0; i < count; i++) step(world);
 }
 
+/** Latest CONQUEST entry for one player (the log now carries 3 paths). */
+function latestConquestCheck(
+  world: World,
+  comps: SimComponents,
+  playerId: number,
+): VictoryCheckEntry | undefined {
+  return readVictoryChecks(world, comps, playerId)
+    .filter((entry) => entry.pathCode === VICTORY_PATH_CONQUEST)
+    .at(-1);
+}
+
 /** Ledger pair so both sides are "in the match" (ascending owners). */
 function addLedgers(h: Harness): void {
   createPlayerStockpile(h.world, h.comps, PLAYER_ONE);
@@ -133,7 +145,7 @@ function raidConquest(seed: number, raider: number, defender: number) {
   steps(h.world, VICTORY_CHECK_CADENCE_TICKS);
 
   expect(evaluateOutcome(h.world, h.comps).decided).toBe(false);
-  expect(latestVictoryCheck(h.world, h.comps, defender)?.metric).toBe(1);
+  expect(latestConquestCheck(h.world, h.comps, defender)?.metric).toBe(1);
 
   h.world.inbox.submit({
     kind: ATTACK_COMMAND_KIND,
@@ -159,9 +171,28 @@ function raidConquest(seed: number, raider: number, defender: number) {
 installSimPurityShims();
 
 describe("§2.11 frame", () => {
-  it("rejects hold-timer paths until their generators ship", () => {
+  it("accepts well-formed timed paths now that generators ship", () => {
     const { world, comps } = harness();
     expect(() =>
+      createVictorySystem(comps, {
+        paths: [
+          {
+            id: "wonder",
+            pathCode: 7,
+            timerTicks: 3000,
+            thresholdPerMin: 10,
+            metric: () => 0,
+            actComplete: () => true,
+          },
+        ],
+      }),
+    ).not.toThrow();
+    void world;
+  });
+
+  it("still rejects half-specified timed paths loudly", () => {
+    const { world, comps } = harness();
+    const timerNoThreshold = () =>
       createVictorySystem(comps, {
         paths: [
           {
@@ -172,9 +203,23 @@ describe("§2.11 frame", () => {
             actComplete: () => true,
           },
         ],
-      }),
-    ).toThrow(/hold timer/);
+      });
+    expect(timerNoThreshold).toThrow(/sustain threshold/);
     void world;
+    const thresholdNoTimer = () =>
+      createVictorySystem(comps, {
+        paths: [
+          {
+            id: "wonder",
+            pathCode: 7,
+            timerTicks: undefined,
+            thresholdPerMin: 10,
+            metric: () => 0,
+            actComplete: () => true,
+          },
+        ],
+      });
+    expect(thresholdNoTimer).toThrow(/no hold timer/);
   });
 
   it("registers VictoryCheck alphabetically last and rides the digest", () => {
@@ -237,11 +282,16 @@ describe("conquest (SPEC §2.11)", () => {
       expect(
         conquestCapacityOf({ world: h.world, comps: h.comps }, playerId),
       ).toBe(0);
-      const checks = readVictoryChecks(h.world, h.comps, playerId);
-      expect(checks.length).toBe(4);
-      for (const entry of checks) {
+      const conquestChecks = readVictoryChecks(
+        h.world,
+        h.comps,
+        playerId,
+      ).filter((entry) => entry.pathCode === VICTORY_PATH_CONQUEST);
+      // M4-T4: the log carries one entry per path per check (conquest +
+      // knowledge + culture); the conquest slice is four heartbeats.
+      expect(readVictoryChecks(h.world, h.comps, playerId).length).toBe(12);
+      for (const entry of conquestChecks) {
         expect(entry.status).toBe(VICTORY_STATUS_ONGOING);
-        expect(entry.pathCode).toBe(VICTORY_PATH_CONQUEST);
         expect(entry.metric).toBe(0);
       }
     }

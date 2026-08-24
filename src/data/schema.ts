@@ -144,6 +144,47 @@ export const footprintSchema = z.object({
   height: z.number().int().positive(),
 });
 
+/**
+ * §2.11 victory-path role carried by a building definition (M4-T4). All
+ * thresholds/rates live in Entity-definition JSON (SPEC §2.11), so the
+ * completing-act buildings declare their sustain gate here and the
+ * generator buildings their yield — the evaluators read these tables,
+ * never hardcoded numbers.
+ */
+export const victoryRoleSchema = z
+  .object({
+    /** Which §2.11 path this building serves. */
+    path: z.enum(["knowledge", "culture"]),
+    /**
+     * Completing-act buildings only: minimum sustained metric per sim
+     * minute that must hold for holdTicks to win the path.
+     */
+    sustainPerMin: z.number().int().positive().optional(),
+    /** Completing-act buildings only: required sustained hold, in ticks. */
+    holdTicks: z.number().int().positive().optional(),
+    /** School generator: knowledge points credited per lesson × teacher level. */
+    knowledgePerLesson: z.number().int().nonnegative().optional(),
+    /** Monument generator: ongoing prestige income per sim minute. */
+    prestigePerMin: z.number().int().nonnegative().optional(),
+    /** Monument generator: festival resource costs (gatherable slugs). */
+    festivalCosts: costsSchema.optional(),
+    /** Monument generator: prestige burst credited when a festival is hosted. */
+    festivalPrestige: z.number().int().nonnegative().optional(),
+  })
+  .superRefine((role, ctx) => {
+    const sustaining = role.sustainPerMin !== undefined;
+    const timed = role.holdTicks !== undefined;
+    if (sustaining !== timed) {
+      ctx.addIssue({
+        code: "custom",
+        message: "victory roles declare sustainPerMin and holdTicks together",
+        path: ["sustainPerMin"],
+      });
+    }
+  });
+
+export type VictoryRole = z.infer<typeof victoryRoleSchema>;
+
 /** One trainable unit entry inside a production building's queue config. */
 const trainQueueEntrySchema = z.object({ unitId: z.string().min(1) });
 
@@ -172,6 +213,12 @@ export const buildingSchema = z.object({
   populationCap: z.number().int().nonnegative(),
   /** Present only on production buildings (M1: town-center). */
   trainQueue: trainQueueSchema.optional(),
+  /**
+   * §2.11 victory-path role (M4-T4): generator yields on Schools and
+   * Monuments, sustain gate + hold timer on the Grand Academy/Grand
+   * Monument completing acts. Absent everywhere else.
+   */
+  victory: victoryRoleSchema.optional(),
   /** Asset refs per evolution stage (SPEC §3); stub until M2 art tickets. */
   ageStages: z.array(z.string()).optional(),
 });

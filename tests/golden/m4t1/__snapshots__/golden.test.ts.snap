@@ -3,35 +3,35 @@
 exports[`golden harness m4t1 > records milestone digests plus the delegation trace 1`] = `
 [
   {
-    "digest": "fnv1a64:d496a0c0184c7ca2",
+    "digest": "fnv1a64:42791a154fee3611",
     "tick": 150,
   },
   {
-    "digest": "fnv1a64:75f472bbb006df1e",
+    "digest": "fnv1a64:b46dbdfdd2cc1055",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:80174e58816170a0",
+    "digest": "fnv1a64:b2a7a7fda516b7e7",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:68c86147ad08402b",
+    "digest": "fnv1a64:90ecd80cb2b6aa30",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:7deb4da350360347",
+    "digest": "fnv1a64:276777912741cf68",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:b66d9973f14147dc",
+    "digest": "fnv1a64:d034ee0c5648d7cb",
     "tick": 900,
   },
   {
-    "digest": "fnv1a64:4e68f8c6e6a64dfe",
+    "digest": "fnv1a64:7c26a17c9cac485d",
     "tick": 1050,
   },
   {
-    "digest": "fnv1a64:ea65a1c3b5418c15",
+    "digest": "fnv1a64:ff3110f5f679c71a",
     "tick": 1200,
   },
 ]
@@ -40,7 +40,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
 exports[`golden harness m4t1 > records milestone digests plus the delegation trace 2`] = `
 [
   {
-    "digest": "fnv1a64:d496a0c0184c7ca2",
+    "digest": "fnv1a64:42791a154fee3611",
     "locks": 0,
     "staffing": [
       2,
@@ -54,7 +54,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:75f472bbb006df1e",
+    "digest": "fnv1a64:b46dbdfdd2cc1055",
     "locks": 1,
     "staffing": [
       2,
@@ -68,7 +68,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:80174e58816170a0",
+    "digest": "fnv1a64:b2a7a7fda516b7e7",
     "locks": 1,
     "staffing": [
       2,
@@ -82,7 +82,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:68c86147ad08402b",
+    "digest": "fnv1a64:90ecd80cb2b6aa30",
     "locks": 1,
     "staffing": [
       2,
@@ -96,7 +96,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:7deb4da350360347",
+    "digest": "fnv1a64:276777912741cf68",
     "locks": 1,
     "staffing": [
       2,
@@ -110,7 +110,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:b66d9973f14147dc",
+    "digest": "fnv1a64:d034ee0c5648d7cb",
     "locks": 1,
     "staffing": [
       2,
@@ -124,7 +124,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:4e68f8c6e6a64dfe",
+    "digest": "fnv1a64:7c26a17c9cac485d",
     "locks": 1,
     "staffing": [
       2,
@@ -138,7 +138,7 @@ exports[`golden harness m4t1 > records milestone digests plus the delegation tra
     ],
   },
   {
-    "digest": "fnv1a64:ea65a1c3b5418c15",
+    "digest": "fnv1a64:ff3110f5f679c71a",
     "locks": 1,
     "staffing": [
       2,

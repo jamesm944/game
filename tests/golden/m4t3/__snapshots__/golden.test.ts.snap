@@ -3,67 +3,67 @@
 exports[`golden harness m4t3 > records milestone digests plus the growth trace 1`] = `
 [
   {
-    "digest": "fnv1a64:f94e12783932b703",
+    "digest": "fnv1a64:7a0e644e41ce6a9b",
     "tick": 150,
   },
   {
-    "digest": "fnv1a64:e5a55d4605df2ca8",
+    "digest": "fnv1a64:9eb0632463487260",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:675f445b2449fa44",
+    "digest": "fnv1a64:019ff295051e213c",
     "tick": 450,
   },
   {
-    "digest": "fnv1a64:6c4465ee7a0d74bf",
+    "digest": "fnv1a64:1c661416ba16c327",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:272bdf2142f2f2de",
+    "digest": "fnv1a64:e93aef3baeae56e6",
     "tick": 750,
   },
   {
-    "digest": "fnv1a64:b8008f1a3c5dd51b",
+    "digest": "fnv1a64:de6ed58e748ba753",
     "tick": 900,
   },
   {
-    "digest": "fnv1a64:b7f05c690c77179e",
+    "digest": "fnv1a64:b4957c5be3ab63b6",
     "tick": 1050,
   },
   {
-    "digest": "fnv1a64:2d6a9c198928c847",
+    "digest": "fnv1a64:10fc7616f7e89dcb",
     "tick": 1200,
   },
   {
-    "digest": "fnv1a64:0c6c32d1144cb50c",
+    "digest": "fnv1a64:e447203d8d2ea470",
     "tick": 1350,
   },
   {
-    "digest": "fnv1a64:82886962c7c0aab3",
+    "digest": "fnv1a64:9741eeb519f739ef",
     "tick": 1500,
   },
   {
-    "digest": "fnv1a64:2c0688589a3ae8a8",
+    "digest": "fnv1a64:7decf27aa4bc901c",
     "tick": 1650,
   },
   {
-    "digest": "fnv1a64:9b373ae965e6fa40",
+    "digest": "fnv1a64:3ab84ea9ee26c98c",
     "tick": 1800,
   },
   {
-    "digest": "fnv1a64:0d9438492cd71c8b",
+    "digest": "fnv1a64:d1868ab6da7a426f",
     "tick": 1950,
   },
   {
-    "digest": "fnv1a64:d426328429c7f679",
+    "digest": "fnv1a64:e7899d9b65866105",
     "tick": 2100,
   },
   {
-    "digest": "fnv1a64:0f39ac6ecd1aedc6",
+    "digest": "fnv1a64:371b8a07d64710fa",
     "tick": 2250,
   },
   {
-    "digest": "fnv1a64:7fe080e797f35053",
+    "digest": "fnv1a64:3ac69f93f915cfdf",
     "tick": 2400,
   },
 ]
@@ -74,7 +74,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:f94e12783932b703",
+    "digest": "fnv1a64:7a0e644e41ce6a9b",
     "kitchenAJobs": 1,
     "logEntries": 0,
     "tick": 150,
@@ -83,7 +83,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:e5a55d4605df2ca8",
+    "digest": "fnv1a64:9eb0632463487260",
     "kitchenAJobs": 1,
     "logEntries": 0,
     "tick": 300,
@@ -92,7 +92,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:675f445b2449fa44",
+    "digest": "fnv1a64:019ff295051e213c",
     "kitchenAJobs": 1,
     "logEntries": 0,
     "tick": 450,
@@ -101,7 +101,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 2,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:6c4465ee7a0d74bf",
+    "digest": "fnv1a64:1c661416ba16c327",
     "kitchenAJobs": 1,
     "logEntries": 0,
     "tick": 600,
@@ -110,7 +110,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 2,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:272bdf2142f2f2de",
+    "digest": "fnv1a64:e93aef3baeae56e6",
     "kitchenAJobs": 0,
     "logEntries": 0,
     "tick": 750,
@@ -119,7 +119,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 2,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:b8008f1a3c5dd51b",
+    "digest": "fnv1a64:de6ed58e748ba753",
     "kitchenAJobs": 0,
     "logEntries": 0,
     "tick": 900,
@@ -128,7 +128,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 1,
-    "digest": "fnv1a64:b7f05c690c77179e",
+    "digest": "fnv1a64:b4957c5be3ab63b6",
     "kitchenAJobs": 0,
     "logEntries": 0,
     "tick": 1050,
@@ -137,7 +137,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:2d6a9c198928c847",
+    "digest": "fnv1a64:10fc7616f7e89dcb",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 1200,
@@ -146,7 +146,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:0c6c32d1144cb50c",
+    "digest": "fnv1a64:e447203d8d2ea470",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 1350,
@@ -155,7 +155,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:82886962c7c0aab3",
+    "digest": "fnv1a64:9741eeb519f739ef",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 1500,
@@ -164,7 +164,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:2c0688589a3ae8a8",
+    "digest": "fnv1a64:7decf27aa4bc901c",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 1650,
@@ -173,7 +173,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:9b373ae965e6fa40",
+    "digest": "fnv1a64:3ab84ea9ee26c98c",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 1800,
@@ -182,7 +182,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:0d9438492cd71c8b",
+    "digest": "fnv1a64:d1868ab6da7a426f",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 1950,
@@ -191,7 +191,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:d426328429c7f679",
+    "digest": "fnv1a64:e7899d9b65866105",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 2100,
@@ -200,7 +200,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:0f39ac6ecd1aedc6",
+    "digest": "fnv1a64:371b8a07d64710fa",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 2250,
@@ -209,7 +209,7 @@ exports[`golden harness m4t3 > records milestone digests plus the growth trace 2
   {
     "companies": 1,
     "deepveinBranches": 2,
-    "digest": "fnv1a64:7fe080e797f35053",
+    "digest": "fnv1a64:3ac69f93f915cfdf",
     "kitchenAJobs": 0,
     "logEntries": 1,
     "tick": 2400,

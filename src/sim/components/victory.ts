@@ -36,8 +36,10 @@ export interface VictoryComponents {
   readonly victoryCheckId: number;
 }
 
-/** §2.11 path codes. Conquest ships in M2; the rest arrive with content. */
+/** §2.11 path codes. Conquest ships in M2; Knowledge/Culture in M4-T4. */
 export const VICTORY_PATH_CONQUEST = 0;
+export const VICTORY_PATH_KNOWLEDGE = 1;
+export const VICTORY_PATH_CULTURE = 2;
 
 /** VictoryCheck status codes. */
 export const VICTORY_STATUS_ONGOING = 0;
@@ -45,6 +47,13 @@ export const VICTORY_STATUS_WON = 1;
 export const VICTORY_STATUS_LOST = 2;
 /** A player conceded via the surrender command (§2.13 game flow). */
 export const VICTORY_STATUS_SURRENDERED = 3;
+/**
+ * Timed-path heartbeat (M4-T4): the completing act stands AND the
+ * interval since the previous check sustained at/above the path's
+ * threshold — this check's interval counts toward the hold timer.
+ * Plain ONGOING means the interval did not qualify (timer paused).
+ */
+export const VICTORY_STATUS_SUSTAINING = 4;
 
 function requireRows(world: World, componentId: number): ComponentRows {
   const rows = world.rowsByComponentId.get(componentId);

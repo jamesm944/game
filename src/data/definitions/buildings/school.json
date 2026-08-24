@@ -12,5 +12,9 @@
   "dropoffFilters": [],
   "acceptsRoles": ["teacher"],
   "sightRadius": 6,
-  "populationCap": 0
+  "populationCap": 0,
+  "victory": {
+    "path": "knowledge",
+    "knowledgePerLesson": 2
+  }
 }

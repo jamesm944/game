@@ -25,7 +25,8 @@ export interface VictoryRecapStats {
 
 export type VictorySide = "victory" | "defeat";
 
-export type VictoryEndReason = "conquest" | "surrender";
+export type VictoryEndReason =
+  "conquest" | "surrender" | "knowledge" | "culture";
 
 /** "Victory" / "Defeat" headline from the viewer's perspective. */
 export function formatVictoryTitle(side: VictorySide): string {
@@ -34,7 +35,8 @@ export function formatVictoryTitle(side: VictorySide): string {
 
 /**
  * Why the match ended, e.g. `Conquest — AI opponent's military
- * production destroyed` / `You surrendered the match`.
+ * production destroyed` / `You surrendered the match` / the M4-T4
+ * sustain paths.
  */
 export function formatVictoryReason(
   side: VictorySide,
@@ -44,6 +46,16 @@ export function formatVictoryReason(
     return side === "victory"
       ? "AI opponent surrendered the match"
       : "You surrendered the match";
+  }
+  if (reason === "knowledge") {
+    return side === "victory"
+      ? "Knowledge — the Grand Academy sustained its research output"
+      : "Knowledge — your rival's Grand Academy sustained its research";
+  }
+  if (reason === "culture") {
+    return side === "victory"
+      ? "Culture — the Grand Monument sustained its prestige"
+      : "Culture — your rival's Grand Monument sustained its prestige";
   }
   return side === "victory"
     ? "Conquest — enemy military production destroyed"
