@@ -1,0 +1,32 @@
+{
+  "name": "m3t5",
+  "description": "Compressed-timescale village week (SPEC §2.3 / issue #50): four founding adults arrive beside two houses and a finished School on a 600-tick-day clock (adult 3d, elder 8d, lifespan 10d). NO commands are ever submitted. Day 1: the IAUS-fed village forms two households (housing + food surplus). Days 2-4: seeded daily birth rolls deliver four children (POP_ORIGIN_BIRTH) linked to both parents through digest-visible Household rows. Days 2-4: the children attend 9am-3pm lessons under the level-2 gathering teacher, accruing knowledge XP and attendance credit. Day 5: the founders cross into elder light duty AND the first schooled children graduate at the exact adult boundary, rolling guaranteed bonus traits. Day 7: the founding cohort dies of old age together (lifespan). Day 8: the bereft second generation's household rows are gone, so siblings-turned-adults re-marry into a third household. Days 9-11: third-generation births. Fixture pins milestone digests every 300th tick, the sampled lifecycle arc (stages/population/event counters at day boundaries), semantic gates (births, graduations, deaths, child-skip evidence, measurable graduate knowledge), and doubles as the extended double-run determinism canary.",
+  "seed": 20260826,
+  "size": 24,
+  "ticks": 7200,
+  "milestoneEvery": 300,
+  "dayTicks": 600,
+  "adultAgeDays": 3,
+  "elderAgeDays": 8,
+  "lifespanDays": 10,
+  "startingResources": [1200, 400, 0, 0, 0, 0, 0],
+  "dropOff": [3.5, 3.5],
+  "nodes": [
+    { "tile": [9, 12], "resource": "food", "amount": 5000 },
+    { "tile": [13, 13], "resource": "wood", "amount": 5000 }
+  ],
+  "houseTiles": [
+    [8, 7],
+    [13, 7]
+  ],
+  "schoolTile": [18, 7],
+  "popSpawns": [
+    [7.5, 9.5],
+    [8.5, 10.5],
+    [12.5, 9.5],
+    [13.5, 10.5]
+  ],
+  "teacherIndex": 0,
+  "teacherGatheringXp": 1500,
+  "arcSampleTicks": [600, 1200, 1800, 3000, 3600, 4200, 4800, 5400, 6600]
+}

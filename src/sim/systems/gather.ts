@@ -92,6 +92,7 @@ import {
   isSteeringJammed,
   resetSteeringBookkeeping,
 } from "./movement";
+import { isChildOf } from "./lifecycle";
 
 /** Ticks of slot work per extracted resource unit (1 s at 30 Hz). */
 export const DEFAULT_GATHER_TICKS_PER_UNIT = 30;
@@ -558,6 +559,7 @@ export function createGatherSystem(
         const velRow = velRows?.get(eid);
         const tagRow = tagRows?.get(eid);
         if (!posRow || !velRow || !tagRow) continue; // not a live unit
+        if (isChildOf(world, comps, eid)) continue; // children cannot work (M3-T5)
         const carried = getInventory(world, comps, eid);
         if (
           carried !== undefined &&

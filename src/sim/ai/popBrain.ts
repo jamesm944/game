@@ -33,6 +33,14 @@
  * JobCooldown row ON THE TARGET (components/jobCooldown.ts), refusing
  * further brain assignments there for a kind-scaled window; targets on
  * cooldown are skipped before scoring ever runs.
+ *
+ * LIFECYCLE GATES (M3-T5): children NEVER score candidates (SPEC §2.3:
+ * childhood cannot work/fight — player orders hitting a child actor are
+ * dropped by the labor/combat handlers instead); elders score at
+ * ELDER_UTILITY_MULT (light duties — they still pitch in when a job is
+ * clearly best but idle far more readily than adults). Both gates read
+ * the derived life stage (systems/lifecycle.ts) under the brain's
+ * LifecycleConfig — compressed fixture clocks compress the gates too.
  */
 
 import {
@@ -54,6 +62,13 @@ import { ownerOfUnit } from "../components/owner";
 import { canDebitLedgerSlugs } from "../core/stockpile";
 import type { World, SimSystem } from "../core/world";
 import { skillLevelOf, workTraitMultOf } from "../systems/skills";
+import {
+  DEFAULT_LIFECYCLE_CONFIG,
+  LIFE_STAGE_CHILD,
+  LIFE_STAGE_ELDER,
+  lifeStageOf,
+  type LifecycleConfig,
+} from "../systems/lifecycle";
 
 // ---- Documented tuning constants ---------------------------------------------
 
@@ -67,6 +82,13 @@ export const PRODUCTION_COOLDOWN_TICKS = 150;
 
 /** Distance falloff span in tiles; candidates beyond it score poorly. */
 export const MAX_INTEREST_RADIUS_TILES = 40;
+
+/**
+ * Elder light-duty utility multiplier (M3-T5): past work age a Pop
+ * still pitches in when a job clearly wins, but half-weighted scores
+ * mean idleness beats marginal work far more often.
+ */
+export const ELDER_UTILITY_MULT = 0.5;
 
 /** Builders one site absorbs before crowding bottoms out (M2 economy). */
 const BUILDERS_PER_SITE = 2;
@@ -92,6 +114,8 @@ export interface PopBrainDiagnostics {
   nothingViable: number;
   /** Candidates skipped while their target sat on cooldown. */
   cooldownSkips: number;
+  /** Idle thinks refused outright because the Pop is a child (M3-T5). */
+  childSkips: number;
   /** Assignments emitted, by command kind. */
   gathers: number;
   builds: number;
@@ -104,6 +128,7 @@ export function createPopBrainDiagnostics(): PopBrainDiagnostics {
     idleThinks: 0,
     nothingViable: 0,
     cooldownSkips: 0,
+    childSkips: 0,
     gathers: 0,
     builds: 0,
     produces: 0,
@@ -119,6 +144,11 @@ export interface PopBrainOptions {
    */
   readonly players?: readonly number[] | undefined;
   readonly diagnostics?: PopBrainDiagnostics | undefined;
+  /**
+   * Lifecycle timescale for the child/elder gates (M3-T5). Production
+   * runs the canonical §2.4 clock; compressed fixtures pass their own.
+   */
+  readonly lifecycleConfig?: LifecycleConfig | undefined;
 }
 
 interface NodeCandidate {
@@ -163,6 +193,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
   const comps = options.comps;
   const players = options.players;
   const diagnostics = options.diagnostics ?? createPopBrainDiagnostics();
+  const lifecycleConfig = options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG;
 
   return (world: World): void => {
     const tick = world.tick;
@@ -303,6 +334,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
       workers: number,
       capacity: number,
       bonus: number,
+      mult: number = 1,
     ): number => {
       const dx = targetX - popX;
       const dy = targetY - popY;
@@ -310,7 +342,9 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
         Math.sqrt(dx * dx + dy * dy) / MAX_INTEREST_RADIUS_TILES;
       const crowdingPenalty = 0.15 * (workers / capacity);
       const traitPull = (workTraitMultOf(world, comps, popEid) - 1) * 0.5;
-      return 0.5 + bonus + traitPull - distancePenalty - crowdingPenalty;
+      return (
+        (0.5 + bonus + traitPull - distancePenalty - crowdingPenalty) * mult
+      );
     };
 
     /** Skill-level bonus term, capped like its siblings. */
@@ -331,6 +365,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
       popOwnerId: number,
       popX: number,
       popY: number,
+      utilityMult: number,
     ): BestPick | undefined => {
       let best: BestPick | undefined;
 
@@ -363,6 +398,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
           workers,
           node.slots,
           foodPull + skillBonus(popEid, "gathering"),
+          utilityMult,
         );
         consider({
           score,
@@ -387,6 +423,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
           builders,
           BUILDERS_PER_SITE,
           skillBonus(popEid, "construction"),
+          utilityMult,
         );
         consider({
           score,
@@ -426,6 +463,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
           crafters,
           building.slots,
           0,
+          utilityMult,
         );
         consider({
           score,
@@ -465,6 +503,15 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
 
       const pos = posRows?.get(eid);
       if (!pos) continue;
+      // M3-T5 lifecycle gate: children never self-assign (they attend
+      // school when one stands); elders work at half-weight (light
+      // duties). Stage derives from digest-visible Identity rows.
+      const stage = lifeStageOf(world, comps, eid, lifecycleConfig);
+      if (stage === LIFE_STAGE_CHILD) {
+        diagnostics.childSkips += 1;
+        continue;
+      }
+      const utilityMult = stage === LIFE_STAGE_ELDER ? ELDER_UTILITY_MULT : 1;
       diagnostics.idleThinks += 1;
 
       const best = bestPickFor(
@@ -472,6 +519,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
         ownerOfUnit(world, comps, eid),
         pos[0]!,
         pos[1]!,
+        utilityMult,
       );
       if (best === undefined) {
         diagnostics.nothingViable += 1;

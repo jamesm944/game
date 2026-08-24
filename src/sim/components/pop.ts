@@ -7,14 +7,19 @@
  * save iteration order forever (world.ts).
  *
  * Canonical row layouts (arity is part of the digest contract):
- * - Identity (3): [nameIdx, birthTick, familyId] — one row per named
- *   Pop. nameIdx indexes the seed-derived given-name list built by
+ * - Identity (4): [nameIdx, birthTick, familyId, origin] — one row per
+ *   named Pop. nameIdx indexes the seed-derived given-name list built by
  *   {@link nameListFor} (syllable-combined, unique within the list);
  *   allocation probes from a (seed, eid)-derived start and never reuses
  *   an index inside one world, so no two living-or-dead Pops of a world
  *   share a name and replayed spawns land on identical assignments.
  *   birthTick is world.tick at attach time; familyId stays
- *   FAMILY_UNASSIGNED until the M3 household ticket assigns it.
+ *   FAMILY_UNASSIGNED until households.ts (M3-T5) assigns it. origin
+ *   separates natural-born children (POP_ORIGIN_BIRTH — lifecycle age
+ *   runs from birthTick through child→adult→elder) from working-age
+ *   arrivals (POP_ORIGIN_ARRIVAL — trained villagers, starting settlers:
+ *   they enter as adults, with their elder clock measured from arrival;
+ *   M3-T5).
  * - Traits (variable): ascending stable u8 trait codes (ascending slug
  *   order over data/traits.ts) — the digest-visible projection of the
  *   sorted slug array returned by rollTraitSlugs.
@@ -35,11 +40,21 @@ export const IDENTITY = "Identity" as const;
 export const TRAITS = "Traits" as const;
 
 /** Row arity per pop component — pinned for digest stability. */
-export const IDENTITY_ARITY = 3;
+export const IDENTITY_ARITY = 4;
 export const TRAITS_ARITY = -1; // variable-length sorted trait codes
 
 /** familyId sentinel: household assignment is M3-lifecycle work. */
 export const FAMILY_UNASSIGNED = -1;
+
+/**
+ * Lifecycle origins (M3-T5). ARRIVAL Pops (trained villagers, starting
+ * settlers, AI bootstrap spawns) enter as working adults — their
+ * effective age starts at the adult threshold so the elder clock runs
+ * from arrival. BIRTH Pops are natural-born children: age runs from
+ * birthTick through the full child→adult→elder arc.
+ */
+export const POP_ORIGIN_ARRIVAL = 0;
+export const POP_ORIGIN_BIRTH = 1;
 
 /** Component ids the pop systems read/write. */
 export interface PopComponents {
@@ -242,20 +257,26 @@ export function generatePopTraits(seed: number, eid: number): string[] {
 
 /**
  * Attach Identity + Traits rows to one spawned Pop: next unused name
- * index, birthTick = current tick, family unassigned, and the seeded
- * trait roll. Call exactly once per entity (re-attaching re-rolls
- * nothing but DOES burn another name index).
+ * index, birthTick = current tick, family unassigned, the seeded trait
+ * roll, and the lifecycle origin (default ARRIVAL — trained villagers
+ * and starting settlers are working adults; households.ts passes
+ * POP_ORIGIN_BIRTH for newborns). Call exactly once per entity
+ * (re-attaching re-rolls nothing but DOES burn another name index).
  */
 export function attachPopIdentity(
   world: World,
   comps: PopComponents,
   eid: number,
+  options: { readonly origin?: number | undefined } = {},
 ): void {
   const nameIdx = allocateNameIndex(world, eid);
+  const origin =
+    options.origin === POP_ORIGIN_BIRTH ? POP_ORIGIN_BIRTH : POP_ORIGIN_ARRIVAL;
   requireRows(world, comps.identityId).set(eid, [
     nameIdx,
     world.tick,
     FAMILY_UNASSIGNED,
+    origin,
   ]);
   const traitCodes = generatePopTraits(world.seed, eid).map(traitCodeOf);
   requireRows(world, comps.traitsId).set(eid, traitCodes);
@@ -266,6 +287,8 @@ export interface IdentityFields {
   readonly nameIdx: number;
   readonly birthTick: number;
   readonly familyId: number;
+  /** POP_ORIGIN_* — how this Pop entered the world (M3-T5). */
+  readonly origin: number;
 }
 
 export function readIdentity(
@@ -275,7 +298,28 @@ export function readIdentity(
 ): IdentityFields | undefined {
   const row = world.rowsByComponentId.get(comps.identityId)?.get(eid);
   if (!row) return undefined;
-  return { nameIdx: row[0]!, birthTick: row[1]!, familyId: row[2]! };
+  return {
+    nameIdx: row[0]!,
+    birthTick: row[1]!,
+    familyId: row[2]!,
+    origin: row[3] ?? POP_ORIGIN_ARRIVAL,
+  };
+}
+
+/**
+ * Assign one Pop to a household (M3-T5): `familyEid` is the Household
+ * row's entity id, or FAMILY_UNASSIGNED to detach (never expected in
+ * production). No-op for Pops without an Identity row.
+ */
+export function setIdentityFamilyId(
+  world: World,
+  comps: Pick<PopComponents, "identityId">,
+  eid: number,
+  familyEid: number,
+): void {
+  const row = world.rowsByComponentId.get(comps.identityId)?.get(eid);
+  if (!row) return;
+  row[2] = familyEid;
 }
 
 /** Full name resolution for one Pop's Identity row (fresh string). */

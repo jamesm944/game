@@ -62,6 +62,7 @@ import {
 import { resetSteeringBookkeeping } from "./movement";
 import { injuryImpairmentOf } from "../components/body";
 import { restWorkMultiplierOf } from "./needs";
+import { isChildOf } from "./lifecycle";
 
 /** Command kind owned by this system. */
 export const BUILD_KIND = "build";
@@ -278,6 +279,7 @@ export function createConstructionSystem(
         const velRow = velRows?.get(eid);
         const tagRow = tagRows?.get(eid);
         if (!posRow || !velRow || !tagRow) continue; // not a live unit
+        if (isChildOf(world, comps, eid)) continue; // children cannot work (M3-T5)
         // Re-tasking replaces any prior job (AoE2 order semantics):
         // without this, a gatherer keeps its AssignedNode row and the
         // gather system re-plans chop legs against the site walk.

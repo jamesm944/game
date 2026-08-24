@@ -32,7 +32,8 @@ import {
 describe("definition loader happy path", () => {
   it("loads every M2-T1 definition into typed registries", () => {
     expect(UNIT_DEFINITIONS.size).toBe(8);
-    expect(BUILDING_DEFINITIONS.size).toBe(16);
+    // M3-T5: the §2.3 school joins the building set (17).
+    expect(BUILDING_DEFINITIONS.size).toBe(17);
     expect(TECH_DEFINITIONS.size).toBe(8);
     expect(RECIPE_DEFINITIONS.size).toBe(6);
 

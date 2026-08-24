@@ -60,6 +60,12 @@ import { createEquipmentSystem } from "../sim/systems/equipment";
 import { createSkillsSystem } from "../sim/systems/skills";
 import { createInjuriesSystem } from "../sim/systems/injuries";
 import { createNeedsSystem } from "../sim/systems/needs";
+import {
+  DEFAULT_LIFECYCLE_CONFIG,
+  createLifecycleSystem,
+} from "../sim/systems/lifecycle";
+import { createHouseholdsSystem } from "../sim/systems/households";
+import { createSchoolSystem } from "../sim/systems/school";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
@@ -150,7 +156,24 @@ export function createSkirmishWorld(
   // brain serves the HUMAN side's idle Pops only — the AI opponent
   // keeps its own planner stack (SPEC §2.8 layering).
   registerSystem(world, createNeedsSystem(comps));
-  registerSystem(world, createPopBrainSystem({ comps, players: [PLAYER_ONE] }));
+  // M3-T5: lifecycle (natural deaths), households (daily formation +
+  // seeded birth rolls) and school (9am–3pm teacher-gated lessons)
+  // run before popBrain so the brain's child/elder gates see this
+  // tick's transitions.
+  registerSystem(world, createLifecycleSystem(comps, DEFAULT_LIFECYCLE_CONFIG));
+  registerSystem(
+    world,
+    createHouseholdsSystem(comps, DEFAULT_LIFECYCLE_CONFIG),
+  );
+  registerSystem(world, createSchoolSystem(comps, DEFAULT_LIFECYCLE_CONFIG));
+  registerSystem(
+    world,
+    createPopBrainSystem({
+      comps,
+      players: [PLAYER_ONE],
+      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+    }),
+  );
 
   // ---- Human start: ledger + age ladder + central TC + villagers ------
   const centerSpot = centralPassableTiles(world, 1)[0]!;

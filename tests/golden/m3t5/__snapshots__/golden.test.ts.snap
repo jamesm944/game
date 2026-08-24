@@ -1,0 +1,224 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m3t5 > records milestone digests at every 300th tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:3ddab3aa11e3c754",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:217de1f6ab987e34",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:fe7f929e43834e09",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:27bcd6c0c36fbdf4",
+    "tick": 1200,
+  },
+  {
+    "digest": "fnv1a64:ac3c22c5fff182c8",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:262dd5732f8b2bb0",
+    "tick": 1800,
+  },
+  {
+    "digest": "fnv1a64:fcb43fe24a4e361e",
+    "tick": 2100,
+  },
+  {
+    "digest": "fnv1a64:1dedd7f6d351ac40",
+    "tick": 2400,
+  },
+  {
+    "digest": "fnv1a64:9742ada4df0b8068",
+    "tick": 2700,
+  },
+  {
+    "digest": "fnv1a64:ea3ec50530df6528",
+    "tick": 3000,
+  },
+  {
+    "digest": "fnv1a64:ebbe5f179ef16605",
+    "tick": 3300,
+  },
+  {
+    "digest": "fnv1a64:ca100492c9c4329b",
+    "tick": 3600,
+  },
+  {
+    "digest": "fnv1a64:b2bb65210127df99",
+    "tick": 3900,
+  },
+  {
+    "digest": "fnv1a64:f931852770d97385",
+    "tick": 4200,
+  },
+  {
+    "digest": "fnv1a64:359f5f3f60e2b664",
+    "tick": 4500,
+  },
+  {
+    "digest": "fnv1a64:97b0724f931d6bdc",
+    "tick": 4800,
+  },
+  {
+    "digest": "fnv1a64:6a69a39ad35e23e4",
+    "tick": 5100,
+  },
+  {
+    "digest": "fnv1a64:cc4f9f4a64d9b265",
+    "tick": 5400,
+  },
+  {
+    "digest": "fnv1a64:7fc0c6feee469c76",
+    "tick": 5700,
+  },
+  {
+    "digest": "fnv1a64:d41b0f5eeedf8f9f",
+    "tick": 6000,
+  },
+  {
+    "digest": "fnv1a64:3c1999698fe19a4f",
+    "tick": 6300,
+  },
+  {
+    "digest": "fnv1a64:90e739a19b955f0d",
+    "tick": 6600,
+  },
+  {
+    "digest": "fnv1a64:04e317b18c928768",
+    "tick": 6900,
+  },
+  {
+    "digest": "fnv1a64:f28bb886d3e03d17",
+    "tick": 7200,
+  },
+]
+`;
+
+exports[`golden harness m3t5 > runs three generations: births occur, graduates gain, elders die 1`] = `
+[
+  {
+    "births": 0,
+    "deaths": 0,
+    "familiesFormed": 2,
+    "firstbornGraduated": false,
+    "firstbornLessons": 0,
+    "firstbornStage": undefined,
+    "food": 1210,
+    "founderStage": "adult",
+    "graduates": 0,
+    "population": 4,
+    "tick": 600,
+  },
+  {
+    "births": 1,
+    "deaths": 0,
+    "familiesFormed": 2,
+    "firstbornGraduated": false,
+    "firstbornLessons": 0,
+    "firstbornStage": "child",
+    "food": 1170,
+    "founderStage": "adult",
+    "graduates": 0,
+    "population": 5,
+    "tick": 1200,
+  },
+  {
+    "births": 2,
+    "deaths": 0,
+    "familiesFormed": 2,
+    "firstbornGraduated": false,
+    "firstbornLessons": 1,
+    "firstbornStage": "child",
+    "food": 1140,
+    "founderStage": "adult",
+    "graduates": 0,
+    "population": 6,
+    "tick": 1800,
+  },
+  {
+    "births": 4,
+    "deaths": 0,
+    "familiesFormed": 2,
+    "firstbornGraduated": true,
+    "firstbornLessons": 3,
+    "firstbornStage": "adult",
+    "food": 1080,
+    "founderStage": "elder",
+    "graduates": 1,
+    "population": 8,
+    "tick": 3000,
+  },
+  {
+    "births": 4,
+    "deaths": 0,
+    "familiesFormed": 2,
+    "firstbornGraduated": true,
+    "firstbornLessons": 3,
+    "firstbornStage": "adult",
+    "food": 1100,
+    "founderStage": "elder",
+    "graduates": 2,
+    "population": 8,
+    "tick": 3600,
+  },
+  {
+    "births": 4,
+    "deaths": 4,
+    "familiesFormed": 2,
+    "firstbornGraduated": true,
+    "firstbornLessons": 3,
+    "firstbornStage": "adult",
+    "food": 1120,
+    "founderStage": "dead",
+    "graduates": 4,
+    "population": 4,
+    "tick": 4200,
+  },
+  {
+    "births": 4,
+    "deaths": 4,
+    "familiesFormed": 3,
+    "firstbornGraduated": true,
+    "firstbornLessons": 3,
+    "firstbornStage": "adult",
+    "food": 1120,
+    "founderStage": "dead",
+    "graduates": 4,
+    "population": 4,
+    "tick": 4800,
+  },
+  {
+    "births": 5,
+    "deaths": 4,
+    "familiesFormed": 3,
+    "firstbornGraduated": true,
+    "firstbornLessons": 3,
+    "firstbornStage": "adult",
+    "food": 1070,
+    "founderStage": "dead",
+    "graduates": 4,
+    "population": 5,
+    "tick": 5400,
+  },
+  {
+    "births": 7,
+    "deaths": 4,
+    "familiesFormed": 3,
+    "firstbornGraduated": true,
+    "firstbornLessons": 3,
+    "firstbornStage": "elder",
+    "food": 970,
+    "founderStage": "dead",
+    "graduates": 4,
+    "population": 7,
+    "tick": 6600,
+  },
+]
+`;

@@ -78,6 +78,7 @@ import {
 } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
+import { isChildOf } from "./lifecycle";
 import { rectDistanceSq, approachPoint } from "./construction";
 import { resetSteeringBookkeeping } from "./movement";
 import { isDefAgeUnlocked } from "./age";
@@ -471,6 +472,7 @@ function applyProduceCommand(
     const velRow = velRows?.get(eid);
     const tagRow = tagRows?.get(eid);
     if (!posRow || !velRow || !tagRow) continue; // not a live unit
+    if (isChildOf(world, comps, eid)) continue; // children cannot work (M3-T5)
     // Re-tasking replaces any prior job (AoE2 order semantics), exactly
     // like gather/build assignments.
     clearAssignedNode(world, comps, eid);

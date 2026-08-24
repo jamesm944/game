@@ -129,6 +129,7 @@ import {
 import { despawnEntity, type SimSystem, type World } from "../core/world";
 import { PASSABLE } from "../world/layers";
 import { issueGroupRoute, resetSteeringBookkeeping } from "./movement";
+import { isChildOf } from "./lifecycle";
 import type { PathScheduler } from "../path/scheduler";
 
 /** Command kinds owned by this system. */
@@ -788,6 +789,10 @@ export function createCombatSystem(
     };
 
     const strike = (attacker: Combatant, targetEid: number): void => {
+      // M3-T5: children cannot fight (SPEC §2.3). A child ordered into
+      // battle marches but never lands a blow — no damage, no wounds,
+      // no practice, no retaliation credit.
+      if (isChildOf(world, comps, attacker.eid)) return;
       const targetRow = getCombatRow(world, comps, targetEid);
       const targetPos = positions.get(targetEid);
       const targetDef = combatantByEid.get(targetEid)?.def;
@@ -853,6 +858,8 @@ export function createCombatSystem(
      * the destruction pipeline tears the site/building down.
      */
     const strikeStructure = (attacker: Combatant, targetEid: number): void => {
+      // M3-T5: children cannot fight — raiding included.
+      if (isChildOf(world, comps, attacker.eid)) return;
       const structure = structures.get(targetEid);
       const targetPos = positions.get(targetEid);
       if (!structure || !targetPos) return; // destroyed this tick

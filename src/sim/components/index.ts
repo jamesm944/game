@@ -78,6 +78,11 @@ import {
   JOB_COOLDOWN,
   JOB_COOLDOWN_ARITY,
 } from "./jobCooldown";
+import {
+  HOUSEHOLD,
+  HOUSEHOLD_ARITY,
+  type HouseholdComponents,
+} from "./household";
 import { attachOwner, OWNER, OWNER_ARITY, type OwnerComponents } from "./owner";
 import {
   IDENTITY,
@@ -92,6 +97,12 @@ import {
   NEEDS_ARITY,
   type NeedsComponents,
 } from "./needs";
+import {
+  attachLessons,
+  LESSONS,
+  LESSONS_ARITY,
+  type LessonComponents,
+} from "./lessons";
 import {
   attachPopSkills,
   SKILLS,
@@ -148,6 +159,9 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * (needs.ts, M3-T3) slot alphabetically between Inventory and
  * MealConsumed, and between MoveTarget and Owner, respectively.
  * Body (body.ts, M3-T4) slots before Building ("Bo" < "Bu").
+ * Household (household.ts, M3-T5) slots between GateRejected and
+ * Identity; Lessons (lessons.ts, M3-T5) between JobCooldown and
+ * MealConsumed.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -158,11 +172,17 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M3-T4: Body registers alphabetically before Building.
   [BODY, BODY_ARITY],
   ...BUILDING_COMPONENT_ARITIES,
+  // M3-T5: Household registers alphabetically after GateRejected
+  // (which AGE_COMPONENT_ARITIES lists last) and before Identity.
+  [HOUSEHOLD, HOUSEHOLD_ARITY],
   ...COMBAT_COMPONENT_ARITIES,
   ...EQUIPMENT_COMPONENT_ARITIES,
   // M3-T3: JobCooldown registers alphabetically between Inventory
   // (economy.ts, not tabulated here) and MealConsumed below.
   [JOB_COOLDOWN, JOB_COOLDOWN_ARITY],
+  // M3-T5: Lessons registers alphabetically between JobCooldown and
+  // MealConsumed.
+  [LESSONS, LESSONS_ARITY],
   ...PRODUCTION_COMPONENT_ARITIES,
   [IDENTITY, IDENTITY_ARITY],
   [SKILLS, SKILLS_ARITY],
@@ -190,8 +210,10 @@ export interface SimComponents
     BodyComponents,
     CombatComponents,
     EquipmentComponents,
+    HouseholdComponents,
     ProductionComponents,
     BrainCooldownComponents,
+    LessonComponents,
     NeedsComponents,
     PopComponents,
     SkillComponents,
@@ -220,9 +242,15 @@ export function defineSimComponents(world: World): SimComponents {
     dropoffId: defineComponent(world, DROP_OFF),
     equipmentId: defineComponent(world, EQUIPMENT),
     gateRejectedId: defineComponent(world, GATE_REJECTED),
+    // M3-T5: Household registers alphabetically between GateRejected
+    // and Identity.
+    householdId: defineComponent(world, HOUSEHOLD),
     identityId: defineComponent(world, IDENTITY),
     inventoryId: defineComponent(world, INVENTORY),
     jobCooldownId: defineComponent(world, JOB_COOLDOWN),
+    // M3-T5: Lessons registers alphabetically between JobCooldown and
+    // MealConsumed.
+    lessonsId: defineComponent(world, LESSONS),
     mealConsumedId: defineComponent(world, MEAL_CONSUMED),
     moveTargetId: defineComponent(world, MOVE_TARGET),
     needsId: defineComponent(world, NEEDS),
@@ -377,13 +405,21 @@ export interface SpawnUnitOptions {
    */
   readonly ownerId?: number | undefined;
   /**
-   * Attach Identity + Traits + Skills + Needs rows (M3-T1/T2/T3):
-   * named Pops with seeded conflict-free trait rolls, a novice skill
-   * sheet and full needs meters on their own (seed, eid) streams.
-   * Wired at the villager spawn sites — training completions, AI
-   * bootstrap and skirmish starts; movement-only fixtures stay rowless.
+   * Attach Identity + Traits + Skills + Needs + Lessons rows (M3-T1/T2/
+   * T3/T5): named Pops with seeded conflict-free trait rolls, a novice
+   * skill sheet, full needs meters and a blank school record on their
+   * own (seed, eid) streams. Wired at the villager spawn sites —
+   * training completions, AI bootstrap and skirmish starts; movement-
+   * only fixtures stay rowless.
    */
   readonly identity?: boolean | undefined;
+  /**
+   * Lifecycle origin stamped into the Identity row (M3-T5): the default
+   * POP_ORIGIN_ARRIVAL enters the Pop as a working adult; households.ts
+   * births pass POP_ORIGIN_BIRTH so the child→adult→elder arc runs from
+   * birthTick.
+   */
+  readonly origin?: number | undefined;
   /**
    * Attach a Body row (M3-T4): the six-part wound model that combat
    * strikes allocate against. Deliberately opt-in — golden fixtures
@@ -419,6 +455,7 @@ export function spawnUnit(
       Pick<PopComponents, "identityId" | "traitsId"> &
         Pick<SkillComponents, "skillsId"> &
         Pick<NeedsComponents, "needsId"> &
+        Pick<LessonComponents, "lessonsId"> &
         Pick<BodyComponents, "bodyId">
     >,
   x: number,
@@ -451,6 +488,9 @@ export function spawnUnit(
       world,
       comps as Pick<PopComponents, "identityId" | "traitsId">,
       eid,
+      {
+        origin: options.origin,
+      },
     );
     if (typeof comps.skillsId === "number") {
       // M3-T2: every named Pop carries a (novice) skill sheet; work and
@@ -461,6 +501,11 @@ export function spawnUnit(
       // M3-T3: every named Pop carries full food/rest/morale meters;
       // the rare-tick decay pass and eat chains own them from here.
       attachPopNeeds(world, comps as NeedsComponents, eid);
+    }
+    if (typeof comps.lessonsId === "number") {
+      // M3-T5: every named Pop carries a blank school record; the
+      // lesson windows stamp attendance for graduation credit.
+      attachLessons(world, comps as LessonComponents, eid);
     }
     if (options.body === true && typeof comps.bodyId === "number") {
       // M3-T4: the six-part wound model combat strikes allocate
@@ -484,7 +529,9 @@ export * from "./body";
 export * from "./buildings";
 export * from "./combat";
 export * from "./equipment";
+export * from "./household";
 export * from "./jobCooldown";
+export * from "./lessons";
 export * from "./needs";
 export * from "./production";
 export * from "./pop";

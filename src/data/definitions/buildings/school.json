@@ -1,0 +1,16 @@
+{
+  "id": "school",
+  "name": "School",
+  "kind": "building",
+  "costs": { "wood": 150 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 2000,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 800,
+  "workSlots": 1,
+  "dropoffFilters": [],
+  "acceptsRoles": ["teacher"],
+  "sightRadius": 6,
+  "populationCap": 0
+}
