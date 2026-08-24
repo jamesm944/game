@@ -102,9 +102,18 @@ export const DEFAULT_GATHER_TICKS_PER_UNIT = 30;
  * Output observers (M4-T2): invoked at every Deliver credit event with
  * the credited drop-off building, resource slug and unit count — the
  * companies ledger taps this to route branch shares to treasuries.
+ *
+ * `incomeMultiplierOf` (M4-T6, SPEC §2.8 "disclosed knobs"): per-player
+ * multiplier applied AT THE CREDIT EVENT — a deposit of N units credits
+ * max(1, round(N × mult)) into the owner's stockpile. This is the
+ * documented hard-difficulty income cheat: deliberately AI-only, shown
+ * in the HUD difficulty badge, and undefined (×1) for every human
+ * player so default paths stay byte-identical.
  */
 export interface GatherOutputObservers {
   readonly onOutput?: import("./companies").BranchOutputObserver | undefined;
+  readonly incomeMultiplierOf?:
+    ((playerId: number) => number | undefined) | undefined;
 }
 /** Distance from the slot center within which slot work may begin. */
 const SLOT_ARRIVAL_RADIUS = 0.35;
@@ -689,11 +698,21 @@ export function createGatherSystem(
         diagnostics.rejectedByFilter += 1;
         return false;
       }
-      depositIntoStockpile(world, comps, owner, inv.resourceCode, inv.amount);
-      diagnostics.depositedByResource[inv.resourceCode]! += inv.amount;
+      // M4-T6 §2.8: the disclosed income multiplier applies at this one
+      // credit event — hard-difficulty AI deposits credit 1.25× (rounded
+      // to whole units); every other player multiplies by exactly 1 and
+      // takes the untouched byte-identical path.
+      const multiplier = observers.incomeMultiplierOf?.(owner) ?? 1;
+      const credited =
+        multiplier === 1
+          ? inv.amount
+          : Math.max(1, Math.round(inv.amount * multiplier));
+      depositIntoStockpile(world, comps, owner, inv.resourceCode, credited);
+      diagnostics.depositedByResource[inv.resourceCode]! += credited;
       recordDelivery(head.dropoffEid);
       // M4-T2: branch drop-off output routing taps the same credit
-      // event — one source of truth, no double counting.
+      // event at PHYSICAL units — company ledgers measure work done,
+      // never the difficulty cheat.
       observers.onOutput?.(
         world,
         comps,

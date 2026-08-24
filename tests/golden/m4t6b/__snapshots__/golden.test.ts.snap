@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t6b — composition counter-pick > records milestone digests and replays byte-identically 1`] = `
+[
+  {
+    "digest": "fnv1a64:8cf4cf29ad8cb228",
+    "tick": 250,
+  },
+  {
+    "digest": "fnv1a64:c31f255a0aa3788c",
+    "tick": 500,
+  },
+  {
+    "digest": "fnv1a64:c21236ac29aeb63a",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:2e13db3366524b95",
+    "tick": 1000,
+  },
+  {
+    "digest": "fnv1a64:ef2020121bf0a479",
+    "tick": 1250,
+  },
+  {
+    "digest": "fnv1a64:e64a560dd78fbca9",
+    "tick": 1500,
+  },
+]
+`;

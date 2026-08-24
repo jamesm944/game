@@ -7,7 +7,11 @@
  * rung. Pure string formatting — no DOM here (the seam stays unbroken).
  */
 import { describe, expect, it } from "vitest";
-import { formatAgeBadge, formatStockpileLine } from "../src/ui/hud";
+import {
+  formatAgeBadge,
+  formatDifficultyBadge,
+  formatStockpileLine,
+} from "../src/ui/hud";
 import { RESOURCE_NAMES } from "../src/sim/components/economy";
 
 describe("topbar stockpile line (M2-T2)", () => {
@@ -42,5 +46,23 @@ describe("topbar age badge (M2-T4)", () => {
 
   it("treats a missing rank as the dark-age default", () => {
     expect(formatAgeBadge(undefined)).toBe("I · Dark Age");
+  });
+});
+
+describe("AI difficulty badge (M4-T6, §2.8 disclosure)", () => {
+  it("normal hides nothing because nothing deviates", () => {
+    expect(formatDifficultyBadge("normal")).toBe("AI Normal");
+  });
+
+  it("discloses every knob that deviates from normal", () => {
+    // Easy: slower decisions AND slower reactions.
+    expect(formatDifficultyBadge("easy")).toBe(
+      "AI Easy · decisions ÷3 · reactions ÷3",
+    );
+    // Hard: faster decisions, instant reactions, and the documented
+    // income cheat — spelled out, never hidden.
+    expect(formatDifficultyBadge("hard")).toBe(
+      "AI Hard · decisions ×2 · reactions instant · income ×1.25",
+    );
   });
 });

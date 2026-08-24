@@ -324,6 +324,12 @@ export type BranchOutputObserver = (
 /** Optional observers bag accepted by gather/production factories. */
 export interface OutputObservers {
   readonly onOutput?: BranchOutputObserver | undefined;
+  /**
+   * Per-player income multiplier applied at the credit event (M4-T6,
+   * SPEC §2.8): the disclosed hard-difficulty AI cheat. Undefined → ×1.
+   */
+  readonly incomeMultiplierOf?:
+    ((playerId: number) => number | undefined) | undefined;
 }
 
 /** Exact integer milli-credit share of one output event. */

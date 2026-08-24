@@ -1350,6 +1350,9 @@ function frame(
     `${formatStockpileLine(stockRow ?? [])} · ${popLine}`,
   );
   topbar.updateAge(currentAgeRankOf(world, comps, PLAYER_ONE));
+  // M4-T6: disclose the AI difficulty knobs — decision interval,
+  // reaction latency and hard's documented income multiplier.
+  topbar.updateDifficulty(session.aiDifficulty);
   victoryPathsPanel.update(victoryPathReadouts(world, comps, VIEWER));
   controlGroups.refreshChips();
   buildMenu.refresh();

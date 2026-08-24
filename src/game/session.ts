@@ -91,6 +91,7 @@ import {
   createPlannerTelemetry,
   type PlannerTelemetry,
 } from "../sim/ai/planner";
+import { aiDifficultyOf, type AiDifficultyId } from "../sim/ai/difficulty";
 import { scatterResourceNodes } from "../sim/mapgen/resources";
 
 /** Dark-age start scale carried over from the M1-T10 dev world. */
@@ -118,6 +119,14 @@ export interface SkirmishWorldOptions {
    * §2.4 clock; compressed golden fixtures (M3-T10) pass their own.
    */
   readonly lifecycleConfig?: LifecycleConfig | undefined;
+  /**
+   * AI opponent difficulty (M4-T6, SPEC §2.8 "disclosed knobs").
+   * Defaults to "normal"; the chosen preset drives the planner's
+   * decision interval + reaction delay and — on hard — the documented
+   * ×1.25 income multiplier on the AI's gather deposits. Surfaced on
+   * {@link SkirmishWorld.aiDifficulty} so the HUD badge can disclose it.
+   */
+  readonly aiDifficulty?: AiDifficultyId | undefined;
 }
 
 export interface SkirmishWorld {
@@ -129,6 +138,8 @@ export interface SkirmishWorld {
   /** The AI's fog-honest knowledge surface (viewer = AI_PLAYER). */
   readonly aiKnowledge: AiKnowledge;
   readonly aiTelemetry: PlannerTelemetry;
+  /** Resolved difficulty preset id (defaults "normal"). */
+  readonly aiDifficulty: AiDifficultyId;
 }
 
 /**
@@ -142,6 +153,7 @@ export function createSkirmishWorld(
   const lifecycleConfig = normalizeLifecycleConfig(
     options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG,
   );
+  const difficulty = aiDifficultyOf(options.aiDifficulty);
   const scheduler = new PathScheduler(options.createTransport());
   const size = options.size ?? 120;
   const fog = createFogVisibility(size, 2);
@@ -163,7 +175,14 @@ export function createSkirmishWorld(
   // its observer wires into gather + production BEFORE they register;
   // the companies system itself runs after the delegation layer.
   const companies = createCompaniesSystem({ comps, players: [PLAYER_ONE] });
-  const outputObservers: OutputObservers = { onOutput: companies.onOutput };
+  const outputObservers: OutputObservers = {
+    onOutput: companies.onOutput,
+    // M4-T6: the hard-difficulty income cheat rides the same credit
+    // event the companies ledger taps — AI player only, disclosed in
+    // the HUD difficulty badge (ui/hud.ts).
+    incomeMultiplierOf: (playerId) =>
+      playerId === AI_PLAYER ? difficulty.incomeMultiplier : undefined,
+  };
   registerSystem(world, createMovementSystem(comps, scheduler));
   registerSystem(
     world,
@@ -352,6 +371,7 @@ export function createSkirmishWorld(
       knowledge: aiKnowledge,
       strategy: "fast-castle-knights",
       telemetry: aiTelemetry,
+      difficulty: difficulty.id,
     }),
   );
 
@@ -386,7 +406,16 @@ export function createSkirmishWorld(
   // Map-gen full fog recompute (§2.9) — the ONLY non-incremental pass.
   fog.recomputeAll();
 
-  return { seed, world, comps, scheduler, fog, aiKnowledge, aiTelemetry };
+  return {
+    seed,
+    world,
+    comps,
+    scheduler,
+    fog,
+    aiKnowledge,
+    aiTelemetry,
+    aiDifficulty: difficulty.id,
+  };
 }
 
 // ---- Spawn-site helpers (verbatim semantics from main.ts) ---------------------

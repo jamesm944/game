@@ -22,10 +22,12 @@
  * inbox with `playerId` stamped — identical in kind to human clicks.
  *
  * The attack step is deliberately MINIMAL (full utility-scored timing
- * is the M4 military manager): when the strategy's army threshold is
- * met AND enemies are inside AI vision, the whole army attack-marches
- * the nearest known enemy. No vision → no target → no order; the fog
- * gate decides.
+ * lives in the M4 military manager): a scripted `attack` step only
+ * marks intent in the strategy data — the planner's one-shot offensive
+ * (shared `attackedTick` memory, scored by militaryManager.ts) does the
+ * actual firing when the strategy's army threshold is met AND enemies
+ * are inside AI vision. No vision → no target → no order; the fog gate
+ * decides.
  */
 
 import { buildingDefOf, techDefOf, unitDefOf } from "../../data/definitions";
@@ -377,40 +379,11 @@ function gateOpen(
   return true;
 }
 
-/** Footprint origin of the AI's first town center, for anchoring. */
-function anchorTileOf(k: AiKnowledge): { x: number; y: number } {
-  const tcEid = k.finishedBuildings("town-center")[0];
-  const origin = tcEid !== undefined ? k.ownBuildingOrigin(tcEid) : undefined;
-  return origin ?? { x: 0, y: 0 };
-}
-
-/**
- * Nearest known enemy to the AI town center — ties break to the lower
- * eid so the pick stays deterministic.
- */
-function nearestVisibleEnemy(k: AiKnowledge): { eid: number } | undefined {
-  const enemies = k.visibleEnemies();
-  if (enemies.length === 0) return undefined;
-  const anchor = anchorTileOf(k);
-  let best = enemies[0]!;
-  let bestD = Number.POSITIVE_INFINITY;
-  for (const enemy of enemies) {
-    const d = (enemy.tileX - anchor.x) ** 2 + (enemy.tileY - anchor.y) ** 2;
-    if (d < bestD || (d === bestD && enemy.eid < best.eid)) {
-      best = enemy;
-      bestD = d;
-    }
-  }
-  return best;
-}
-
 function emitForStep(
   k: AiKnowledge,
   budget: ResourceBudget,
   reserved: SpotReservation,
   step: BuildStep,
-  memory: BuildOrderMemory,
-  attackThreshold: number,
 ): CommandDraft | undefined {
   const action = step.action;
 
@@ -490,23 +463,13 @@ function emitForStep(
     return undefined;
   }
 
-  // Minimal attack trigger (M2 stub for the M4 military manager):
-  // threshold met + something legitimately visible → the whole army
-  // marches the nearest known enemy. No vision → no order, ever; the
-  // fog gate decides, structurally.
+  // The attack step is deliberately MINIMAL: M4's military manager
+  // (militaryManager.ts) owns target scoring — density raids, counter
+  // picks, defense rallies — and the PLANNER owns emission timing. A
+  // scripted attack step here only marks intent; the orchestrator's
+  // one-shot offensive (shared `attackedTick` memory) does the firing.
   if (action.kind === "attack") {
-    if (memory.attackedTick !== undefined) return undefined;
-    if (k.armyUnits().length < attackThreshold) return undefined;
-    const target = nearestVisibleEnemy(k);
-    if (target === undefined) return undefined; // fog says no
-    memory.attackedTick = k.tick();
-    return {
-      kind: "attack",
-      data: {
-        attackerIds: k.armyUnits().map((unit) => unit.eid),
-        targetId: target.eid,
-      },
-    };
+    return undefined;
   }
 
   return undefined;
@@ -527,7 +490,7 @@ export function planBuildOrder(
   reserved: SpotReservation,
   memory: BuildOrderMemory,
 ): CommandDraft | undefined {
-  const attackThreshold = Math.max(strategy.attackArmyThreshold, 1);
+  void memory; // attack emission moved to the military manager (M4-T6)
   const doneIds = new Set(
     strategy.steps
       .filter((step) => completionMet(k, step.complete))
@@ -538,14 +501,7 @@ export function planBuildOrder(
     const depsReady = (step.requires ?? []).every((id) => doneIds.has(id));
     if (!depsReady) continue;
     if (!gateOpen(k, budget, step.gate)) continue;
-    const draft = emitForStep(
-      k,
-      budget,
-      reserved,
-      step,
-      memory,
-      attackThreshold,
-    );
+    const draft = emitForStep(k, budget, reserved, step);
     if (draft !== undefined) return draft;
     // Waiting on this one (research in flight, spot blocked, producer
     // missing, army mustering): fall through — later steps whose own

@@ -66,11 +66,11 @@ import {
   type VictoryCheckEntry,
 } from "../src/sim/components/victory";
 import {
-  AI_DIFFICULTY_LATENCY,
   PLANNER_CADENCE_TICKS,
   createAiPlannerSystem,
   createPlannerTelemetry,
 } from "../src/sim/ai/planner";
+import { AI_DIFFICULTIES, type AiDifficultyId } from "../src/sim/ai/difficulty";
 import { createAiKnowledge } from "../src/sim/ai/knowledge";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
 import { TERRAIN_GRASS, buildLayers } from "../src/sim/world/layers";
@@ -429,7 +429,7 @@ describe("symmetric evaluator surface", () => {
   });
 });
 
-describe("difficulty reaction-latency stub (§2.8)", () => {
+describe("difficulty knobs — §2.8 presets (M4-T6)", () => {
   /** Fog-honest empty view: the planner sees nothing, thinks anyway. */
   const emptyView = {
     viewer: 1,
@@ -439,7 +439,7 @@ describe("difficulty reaction-latency stub (§2.8)", () => {
     lastKnown: () => undefined,
   };
 
-  function thinkCounts(latency: number | undefined, ticks: number) {
+  function thinkCounts(difficulty: AiDifficultyId | undefined, ticks: number) {
     const h = harness(17);
     createPlayerStockpile(h.world, h.comps, 1);
     const knowledge = createAiKnowledge({
@@ -460,7 +460,7 @@ describe("difficulty reaction-latency stub (§2.8)", () => {
           steps: [],
         },
         telemetry,
-        ...(latency === undefined ? {} : { reactionLatency: latency }),
+        ...(difficulty === undefined ? {} : { difficulty }),
       }),
     );
     steps(h.world, ticks);
@@ -477,18 +477,58 @@ describe("difficulty reaction-latency stub (§2.8)", () => {
     expect(counts.incremental).toBe(PLANNER_CADENCE_TICKS * 3 - 3);
   });
 
-  it("scales the decision interval ×3 on easy", () => {
-    const counts = thinkCounts(
-      AI_DIFFICULTY_LATENCY.easy,
-      PLANNER_CADENCE_TICKS * 3,
-    );
-    expect(counts.think).toBe(1); // one pass per 90 ticks
-    expect(counts.incremental).toBe(PLANNER_CADENCE_TICKS * 3 - 1);
-    expect(AI_DIFFICULTY_LATENCY).toEqual({ easy: 3, normal: 1 });
+  it("scales the decision interval ×3 on easy and ÷2 on hard", () => {
+    const easy = thinkCounts("easy", PLANNER_CADENCE_TICKS * 3);
+    expect(easy.think).toBe(1); // one pass per 90 ticks
+    expect(easy.incremental).toBe(PLANNER_CADENCE_TICKS * 3 - 1);
+
+    // Hard re-plans every 15 ticks: double the full passes of normal.
+    const hard = thinkCounts("hard", PLANNER_CADENCE_TICKS * 2);
+    expect(hard.think).toBe(4);
+
+    // The presets themselves stay disclosed data with the documented
+    // hard-only income cheat.
+    expect(AI_DIFFICULTIES.easy.decisionIntervalTicks).toBe(90);
+    expect(AI_DIFFICULTIES.normal.decisionIntervalTicks).toBe(30);
+    expect(AI_DIFFICULTIES.hard.decisionIntervalTicks).toBe(15);
+    expect(AI_DIFFICULTIES.easy.incomeMultiplier).toBe(1);
+    expect(AI_DIFFICULTIES.normal.incomeMultiplier).toBe(1);
+    expect(AI_DIFFICULTIES.hard.incomeMultiplier).toBeGreaterThan(1);
   });
 
   it("rejects non-positive or fractional latencies loudly", () => {
-    expect(() => thinkCounts(0, 5)).toThrow(/reactionLatency/);
-    expect(() => thinkCounts(1.5, 5)).toThrow(/reactionLatency/);
+    const h = harness(17);
+    createPlayerStockpile(h.world, h.comps, 1);
+    const knowledge = createAiKnowledge({
+      world: h.world,
+      comps: h.comps,
+      view: emptyView,
+    });
+    expect(() =>
+      createAiPlannerSystem({
+        knowledge,
+        strategy: {
+          id: "idle-ladder",
+          villagerTarget: 0,
+          gatherWeights: { food: 1, wood: 0, gold: 0 },
+          attackArmyThreshold: Number.MAX_SAFE_INTEGER,
+          steps: [],
+        },
+        reactionLatency: 0,
+      }),
+    ).toThrow(/reactionLatency/);
+    expect(() =>
+      createAiPlannerSystem({
+        knowledge,
+        strategy: {
+          id: "idle-ladder",
+          villagerTarget: 0,
+          gatherWeights: { food: 1, wood: 0, gold: 0 },
+          attackArmyThreshold: Number.MAX_SAFE_INTEGER,
+          steps: [],
+        },
+        reactionLatency: 1.5,
+      }),
+    ).toThrow(/reactionLatency/);
   });
 });

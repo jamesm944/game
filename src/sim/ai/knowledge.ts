@@ -112,6 +112,16 @@ export interface AiKnowledge {
   carryOf(eid: number): { resourceCode: number; amount: number } | undefined;
   /** Known tile of one OWN unit (undefined when not ours/alive). */
   ownUnitTile(eid: number): { x: number; y: number } | undefined;
+  /**
+   * OWN finished buildings sitting below their definition's max hp
+   * (M4-T6 defense probe — a player always knows its own damage).
+   */
+  damagedOwnBuildings(): readonly {
+    eid: number;
+    defId: string;
+    tileX: number;
+    tileY: number;
+  }[];
   // ---- World knowledge (fog-gated) -----------------------------------------
   /** Explored-or-visible nodes with remaining>0, optionally per resource. */
   knownNodes(resourceCode?: number | undefined): readonly KnownNode[];
@@ -120,6 +130,17 @@ export interface AiKnowledge {
   visibleEnemies(): readonly {
     eid: number;
     defId: string;
+    tileX: number;
+    tileY: number;
+  }[];
+  /**
+   * Enemy villagers currently inside AI vision (M4-T6 raid-density
+   * probe). Villagers are untargetable, so they never appear in
+   * {@link visibleEnemies} — but their positions are exactly what
+   * "raid where the workers are" scoring needs.
+   */
+  visibleEnemyVillagers(): readonly {
+    eid: number;
     tileX: number;
     tileY: number;
   }[];
@@ -330,6 +351,30 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
       return { x: Math.floor(pos[0]!), y: Math.floor(pos[1]!) };
     },
 
+    damagedOwnBuildings() {
+      const out: {
+        eid: number;
+        defId: string;
+        tileX: number;
+        tileY: number;
+      }[] = [];
+      for (const [eid, row] of world.rowsByComponentId.get(comps.buildingId) ??
+        new Map()) {
+        if (row[0] !== player) continue;
+        const def = buildingDefOf(buildingIdOfCode(row[1]!));
+        if (row[4]! >= def.hp) continue;
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!pos) continue;
+        out.push({
+          eid,
+          defId: def.id,
+          tileX: Math.floor(pos[0]!),
+          tileY: Math.floor(pos[1]!),
+        });
+      }
+      return out.sort((a, b) => a.eid - b.eid);
+    },
+
     knownNodes(resourceCode) {
       refreshMemo();
       const cached = memoNodes.get(resourceCode ?? -1);
@@ -382,6 +427,20 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
         // units AND structures stay legitimate strike targets.
         if (entity.defId === "villager") continue;
         out.push(entity);
+      }
+      return out;
+    },
+
+    visibleEnemyVillagers() {
+      const out: { eid: number; tileX: number; tileY: number }[] = [];
+      for (const entity of knownEntities()) {
+        if (entity.owner === player) continue;
+        if (entity.defId !== "villager") continue;
+        out.push({
+          eid: entity.eid,
+          tileX: entity.tileX,
+          tileY: entity.tileY,
+        });
       }
       return out;
     },

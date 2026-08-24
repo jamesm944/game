@@ -1,0 +1,30 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t6a — undefended expansion raided > records milestone digests and replays byte-identically 1`] = `
+[
+  {
+    "digest": "fnv1a64:e6c498a06a8dcf45",
+    "tick": 50,
+  },
+  {
+    "digest": "fnv1a64:ea3f9355f200c1ee",
+    "tick": 100,
+  },
+  {
+    "digest": "fnv1a64:8b0fbdb3d5c49672",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:0dcb732aab65c1c4",
+    "tick": 200,
+  },
+  {
+    "digest": "fnv1a64:2a0a49cbc5aff3f2",
+    "tick": 250,
+  },
+  {
+    "digest": "fnv1a64:c49bdfe3adb20412",
+    "tick": 300,
+  },
+]
+`;

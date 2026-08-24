@@ -1,17 +1,21 @@
 /**
- * AI orchestrator — SPEC §2.8 layers 1+2 / M2-T9 (issue #43).
+ * AI orchestrator — SPEC §2.8 layers 1+2+3 / M2-T9 + M4-T6 (issues #43, #61).
  *
  * Registers as an ordinary SimSystem (LAST, after every gameplay
  * system) and thinks on the §2.8 cadence:
  *
- *   - FULL PASS every 30 ticks (× reactionLatency — the §2.8 difficulty
- *     knob, M2-T10 stub): economy manager + build-order layer,
+ *   - FULL PASS every `decisionIntervalTicks` (30 × reactionLatency —
+ *     the §2.8 difficulty knob; presets in ai/difficulty.ts): economy
+ *     manager + build-order layer + military COUNTER-PICK training,
  *     in that fixed order, sharing one planning-time resource budget
  *     and one spot reservation so a single pass can never overdraw or
  *     double-place.
- *   - INCREMENTAL CHECK between passes: the minimal attack trigger
- *     only — cheap army-size/vision probes keep reaction latency off
- *     the 1 s cadence without re-running the whole plan.
+ *   - INCREMENTAL CHECK every other tick: the military manager's cheap
+ *     probes — DEFENSE RALLY detection (own building damaged + hostile
+ *     unit nearby, gated by the difficulty's reactionDelayTicks) and
+ *     the one-shot OFFENSIVE trigger (utility-scored strike/raid target
+ *     via militaryManager.ts). Both stay off the full-pass cadence so
+ *     reaction latency does not wait for strategy replanning.
  *
  * Emissions enter the SHARED command inbox exactly like player orders:
  * `{kind, targetTick: now+1, data}` carrying `playerId`. The planner
@@ -39,30 +43,22 @@ import {
   type StrategyId,
 } from "./buildOrder";
 import { planEconomyCommands } from "./economyManager";
+import {
+  createMilitaryMemory,
+  planCounterTraining,
+  planDefenseRally,
+  planOffensive,
+} from "./militaryManager";
+import { aiDifficultyOf, type AiDifficultyId } from "./difficulty";
 import type { SimSystem, World } from "../core/world";
 
 /** §2.8 cadence: one full planning pass per simulated second. */
 export const PLANNER_CADENCE_TICKS = 30;
 
-/**
- * Difficulty latency presets (SPEC §2.8 "disclosed knobs", M2-T10 stub).
- * The scalar multiplies the full-pass decision interval: easy thinks
- * every 90 ticks instead of 30, so its economy/build-order ladder and
- * any army it musters develop ~3× slower. The disclosed AoE2-style
- * INCOME cheat is deliberately deferred to M4 — this knob only slows
- * decisions, never pads resources.
- */
-export const AI_DIFFICULTY_LATENCY = {
-  easy: 3,
-  normal: 1,
-} as const;
-
-export type AiDifficultyId = keyof typeof AI_DIFFICULTY_LATENCY;
-
 export interface PlannerTelemetry {
   /** Full-pass invocations. */
   thinkCalls: number;
-  /** Incremental (attack-only) check invocations. */
+  /** Incremental (defense/offense) check invocations. */
   incrementalCalls: number;
   /** Sum of measured think milliseconds (requires `now`). */
   totalThinkMs: number;
@@ -76,11 +72,17 @@ export interface PlannerTelemetry {
     targetId: number;
     attackerCount: number;
     targetVisibleToAi: boolean;
+    /** Manager classification: raid | strike | defense. */
+    purpose: string;
   }[];
   /** Gather drafts whose node was inside AI knowledge at emission. */
   gatherDraftsKnown: number;
   /** Gather drafts total. */
   gatherDrafts: number;
+  /** Counter-pick training drafts emitted (M4-T6). */
+  counterTrains: number;
+  /** Defense rally drafts emitted (M4-T6). */
+  defenseRallies: number;
 }
 
 export function createPlannerTelemetry(): PlannerTelemetry {
@@ -93,6 +95,8 @@ export function createPlannerTelemetry(): PlannerTelemetry {
     attackDrafts: [],
     gatherDraftsKnown: 0,
     gatherDrafts: 0,
+    counterTrains: 0,
+    defenseRallies: 0,
   };
 }
 
@@ -102,10 +106,16 @@ export interface AiPlannerOptions {
   readonly strategy: StrategyId | Strategy;
   readonly telemetry?: PlannerTelemetry | undefined;
   /**
-   * Difficulty reaction-latency scalar (§2.8, M2-T10 stub): multiplies
-   * the full-pass decision interval. Presets in AI_DIFFICULTY_LATENCY
-   * (easy=3, normal=1); must be a positive integer. Default 1 — every
-   * existing fixture plays at normal and is byte-unaffected.
+   * Difficulty preset id (§2.8 "disclosed knobs", M4-T6): sets the full
+   * decision interval AND the defense reaction delay from
+   * ai/difficulty.ts. Default "normal" — every pre-M4 fixture plays
+   * byte-unaffected.
+   */
+  readonly difficulty?: AiDifficultyId | undefined;
+  /**
+   * Legacy low-level override (M2-T10 stub): multiplies the BASE 30-tick
+   * cadence into the full-pass interval, beating any `difficulty`
+   * preset for the interval knob. Must be a positive integer.
    */
   readonly reactionLatency?: number | undefined;
   /**
@@ -129,18 +139,23 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
   const k = options.knowledge;
   const telemetry = options.telemetry ?? createPlannerTelemetry();
   const memory: BuildOrderMemory = {};
-  const latency = options.reactionLatency ?? AI_DIFFICULTY_LATENCY.normal;
+  const militaryMemory = createMilitaryMemory();
+  const preset = aiDifficultyOf(options.difficulty);
+  const latency = options.reactionLatency ?? 1;
   if (!Number.isInteger(latency) || latency < 1) {
     throw new Error(
       `reactionLatency must be a positive integer, got ${String(latency)}`,
     );
   }
   /**
-   * Effective full-pass interval. Latency > 1 delays STRATEGIC planning
-   * (economy + build order); the cheap incremental probes keep their
-   * base rhythm — M4's military manager owns reactive-latency tuning.
+   * Effective full-pass interval: the legacy latency multiplier when
+   * given, else the difficulty preset's decision interval.
    */
-  const fullPassIntervalTicks = PLANNER_CADENCE_TICKS * latency;
+  const fullPassIntervalTicks =
+    options.reactionLatency === undefined
+      ? preset.decisionIntervalTicks
+      : PLANNER_CADENCE_TICKS * latency;
+  const reactionDelayTicks = preset.reactionDelayTicks;
 
   const measure = <T>(think: () => T): T => {
     if (options.now === undefined) return think();
@@ -178,6 +193,8 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     if (draft.kind === "attack") {
       const targetId = draft.data.targetId;
       const attackerIds = draft.data.attackerIds;
+      const purpose =
+        typeof draft.data.purpose === "string" ? draft.data.purpose : "strike";
       telemetry.attackDrafts.push({
         tick: world.tick,
         targetId: typeof targetId === "number" ? targetId : -1,
@@ -185,7 +202,12 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
         targetVisibleToAi:
           typeof targetId === "number" &&
           k.visibleEnemies().some((enemy) => enemy.eid === targetId),
+        purpose,
       });
+      if (purpose === "defense") telemetry.defenseRallies += 1;
+    }
+    if (draft.kind === "trainUnit" && draft.data.purpose === "counter") {
+      telemetry.counterTrains += 1;
     }
   };
 
@@ -205,24 +227,18 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     );
     const buildDraft = planBuildOrder(k, strategy, budget, reserved, memory);
     if (buildDraft !== undefined) drafts.push(buildDraft);
+    planCounterTraining(k, budget, militaryMemory, drafts);
     return drafts;
   };
 
-  /** Incremental path between passes: the minimal attack trigger. */
-  const incrementalAttackCheck = (): CommandDraft | undefined => {
-    if (memory.attackedTick !== undefined) return undefined;
-    if (k.armyUnits().length < Math.max(strategy.attackArmyThreshold, 1)) {
-      return undefined;
-    }
-    const buildDraft = planBuildOrder(
-      k,
-      strategy,
-      createResourceBudget(k),
-      createSpotReservation(),
-      memory,
-    );
-    return buildDraft?.kind === "attack" ? buildDraft : undefined;
-  };
+  /**
+   * Incremental path between passes: cheap military probes — defense
+   * rally first (protecting the economy beats everything), then the
+   * one-shot scored offensive.
+   */
+  const incrementalCheck = (): CommandDraft | undefined =>
+    planDefenseRally(k, militaryMemory, reactionDelayTicks) ??
+    planOffensive(k, strategy, memory);
 
   return (world, _commands) => {
     void _commands;
@@ -236,13 +252,13 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     if (tick % fullPassIntervalTicks === 0) {
       telemetry.thinkCalls += 1;
       for (const draft of measure(fullPass)) submit(world, draft);
-      return;
     }
-    // Cheap incremental probe; v1 fires the attack trigger once per
-    // match — re-arming is M4 military-manager territory.
-    if (memory.attackedTick !== undefined) return;
-    telemetry.incrementalCalls += 1;
-    const draft = measure(incrementalAttackCheck);
-    if (draft !== undefined) submit(world, draft);
+    // Cheap incremental probes run EVERY non-full-pass tick — the
+    // defense rally cannot wait a full decision interval to react.
+    if (tick % fullPassIntervalTicks !== 0) {
+      telemetry.incrementalCalls += 1;
+      const draft = measure(incrementalCheck);
+      if (draft !== undefined) submit(world, draft);
+    }
   };
 }

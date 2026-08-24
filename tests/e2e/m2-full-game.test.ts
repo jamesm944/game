@@ -40,14 +40,25 @@
 import { describe, expect, it } from "vitest";
 import { getAgeResearchRow, ageRankOf } from "../../src/sim/components/age";
 import {
+  getAssignedSite,
   getBuildingRow,
   getBuildingSiteRow,
   buildingRectOf,
+  getInventory,
+  getProductionJob,
+  populationCapOf,
+  populationOf,
+  readActivityQueue,
   readTrainQueue,
   type SimComponents,
 } from "../../src/sim/components";
 import { rectsOverlap } from "../../src/sim/components/buildings";
-import { buildingDefOf, buildingIdOfCode } from "../../src/data/definitions";
+import {
+  buildingDefOf,
+  buildingIdOfCode,
+  unitDefOf,
+} from "../../src/data/definitions";
+import { canAffordCosts } from "../../src/sim/systems/costs";
 import { PLAYER_ONE } from "../../src/sim/core/stockpile";
 import { step, type World } from "../../src/sim/core/world";
 import { AI_PLAYER } from "../../src/sim/ai/bootstrap";
@@ -80,17 +91,24 @@ const MAP_SIZE = 120;
 const MAX_TICKS = 40_000;
 /** Player director cadence — the 1 s planning rhythm (§2.8-adjacent). */
 const DIRECTOR_INTERVAL_TICKS = 30;
-/** Knight wave the stables keep filled while Castle-age production runs. */
-const KNIGHT_WAVE = 6;
+/** Knight wave the stables keep filled while Castle-age production runs.
+ *  Sized for a DEFENDING opponent: since M4-T6 the AI rallies its whole
+ *  army under attack and refills losses from its own economy, so the
+ *  demo push needs local superiority (≈3:1) to break through. */
+const KNIGHT_WAVE = 12;
 /** Army size that launches the push. */
-const PUSH_ARMY = 5;
+const PUSH_ARMY = 9;
 
 /**
  * Scenario-grade Fast Castle bank: food for both age advances plus
  * slack, wood for the building skeleton, gold for Castle + knights.
- * Written once at bootstrap for BOTH players (see header).
+ * Written once at bootstrap for BOTH players (see header). The gold
+ * line prices SUSTAINED replacement waves: since M4-T6 the opponent
+ * rallies its knights to defend under attack (§2.8 layer 3), so the
+ * push trades units instead of rolling over — the bank must cover the
+ * attrition or the demo stalls mid-push.
  */
-const FC_CAPITAL = [6000, 4000, 1500, 0, 0, 0, 0];
+const FC_CAPITAL = [6000, 4000, 4000, 0, 0, 0, 0];
 
 interface MacroState {
   phase: "build" | "push";
@@ -98,6 +116,19 @@ interface MacroState {
   castleSubmitted: boolean;
   stablesPlaced: boolean;
   acceptedRects: { x: number; y: number; width: number; height: number }[];
+}
+
+/** Player-one civilians (explicit Owner rows mark the AI's). */
+function villagersOf(world: World, comps: SimComponents): number[] {
+  const out: number[] = [];
+  for (const eid of world.entities) {
+    if (!world.rowsByComponentId.get(comps.unitTagId)?.has(eid)) continue;
+    if (world.rowsByComponentId.get(comps.combatId)?.has(eid)) continue;
+    const owner = world.rowsByComponentId.get(comps.ownerId)?.get(eid);
+    if (owner && owner[0] !== PLAYER_ONE) continue;
+    out.push(eid);
+  }
+  return out.sort((a, b) => a - b);
 }
 
 function finishedBuildingsOf(
@@ -182,7 +213,45 @@ describe("M2 demo checklist (SPEC §8)", () => {
     };
     let stableEids: number[] = [];
     let directorNext = 1;
+    let activePushTarget: number | undefined;
     const pushTargetsAttacked = new Set<number>();
+
+    /**
+     * Send fully IDLE villagers gathering. A walking worker shows an
+     * empty AssignedNode row until it arrives — re-ordering it would
+     * cancel its walk every director pass, so the activity QUEUE is
+     * the idle test: only a literally empty queue re-tasks. Nodes are
+     * re-scanned live so exhausted ground hands off to fresh nodes.
+     */
+    const retaskIdleVillagers = (): void => {
+      const candidates: { eid: number; d2: number }[] = [];
+      for (const [eid, row] of world.rowsByComponentId.get(
+        comps.resourceNodeId,
+      ) ?? new Map()) {
+        if ((row[1] ?? 0) <= 0) continue;
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!pos) continue;
+        const d2 = (pos[0]! - tc!.centerX) ** 2 + (pos[1]! - tc!.centerY) ** 2;
+        if (d2 > 55 * 55) continue;
+        candidates.push({ eid, d2 });
+      }
+      if (candidates.length === 0) return;
+      candidates.sort((a, b) => a.d2 - b.d2 || a.eid - b.eid);
+      let nextNode = 0;
+      for (const eid of villagersOf(world, comps)) {
+        if (readActivityQueue(world, comps, eid).length > 0) continue;
+        if (getAssignedSite(world, comps, eid) !== undefined) continue;
+        if (getProductionJob(world, comps, eid) !== undefined) continue;
+        // Mid-delivery carriers keep their cargo and their own plans.
+        const carry = getInventory(world, comps, eid);
+        if (carry !== undefined && carry.amount > 0) continue;
+        submit("gather", {
+          entityIds: [eid],
+          nodeId: candidates[nextNode % candidates.length]!.eid,
+        });
+        nextNode += 1;
+      }
+    };
 
     /** First valid non-overlapping spot for `defId`, ring-searched. */
     const pickSpot = (defId: string): { x: number; y: number } => {
@@ -270,22 +339,40 @@ describe("M2 demo checklist (SPEC §8)", () => {
         }
       }
 
-      // ---- Builders: first idle-ish villagers onto pending sites,
-      // two per site, until the push leaves home.
-      const villagers: number[] = [];
-      for (const eid of world.entities) {
-        if (!world.rowsByComponentId.get(comps.unitTagId)?.has(eid)) continue;
-        if (world.rowsByComponentId.get(comps.combatId)?.has(eid)) continue;
-        villagers.push(eid);
-      }
-      villagers.sort((a, b) => a - b);
-      if (macro.phase !== "push") {
+      // ---- Builders: player villagers onto pending sites, two per
+      // site; everyone else keeps the resource chains fed (income pays
+      // for the replacement waves — attrition is real against a
+      // defending opponent).
+      const villagers = villagersOf(world, comps);
+      {
         let nextVillager = 0;
         for (const site of pendingSitesOf(world, comps, PLAYER_ONE)) {
           const crew = villagers.slice(nextVillager, nextVillager + 2);
           nextVillager += 2;
           if (crew.length === 0) break;
           submit(BUILD_KIND, { entityIds: crew, siteEid: site.eid });
+        }
+      }
+      retaskIdleVillagers();
+
+      // ---- Housing: keep pop headroom ahead of the training pipeline
+      // or the wave deadlock (full queue + idle army + nobody dying).
+      // One pending foundation at a time, mirroring the economy layer.
+      {
+        const pendingHouses = pendingSitesOf(world, comps, PLAYER_ONE).filter(
+          (site) => site.defId === "house",
+        ).length;
+        if (
+          pendingHouses === 0 &&
+          populationOf(world, comps, PLAYER_ONE) + 2 >
+            populationCapOf(world, comps, PLAYER_ONE)
+        ) {
+          const spot = pickSpot("house");
+          submit(PLACE_BUILDING_KIND, {
+            defId: "house",
+            tileX: spot.x,
+            tileY: spot.y,
+          });
         }
       }
 
@@ -305,6 +392,14 @@ describe("M2 demo checklist (SPEC §8)", () => {
           if (aliveKnights + queuedKnights >= KNIGHT_WAVE) break;
           if (!canEnqueueTraining(world, comps, eid, PLAYER_ONE, "knight"))
             continue;
+          // UI parity: the panel refuses orders the bank cannot cover
+          // (canAffordCosts), so the script — a player, not a referee —
+          // gates each order the same way instead of overdrafting.
+          if (
+            !canAffordCosts(world, comps, PLAYER_ONE, unitDefOf("knight").costs)
+          ) {
+            break;
+          }
           submit(TRAIN_UNIT_KIND, { siteEid: eid, unitId: "knight" });
           queuedKnights += 1;
         }
@@ -321,7 +416,24 @@ describe("M2 demo checklist (SPEC §8)", () => {
           comps,
           AI_PLAYER,
         );
-        if (army.length === 0) return; // replacements are training
+        // REGROUP before engaging: the opponent rallies its knights
+        // home under attack, so piecemeal replacements just feed the
+        // defender one at a time. Wait for the wave to reform.
+        if (army.length < PUSH_ARMY) return;
+        // One order per target — like a human click. Re-issuing every
+        // director pass would cancel live engagements (and their
+        // retaliations) mid-swing; re-click only when NOBODY is
+        // attacking or engaged anymore (fresh replacements arrived, or
+        // the wave was broken off).
+        const anyoneFighting = army.some((eid) => {
+          const row = world.rowsByComponentId.get(comps.combatId)?.get(eid);
+          if (row && row[3]! !== 0) return true;
+          return readActivityQueue(world, comps, eid).some(
+            (activity) =>
+              activity.kind === "attack" || activity.kind === "attackMove",
+          );
+        });
+        if (!anyoneFighting) activePushTarget = undefined;
         if (aiMilitary.length > 0) {
           // Nearest LIVE military-production building to the army
           // anchor; explicit orders (buildings are invisible to aggro).
@@ -342,9 +454,13 @@ describe("M2 demo checklist (SPEC §8)", () => {
               target = eid;
             }
           }
-          pushTargetsAttacked.add(target);
-          submit("attack", { attackerIds: army, targetId: target });
+          if (activePushTarget !== target) {
+            activePushTarget = target;
+            pushTargetsAttacked.add(target);
+            submit("attack", { attackerIds: army, targetId: target });
+          }
         } else {
+          activePushTarget = undefined;
           // Everything razed: camp the AI town until the evaluator lands.
           const aiTown = finishedBuildingsOf(world, comps, AI_PLAYER)[0];
           if (aiTown !== undefined) {
