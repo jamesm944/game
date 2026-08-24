@@ -64,6 +64,8 @@ import {
   DEFAULT_LIFECYCLE_CONFIG,
   createLifecycleSystem,
   minuteOfDay,
+  normalizeLifecycleConfig,
+  type LifecycleConfig,
 } from "../sim/systems/lifecycle";
 import { createHouseholdsSystem } from "../sim/systems/households";
 import { createSchoolSystem } from "../sim/systems/school";
@@ -102,6 +104,12 @@ export interface SkirmishWorldOptions {
    * (game/paths.ts); headless tests pass the synchronous transport.
    */
   readonly createTransport: () => PathTransport;
+  /**
+   * Lifecycle timescale for every M3 system (clock, schedules, school,
+   * households, social, mass, pop brain). Defaults to the canonical
+   * §2.4 clock; compressed golden fixtures (M3-T10) pass their own.
+   */
+  readonly lifecycleConfig?: LifecycleConfig | undefined;
 }
 
 export interface SkirmishWorld {
@@ -123,6 +131,9 @@ export function createSkirmishWorld(
   seed: number,
   options: SkirmishWorldOptions,
 ): SkirmishWorld {
+  const lifecycleConfig = normalizeLifecycleConfig(
+    options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG,
+  );
   const scheduler = new PathScheduler(options.createTransport());
   const size = options.size ?? 120;
   const fog = createFogVisibility(size, 2);
@@ -165,12 +176,9 @@ export function createSkirmishWorld(
   // seeded birth rolls) and school (9am–3pm teacher-gated lessons)
   // run before popBrain so the brain's child/elder gates see this
   // tick's transitions.
-  registerSystem(world, createLifecycleSystem(comps, DEFAULT_LIFECYCLE_CONFIG));
-  registerSystem(
-    world,
-    createHouseholdsSystem(comps, DEFAULT_LIFECYCLE_CONFIG),
-  );
-  registerSystem(world, createSchoolSystem(comps, DEFAULT_LIFECYCLE_CONFIG));
+  registerSystem(world, createLifecycleSystem(comps, lifecycleConfig));
+  registerSystem(world, createHouseholdsSystem(comps, lifecycleConfig));
+  registerSystem(world, createSchoolSystem(comps, lifecycleConfig));
   // M3-T8: the Sunday Morning Mass planner books communal [Move,
   // Leisure{MASS}] chains whenever a finished Church stands — before
   // social (which executes arrivals) and schedules (whose night band
@@ -180,7 +188,7 @@ export function createSkirmishWorld(
     createMassSystem({
       comps,
       players: [PLAYER_ONE],
-      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+      lifecycleConfig,
     }),
   );
   // M3-T7: social (leisure venues, bonds, rivals) consumes the brain's
@@ -191,7 +199,7 @@ export function createSkirmishWorld(
     createSocialSystem({
       comps,
       players: [PLAYER_ONE],
-      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+      lifecycleConfig,
     }),
   );
   // M3-T9: morale shocks/routing/rally consume combat's event logs and
@@ -209,7 +217,7 @@ export function createSkirmishWorld(
     createSchedulesSystem({
       comps,
       players: [PLAYER_ONE],
-      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+      lifecycleConfig,
     }),
   );
   registerSystem(
@@ -217,14 +225,14 @@ export function createSkirmishWorld(
     createPopBrainSystem({
       comps,
       players: [PLAYER_ONE],
-      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+      lifecycleConfig,
       // M3-T7: evenings switch idle thinks from work to venue scoring.
-      leisureWindow: (tick) => isLeisureTime(tick, DEFAULT_LIFECYCLE_CONFIG),
+      leisureWindow: (tick) => isLeisureTime(tick, lifecycleConfig),
       // M3-T8: Sundays run the rest-day space — essential-only work at
       // reduced weight, private leisure once Morning Mass is over.
-      restDay: (tick) => isRestDay(tick, DEFAULT_LIFECYCLE_CONFIG),
+      restDay: (tick) => isRestDay(tick, lifecycleConfig),
       restDayLeisureWindow: (tick) =>
-        minuteOfDay(tick, DEFAULT_LIFECYCLE_CONFIG) >= MASS_CLOSE_MINUTE,
+        minuteOfDay(tick, lifecycleConfig) >= MASS_CLOSE_MINUTE,
     }),
   );
 

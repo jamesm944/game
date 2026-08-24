@@ -366,9 +366,24 @@ Shipped-scope checklist (M2-T11 sign-off):
 - [x] Demo checklist sim-half executed end-to-end headlessly vs the AI (`tests/e2e/m2-full-game.test.ts`: FC → knights → conquest push on 120×120; victory at tick 13,290 on the pinned seed); browser-only visual items documented in `docs/m2-manual.md`
 - [ ] Manual browser pass (visual fps under fog+overlays, minimap readability, ghost/fog rendering) — checklist in `docs/m2-manual.md`; not blocking M3 start
 
-### M3 — Pops deep-sim + schedules
+### M3 — Pops deep-sim + schedules ✅ (shipped, sign-off ticket M3-T10)
 
 Identity/traits/knowledge-vs-practice skills w/ rust; needs + staggered rare ticks + 1 Hz IAUS job selection w/ cooldowns; 6-part injuries + impairment multipliers wired into work AND combat; lifecycle (birth → child → School lesson windows → adult → elder), households + housing-driven births; day/night clock + lighting tint + sleep + deprivation; leisure venues + trait-weighted choices + social bonds + rivals; 7-day week, Sunday rest, Church Mass; morale system + Pop card UI. **Demo:** watch one village week — kids graduate, families form, tavern drama happens, nobody clicks for a minute and the town still runs.
+
+Shipped-scope checklist (M3-T10 sign-off):
+
+- [x] Pop identity: names/ages/origins, weighted trait generation with conflict exclusion (M3-T1)
+- [x] Knowledge-vs-practice skills with rust toward the knowledge floor; work/combat XP awards (M3-T2)
+- [x] Needs meters (food/rest/morale) on staggered rare ticks + 1 Hz IAUS pop job brain with per-target cooldowns (M3-T3)
+- [x] 6-part injury model with stacked hediffs, impairment multipliers wired into work AND combat, heal/scar/die (M3-T4)
+- [x] Lifecycle (birth → child → School lesson windows → adult → elder → natural death), households + housing-driven births, teacher-gated lessons with graduation credit (M3-T5)
+- [x] Day/night clock + lighting tint on the render mirror, sleep in household beds with quality × crowding refills, deprivation penalties + naps (M3-T6)
+- [x] Leisure venues (tavern/brothel/shrine/study/visits) scored by trait-weighted IAUS pulls, social bonds + rivals, jealousy drama (M3-T7)
+- [x] 7-day week with Sunday rest day (essential roles only) and communal Church Morning Mass with bond reinforcement (M3-T8)
+- [x] Morale system: individual break points, routing/rally, family/companion death shocks; Pop card UI (M3-T9)
+- [x] Perf budget re-gate at the M3 workload (305 fully deep-simmed Pops through the daily transition zoo): p95 tick < 8 ms and mirror copy < 2 ms asserted in CI (`tests/perf/budget-m3.test.ts`); recorded run in `docs/m3-budget.md` (measured p95 ≈ 2.65–3.10 ms, mirror ≈ 0.011 ms)
+- [x] Demo checklist sim-half executed end-to-end headlessly (`tests/e2e/m3-village-week.test.ts`: one fully unattended week — 5 kids graduated, 10 households formed, 5 births, 87 outings incl. 3 tavern rounds, 7 Masses, economy grew on every resource, zero player commands); browser-only visual items documented in `docs/m3-manual.md`
+- [ ] Manual browser pass (Pop card visuals, lighting tint, minimap social dots, unattended-week feel) — checklist in `docs/m3-manual.md`; not blocking M4 start
 
 ### M4 — Management, companies & victory paths
 
