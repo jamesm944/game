@@ -124,6 +124,30 @@ _Avoid_: Bank, fund
 A Company's founding focus and rules: name, sector, expansion approval mode.
 _Avoid_: License
 
+**Expansion proposal**:
+The Company's autonomous plan for one new Branch — treasury-funded, sited by the AI's placement scorer beside an unclaimed resource node — produced only when every §2.7 hold passes (treasury ≥ threshold · node in reach · labor slack ≥ N · valid footprint · not frozen).
+_Avoid_: Auto-build (bare), expansion plan
+
+**Approval mode**:
+Per-company expansion policy: **always-ask** stamps a pending proposal the player approves or rejects; **auto-approve** breaks ground the moment the proposal forms.
+_Avoid_: Permission level
+
+**Organic founding**:
+The spontaneous origin (§2.7): when one sector holds ≥3 profitable directly-owned Workplaces and a sufficiently management-rated Pop exists, that Pop founds a company on the daily scan, absorbing them as Branches.
+_Avoid_: Spin-off, startup
+
+**Grace window**:
+The short span after an organic founding during which dissolveCompany is free of charge; past it, dissolution costs the owner gold severance.
+_Avoid_: Free period (bare)
+
+**Seize**:
+Player oversight action taking one Branch back under direct control; its company-appointed foreman post dies with the transfer.
+_Avoid_: Nationalize
+
+**Dissolve**:
+Player oversight action ending a company: Pops and workplaces revert to direct ownership, all company rows die with the entity.
+_Avoid_: Disband (bare)
+
 ### AI opponent
 
 **AI opponent**:

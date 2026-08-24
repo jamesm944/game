@@ -74,7 +74,8 @@ import {
   ledgerAmountOfSlug,
   stockpileSnapshot,
 } from "./sim/core/stockpile";
-import { TICK_DT_MS, step } from "./sim/core/world";
+import { TICK_DT_MS, step, type World } from "./sim/core/world";
+import type { SimComponents } from "./sim/components";
 import { canEnqueueTraining } from "./sim/systems/training";
 import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
 import { canAfford, validatePlacement } from "./sim/systems/placement";
@@ -145,10 +146,22 @@ import {
   type CompanyPanelData,
 } from "./ui/companyPanel";
 import {
+  APPROVAL_AUTO_APPROVE,
+  approvalModeOf,
   branchRowOf,
+  companyOriginOf,
   companyRowOf,
+  EXPANSION_LOG_APPROVED,
+  EXPANSION_LOG_EXECUTED,
+  EXPANSION_LOG_FOUNDED,
+  EXPANSION_LOG_REJECTED,
+  EXPANSION_LOG_SEIZED,
+  expansionLogOf,
+  pendingExpansionOf,
   treasuryDeltasOf,
+  type ExpansionLogEntry,
 } from "./sim/components/company";
+import { ORGANIC_DISSOLVE_GRACE_TICKS } from "./sim/systems/companies";
 import type { CompanyPanelBranch, CompanyPanelEntry } from "./ui/companyPanel";
 import { popNameOf } from "./sim/components/pop";
 import { createPopCard } from "./ui/popCard";
@@ -815,6 +828,35 @@ const domainPanel = createDomainPanel({
 // hash; actions ride the shared inbox as authoritative commands.
 const formatCredits = (milli: number): string => (milli / 1000).toFixed(2);
 
+/** True when `eid` is a live construction site (unfinished branch). */
+const isSiteEid = (eid: number): boolean =>
+  getBuildingRow(world, comps, eid) === undefined &&
+  world.rowsByComponentId.get(comps.buildingSiteId)?.has(eid) === true;
+
+/** One expansion-log entry as a legible public-history line. */
+const expansionLogText = (
+  entry: ExpansionLogEntry,
+  logWorld: World,
+  logComps: SimComponents,
+): string => {
+  switch (entry.kind) {
+    case EXPANSION_LOG_EXECUTED:
+      return `expanded to (${String(entry.argA)}, ${String(entry.argB)})`;
+    case EXPANSION_LOG_APPROVED:
+      return `approved expansion at (${String(entry.argA)}, ${String(entry.argB)})`;
+    case EXPANSION_LOG_REJECTED:
+      return "rejected a proposal";
+    case EXPANSION_LOG_SEIZED:
+      return `seized branch #${String(entry.argA)}`;
+    case EXPANSION_LOG_FOUNDED: {
+      const founder = popNameOf(logWorld, logComps, entry.argB) ?? "a Pop";
+      return `${founder} founded it, absorbing ${String(entry.argA)}`;
+    }
+    default:
+      return "…";
+  }
+};
+
 /** Selected eids that could join a charter right now (finished, own,
  * §2.7-domain buildings not already branches). */
 const charterableSelection = (): number[] => {
@@ -847,9 +889,13 @@ const companyPanel = createCompanyPanel({
         )) {
           if (branchRow[0] !== eid) continue;
           const buildingRow = getBuildingRow(world, comps, buildingEid);
-          const label = buildingRow
-            ? `${buildingDefOf(buildingIdOfCode(buildingRow[1]!)).name} #${String(buildingEid)}`
-            : `#${String(buildingEid)}`;
+          const defLabel = buildingRow
+            ? buildingDefOf(buildingIdOfCode(buildingRow[1]!)).name
+            : undefined;
+          const label =
+            buildingRow !== undefined || isSiteEid(buildingEid)
+              ? `${defLabel ?? "Site"} #${String(buildingEid)}`
+              : `#${String(buildingEid)}`;
           const foremanEntry = foremanRowOf(world, comps, buildingEid);
           branches.push({
             buildingEid,
@@ -860,6 +906,8 @@ const companyPanel = createCompanyPanel({
                 : `Foreman ${popNameOf(world, comps, foremanEntry.foremanPopEid) ?? "??"}`,
           });
         }
+        const origin = companyOriginOf(world, comps, eid);
+        const pending = pendingExpansionOf(world, comps, eid);
         companies.push({
           companyId: eid,
           name: row.name,
@@ -867,6 +915,8 @@ const companyPanel = createCompanyPanel({
           treasuryLabel: `${formatCredits(row.treasuryMilli)} cr`,
           sharePct: row.sharePct,
           frozen: row.frozen,
+          approvalAuto:
+            approvalModeOf(world, comps, eid) === APPROVAL_AUTO_APPROVE,
           branches,
           ledgerTail: treasuryDeltasOf(world, comps, eid)
             .slice()
@@ -875,6 +925,29 @@ const companyPanel = createCompanyPanel({
               tick: entry.tick,
               credits: formatCredits(entry.milli),
             })),
+          logTail: expansionLogOf(world, comps, eid)
+            .slice()
+            .reverse()
+            .map((entry) => ({
+              tick: entry.tick,
+              text: expansionLogText(entry, world, comps),
+            })),
+          pending:
+            pending === undefined
+              ? undefined
+              : {
+                  defLabel: buildingDefOf(pending.defId).name,
+                  tileX: pending.tileX,
+                  tileY: pending.tileY,
+                },
+          organic:
+            origin === undefined
+              ? undefined
+              : {
+                  withinGraceWindow:
+                    world.tick <=
+                    origin.foundedTick + ORGANIC_DISSOLVE_GRACE_TICKS,
+                },
         });
       }
     }
@@ -917,7 +990,63 @@ const companyPanel = createCompanyPanel({
       data: { companyId, frozen },
     });
   },
+  issueApprovalMode: ({ companyId, auto }) => {
+    world.inbox.submit({
+      kind: "setApprovalMode",
+      targetTick: world.tick + 1,
+      data: { companyId, mode: auto ? APPROVAL_AUTO_APPROVE : 0 },
+    });
+  },
+  issueVerdict: ({ companyId, approve }) => {
+    world.inbox.submit({
+      kind: approve ? "approveExpansion" : "rejectExpansion",
+      targetTick: world.tick + 1,
+      data: { companyId },
+    });
+  },
+  issueSeize: ({ companyId, branchId }) => {
+    world.inbox.submit({
+      kind: "seizeBranch",
+      targetTick: world.tick + 1,
+      data: { companyId, branchId },
+    });
+  },
+  issueDissolve: ({ companyId }) => {
+    world.inbox.submit({
+      kind: "dissolveCompany",
+      targetTick: world.tick + 1,
+      data: { companyId },
+    });
+  },
 });
+
+// Company news toasts (M4-T3): the ExpansionLog rows are public
+// history, so new entries surface as transient notifications — organic
+// foundings included (SPEC §2.7 origins "notification").
+const seenCompanyLogEntries = new Map<number, number>();
+const companyNewsToasts = (): void => {
+  const companyRows = world.rowsByComponentId.get(comps.companyId);
+  if (!companyRows) return;
+  for (const [eid] of [...companyRows].sort((a, b) => a[0] - b[0])) {
+    const row = companyRowOf(world, comps, eid);
+    if (!row) continue;
+    const seen = seenCompanyLogEntries.get(eid) ?? 0;
+    const log = expansionLogOf(world, comps, eid);
+    if (log.length < seen) {
+      seenCompanyLogEntries.set(eid, log.length);
+      continue;
+    }
+    for (const entry of log.slice(seen)) {
+      const origin = companyOriginOf(world, comps, eid);
+      toast.show(
+        origin !== undefined && entry.kind === EXPANSION_LOG_FOUNDED
+          ? `${row.name}: ${expansionLogText(entry, world, comps)}`
+          : `${row.name} — ${expansionLogText(entry, world, comps)}`,
+      );
+    }
+    seenCompanyLogEntries.set(eid, log.length);
+  }
+};
 
 // Paint chrome immediately; the loop refreshes it from here on.
 topbar.update(world.tick, "—");
@@ -1220,6 +1349,7 @@ function frame(
   popCard.refresh();
   domainPanel.refresh();
   companyPanel.refresh();
+  companyNewsToasts();
   pollMatchOutcome();
   renderer.render(scene, cameraRig.camera);
 

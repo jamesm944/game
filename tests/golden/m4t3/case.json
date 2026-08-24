@@ -1,0 +1,101 @@
+{
+  "name": "m4t3",
+  "description": "Company growth week (SPEC §2.7 / issue #58): an eight-Pop village charters 'Deepvein Combine' (focus metal) over one mining camp working a rich iron vein, sets a 100% branch share and AUTO-APPROVE expansion, then watches the company propose and execute a SECOND mining camp beside the sector's unclaimed node — paid from its own virtual treasury at the exact market-value price (wood 100 × value 1 ⇒ 100000 milli), sited by the AI's distance-sorted scorer around that node, Branch status attached at site birth. Meanwhile three directly-owned kitchens churn out profitable meals until the DAILY organic scan finds the sector ripe and an 'industrious' Pop founds '& Co.' spontaneously, absorbing all three kitchens as Branches under a free-dissolve grace window — exercised mid-run by a dissolveCompany command that reverts every kitchen cleanly without touching the owner's gold. Fixture pins milestone digests every 150th tick plus a legible treasury/branch/company trace, the §2.7 acceptance beats (auto expansion from treasury at exact price, organic founding under exact thresholds, grace-window free dissolution), and doubles as the extended double-run determinism canary.",
+  "seed": 20260928,
+  "size": 28,
+  "ticks": 2400,
+  "milestoneEvery": 150,
+  "dayTicks": 600,
+  "startingResources": [600, 600, 300, 0, 50, 50, 0],
+  "workplaces": {
+    "miningCamp": [8, 8],
+    "kitchenA": [17, 3],
+    "kitchenB": [21, 3],
+    "kitchenC": [17, 7]
+  },
+  "popSpawns": {
+    "officer": [9.5, 11.5],
+    "builder": [13.5, 15.5],
+    "minerA": [11.5, 11.5],
+    "minerB": [12.5, 12.5],
+    "crafterA": [17.5, 5.5],
+    "crafterB": [21.5, 5.5],
+    "crafterC": [17.5, 9.5],
+    "founder": [19.5, 12.5]
+  },
+  "nodes": {
+    "workedIron": [12, 12, 90000],
+    "freshIron": [22, 16, 60000]
+  },
+  "traitBoosts": {
+    "founder": ["industrious"]
+  },
+  "commands": [
+    {
+      "tick": 1,
+      "kind": "produce",
+      "data": {
+        "entityIds": ["crafterA"],
+        "buildingEid": "kitchenA",
+        "delegated": true
+      }
+    },
+    {
+      "tick": 2,
+      "kind": "produce",
+      "data": {
+        "entityIds": ["crafterB"],
+        "buildingEid": "kitchenB",
+        "delegated": true
+      }
+    },
+    {
+      "tick": 3,
+      "kind": "produce",
+      "data": {
+        "entityIds": ["crafterC"],
+        "buildingEid": "kitchenC",
+        "delegated": true
+      }
+    },
+    {
+      "tick": 4,
+      "kind": "gather",
+      "data": { "entityIds": ["minerA"], "nodeId": "workedIron" }
+    },
+    {
+      "tick": 5,
+      "kind": "gather",
+      "data": { "entityIds": ["minerB"], "nodeId": "workedIron" }
+    },
+    {
+      "tick": 6,
+      "kind": "charterCompany",
+      "data": {
+        "name": "Deepvein Combine",
+        "focus": 3,
+        "seedBuildingIds": ["miningCamp"]
+      }
+    },
+    {
+      "tick": 7,
+      "kind": "setCompanyShare",
+      "data": { "companyId": "deepvein", "sharePct": 100 }
+    },
+    {
+      "tick": 8,
+      "kind": "setApprovalMode",
+      "data": { "companyId": "deepvein", "mode": 1 }
+    },
+    {
+      "tick": 1050,
+      "kind": "dissolveCompany",
+      "data": { "companyId": "organic" }
+    },
+    {
+      "tick": 1500,
+      "kind": "setCompanyFrozen",
+      "data": { "companyId": "deepvein", "frozen": true }
+    }
+  ]
+}

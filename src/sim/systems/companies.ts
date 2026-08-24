@@ -1,14 +1,19 @@
 /**
- * Companies system — SPEC §2.7 / M4-T2 (issue #57).
+ * Companies system — SPEC §2.7 / M4-T2 (issue #57) + M4-T3 (issue #58).
  *
  * Player-chartered companies {name, charter focus, virtual treasury,
  * owned Workplaces as Branches}. V1 player-civ only (AI reuse post-v1).
  *
  * Command interface — the shared-inbox language again:
  *
- *   charterCompany   { name, focus, seedBuildingIds }
- *   setCompanyShare  { companyId, sharePct }
- *   setCompanyFrozen { companyId, frozen }
+ *   charterCompany     { name, focus, seedBuildingIds }
+ *   setCompanyShare    { companyId, sharePct }
+ *   setCompanyFrozen   { companyId, frozen }
+ *   setApprovalMode    { companyId, mode }     // M4-T3: 0 ask / 1 auto
+ *   approveExpansion   { companyId }           // M4-T3 ask verdict
+ *   rejectExpansion    { companyId }           // M4-T3 ask verdict
+ *   seizeBranch        { companyId, branchId } // M4-T3 oversight action
+ *   dissolveCompany    { companyId }           // M4-T3 oversight action
  *
  * Chartering absorbs each seed building into Branch status (Branch row
  * on the building); any player-appointed Foreman post there dies with
@@ -40,17 +45,52 @@
  * grow Management skill through the existing foreman machinery, which
  * saturates branch work slots unchanged.
  *
- * Freeze flag halts expansion/staffing churn — no new appointments
- * while frozen — but never production or passive treasury accrual.
- * (Expansion proposals themselves are a later §2.7 ticket; they will
- * consult this same flag.)
+ * Freeze flag halts expansion/staffing churn — no new appointments or
+ * proposals while frozen — but never production or passive treasury
+ * accrual.
+ *
+ * Expansion pass (M4-T3, SPEC §2.7): every 30-tick think (same stagger
+ * as staffing) a healthy company checks its holds — treasury ≥
+ * EXPANSION_TREASURY_THRESHOLD_MILLI, an UNCLAIMED resource node in
+ * reach of its nearest branch (no finished building already sitting on
+ * it), labor slack ≥ EXPANSION_LABOR_SLACK_MIN idle unlocked Pops, a
+ * placement-valid footprint near the node per the SHARED validity
+ * function, not frozen, nothing pending — then proposes one new Branch:
+ * the §2.6 building of its charter focus, PAID FROM THE TREASURY at the
+ * definition's exact market-value equivalent (Σ qty × value × 1000
+ * milli), sited by the AI's own distance-sorted scorer (siteCandidates)
+ * around the chosen node. AUTO_APPROVE executes immediately — ground
+ * blocks, a real construction site spawns, Branch status attaches at
+ * site birth so staffing/output wake up exactly when the camp finishes.
+ * ALWAYS_ASK (the default) stamps a PendingExpansion row for the player;
+ * approveExpansion/rejectExpansion resolve it. Every execution, verdict
+ * and oversight act appends to the company's public ExpansionLog.
+ *
+ * Organic origins (M4-T3, SPEC §2.7): once per simulated day the scan
+ * looks for a sector where ≥ ORGANIC_MIN_PROFITABLE_WORKPLACES
+ * DIRECTLY-owned workplaces of one domain turned output within PROFIT_
+ * LOOKBACK_TICKS AND a sufficiently management-rated own Pop exists —
+ * that Pop founds a company on the spot, absorbing them as seed
+ * Branches (transfer semantics identical to a commissioned charter).
+ * The founding logs a FOUNDED entry and stamps CompanyOrigin, opening
+ * an ORGANIC_DISSOLVE_GRACE_TICKS free-dissolve window; past it,
+ * dissolveCompany charges the owner ORGANIC_DISSOLVE_FEE_GOLD gold
+ * severance (commissioned charters always dissolve free). One founding
+ * per scan; a per-player cooldown keeps serial founders from chaining.
+ * Profitability + cooldown ride closure state fed by the same output
+ * observer — never digest rows (persistence is the save ticket's).
  *
  * Registration order matters: register AFTER the delegated-management
  * system so a same-tick vacancy is visible to the next staffing think,
  * and before the AI planner per its last-on-the-roster contract.
  */
 
-import { buildingDefOf, buildingIdOfCode } from "../../data/definitions";
+import {
+  buildingCodeOf,
+  buildingDefOf,
+  buildingIdOfCode,
+} from "../../data/definitions";
+import { siteCandidates } from "../ai/buildOrder";
 import { cancelActivities } from "../activities";
 import {
   readActivityQueue,
@@ -59,28 +99,67 @@ import {
 } from "../components";
 import {
   addTreasuryMilli,
+  appendExpansionLog,
   appendTreasuryDelta,
+  APPROVAL_ALWAYS_ASK,
+  APPROVAL_AUTO_APPROVE,
+  approvalModeOf,
   branchRowOf,
+  clearBranchRow,
+  companyOriginOf,
   companyRowOf,
+  EXPANSION_LOG_APPROVED,
+  EXPANSION_LOG_EXECUTED,
+  EXPANSION_LOG_FOUNDED,
+  EXPANSION_LOG_REJECTED,
+  EXPANSION_LOG_SEIZED,
   MARKET_VALUE_PER_UNIT,
+  pendingExpansionOf,
+  setApprovalMode as setApprovalModeRow,
   setBranchRow,
   setCompanyFrozen,
+  setCompanyOrigin,
   setCompanyRow,
   setCompanySharePct,
+  setPendingExpansion,
+  spendTreasuryMilli,
 } from "../components/company";
-import { getBuildingRow } from "../components/buildings";
+import {
+  buildingRectOf,
+  getBuildingRow,
+  siteRectOf,
+  spawnBuildingSite,
+} from "../components/buildings";
+import type { FootprintRect } from "../components/buildings";
+
+/** Rect of a branch whether still a site or already finished. */
+const branchRectOf = (
+  world: World,
+  comps: SimComponents,
+  eid: number,
+): FootprintRect | undefined =>
+  siteRectOf(world, comps, eid) ?? buildingRectOf(world, comps, eid);
 import { clearAssignedNode } from "../components/economy";
 import { clearAssignedSite } from "../components/buildings";
 import { clearProductionJob } from "../components/production";
 import {
   domainOfBuildingDef,
+  clearForemanRow,
   ensureManagementSkillRow,
   foremanRowOf,
   requireDomainCode,
   setForemanRow,
 } from "../components/management";
+import { ownerOfUnit } from "../components/owner";
+import { popNameOf } from "../components/pop";
 import type { SimCommand } from "../core/inbox";
-import { spawnEntity, type SimSystem, type World } from "../core/world";
+import {
+  despawnEntity,
+  spawnEntity,
+  type SimSystem,
+  type World,
+} from "../core/world";
+import { payCosts } from "./costs";
 import {
   DEFAULT_LIFECYCLE_CONFIG,
   LIFE_STAGE_CHILD,
@@ -88,6 +167,7 @@ import {
   type LifecycleConfig,
 } from "./lifecycle";
 import { managementRatingOf } from "./management";
+import { blockFootprintTiles, validatePlacement } from "./placement";
 
 // ---- Documented tuning constants ---------------------------------------------
 
@@ -95,6 +175,80 @@ import { managementRatingOf } from "./management";
 export const COMPANY_STAFF_INTERVAL_TICKS = 30;
 /** Charter name length cap enforced at parse time (row layout bound). */
 export const CHARTER_NAME_MAX_LENGTH = 24;
+
+/**
+ * Expansion holds (SPEC §2.7 / M4-T3). The treasury floor deliberately
+ * sits ABOVE anything a §2.7 golden fixture accrues passively, so only
+ * a company explicitly fed output expands; reach and claim radius keep
+ * proposals inside operational territory; labor slack demands at least
+ * one idle unlocked own Pop (the builder its site will need).
+ */
+export const EXPANSION_TREASURY_THRESHOLD_MILLI = 25_000;
+export const EXPANSION_REACH_TILES = 18;
+export const EXPANSION_CLAIM_RADIUS_TILES = 5;
+export const EXPANSION_LABOR_SLACK_MIN = 1;
+/** Site-search window around the chosen node (AI scorer parameters). */
+export const EXPANSION_SITE_MIN_CLEARANCE = 0;
+export const EXPANSION_SITE_MAX_RADIUS = 4;
+
+/**
+ * Charter focus → expansion building (SPEC §2.7: the new Branch serves
+ * the company's sector). Resource domains expand into camps, food into
+ * kitchen capacity, crafted into forge capacity.
+ */
+export const EXPANSION_DEF_BY_DOMAIN: Readonly<Record<number, string>> = {
+  0: "kitchen",
+  1: "lumber-camp",
+  2: "mining-camp",
+  3: "mining-camp",
+  4: "forge",
+};
+
+/**
+ * Organic founding thresholds (SPEC §2.7 origins): three profitable
+ * directly-owned workplaces of one sector, a founder whose management
+ * rating clears ORGANIC_FOUNDER_RATING_MIN, a free-dissolve grace
+ * window after which dissolution costs gold severance, and a per-player
+ * cooldown between spontaneous foundings.
+ */
+export const ORGANIC_MIN_PROFITABLE_WORKPLACES = 3;
+export const PROFIT_LOOKBACK_TICKS = 900;
+export const ORGANIC_FOUNDER_RATING_MIN = 1.5;
+export const ORGANIC_DISSOLVE_GRACE_TICKS = 1800;
+export const ORGANIC_DISSOLVE_FEE_GOLD = 50;
+export const ORGANIC_FOUNDING_COOLDOWN_TICKS = 3600;
+
+/**
+ * Workplace definition each charter-focus domain expands into, priced
+ * at market value for treasury payment.
+ */
+export function expansionDefForDomain(domain: number): string {
+  requireDomainCode(domain);
+  return EXPANSION_DEF_BY_DOMAIN[domain]!;
+}
+
+/** Exact treasury milli-credit price of one expansion definition. */
+export function expansionCostMilli(defId: string): number {
+  const def = buildingDefOf(defId);
+  let milli = 0;
+  for (const [slug, qty] of Object.entries(def.costs)) {
+    const value = MARKET_VALUE_PER_UNIT[slug];
+    if (value === undefined) {
+      throw new Error(
+        `no market value registered for cost ${JSON.stringify(slug)}`,
+      );
+    }
+    milli += qty * value * 1000;
+  }
+  return milli;
+}
+
+/** Deterministic organic-company name from the founder's given name. */
+export function organicCompanyName(founderName: string): string {
+  const suffix = " & Co.";
+  const head = founderName.slice(0, CHARTER_NAME_MAX_LENGTH - suffix.length);
+  return `${head}${suffix}`;
+}
 
 // ---- Diagnostics -------------------------------------------------------------
 
@@ -112,6 +266,22 @@ export interface CompanyDiagnostics {
   frozenThinks: number;
   /** Ticks that flushed a non-zero treasury delta for some company. */
   accrualFlushes: number;
+  /** Expansion proposals formed (auto-executed ones included). */
+  proposalsFormed: number;
+  /** Proposals auto-approved at formation (approval mode auto). */
+  autoExpansions: number;
+  /** Pending proposals the player approved. */
+  approvedExpansions: number;
+  /** Pending proposals the player rejected. */
+  rejectedProposals: number;
+  /** Pending proposals lapsed (site/treasury no longer valid). */
+  lapsedProposals: number;
+  /** seizeBranch commands applied. */
+  seizures: number;
+  /** Organic foundings performed by the daily scan. */
+  organicFoundations: number;
+  /** dissolveCompany commands applied. */
+  dissolutions: number;
 }
 
 export function createCompanyDiagnostics(): CompanyDiagnostics {
@@ -122,6 +292,14 @@ export function createCompanyDiagnostics(): CompanyDiagnostics {
     appointments: 0,
     frozenThinks: 0,
     accrualFlushes: 0,
+    proposalsFormed: 0,
+    autoExpansions: 0,
+    approvedExpansions: 0,
+    rejectedProposals: 0,
+    lapsedProposals: 0,
+    seizures: 0,
+    organicFoundations: 0,
+    dissolutions: 0,
   };
 }
 
@@ -249,6 +427,19 @@ export function createCompaniesSystem(
   // Pending same-tick accruals keyed by company eid (milli-credits).
   let pendingMilli = new Map<number, number>();
 
+  /**
+   * Profitability closure (M4-T3): building eid → tick of its last
+   * credited output event. Fed by the observer for EVERY workplace —
+   * branch or direct — and read by the organic-founding scan. Deliber-
+   * ately not a component: worlds that never produce carry no rows and
+   * legacy digests stay byte-identical; persistence rides the save
+   * ticket (SPEC §2.12 already reserves organic-founder cooldowns).
+   */
+  const lastOutputTickByBuilding = new Map<number, number>();
+
+  /** Per-player tick of the last organic founding (scan cooldown). */
+  const lastOrganicFoundingTick = new Map<number, number>();
+
   /** True when `ownerId` belongs to a served player. */
   const servedPlayer = (ownerId: number): boolean =>
     players === undefined || players.includes(ownerId);
@@ -281,6 +472,10 @@ export function createCompaniesSystem(
     qty,
   ): void => {
     void _ownerId;
+    void outputSlug;
+    // Profitability stamp (M4-T3): every credited workplace counts,
+    // branch or direct — the organic scan reads exactly this map.
+    lastOutputTickByBuilding.set(buildingEid, stepWorld.tick);
     const branch = branchRowOf(stepWorld, stepComps, buildingEid);
     if (branch === undefined) return; // directly-owned workplace: no tithe
     const company = companyRowOf(stepWorld, stepComps, branch.companyEid);
@@ -294,6 +489,41 @@ export function createCompaniesSystem(
   };
 
   // ---- Commands -----------------------------------------------------------------
+
+  /**
+   * Absorb finished workplaces into Branch status (shared by
+   * commissioned charters AND organic foundings): any player-appointed
+   * foreman vacates instantly — staffing authority moved — and the
+   * Branch row stamps the join tick.
+   */
+  const absorbBranches = (
+    buildingEids: readonly number[],
+    companyEid: number,
+    tick: number,
+  ): void => {
+    for (const buildingEid of buildingEids) {
+      if (foremanRowOf(world!, comps, buildingEid) !== undefined) {
+        clearForemanRow(world!, comps, buildingEid);
+        diagnostics.transfers += 1;
+      }
+      setBranchRow(world!, comps, buildingEid, companyEid, tick);
+      diagnostics.branchesAbsorbed += 1;
+    }
+  };
+
+  /** Company row + served-owner gate shared by every company command. */
+  const requireServedCompany = (companyId: number) => {
+    const company = companyRowOf(world!, comps, companyId);
+    if (company === undefined) {
+      throw new Error(`entity ${String(companyId)} has no Company row`);
+    }
+    if (!servedPlayer(company.ownerPlayerId)) {
+      throw new Error(
+        `player ${String(company.ownerPlayerId)} is not served by this company layer`,
+      );
+    }
+    return company;
+  };
 
   const applyCharterCompany = (
     tick: number,
@@ -338,8 +568,7 @@ export function createCompaniesSystem(
     }
 
     // Commissioned charter (SPEC §2.7 origins): spawn the company
-    // entity, then absorb the seeds into Branch status. Any player-
-    // appointed foreman vacates instantly — staffing authority moved.
+    // entity, then absorb the seeds into Branch status.
     const companyEid = spawnEntity(world!);
     setCompanyRow(world!, comps, companyEid, {
       ownerPlayerId: owner!,
@@ -347,15 +576,7 @@ export function createCompaniesSystem(
       name,
     });
     diagnostics.charters += 1;
-
-    for (const buildingEid of seeds) {
-      if (foremanRowOf(world!, comps, buildingEid) !== undefined) {
-        world!.rowsByComponentId.get(comps.foremanId)!.delete(buildingEid);
-        diagnostics.transfers += 1;
-      }
-      setBranchRow(world!, comps, buildingEid, companyEid, tick);
-      diagnostics.branchesAbsorbed += 1;
-    }
+    absorbBranches(seeds, companyEid, tick);
   };
 
   const applySetCompanyShare = (
@@ -382,6 +603,181 @@ export function createCompaniesSystem(
       throw new Error("setCompanyFrozen requires a boolean frozen flag");
     }
     setCompanyFrozen(world!, comps, companyId, data.frozen);
+  };
+
+  // ---- M4-T3 oversight commands -------------------------------------------------
+
+  const applySetApprovalMode = (
+    data: Readonly<Record<string, unknown>>,
+  ): void => {
+    const companyId = parsePositiveInt(data, "companyId");
+    requireServedCompany(companyId);
+    const mode = data.mode;
+    if (
+      typeof mode !== "number" ||
+      !Number.isInteger(mode) ||
+      (mode !== APPROVAL_ALWAYS_ASK && mode !== APPROVAL_AUTO_APPROVE)
+    ) {
+      throw new Error(
+        "setApprovalMode mode must be 0 (always-ask) or 1 (auto-approve)",
+      );
+    }
+    setApprovalModeRow(world!, comps, companyId, mode);
+  };
+
+  /** Ground-break shared by auto execution and player approval. */
+  const executeExpansion = (
+    companyEid: number,
+    defId: string,
+    tileX: number,
+    tileY: number,
+    rect: FootprintRect,
+    tick: number,
+    logKind: number,
+  ): void => {
+    spendTreasuryMilli(world!, comps, companyEid, expansionCostMilli(defId));
+    const siteEid = spawnBuildingSite(world!, comps, defId, tileX, tileY, {
+      playerId: companyRowOf(world!, comps, companyEid)!.ownerPlayerId,
+    });
+    // Branch status attaches at SITE birth: staffing/output both key
+    // off the finished-Building row, so they wake exactly when the camp
+    // completes — while oversight (seize/dissolve) works from day one.
+    setBranchRow(world!, comps, siteEid, companyEid, tick);
+    blockFootprintTiles(world!, rect);
+    appendExpansionLog(world!, comps, companyEid, tick, logKind, tileX, tileY);
+    if (logKind === EXPANSION_LOG_EXECUTED) diagnostics.autoExpansions += 1;
+  };
+
+  const applyApproveExpansion = (
+    tick: number,
+    data: Readonly<Record<string, unknown>>,
+  ): void => {
+    const companyId = parsePositiveInt(data, "companyId");
+    requireServedCompany(companyId);
+    const pending = pendingExpansionOf(world!, comps, companyId);
+    if (pending === undefined) {
+      throw new Error(`company ${String(companyId)} has no pending expansion`);
+    }
+    const owner = companyRowOf(world!, comps, companyId)!.ownerPlayerId;
+    const check = validatePlacement(
+      world!,
+      comps,
+      pending.defId,
+      pending.tileX,
+      pending.tileY,
+      owner,
+    );
+    if (
+      !check.ok ||
+      !check.rect ||
+      companyRowOf(world!, comps, companyId)!.treasuryMilli <
+        expansionCostMilli(pending.defId)
+    ) {
+      // Lapsed while waiting: the world moved on under the proposal.
+      // Clear quietly — a stale verdict must never kill the tick.
+      setPendingExpansion(world!, comps, companyId, undefined);
+      diagnostics.lapsedProposals += 1;
+      return;
+    }
+    setPendingExpansion(world!, comps, companyId, undefined);
+    executeExpansion(
+      companyId,
+      pending.defId,
+      pending.tileX,
+      pending.tileY,
+      check.rect,
+      tick,
+      EXPANSION_LOG_APPROVED,
+    );
+    diagnostics.approvedExpansions += 1;
+  };
+
+  const applyRejectExpansion = (
+    tick: number,
+    data: Readonly<Record<string, unknown>>,
+  ): void => {
+    const companyId = parsePositiveInt(data, "companyId");
+    requireServedCompany(companyId);
+    if (pendingExpansionOf(world!, comps, companyId) === undefined) {
+      throw new Error(`company ${String(companyId)} has no pending expansion`);
+    }
+    setPendingExpansion(world!, comps, companyId, undefined);
+    appendExpansionLog(
+      world!,
+      comps,
+      companyId,
+      tick,
+      EXPANSION_LOG_REJECTED,
+      0,
+      0,
+    );
+    diagnostics.rejectedProposals += 1;
+  };
+
+  const applySeizeBranch = (
+    tick: number,
+    data: Readonly<Record<string, unknown>>,
+  ): void => {
+    const companyId = parsePositiveInt(data, "companyId");
+    const branchId = parsePositiveInt(data, "branchId");
+    requireServedCompany(companyId);
+    const branch = branchRowOf(world!, comps, branchId);
+    if (branch === undefined || branch.companyEid !== companyId) {
+      throw new Error(
+        `entity ${String(branchId)} is not a Branch of company ${String(companyId)}`,
+      );
+    }
+    // Staffing authority reverts to the player: the branch foreman post
+    // dies with the seizure (the Pop returns to the labor pool).
+    clearForemanRow(world!, comps, branchId);
+    clearBranchRow(world!, comps, branchId);
+    appendExpansionLog(
+      world!,
+      comps,
+      companyId,
+      tick,
+      EXPANSION_LOG_SEIZED,
+      branchId,
+      0,
+    );
+    diagnostics.seizures += 1;
+  };
+
+  const applyDissolveCompany = (
+    tick: number,
+    data: Readonly<Record<string, unknown>>,
+  ): void => {
+    const companyId = parsePositiveInt(data, "companyId");
+    requireServedCompany(companyId);
+    const origin = companyOriginOf(world!, comps, companyId);
+    if (
+      origin !== undefined &&
+      tick > origin.foundedTick + ORGANIC_DISSOLVE_GRACE_TICKS
+    ) {
+      // Organic company past its grace window: gold severance from the
+      // OWNER'S stockpile (atomic — throws loudly when short).
+      payCosts(
+        world!,
+        comps,
+        companyRowOf(world!, comps, companyId)!.ownerPlayerId,
+        { gold: ORGANIC_DISSOLVE_FEE_GOLD },
+        `dissolving organic company ${String(companyId)} past its grace window`,
+      );
+    }
+    // Pops/workplaces revert to direct ownership: Branch rows clear,
+    // branch foremen posts die with them (their Pops return to the
+    // labor pool), and despawning the company entity sweeps Company,
+    // TreasuryDelta, ExpansionLog, PendingExpansion, ApprovalMode and
+    // CompanyOrigin rows in one deterministic stroke.
+    for (const [buildingEid, row] of [
+      ...world!.rowsByComponentId.get(comps.branchId)!,
+    ].sort((a, b) => a[0] - b[0])) {
+      if (row[0] !== companyId) continue;
+      clearForemanRow(world!, comps, buildingEid);
+      clearBranchRow(world!, comps, buildingEid);
+    }
+    despawnEntity(world!, companyId);
+    diagnostics.dissolutions += 1;
   };
 
   // ---- Staffing pass -----------------------------------------------------------
@@ -459,6 +855,327 @@ export function createCompaniesSystem(
     }
   };
 
+  // ---- Expansion pass (M4-T3) ---------------------------------------------------
+
+  /** Live idle unlocked own Pops — the labor slack an expansion needs. */
+  const idleLaborCount = (ownerId: number): number => {
+    const lockRows = world!.rowsByComponentId.get(comps.orderLockId);
+    const managerRows = world!.rowsByComponentId.get(comps.managerId);
+    const jobRows = world!.rowsByComponentId.get(comps.productionJobId);
+    const nodeRows = world!.rowsByComponentId.get(comps.assignedNodeId);
+    const siteRows = world!.rowsByComponentId.get(comps.assignedSiteId);
+    const foremanRows = world!.rowsByComponentId.get(comps.foremanId)!;
+    const foremanPops = new Set<number>();
+    for (const [, row] of foremanRows) foremanPops.add(row[0]!);
+    let count = 0;
+    for (const eid of world!.entities) {
+      if (!isLiveNamedPop(eid)) continue;
+      if (ownerOfUnit(world!, comps, eid) !== ownerId) continue;
+      if (
+        lifeStageOf(world!, comps, eid, lifecycleConfig) === LIFE_STAGE_CHILD
+      ) {
+        continue;
+      }
+      if (lockRows?.has(eid)) continue;
+      if (managerRows?.has(eid)) continue;
+      if (jobRows?.has(eid)) continue;
+      if (nodeRows?.has(eid)) continue;
+      if (siteRows?.has(eid)) continue;
+      if (foremanPops.has(eid)) continue;
+      count += 1;
+    }
+    return count;
+  };
+
+  /**
+   * The company's branches (ascending building eid), finished or not.
+   */
+  const ownedBranchesOf = (companyEid: number): number[] => {
+    const owned: number[] = [];
+    for (const [buildingEid, row] of [
+      ...world!.rowsByComponentId.get(comps.branchId)!,
+    ].sort((a, b) => a[0] - b[0])) {
+      if (row[0] === companyEid) owned.push(buildingEid);
+    }
+    return owned;
+  };
+
+  /**
+   * Best unclaimed resource node in reach of the company's nearest
+   * branch: live amount > 0, no finished building within the claim
+   * radius, distance to nearest own branch ≤ reach. Ranking is
+   * deterministic: most remaining amount, then nearest, then lowest
+   * eid.
+   */
+  const bestUnclaimedNode = (
+    branchIds: readonly number[],
+  ): { eid: number; tileX: number; tileY: number } | undefined => {
+    const posRows = world!.rowsByComponentId.get(comps.positionId)!;
+    const nodeRows = world!.rowsByComponentId.get(comps.resourceNodeId)!;
+    let best:
+      | {
+          eid: number;
+          tileX: number;
+          tileY: number;
+          amount: number;
+          distSq: number;
+        }
+      | undefined;
+    const reachSq = EXPANSION_REACH_TILES ** 2;
+    const claimSq = EXPANSION_CLAIM_RADIUS_TILES ** 2;
+    for (const [eid, nodeRow] of nodeRows.entries()) {
+      const amount = nodeRow[1] ?? 0;
+      if (amount <= 0) continue; // dry node
+      const pos = posRows.get(eid);
+      if (!pos) continue;
+      const nx = Math.floor(pos[0]!);
+      const ny = Math.floor(pos[1]!);
+      // Distance to the NEAREST own branch (finished or site).
+      let nearestSq = Infinity;
+      for (const branchEid of branchIds) {
+        const rect = branchRectOf(world!, comps, branchEid);
+        if (!rect) continue; // destroyed: rows died with the entity
+        const bx = rect.x + rect.width / 2;
+        const by = rect.y + rect.height / 2;
+        const d2 = (bx - (nx + 0.5)) ** 2 + (by - (ny + 0.5)) ** 2;
+        if (d2 < nearestSq) nearestSq = d2;
+      }
+      if (nearestSq > reachSq) continue;
+      // Unclaimed = no building OR site already sitting on the node
+      // (a rival foundation claims territory just like a finished camp).
+      let claimed = false;
+      for (const otherEid of world!.entities) {
+        const otherRect =
+          siteRectOf(world!, comps, otherEid) ??
+          buildingRectOf(world!, comps, otherEid);
+        if (!otherRect) continue;
+        const ox = otherRect.x + otherRect.width / 2;
+        const oy = otherRect.y + otherRect.height / 2;
+        if ((ox - (nx + 0.5)) ** 2 + (oy - (ny + 0.5)) ** 2 <= claimSq) {
+          claimed = true;
+          break;
+        }
+      }
+      if (claimed) continue;
+      const candidate = {
+        eid,
+        tileX: nx,
+        tileY: ny,
+        amount,
+        distSq: nearestSq,
+      };
+      if (
+        best === undefined ||
+        candidate.amount > best.amount ||
+        (candidate.amount === best.amount &&
+          (candidate.distSq < best.distSq ||
+            (candidate.distSq === best.distSq && candidate.eid < best.eid)))
+      ) {
+        best = candidate;
+      }
+    }
+    return best === undefined
+      ? undefined
+      : { eid: best.eid, tileX: best.tileX, tileY: best.tileY };
+  };
+
+  /**
+   * Site the expansion with the AI's own scorer: distance-sorted
+   * candidates around the chosen node, first footprint passing the
+   * SHARED placement validity function wins.
+   */
+  const siteExpansionNearNode = (
+    defId: string,
+    ownerId: number,
+    nodeTileX: number,
+    nodeTileY: number,
+  ): { tileX: number; tileY: number; rect: FootprintRect } | undefined => {
+    for (const slot of siteCandidates(
+      nodeTileX,
+      nodeTileY,
+      EXPANSION_SITE_MIN_CLEARANCE,
+      EXPANSION_SITE_MAX_RADIUS,
+    )) {
+      const check = validatePlacement(
+        world!,
+        comps,
+        defId,
+        slot.x,
+        slot.y,
+        ownerId,
+      );
+      if (check.ok && check.rect) {
+        return { tileX: slot.x, tileY: slot.y, rect: check.rect };
+      }
+    }
+    return undefined;
+  };
+
+  const runExpansionThink = (companyEid: number, tick: number): void => {
+    const company = companyRowOf(world!, comps, companyEid);
+    if (company === undefined) return;
+    if (company.frozen) return; // freeze halts proposals, never accrual
+    if (pendingExpansionOf(world!, comps, companyEid) !== undefined) return;
+    const defId = expansionDefForDomain(company.focusDomain);
+    const cost = expansionCostMilli(defId);
+    if (
+      company.treasuryMilli < EXPANSION_TREASURY_THRESHOLD_MILLI ||
+      company.treasuryMilli < cost
+    ) {
+      return;
+    }
+    if (idleLaborCount(company.ownerPlayerId) < EXPANSION_LABOR_SLACK_MIN) {
+      return;
+    }
+    const node = bestUnclaimedNode(ownedBranchesOf(companyEid));
+    if (node === undefined) return;
+    const spot = siteExpansionNearNode(
+      defId,
+      company.ownerPlayerId,
+      node.tileX,
+      node.tileY,
+    );
+    if (spot === undefined) return; // no valid ground this think
+    if (approvalModeOf(world!, comps, companyEid) === APPROVAL_AUTO_APPROVE) {
+      executeExpansion(
+        companyEid,
+        defId,
+        spot.tileX,
+        spot.tileY,
+        spot.rect,
+        tick,
+        EXPANSION_LOG_EXECUTED,
+      );
+      return;
+    }
+    setPendingExpansion(world!, comps, companyEid, {
+      defCode: buildingCodeOf(defId),
+      tileX: spot.tileX,
+      tileY: spot.tileY,
+      proposedTick: tick,
+    });
+    diagnostics.proposalsFormed += 1;
+  };
+
+  // ---- Organic founding scan (M4-T3, daily) -------------------------------------
+
+  /**
+   * Directly-owned workplaces that turned output within PROFIT_LOOKBACK_
+   * TICKS, keyed by domain then owner. Branches never count — organic
+   * origins absorb DIRECT property only.
+   */
+  const profitableDirectWorkplacesByDomain = (
+    tick: number,
+  ): Map<number, Map<number, number[]>> => {
+    const byDomain = new Map<number, Map<number, number[]>>();
+    for (const [eid, buildingRow] of world!.rowsByComponentId
+      .get(comps.buildingId)!
+      .entries()) {
+      const owner = buildingRow[0]!;
+      if (!servedPlayer(owner)) continue;
+      const def = buildingDefOf(buildingIdOfCode(buildingRow[1]!));
+      const domain = domainOfBuildingDef(def.id);
+      if (domain === undefined) continue;
+      if (branchRowOf(world!, comps, eid) !== undefined) continue;
+      const lastTick = lastOutputTickByBuilding.get(eid);
+      if (lastTick === undefined || tick - lastTick > PROFIT_LOOKBACK_TICKS) {
+        continue;
+      }
+      let byOwner = byDomain.get(domain);
+      if (!byOwner) {
+        byOwner = new Map();
+        byDomain.set(domain, byOwner);
+      }
+      const list = byOwner.get(owner);
+      if (list) list.push(eid);
+      else byOwner.set(owner, [eid]);
+    }
+    return byDomain;
+  };
+
+  /**
+   * Best-rated eligible founder for one domain: named non-child own Pop
+   * carrying no direct-order lock and no manager office, whose
+   * managementRatingOf clears ORGANIC_FOUNDER_RATING_MIN. Ratings
+   * descend; ties break to the lower eid. (Foremen MAY found — their
+   * post dies with the absorb and the new company re-seats them.)
+   */
+  const bestOrganicFounder = (
+    ownerId: number,
+    domain: number,
+  ): number | undefined => {
+    const lockRows = world!.rowsByComponentId.get(comps.orderLockId);
+    const managerRows = world!.rowsByComponentId.get(comps.managerId);
+    let best: number | undefined;
+    let bestRating = ORGANIC_FOUNDER_RATING_MIN;
+    for (const eid of world!.entities) {
+      if (!isLiveNamedPop(eid)) continue;
+      if (ownerOfUnit(world!, comps, eid) !== ownerId) continue;
+      if (
+        lifeStageOf(world!, comps, eid, lifecycleConfig) === LIFE_STAGE_CHILD
+      ) {
+        continue;
+      }
+      if (lockRows?.has(eid)) continue;
+      if (managerRows?.has(eid)) continue;
+      const rating = managementRatingOf(world!, comps, eid, domain);
+      if (rating >= bestRating) {
+        bestRating = rating;
+        best = eid;
+      }
+    }
+    return best;
+  };
+
+  const runOrganicScan = (tick: number): void => {
+    // Deterministic order: domain ascending, then owner ascending, then
+    // workplace eids ascending inside the absorb list. At most ONE
+    // spontaneous founding per scan, and a per-player cooldown keeps
+    // serial founders from chaining day after day.
+    const byDomain = profitableDirectWorkplacesByDomain(tick);
+    const domains = [...byDomain.keys()].sort((a, b) => a - b);
+    for (const domain of domains) {
+      const byOwner = byDomain.get(domain)!;
+      const owners = [...byOwner.keys()].sort((a, b) => a - b);
+      for (const ownerId of owners) {
+        const workplaces = byOwner.get(ownerId)!.sort((a, b) => a - b);
+        if (workplaces.length < ORGANIC_MIN_PROFITABLE_WORKPLACES) continue;
+        const cooldown = lastOrganicFoundingTick.get(ownerId);
+        if (
+          cooldown !== undefined &&
+          tick - cooldown < ORGANIC_FOUNDING_COOLDOWN_TICKS
+        ) {
+          continue;
+        }
+        const founder = bestOrganicFounder(ownerId, domain);
+        if (founder === undefined) continue;
+        const name = organicCompanyName(
+          popNameOf(world!, comps, founder) ?? "#",
+        );
+        const companyEid = spawnEntity(world!);
+        setCompanyRow(world!, comps, companyEid, {
+          ownerPlayerId: ownerId,
+          focusDomain: domain,
+          name,
+        });
+        setCompanyOrigin(world!, comps, companyEid, founder, tick);
+        absorbBranches(workplaces, companyEid, tick);
+        appendExpansionLog(
+          world!,
+          comps,
+          companyEid,
+          tick,
+          EXPANSION_LOG_FOUNDED,
+          workplaces.length,
+          founder,
+        );
+        lastOrganicFoundingTick.set(ownerId, tick);
+        diagnostics.organicFoundations += 1;
+        return; // one spontaneous founding per scan
+      }
+    }
+  };
+
   // ---- The system ---------------------------------------------------------------
 
   return {
@@ -480,6 +1197,21 @@ export function createCompaniesSystem(
           case "setCompanyFrozen":
             applySetCompanyFrozen(command.data);
             break;
+          case "setApprovalMode":
+            applySetApprovalMode(command.data);
+            break;
+          case "approveExpansion":
+            applyApproveExpansion(tick, command.data);
+            break;
+          case "rejectExpansion":
+            applyRejectExpansion(tick, command.data);
+            break;
+          case "seizeBranch":
+            applySeizeBranch(tick, command.data);
+            break;
+          case "dissolveCompany":
+            applyDissolveCompany(tick, command.data);
+            break;
           default:
             break;
         }
@@ -500,7 +1232,7 @@ export function createCompaniesSystem(
         }
       }
 
-      // ---- 3) Staffing thinks at the staggered 1 Hz cadence.
+      // ---- 3) Staffing + expansion thinks at the staggered 1 Hz cadence.
       const companyRows = stepWorld.rowsByComponentId.get(comps.companyId)!;
       if (companyRows.size > 0) {
         for (const [companyEid] of [...companyRows].sort(
@@ -510,7 +1242,13 @@ export function createCompaniesSystem(
             continue;
           }
           runStaffingThink(companyEid, tick);
+          runExpansionThink(companyEid, tick);
         }
+      }
+
+      // ---- 4) Organic founding scan once per simulated day.
+      if (tick > 0 && tick % lifecycleConfig.dayTicks === 0) {
+        runOrganicScan(tick);
       }
     },
   };

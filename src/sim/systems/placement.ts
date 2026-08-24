@@ -261,6 +261,23 @@ function payCostUpFront(
   payCosts(world, comps, playerId, def.costs, `placement of ${def.id}`);
 }
 
+/**
+ * Block one rect's footprint tiles and bump the path scheduler's
+ * passabilityVersion — the AoE2 "blocks at placement" rule every site
+ * birth shares (player commands below AND the §2.7 company-expansion
+ * execution in systems/companies.ts). Mid-path villagers repath the
+ * same tick the footprint appears (ADR-0003 invalidation).
+ */
+export function blockFootprintTiles(world: World, rect: FootprintRect): void {
+  const size = world.layers.size;
+  const passability = world.layers.derivedPassability;
+  for (const tile of footprintTiles(rect.x, rect.y, rect.width, rect.height)) {
+    passability[tile.y * size + tile.x] = IMPASSABLE;
+  }
+  const scheduler = world.pathScheduler;
+  scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
+}
+
 function applyPlaceCommand(
   world: World,
   comps: SimComponents,
@@ -313,14 +330,7 @@ function applyPlaceCommand(
   // (SPEC §2.2 invalidation rule). Units standing underneath are pushed
   // clear by steering; nobody is trapped because every perimeter tile
   // was checked reachable-adjacent by validity above.
-  const size = world.layers.size;
-  const passability = world.layers.derivedPassability;
-  const rect = check.rect!;
-  for (const tile of footprintTiles(rect.x, rect.y, rect.width, rect.height)) {
-    passability[tile.y * size + tile.x] = IMPASSABLE;
-  }
-  const scheduler = world.pathScheduler;
-  scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
+  blockFootprintTiles(world, check.rect!);
   diagnostics.commandsApplied += 1;
 }
 

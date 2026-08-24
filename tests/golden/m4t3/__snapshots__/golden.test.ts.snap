@@ -1,0 +1,219 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m4t3 > records milestone digests plus the growth trace 1`] = `
+[
+  {
+    "digest": "fnv1a64:f94e12783932b703",
+    "tick": 150,
+  },
+  {
+    "digest": "fnv1a64:e5a55d4605df2ca8",
+    "tick": 300,
+  },
+  {
+    "digest": "fnv1a64:675f445b2449fa44",
+    "tick": 450,
+  },
+  {
+    "digest": "fnv1a64:6c4465ee7a0d74bf",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:272bdf2142f2f2de",
+    "tick": 750,
+  },
+  {
+    "digest": "fnv1a64:b8008f1a3c5dd51b",
+    "tick": 900,
+  },
+  {
+    "digest": "fnv1a64:b7f05c690c77179e",
+    "tick": 1050,
+  },
+  {
+    "digest": "fnv1a64:2d6a9c198928c847",
+    "tick": 1200,
+  },
+  {
+    "digest": "fnv1a64:0c6c32d1144cb50c",
+    "tick": 1350,
+  },
+  {
+    "digest": "fnv1a64:82886962c7c0aab3",
+    "tick": 1500,
+  },
+  {
+    "digest": "fnv1a64:2c0688589a3ae8a8",
+    "tick": 1650,
+  },
+  {
+    "digest": "fnv1a64:9b373ae965e6fa40",
+    "tick": 1800,
+  },
+  {
+    "digest": "fnv1a64:0d9438492cd71c8b",
+    "tick": 1950,
+  },
+  {
+    "digest": "fnv1a64:d426328429c7f679",
+    "tick": 2100,
+  },
+  {
+    "digest": "fnv1a64:0f39ac6ecd1aedc6",
+    "tick": 2250,
+  },
+  {
+    "digest": "fnv1a64:7fe080e797f35053",
+    "tick": 2400,
+  },
+]
+`;
+
+exports[`golden harness m4t3 > records milestone digests plus the growth trace 2`] = `
+[
+  {
+    "companies": 1,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:f94e12783932b703",
+    "kitchenAJobs": 1,
+    "logEntries": 0,
+    "tick": 150,
+    "treasuryMilli": 0,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:e5a55d4605df2ca8",
+    "kitchenAJobs": 1,
+    "logEntries": 0,
+    "tick": 300,
+    "treasuryMilli": 0,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:675f445b2449fa44",
+    "kitchenAJobs": 1,
+    "logEntries": 0,
+    "tick": 450,
+    "treasuryMilli": 80000,
+  },
+  {
+    "companies": 2,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:6c4465ee7a0d74bf",
+    "kitchenAJobs": 1,
+    "logEntries": 0,
+    "tick": 600,
+    "treasuryMilli": 80000,
+  },
+  {
+    "companies": 2,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:272bdf2142f2f2de",
+    "kitchenAJobs": 0,
+    "logEntries": 0,
+    "tick": 750,
+    "treasuryMilli": 160000,
+  },
+  {
+    "companies": 2,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:b8008f1a3c5dd51b",
+    "kitchenAJobs": 0,
+    "logEntries": 0,
+    "tick": 900,
+    "treasuryMilli": 160000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 1,
+    "digest": "fnv1a64:b7f05c690c77179e",
+    "kitchenAJobs": 0,
+    "logEntries": 0,
+    "tick": 1050,
+    "treasuryMilli": 160000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:2d6a9c198928c847",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 1200,
+    "treasuryMilli": 140000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:0c6c32d1144cb50c",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 1350,
+    "treasuryMilli": 140000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:82886962c7c0aab3",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 1500,
+    "treasuryMilli": 220000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:2c0688589a3ae8a8",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 1650,
+    "treasuryMilli": 220000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:9b373ae965e6fa40",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 1800,
+    "treasuryMilli": 220000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:0d9438492cd71c8b",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 1950,
+    "treasuryMilli": 300000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:d426328429c7f679",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 2100,
+    "treasuryMilli": 300000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:0f39ac6ecd1aedc6",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 2250,
+    "treasuryMilli": 380000,
+  },
+  {
+    "companies": 1,
+    "deepveinBranches": 2,
+    "digest": "fnv1a64:7fe080e797f35053",
+    "kitchenAJobs": 0,
+    "logEntries": 1,
+    "tick": 2400,
+    "treasuryMilli": 380000,
+  },
+]
+`;

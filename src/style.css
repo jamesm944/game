@@ -497,6 +497,55 @@ canvas {
   color: #7ec46f;
 }
 
+/* M4-T3 (SPEC §2.7): approval mode, pending proposals, expansion log,
+ * seize/dissolve oversight affordances. */
+.company-pending {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 3px 0;
+  padding: 3px 5px;
+  color: #f0b429;
+  background: rgb(240 180 41 / 0.08);
+  border-radius: 4px;
+}
+
+.company-pending span {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.company-seize,
+.company-approval,
+.company-dissolve {
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.company-seize:hover,
+.company-approval:hover,
+.company-dissolve:hover {
+  opacity: 1;
+}
+
+.company-dissolve {
+  color: #e07a6a;
+}
+
+.company-log-heading {
+  margin-top: 2px;
+  color: #8fa3c7;
+}
+
+.company-log-entry {
+  overflow: hidden;
+  color: #b9a7e8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .company-charter {
   display: flex;
   gap: 6px;

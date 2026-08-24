@@ -55,10 +55,18 @@ import {
 } from "./buildings";
 import { BODY, BODY_ARITY, type BodyComponents } from "./body";
 import {
+  APPROVAL_MODE,
+  APPROVAL_MODE_ARITY,
   BRANCH,
   BRANCH_ARITY,
   COMPANY,
   COMPANY_ARITY,
+  COMPANY_ORIGIN,
+  COMPANY_ORIGIN_ARITY,
+  EXPANSION_LOG,
+  EXPANSION_LOG_ARITY,
+  PENDING_EXPANSION,
+  PENDING_EXPANSION_ARITY,
   TREASURY_DELTA,
   TREASURY_DELTA_ARITY,
   type CompanyComponents,
@@ -210,7 +218,13 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * M4-T2 adds the three company names: Branch between Body and
  * Building ("Bo" < "Br" < "Bu"); Company between CommodityStockpile
  * and DropOff ("Comm" < "Comp" < "Dro"); TreasuryDelta after Traits
- * ("Trai…" < "Tre…").
+ * ("Trai…" < "Tre…"). M4-T3 adds four more, each LAZILY attached (a
+ * world that never exercises the feature carries zero rows, keeping
+ * every legacy digest byte-identical): ApprovalMode between AgeState
+ * and AssignedNode ("Age…" < "App…" < "Ass…"); CompanyOrigin between
+ * Company and DropOff ("Company" < "CompanyOrigin"); ExpansionLog
+ * between Equipment and Foreman ("Eq" < "Ex" < "Fo"); PendingExpansion
+ * between Owner and Position ("Ow" < "Pen…" < "Po…").
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -220,7 +234,16 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // ("Ord" < "Ow").
   [ORDER_LOCK, ORDER_LOCK_ARITY],
   ...OWNER_COMPONENT_ARITIES,
+  // M4-T3: PendingExpansion registers alphabetically between Owner and
+  // Position ("Ow" < "Pen…" < "Po…"); like Needs/OrderLock above it
+  // trails the movement head in this table even though Position sorts
+  // inside it.
+  [PENDING_EXPANSION, PENDING_EXPANSION_ARITY],
   ...AGE_COMPONENT_ARITIES,
+  // M4-T3: ApprovalMode registers alphabetically after AgeState (the
+  // last "Age…" entry AGE_COMPONENT_ARITIES lists) and before the
+  // economy's AssignedNode ("Age…" < "App…" < "Ass…").
+  [APPROVAL_MODE, APPROVAL_MODE_ARITY],
   // M3-T4: Body registers alphabetically before Building.
   [BODY, BODY_ARITY],
   // M4-T2: Branch registers alphabetically between Body ("Bo") and
@@ -234,11 +257,17 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M4-T2: Company registers alphabetically between CommodityStockpile
   // (core/stockpile.ts, not tabulated here) and DropOff (same module).
   [COMPANY, COMPANY_ARITY],
+  // M4-T3: CompanyOrigin registers alphabetically after Company
+  // ("Company" < "CompanyOrigin") and before DropOff.
+  [COMPANY_ORIGIN, COMPANY_ORIGIN_ARITY],
   // M3-T7: Relationship registers alphabetically between ProductionJob
   // (which PRODUCTION_COMPONENT_ARITIES lists last) and ResearchedTechs
   // (which COMBAT_COMPONENT_ARITIES lists).
   [RELATIONSHIP, RELATIONSHIP_ARITY],
   ...EQUIPMENT_COMPONENT_ARITIES,
+  // M4-T3: ExpansionLog registers alphabetically between Equipment
+  // (which EQUIPMENT_COMPONENT_ARITIES lists last) and Foreman.
+  [EXPANSION_LOG, EXPANSION_LOG_ARITY],
   // M4-T1: Foreman registers alphabetically between Equipment
   // (which EQUIPMENT_COMPONENT_ARITIES lists last) and GateRejected.
   [FOREMAN, FOREMAN_ARITY],
@@ -318,6 +347,10 @@ export function defineSimComponents(world: World): SimComponents {
     ageAdvancedId: defineComponent(world, AGE_ADVANCED),
     ageResearchId: defineComponent(world, AGE_RESEARCH),
     ageStateId: defineComponent(world, AGE_STATE),
+    // M4-T3: ApprovalMode registers alphabetically after AgeState and
+    // before AssignedNode ("Age…" < "App…" < "Ass…"). Lazily attached:
+    // only companies explicitly switched to auto-approve carry a row.
+    approvalModeId: defineComponent(world, APPROVAL_MODE),
     assignedNodeId: defineComponent(world, ASSIGNED_NODE),
     assignedSiteId: defineComponent(world, ASSIGNED_SITE),
     bodyId: defineComponent(world, BODY),
@@ -332,8 +365,14 @@ export function defineSimComponents(world: World): SimComponents {
     // M4-T2: Company registers alphabetically between CommodityStockpile
     // and DropOff ("Comm" < "Comp" < "Dro").
     companyId: defineComponent(world, COMPANY),
+    // M4-T3: CompanyOrigin registers after Company, before DropOff.
+    // Lazily attached: only ORGANIC foundings carry the record.
+    companyOriginId: defineComponent(world, COMPANY_ORIGIN),
     dropoffId: defineComponent(world, DROP_OFF),
     equipmentId: defineComponent(world, EQUIPMENT),
+    // M4-T3: ExpansionLog registers between Equipment and Foreman
+    // ("Eq" < "Ex" < "Fo"). Lazily attached on the first entry.
+    expansionLogId: defineComponent(world, EXPANSION_LOG),
     // M4-T1: Foreman registers alphabetically between Equipment and
     // GateRejected.
     foremanId: defineComponent(world, FOREMAN),
@@ -361,6 +400,9 @@ export function defineSimComponents(world: World): SimComponents {
     needsId: defineComponent(world, NEEDS),
     orderLockId: defineComponent(world, ORDER_LOCK),
     ownerId: defineComponent(world, OWNER),
+    // M4-T3: PendingExpansion registers between Owner and Position
+    // ("Ow" < "Pen…" < "Po…"). Lazily attached while a proposal waits.
+    pendingExpansionId: defineComponent(world, PENDING_EXPANSION),
     positionId: defineComponent(world, POSITION),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
     productionJobId: defineComponent(world, PRODUCTION_JOB),
