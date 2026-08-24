@@ -117,6 +117,22 @@ export interface SleepActivity {
   isNap: boolean;
 }
 
+/**
+ * Leisure at a venue or host (SPEC §2.4 social life / M3-T7): the
+ * social system plans [Move door, Leisure] chains from IAUS-scored
+ * evening choices and owns this head exclusively — movement parks it
+ * exactly like eat/sleep, and on arrival the SOCIAL system executes the
+ * venue behavior (gold sink, morale buff, bond increments, jealousy
+ * roll) and drops the head. `venueCode` is one of the LEISURE_VENUE_*
+ * stable codes; `targetEid` is the venue building eid (pay/study/
+ * worship venues) or the visited host Pop's eid (visit), 0 = none.
+ */
+export interface LeisureActivity {
+  readonly kind: "leisure";
+  venueCode: number;
+  targetEid: number;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
@@ -125,7 +141,8 @@ export type Activity =
   | AttackActivity
   | AttackMoveActivity
   | EatActivity
-  | SleepActivity;
+  | SleepActivity
+  | LeisureActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -136,6 +153,14 @@ export const ACTIVITY_KIND_ATTACK = 5;
 export const ACTIVITY_KIND_ATTACK_MOVE = 6;
 export const ACTIVITY_KIND_EAT = 7;
 export const ACTIVITY_KIND_SLEEP = 8;
+export const ACTIVITY_KIND_LEISURE = 9;
+
+/** Stable leisure-venue codes carried inside Leisure payloads. */
+export const LEISURE_VENUE_TAVERN = 1;
+export const LEISURE_VENUE_BROTHEL = 2;
+export const LEISURE_VENUE_SHRINE = 3;
+export const LEISURE_VENUE_STUDY = 4;
+export const LEISURE_VENUE_VISIT = 5;
 
 export type ActivityQueue = Activity[];
 
@@ -260,6 +285,26 @@ export function sleepActivity(wakeTick: number, isNap = false): SleepActivity {
   return { kind: "sleep", wakeTick, isNap };
 }
 
+/** Build a Leisure activity at `venueCode` targeting `targetEid`. */
+export function leisureActivity(
+  venueCode: number,
+  targetEid: number,
+): LeisureActivity {
+  if (
+    !Number.isInteger(venueCode) ||
+    venueCode < LEISURE_VENUE_TAVERN ||
+    venueCode > LEISURE_VENUE_VISIT
+  ) {
+    throw new Error(`leisure venue code out of range: ${String(venueCode)}`);
+  }
+  if (!Number.isInteger(targetEid) || targetEid < 0) {
+    throw new Error(
+      `leisure target entity id must be a non-negative integer, got ${String(targetEid)}`,
+    );
+  }
+  return { kind: "leisure", venueCode, targetEid };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -293,6 +338,13 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
         2,
         activity.wakeTick,
         activity.isNap ? 1 : 0,
+      );
+    } else if (activity.kind === "leisure") {
+      row.push(
+        ACTIVITY_KIND_LEISURE,
+        2,
+        activity.venueCode,
+        activity.targetEid,
       );
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
@@ -445,6 +497,29 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         throw new Error(`sleep activity ${String(i)} has malformed nap flag`);
       }
       queue.push({ kind: "sleep", wakeTick, isNap: napFlag === 1 });
+    } else if (kind === ACTIVITY_KIND_LEISURE) {
+      if (payloadLength !== 2) {
+        throw new Error(
+          `leisure activity ${String(i)} must carry exactly two values`,
+        );
+      }
+      const venueCode = payload[0]!;
+      const targetEid = payload[1]!;
+      if (
+        !Number.isInteger(venueCode) ||
+        venueCode < LEISURE_VENUE_TAVERN ||
+        venueCode > LEISURE_VENUE_VISIT
+      ) {
+        throw new Error(
+          `leisure activity ${String(i)} has malformed venue code`,
+        );
+      }
+      if (!Number.isInteger(targetEid) || targetEid < 0) {
+        throw new Error(
+          `leisure activity ${String(i)} has malformed target entity id`,
+        );
+      }
+      queue.push({ kind: "leisure", venueCode, targetEid });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

@@ -11,9 +11,9 @@
  *   AssignedSite, Building, BuildingSite, CarryCapacity, Combat,
  *   CombatEvents, CommodityStockpile, DropOff, Equipment, GateRejected,
  *   Identity, Inventory, JobCooldown, MealConsumed, MoveTarget, Needs,
- *   Owner, Position, ProductionCycle, ProductionJob, ResearchedTechs,
- *   ResourceNode, Rubble, Skills, Stockpile, TrainQueue, Traits,
- *   UnitTag, Velocity, VictoryCheck
+ *   Owner, Position, ProductionCycle, ProductionJob, Relationship,
+ *   ResearchedTechs, ResourceNode, Rubble, Skills, SocialEvents,
+ *   Stockpile, TrainQueue, Traits, UnitTag, Velocity, VictoryCheck
  *
  * Per ADR-0001 the hand-rolled row store is the sanctioned M1 component
  * store — bitecs slots in behind this same registration surface later
@@ -104,11 +104,21 @@ import {
   type LessonComponents,
 } from "./lessons";
 import {
+  RELATIONSHIP,
+  RELATIONSHIP_ARITY,
+  type RelationshipComponents,
+} from "./relationship";
+import {
   attachPopSkills,
   SKILLS,
   SKILLS_ARITY,
   type SkillComponents,
 } from "./skills";
+import {
+  SOCIAL_EVENTS,
+  SOCIAL_EVENTS_ARITY,
+  type SocialEventComponents,
+} from "./socialEvents";
 import {
   COMMODITY_STOCKPILE,
   DROP_OFF,
@@ -161,7 +171,9 @@ const OWNER_COMPONENT_ARITIES: readonly [string, number][] = [
  * Body (body.ts, M3-T4) slots before Building ("Bo" < "Bu").
  * Household (household.ts, M3-T5) slots between GateRejected and
  * Identity; Lessons (lessons.ts, M3-T5) between JobCooldown and
- * MealConsumed.
+ * MealConsumed. Relationship (relationship.ts, M3-T7) slots between
+ * ResearchedTechs and ResourceNode; SocialEvents (socialEvents.ts,
+ * M3-T7) between Skills and Stockpile.
  */
 export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...MOVEMENT_COMPONENT_ARITIES,
@@ -176,6 +188,10 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // (which AGE_COMPONENT_ARITIES lists last) and before Identity.
   [HOUSEHOLD, HOUSEHOLD_ARITY],
   ...COMBAT_COMPONENT_ARITIES,
+  // M3-T7: Relationship registers alphabetically between ProductionJob
+  // (which PRODUCTION_COMPONENT_ARITIES lists last) and ResearchedTechs
+  // (which COMBAT_COMPONENT_ARITIES lists).
+  [RELATIONSHIP, RELATIONSHIP_ARITY],
   ...EQUIPMENT_COMPONENT_ARITIES,
   // M3-T3: JobCooldown registers alphabetically between Inventory
   // (economy.ts, not tabulated here) and MealConsumed below.
@@ -186,6 +202,9 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   ...PRODUCTION_COMPONENT_ARITIES,
   [IDENTITY, IDENTITY_ARITY],
   [SKILLS, SKILLS_ARITY],
+  // M3-T7: SocialEvents registers alphabetically between Skills and
+  // Stockpile (core/stockpile.ts, not tabulated here).
+  [SOCIAL_EVENTS, SOCIAL_EVENTS_ARITY],
   [TRAITS, TRAITS_ARITY],
   ...VICTORY_COMPONENT_ARITIES,
 ];
@@ -216,7 +235,9 @@ export interface SimComponents
     LessonComponents,
     NeedsComponents,
     PopComponents,
+    RelationshipComponents,
     SkillComponents,
+    SocialEventComponents,
     VictoryComponents {}
 
 /**
@@ -258,10 +279,16 @@ export function defineSimComponents(world: World): SimComponents {
     positionId: defineComponent(world, POSITION),
     productionCycleId: defineComponent(world, PRODUCTION_CYCLE),
     productionJobId: defineComponent(world, PRODUCTION_JOB),
+    // M3-T7: Relationship registers alphabetically before ResearchedTechs
+    // ("Rel" < "Res") and after ProductionJob.
+    relationshipId: defineComponent(world, RELATIONSHIP),
     researchedTechsId: defineComponent(world, RESEARCHED_TECHS),
     resourceNodeId: defineComponent(world, RESOURCE_NODE),
     rubbleId: defineComponent(world, RUBBLE),
     skillsId: defineComponent(world, SKILLS),
+    // M3-T7: SocialEvents registers alphabetically between Skills and
+    // Stockpile.
+    socialEventsId: defineComponent(world, SOCIAL_EVENTS),
     stockpileId: defineComponent(world, STOCKPILE),
     trainQueueId: defineComponent(world, TRAIN_QUEUE),
     traitsId: defineComponent(world, TRAITS),

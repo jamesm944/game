@@ -1,0 +1,16 @@
+{
+  "id": "church",
+  "name": "Church",
+  "kind": "building",
+  "costs": { "wood": 100, "stone": 25 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 2500,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 700,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 6,
+  "populationCap": 0
+}

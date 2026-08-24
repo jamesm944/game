@@ -3,59 +3,59 @@
 exports[`golden harness m3t6 > records milestone digests at every 300th tick plus final 1`] = `
 [
   {
-    "digest": "fnv1a64:b5ad557894752fdb",
+    "digest": "fnv1a64:05dd648bb4ae07cb",
     "tick": 300,
   },
   {
-    "digest": "fnv1a64:a2e08fbf9dbadc03",
+    "digest": "fnv1a64:db68e7044a4327b9",
     "tick": 600,
   },
   {
-    "digest": "fnv1a64:b250efb995f247f9",
+    "digest": "fnv1a64:b937a967a499b581",
     "tick": 900,
   },
   {
-    "digest": "fnv1a64:0f06efc6313bc062",
+    "digest": "fnv1a64:0adf01e16dac52e6",
     "tick": 1200,
   },
   {
-    "digest": "fnv1a64:9936abd89c8dbff3",
+    "digest": "fnv1a64:08b302fd8ff1f3da",
     "tick": 1500,
   },
   {
-    "digest": "fnv1a64:2d1221ded0c73963",
+    "digest": "fnv1a64:9ac69f044b0ce4e9",
     "tick": 1800,
   },
   {
-    "digest": "fnv1a64:d75139b27aebd1e8",
+    "digest": "fnv1a64:5a58f2f88c4832c9",
     "tick": 2100,
   },
   {
-    "digest": "fnv1a64:21a503d9c224b3d3",
+    "digest": "fnv1a64:e7811edca702ceac",
     "tick": 2400,
   },
   {
-    "digest": "fnv1a64:c215175333a4db2a",
+    "digest": "fnv1a64:5d1285a5852fe7b2",
     "tick": 2700,
   },
   {
-    "digest": "fnv1a64:a3f0ce0c79238f20",
+    "digest": "fnv1a64:ca9dc82ec341e7b0",
     "tick": 3000,
   },
   {
-    "digest": "fnv1a64:522a60cd4477776e",
+    "digest": "fnv1a64:d4f384f11470f10f",
     "tick": 3300,
   },
   {
-    "digest": "fnv1a64:2cbc87f83ae1f42b",
+    "digest": "fnv1a64:258fe16d44d63483",
     "tick": 3600,
   },
   {
-    "digest": "fnv1a64:02c5b37baafb01e1",
+    "digest": "fnv1a64:b179c59c627970b6",
     "tick": 3900,
   },
   {
-    "digest": "fnv1a64:4ca9f68638255045",
+    "digest": "fnv1a64:615891f93a4c395d",
     "tick": 4200,
   },
 ]
@@ -141,8 +141,8 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "sleep",
     ],
     "homeDistances": [
-      1.6481177422383841,
-      1.6032418168741533,
+      1.6265574650129146,
+      1.5449131457626648,
       2.236383324256612,
       2.713378601551834,
     ],
@@ -164,10 +164,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.6481177422383841,
-      1.6032418168741533,
+      1.6265574650129146,
+      1.5449131457626648,
       3.448531407091965,
-      4.525184946323629,
+      4.513209838448287,
     ],
     "population": 4,
     "restLevels": [
@@ -187,10 +187,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.7083863718769392,
-      1.6694891326007042,
+      1.6890011469029134,
+      1.7609131815809367,
       4.743465144834159,
-      6.728939959552746,
+      6.783625401859008,
     ],
     "population": 4,
     "restLevels": [
@@ -210,10 +210,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "sleep",
     ],
     "homeDistances": [
-      1.6461172175051089,
-      1.5957250550111446,
+      1.6090069210064093,
+      1.5349702668470904,
       2.135466182488324,
-      1.6573864737986579,
+      1.6730780750266272,
     ],
     "population": 4,
     "restLevels": [
@@ -233,10 +233,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.6461172175051089,
-      1.5957250550111446,
-      3.064391966942606,
-      3.1805749791296165,
+      1.6090069210064093,
+      1.5349702668470904,
+      3.070520541699245,
+      3.231315410841684,
     ],
     "population": 4,
     "restLevels": [
@@ -256,10 +256,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "gather",
     ],
     "homeDistances": [
-      1.7073610638230547,
-      1.6647568755641384,
-      4.4668380750371375,
-      5.6446462254100185,
+      1.6744452270327697,
+      1.7540150752479653,
+      4.4510416169676015,
+      5.634424609031627,
     ],
     "population": 4,
     "restLevels": [
@@ -279,10 +279,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "sleep",
     ],
     "homeDistances": [
-      1.658019851918144,
-      1.6416505208561984,
-      1.874048205555056,
-      2.75510628347574,
+      1.6197560311393788,
+      1.5299182625572048,
+      2.1374617782838725,
+      2.734791791006584,
     ],
     "population": 4,
     "restLevels": [
@@ -302,10 +302,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.658019851918144,
-      1.6416505208561984,
-      3.4329438235927023,
-      2.372032298853866,
+      1.6197560311393788,
+      1.5299182625572048,
+      3.9195223745946235,
+      2.358412136562879,
     ],
     "population": 4,
     "restLevels": [
@@ -325,10 +325,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "gather",
     ],
     "homeDistances": [
-      1.7079700643287978,
-      1.7058408719609104,
-      5.6380374429677,
-      4.451292295203404,
+      1.6849389799221097,
+      1.7463201422791148,
+      5.650099224610402,
+      4.454253237942215,
     ],
     "population": 4,
     "restLevels": [
@@ -348,10 +348,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "sleep",
     ],
     "homeDistances": [
-      1.639226682866265,
-      1.6429387167252327,
-      3.4629873163092597,
-      1.5939848382917547,
+      1.5823923709732093,
+      1.6534378395864169,
+      2.193836757223498,
+      1.6025485035158873,
     ],
     "population": 4,
     "restLevels": [
@@ -371,10 +371,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.639226682866265,
-      1.6429387167252327,
-      5.034808826698323,
-      2.4571642754625067,
+      1.5823923709732093,
+      1.6534378395864169,
+      2.0211756805379957,
+      2.5407123358175845,
     ],
     "population": 4,
     "restLevels": [
@@ -394,10 +394,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.6877741192532691,
-      1.6971258867859285,
-      7.411226715866482,
-      5.716987677200323,
+      1.6382487649627389,
+      1.7076675466955333,
+      4.705480613245533,
+      6.087930786922873,
     ],
     "population": 4,
     "restLevels": [
@@ -417,16 +417,16 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "sleep",
     ],
     "homeDistances": [
-      1.6317587562706508,
-      1.6460418415338498,
-      2.178676458822348,
-      2.9432129341007274,
+      1.603997915421209,
+      1.5799914481223598,
+      2.1649677400532674,
+      2.0055147259742245,
     ],
     "population": 4,
     "restLevels": [
       98,
       99,
-      99,
+      98,
       99,
     ],
     "tick": 3100,
@@ -440,10 +440,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.6317587562706508,
-      1.6460418415338498,
-      3.085694403961435,
-      3.876543025395366,
+      1.603997915421209,
+      1.5799914481223598,
+      3.5758451711466472,
+      3.899752328521926,
     ],
     "population": 4,
     "restLevels": [
@@ -463,10 +463,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "gather",
     ],
     "homeDistances": [
-      1.6887265518124466,
-      1.7008299629292674,
-      4.458925545487907,
-      5.649556385411126,
+      1.663738400846015,
+      1.796046204706432,
+      4.532806212061265,
+      5.656170096594884,
     ],
     "population": 4,
     "restLevels": [
@@ -486,10 +486,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "sleep",
     ],
     "homeDistances": [
-      1.6497211779338163,
-      1.6322573209337057,
-      1.8881123532310866,
-      2.8148325607634592,
+      1.6221958451311573,
+      1.571835189673918,
+      1.934815804604401,
+      2.4237168938175118,
     ],
     "population": 4,
     "restLevels": [
@@ -509,10 +509,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "move",
     ],
     "homeDistances": [
-      1.6497211779338163,
-      1.6322573209337057,
-      3.446337992406431,
-      2.407924296997066,
+      1.6221958451311573,
+      1.571835189673918,
+      2.9748179954810974,
+      4.032936670335869,
     ],
     "population": 4,
     "restLevels": [
@@ -532,10 +532,10 @@ exports[`golden harness m3t6 > sleeps and wakes on schedule across the golden we
       "gather",
     ],
     "homeDistances": [
-      1.699674424613264,
-      1.6814314526637941,
-      5.644447291669217,
-      4.453928534816038,
+      1.6816902718422118,
+      1.7885302580915345,
+      5.625672081619523,
+      4.496194141271332,
     ],
     "population": 4,
     "restLevels": [

@@ -1,0 +1,34 @@
+{
+  "name": "m3t7",
+  "description": "An evening of village social life (SPEC §2.4 / issue #52): four housed founding adults (two households, one house each) live three 2400-tick days under the full roster — movement, gather, skills, needs, lifecycle, households, social, schedules, IAUS brain with leisure window — and NO commands are ever submitted. Traits are staged: the western couple is Hedonist/Pious, the eastern couple Sociable/Sociable. Every evening the released village books outings through the brain's IAUS leisure extension — Hedonist to the tavern (digest-visible gold sinks from the owner ledger), Pious to the church shrine, the sociable couple to each other (pairwise Relationship rows accumulate toward the ±100 cap) — until the 22:00(+jitter) night band beds everyone and 05:00 wakes refill Rest. Fixture pins milestone digests every 600th tick (Relationship and SocialEvents rows ride the digest like any other state), the sampled daily arc, semantic gates (outings complete every evening, gold sinks, bonds grow, no jealousy without a brothel, no rivals without bloodshed), and doubles as the extended double-run determinism canary.",
+  "seed": 20260901,
+  "size": 24,
+  "ticks": 7200,
+  "milestoneEvery": 600,
+  "dayTicks": 2400,
+  "adultAgeDays": 3,
+  "elderAgeDays": 200,
+  "lifespanDays": 201,
+  "nextBirthRollTick": 999999999,
+  "startingResources": [1200, 400, 500, 0, 0, 0, 0],
+  "dropOff": [3.5, 20.5],
+  "nodes": [
+    { "tile": [6, 21], "resource": "food", "amount": 9000 },
+    { "tile": [9, 21], "resource": "wood", "amount": 9000 }
+  ],
+  "houseTiles": [
+    [6, 13],
+    [16, 13]
+  ],
+  "venueTiles": {
+    "tavern": [8, 16],
+    "church": [14, 16]
+  },
+  "popSpawns": [
+    [5.5, 15.5],
+    [7.5, 15.5],
+    [15.5, 15.5],
+    [17.5, 15.5]
+  ],
+  "sampleMinuteOffsets": [240, 360, 720]
+}

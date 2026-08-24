@@ -73,6 +73,11 @@ import {
   createSchedulesSystem,
 } from "../../../src/sim/systems/schedules";
 import {
+  createSocialDiagnostics,
+  createSocialSystem,
+  isLeisureTime,
+} from "../../../src/sim/systems/social";
+import {
   createPopBrainDiagnostics,
   createPopBrainSystem,
 } from "../../../src/sim/ai/popBrain";
@@ -211,6 +216,19 @@ function runScenario(fixture: GoldenCase): VillageRunState {
     world,
     createHouseholdsSystem(comps, cfg, householdDiagnostics),
   );
+  // M3-T7: social runs between school and schedules in production; the
+  // harness mirrors session.ts so evenings score venues (visits here —
+  // the fixture builds no tavern/church).
+  const socialDiagnostics = createSocialDiagnostics();
+  registerSystem(
+    world,
+    createSocialSystem({
+      comps,
+      players: [PLAYER_ONE],
+      lifecycleConfig: cfg,
+      diagnostics: socialDiagnostics,
+    }),
+  );
   const schedulesDiagnostics = createSchedulesDiagnostics();
   registerSystem(
     world,
@@ -229,6 +247,7 @@ function runScenario(fixture: GoldenCase): VillageRunState {
       players: [PLAYER_ONE],
       lifecycleConfig: cfg,
       diagnostics: brainDiagnostics,
+      leisureWindow: (tick) => isLeisureTime(tick, cfg),
     }),
   );
 

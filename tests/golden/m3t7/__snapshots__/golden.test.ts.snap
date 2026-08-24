@@ -1,0 +1,266 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden harness m3t7 > an evening of village social life, every evening 1`] = `
+[
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "move",
+      "gather",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      6.783799276718886,
+      6.493273681107446,
+      12.03532164563229,
+      9.805084254784354,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 400,
+  },
+  {
+    "depositedTotal": 0,
+    "headKinds": [
+      "gather",
+      "gather",
+      "move",
+      "gather",
+    ],
+    "homeDistances": [
+      6.8421325838094855,
+      6.493273681107446,
+      12.70788215787515,
+      9.256410010898863,
+    ],
+    "population": 4,
+    "restLevels": [
+      98,
+      98,
+      98,
+      98,
+    ],
+    "tick": 600,
+  },
+  {
+    "depositedTotal": 50,
+    "headKinds": [
+      "gather",
+      "gather",
+      "move",
+      "move",
+    ],
+    "homeDistances": [
+      6.9340241298457155,
+      6.456301268408878,
+      12.804470889594668,
+      9.573225194711206,
+    ],
+    "population": 4,
+    "restLevels": [
+      96,
+      96,
+      96,
+      96,
+    ],
+    "tick": 1200,
+  },
+  {
+    "depositedTotal": 110,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.6073581121922957,
+      1.6298124870035693,
+      1.5300460495337964,
+      2.1839810682913443,
+    ],
+    "population": 4,
+    "restLevels": [
+      92,
+      91,
+      92,
+      92,
+    ],
+    "tick": 2800,
+  },
+  {
+    "depositedTotal": 120,
+    "headKinds": [
+      "move",
+      "move",
+      "none",
+      "none",
+    ],
+    "homeDistances": [
+      4.455527325307345,
+      3.463616416803877,
+      1.5300460495337964,
+      2.1839810682913443,
+    ],
+    "population": 4,
+    "restLevels": [
+      99,
+      99,
+      99,
+      99,
+    ],
+    "tick": 3000,
+  },
+  {
+    "depositedTotal": 150,
+    "headKinds": [
+      "gather",
+      "gather",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      6.941008355064412,
+      6.462353831295058,
+      11.453713299661104,
+      12.054524560228003,
+    ],
+    "population": 4,
+    "restLevels": [
+      97,
+      97,
+      97,
+      97,
+    ],
+    "tick": 3600,
+  },
+  {
+    "depositedTotal": 230,
+    "headKinds": [
+      "sleep",
+      "sleep",
+      "sleep",
+      "sleep",
+    ],
+    "homeDistances": [
+      1.810103564883872,
+      1.593904758824949,
+      1.6357011309157832,
+      2.0583921903203146,
+    ],
+    "population": 4,
+    "restLevels": [
+      93,
+      92,
+      93,
+      93,
+    ],
+    "tick": 5200,
+  },
+  {
+    "depositedTotal": 230,
+    "headKinds": [
+      "move",
+      "move",
+      "none",
+      "none",
+    ],
+    "homeDistances": [
+      4.586491688107079,
+      3.45168735169403,
+      1.6357011309157832,
+      2.0583921903203146,
+    ],
+    "population": 4,
+    "restLevels": [
+      100,
+      100,
+      100,
+      100,
+    ],
+    "tick": 5400,
+  },
+  {
+    "depositedTotal": 260,
+    "headKinds": [
+      "gather",
+      "gather",
+      "gather",
+      "gather",
+    ],
+    "homeDistances": [
+      6.987838077916454,
+      6.455838840981604,
+      11.466924272693484,
+      9.11873875474138,
+    ],
+    "population": 4,
+    "restLevels": [
+      97,
+      97,
+      97,
+      97,
+    ],
+    "tick": 6000,
+  },
+]
+`;
+
+exports[`golden harness m3t7 > records milestone digests at every 600th tick plus final 1`] = `
+[
+  {
+    "digest": "fnv1a64:1c21f8cadfed1e98",
+    "tick": 600,
+  },
+  {
+    "digest": "fnv1a64:548054cb5ab2107e",
+    "tick": 1200,
+  },
+  {
+    "digest": "fnv1a64:656b8493ad03ad91",
+    "tick": 1800,
+  },
+  {
+    "digest": "fnv1a64:d3e1c3d13deb4965",
+    "tick": 2400,
+  },
+  {
+    "digest": "fnv1a64:174f17b53098573c",
+    "tick": 3000,
+  },
+  {
+    "digest": "fnv1a64:aa600cade0118e27",
+    "tick": 3600,
+  },
+  {
+    "digest": "fnv1a64:9b06759e4eda7d26",
+    "tick": 4200,
+  },
+  {
+    "digest": "fnv1a64:15de07db17e6a5a5",
+    "tick": 4800,
+  },
+  {
+    "digest": "fnv1a64:0795917c3e71332e",
+    "tick": 5400,
+  },
+  {
+    "digest": "fnv1a64:2687fba79df540b1",
+    "tick": 6000,
+  },
+  {
+    "digest": "fnv1a64:82b816271ffc793f",
+    "tick": 6600,
+  },
+  {
+    "digest": "fnv1a64:c95c4f99c25346eb",
+    "tick": 7200,
+  },
+]
+`;

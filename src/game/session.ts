@@ -67,6 +67,7 @@ import {
 import { createHouseholdsSystem } from "../sim/systems/households";
 import { createSchoolSystem } from "../sim/systems/school";
 import { createSchedulesSystem } from "../sim/systems/schedules";
+import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
 import { createPopBrainSystem } from "../sim/ai/popBrain";
 import { createVictorySystem } from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
@@ -167,6 +168,17 @@ export function createSkirmishWorld(
     createHouseholdsSystem(comps, DEFAULT_LIFECYCLE_CONFIG),
   );
   registerSystem(world, createSchoolSystem(comps, DEFAULT_LIFECYCLE_CONFIG));
+  // M3-T7: social (leisure venues, bonds, rivals) consumes the brain's
+  // leisure commands and runs before schedules so the 22:00 bedding
+  // cancels still-standing outing chains on the same tick.
+  registerSystem(
+    world,
+    createSocialSystem({
+      comps,
+      players: [PLAYER_ONE],
+      lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+    }),
+  );
   // M3-T6: day/night schedules steer the human village through work
   // windows, staggered evening releases and the 22:00–05:00 sleep band
   // (quality-scaled wake refills, deprivation napping). Scoped to the
@@ -186,6 +198,8 @@ export function createSkirmishWorld(
       comps,
       players: [PLAYER_ONE],
       lifecycleConfig: DEFAULT_LIFECYCLE_CONFIG,
+      // M3-T7: evenings switch idle thinks from work to venue scoring.
+      leisureWindow: (tick) => isLeisureTime(tick, DEFAULT_LIFECYCLE_CONFIG),
     }),
   );
 

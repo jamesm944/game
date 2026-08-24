@@ -828,7 +828,8 @@ export function createMovementSystem(
       // M3-T3: Eat heads belong to the needs system the same way.
       // M3-T6: Sleep heads belong to schedules (which pops them at
       // wakeTick and applies the rest refill) — parked here, never
-      // decremented like wait.
+      // decremented like wait. M3-T7: Leisure heads belong to social
+      // (which executes the venue behavior on arrival) — parked alike.
       if (
         !current ||
         current.kind === "wait" ||
@@ -836,7 +837,8 @@ export function createMovementSystem(
         current.kind === "deliver" ||
         current.kind === "attack" ||
         current.kind === "eat" ||
-        current.kind === "sleep"
+        current.kind === "sleep" ||
+        current.kind === "leisure"
       ) {
         if (current?.kind === "wait") {
           current.ticks -= 1;

@@ -15,14 +15,16 @@
  *           is never scheduled).
  *   EVENING end-of-work: assigned Pops are released inside a bounded
  *           grace window once `tick ≥ closeTick + jitter(eid)` and walk
- *           to their household's bed slot, queueing a plain Wait that
- *           holds them until the 05:00 wake. The hold keeps the
- *           clock-blind IAUS brain from re-assigning them (its
- *           commitment layer skips queued Pops) — schedules owns all
- *           clock knowledge. Jitter is ±90 SIM-CLOCK seconds, a pure
- *           (eid, dayIndex) hash — departures trickle instead of
- *           stampeding pathfinding (SPEC §2.4 performance note; gated
- *           by tests/perf/schedules-budget.test.ts).
+ *           to their household's bed slot. M3-T7: nothing HOLDS them
+ *           there anymore — the released Pop simply goes idle, and the
+ *           IAUS brain (whose leisure window this module defines via
+ *           systems/social.isLeisureTime) scores the §2.4 evening
+ *           venues from wherever the walk left them. One outing per
+ *           Pop per evening, then idling until the 22:00 bedding.
+ *           Jitter is ±90 SIM-CLOCK seconds, a pure (eid, dayIndex)
+ *           hash — departures trickle instead of stampeding pathfinding
+ *           (SPEC §2.4 performance note; gated by tests/perf/
+ *           schedules-budget.test.ts and tests/perf/social-budget.test.ts).
  *   SLEEP   night band 22:00–05:00 (§2.4 awake band 5am–10pm): Pops
  *           with a Household home queue [Move bed, Sleep{wakeTick}].
  *           The Sleep activity is popped BY THIS SYSTEM at wakeTick —
@@ -64,7 +66,6 @@ import {
   moveActivity,
   peekActivity,
   sleepActivity,
-  waitActivity,
 } from "../activities";
 import {
   clearAssignedSite,
@@ -445,7 +446,10 @@ export function bedTileFor(
 
 /** Test/telemetry counters — deliberately NOT part of the digest. */
 export interface SchedulesDiagnostics {
-  /** Evening releases steered (end-of-work → home travel). */
+  /**
+   * Evening releases steered (end-of-work → homeward walk; since M3-T7
+   * the walk ends in leisure scoring, not a Wait hold).
+   */
   releasedToHome: number;
   /** Bedding events (Move-bed/Sleep chains planned at the night band). */
   beddedNights: number;
@@ -482,9 +486,9 @@ export interface SchedulesSystemOptions {
 /**
  * Build the schedules SimSystem. Register after needs (its decay pass
  * must see last tick's sleep heads before today's bedding) and before
- * the pop brain (which stays clock-blind — the evening release hold
- * keeps released Pops out of its hands — but picks up freshly-woken
- * workers from this tick onward).
+ * the pop brain: since M3-T7 the brain consumes this module's clock
+ * knowledge through the injected leisure window (systems/social
+ * isLeisureTime), scoring evening venues exactly when releases go idle.
  */
 export function createSchedulesSystem(
   options: SchedulesSystemOptions,
@@ -601,12 +605,16 @@ export function createSchedulesSystem(
         continue;
       }
 
-      // -- 4) Evening release: end-of-work → home travel, then HOLD.
-      //       The hold leg (a plain Wait until the next 05:00 wake) is
-      //       what keeps the clock-blind IAUS brain from re-assigning
-      //       released workers: its commitment layer skips any Pop with
-      //       a queued activity, so evenings stay quiet without the
-      //       brain knowing a single thing about the clock.
+      // -- 4) Evening release: end-of-work → home walk, then LEISURE.
+      //       M3-T7: the old Wait-hold is gone. The homeward Move still
+      //       gives released Pops a destination (and keeps the evening
+      //       pathfinding wave trickling), but on arrival they are idle
+      //       with an empty queue — exactly the state the brain's IAUS
+      //       leisure extension scores while the social module's
+      //       isLeisureTime window (injected into the brain) is open.
+      //       One outing per Pop per evening; the self cooldown stamped
+      //       at assignment/completion runs through the 05:00 wake, and
+      //       the 22:00 bedding cancels whatever is still standing.
       if (role !== undefined && !isEssentialRole(role)) {
         const close = roleWorkWindowMinutes(role)[1];
         const minute = minuteOfDay(tick, config);
@@ -633,17 +641,15 @@ export function createSchedulesSystem(
           clearProductionJob(world, comps, eid);
           cancelActivities(queue);
           const pos = posRows.get(eid)!;
-          const dx = (bed?.x ?? pos[0]!) - pos[0]!;
-          const dy = (bed?.y ?? pos[1]!) - pos[1]!;
-          if (dx * dx + dy * dy > BED_ARRIVAL_RADIUS_TILES ** 2) {
-            enqueueActivity(queue, moveActivity([bed!.x, bed!.y]));
-            setMoveTarget(world, comps, eid, bed!.x, bed!.y);
-            const velRow = velRows?.get(eid);
-            if (velRow) resetSteeringBookkeeping(velRow);
-          }
-          const wakeTick = wakeTickFor(tick, config);
-          if (wakeTick > tick) {
-            enqueueActivity(queue, waitActivity(wakeTick - tick));
+          if (bed !== undefined) {
+            const dx = bed.x - pos[0]!;
+            const dy = bed.y - pos[1]!;
+            if (dx * dx + dy * dy > BED_ARRIVAL_RADIUS_TILES ** 2) {
+              enqueueActivity(queue, moveActivity([bed.x, bed.y]));
+              setMoveTarget(world, comps, eid, bed.x, bed.y);
+              const velRow = velRows?.get(eid);
+              if (velRow) resetSteeringBookkeeping(velRow);
+            }
           }
           writeActivityQueue(world, comps, eid, queue);
           diagnostics.releasedToHome += 1;

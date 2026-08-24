@@ -1,0 +1,16 @@
+{
+  "id": "brothel",
+  "name": "Brothel",
+  "kind": "building",
+  "costs": { "wood": 80, "gold": 40 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 1800,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 400,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 4,
+  "populationCap": 0
+}

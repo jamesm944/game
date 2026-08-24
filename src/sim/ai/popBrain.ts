@@ -41,6 +41,16 @@
  * clearly best but idle far more readily than adults). Both gates read
  * the derived life stage (systems/lifecycle.ts) under the brain's
  * LifecycleConfig — compressed fixture clocks compress the gates too.
+ *
+ * LEISURE EXTENSION (M3-T7, SPEC §2.4): schedules still owns all clock
+ * knowledge; this brain consumes it through an injected `leisureWindow`
+ * predicate (systems/social isLeisureTime). While the window is open
+ * every idle named Pop's think switches from work candidates to the
+ * evening venue set (tavern/brothel/shrine/study/visit) scored by
+ * social.leisureCandidatesFor with trait-weighted pulls — same utility
+ * shape, same strict-`>` earliest-wins tiebreak. Winners submit a plain
+ * `leisure` command and stamp a SELF JobCooldown through the next 05:00
+ * wake, so one evening never books a Pop twice.
  */
 
 import {
@@ -61,6 +71,8 @@ import { needsRowOf } from "../components/needs";
 import { ownerOfUnit } from "../components/owner";
 import { canDebitLedgerSlugs } from "../core/stockpile";
 import type { World, SimSystem } from "../core/world";
+import { leisureCandidatesFor, type LeisureCandidate } from "../systems/social";
+import { wakeTickFor } from "../systems/schedules";
 import { skillLevelOf, workTraitMultOf } from "../systems/skills";
 import {
   DEFAULT_LIFECYCLE_CONFIG,
@@ -120,6 +132,8 @@ export interface PopBrainDiagnostics {
   gathers: number;
   builds: number;
   produces: number;
+  /** Evening outings booked through the leisure extension (M3-T7). */
+  leisures: number;
 }
 
 export function createPopBrainDiagnostics(): PopBrainDiagnostics {
@@ -132,6 +146,7 @@ export function createPopBrainDiagnostics(): PopBrainDiagnostics {
     gathers: 0,
     builds: 0,
     produces: 0,
+    leisures: 0,
   };
 }
 
@@ -149,6 +164,13 @@ export interface PopBrainOptions {
    * runs the canonical §2.4 clock; compressed fixtures pass their own.
    */
   readonly lifecycleConfig?: LifecycleConfig | undefined;
+  /**
+   * M3-T7: schedules' clock knowledge injected as a predicate — true
+   * inside the post-work evening window (systems/social isLeisureTime).
+   * While open, idle thinks score LEISURE candidates instead of work.
+   * Undefined keeps the pre-M3-T7 all-hours work brain (legacy rosters).
+   */
+  readonly leisureWindow?: ((tick: number) => boolean) | undefined;
 }
 
 interface NodeCandidate {
@@ -194,6 +216,7 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
   const players = options.players;
   const diagnostics = options.diagnostics ?? createPopBrainDiagnostics();
   const lifecycleConfig = options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG;
+  const leisureWindow = options.leisureWindow;
 
   return (world: World): void => {
     const tick = world.tick;
@@ -513,6 +536,44 @@ export function createPopBrainSystem(options: PopBrainOptions): SimSystem {
       }
       const utilityMult = stage === LIFE_STAGE_ELDER ? ELDER_UTILITY_MULT : 1;
       diagnostics.idleThinks += 1;
+
+      // M3-T7 leisure extension: while the evening window is open the
+      // think switches to venue scoring — work candidates stay closed
+      // (schedules released this Pop; §2.4 evenings are not for labor).
+      if (leisureWindow !== undefined && leisureWindow(tick)) {
+        const candidates = leisureCandidatesFor(
+          world,
+          comps,
+          eid,
+          tick,
+          lifecycleConfig,
+          utilityMult,
+        );
+        let best: LeisureCandidate | undefined;
+        for (const candidate of candidates) {
+          if (best === undefined || candidate.score > best.score) {
+            best = candidate;
+          }
+        }
+        if (best === undefined) {
+          diagnostics.nothingViable += 1;
+          continue;
+        }
+        stampJobCooldown(world, comps, eid, wakeTickFor(tick, lifecycleConfig));
+        world.inbox.submit({
+          kind: "leisure",
+          targetTick: tick + 1,
+          data: {
+            entityIds: [eid],
+            venueCode: best.venueCode,
+            targetEid: best.targetEid,
+            x: best.x,
+            y: best.y,
+          },
+        });
+        diagnostics.leisures += 1;
+        continue;
+      }
 
       const best = bestPickFor(
         eid,

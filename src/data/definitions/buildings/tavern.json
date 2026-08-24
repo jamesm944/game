@@ -1,0 +1,16 @@
+{
+  "id": "tavern",
+  "name": "Tavern",
+  "kind": "building",
+  "costs": { "wood": 60 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 1500,
+  "footprint": { "width": 2, "height": 2 },
+  "hp": 450,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 5,
+  "populationCap": 0
+}

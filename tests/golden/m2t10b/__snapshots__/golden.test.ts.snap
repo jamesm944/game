@@ -3,19 +3,19 @@
 exports[`golden harness m2t10b — AI conquest > records milestone digests and replays byte-identically 1`] = `
 [
   {
-    "digest": "fnv1a64:e6e4f037406eb137",
+    "digest": "fnv1a64:9958d3f9f671fc5e",
     "tick": 30,
   },
   {
-    "digest": "fnv1a64:9de12402a766effe",
+    "digest": "fnv1a64:d350865eb0d9d59d",
     "tick": 60,
   },
   {
-    "digest": "fnv1a64:9de12402a766effe",
+    "digest": "fnv1a64:d350865eb0d9d59d",
     "tick": 90,
   },
   {
-    "digest": "fnv1a64:9de12402a766effe",
+    "digest": "fnv1a64:d350865eb0d9d59d",
     "tick": 120,
   },
 ]
