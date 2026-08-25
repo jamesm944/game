@@ -401,9 +401,21 @@ Shipped-scope checklist (M4-T7 sign-off):
 - [x] Demo checklist sim-half executed end-to-end headlessly vs the AI (`tests/e2e/m4-paths.test.ts`: all SIX §2.11 paths decided for the scripted player against the real fast-castle-knights AI on pinned seed 20260902 — conquest t16,800, knowledge t3,870, culture/wonder/relic t960, economic t4,380) plus BOTH company origins in one unattended run (`tests/e2e/m4-company-growth.test.ts`: commissioned self-expansion THEN an organic founding absorbing three profitable direct workplaces); browser-only visual items documented in `docs/m4-manual.md`
 - [ ] Manual browser pass (oversight panel, victory HUD, difficulty badge, fps under the full stack) — checklist in `docs/m4-manual.md`; not blocking M5 start
 
-### M5 — Polish, audio, save/replay, ship
+### M5 — Polish, audio, save/replay, ship ✅ (shipped, sign-off ticket M5-T6)
 
 Audio buses/voice pool/positional panning/jingles/ambient crossfades + curated CC0 music; save/load (IndexedDB slots + autosaves + `.ageof` export/import + digest verification); replay export/import + bug-report-to-fixture flow; LOD zoom bands + far-band throttle tuning; full perf verification vs §7 tables; balance pass on counter table + economy rates; GitHub Pages + itch.io release workflow; final UX pass from prototype checklist. **Demo:** the shipped URL with saves, replays, sound, and all victory paths.
+
+Shipped-scope checklist (M5-T6 sign-off):
+
+- [x] Audio architecture: gesture-gated buses (master/music/sfx/ui/ambient), voice pool with priority culling + coalescing, StereoPannerNode positional pan, jingle/ambient intents — render-loop scheduled, sim-invisible (M5-T1)
+- [x] Save/load: `.ageof` container (AOF1 header, FNV map hash, fflate payload) with digest-verified restore, IndexedDB rolling autosaves + named slots, file export/import with loud validation (M5-T2)
+- [x] Replays: record/export/import (`.ageofreplay`), headless re-replay through the pause menu, bug-report → golden fixture via `npm run replay:to-fixture` (M5-T3)
+- [x] Render polish & UX sweep: LOD zoom bands with far-band 7.5 fps playback throttle, dev draw-call HUD, settings panel (audio buses / AI difficulty / autosave cadence), §2.13 checklist verdicts incl. minimap dot split and Pop-card impairment line (M5-T4)
+- [x] Balance pass on engagement + economy ramp (`docs/balance-m5.md`), six-path e2e still decided on pinned seed 20260902 post-balance (M5-T5)
+- [x] Release workflow `.github/workflows/release.yml`: tag `v*` → full gate → `vite build` with relative base → GitHub Pages deploy + dist zip release asset for manual itch.io upload (M5-T6)
+- [x] Final full-suite perf verification vs §7 tables recorded in `docs/m5-budget.md` (all four workloads ×5 runs: p95 tick ≤ 7.27 ms worst workload vs 8 ms cap, mirror copy ≤ 0.08 ms vs 2 ms cap, draws 10–11 approx)
+- [x] README quickstart: npm install → dev server → first villager, saves/replays/settings pointers, controls table
+- [ ] Manual browser pass (GPU frame time/triangles, LOD band feel, audio mix by ear, itch.io upload) — checklist in `docs/m5-manual.md`; recorded draw-call audit already inside caps
 
 ---
 

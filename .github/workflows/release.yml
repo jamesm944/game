@@ -1,0 +1,66 @@
+name: Release
+
+# SPEC §2.12: tag push v* on main = full CI gate → vite build → deploy
+# dist/ to GitHub Pages (primary channel) + zip as release asset for
+# manual itch.io upload.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gate-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Zip dist for itch.io manual upload
+        run: |
+          cd dist
+          zip -r "../ageofwind-${GITHUB_REF_NAME}.zip" .
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: itch-zip
+          path: ageofwind-*.zip
+
+  deploy-pages:
+    needs: gate-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  release:
+    needs: gate-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: itch-zip
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ageofwind-*.zip
+          generate_release_notes: true
