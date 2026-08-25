@@ -2,7 +2,9 @@
   "id": "villager",
   "name": "Villager",
   "kind": "unit",
-  "costs": { "food": 50 },
+  "costs": {
+    "food": 50
+  },
   "ageGate": "dark",
   "techPrereqs": [],
   "trainTime": 750,
@@ -12,5 +14,22 @@
   "attack": 3,
   "armorClasses": ["civilian"],
   "attackBonuses": [],
-  "sightRadius": 5
+  "sightRadius": 5,
+  "activityAnims": {
+    "gather-wood": "chop",
+    "gather-food": "farm",
+    "gather-gold": "mine",
+    "gather-stone": "mine",
+    "gather-iron": "mine",
+    "gather-coal": "mine",
+    "gather-clay": "mine",
+    "build": "build",
+    "farm": "farm",
+    "carry-wood": "carry-wood",
+    "carry-food": "carry-food",
+    "carry-ore": "carry-ore",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  }
 }

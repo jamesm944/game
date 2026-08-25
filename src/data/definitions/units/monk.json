@@ -2,7 +2,9 @@
   "id": "monk",
   "name": "Monk",
   "kind": "unit",
-  "costs": { "gold": 100 },
+  "costs": {
+    "gold": 100
+  },
   "ageGate": "castle",
   "techPrereqs": [],
   "trainTime": 1500,
@@ -13,5 +15,12 @@
   "armorClasses": ["monk"],
   "attackBonuses": [],
   "sightRadius": 8,
+  "activityAnims": {
+    "attack": "cast",
+    "cast": "cast",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  },
   "equipmentSlots": []
 }

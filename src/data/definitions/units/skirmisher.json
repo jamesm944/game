@@ -2,7 +2,10 @@
   "id": "skirmisher",
   "name": "Skirmisher",
   "kind": "unit",
-  "costs": { "food": 25, "wood": 35 },
+  "costs": {
+    "food": 25,
+    "wood": 35
+  },
   "ageGate": "feudal",
   "techPrereqs": [],
   "trainTime": 660,
@@ -13,7 +16,19 @@
   "range": 4,
   "reloadTicks": 60,
   "armorClasses": ["archer", "infantry"],
-  "attackBonuses": [{ "armorClass": "archer", "mult": 3 }],
+  "attackBonuses": [
+    {
+      "armorClass": "archer",
+      "mult": 3
+    }
+  ],
   "sightRadius": 6,
+  "activityAnims": {
+    "attack": "throw",
+    "hit": "hit",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  },
   "equipmentSlots": ["weapon", "armor"]
 }

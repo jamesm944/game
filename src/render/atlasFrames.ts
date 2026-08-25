@@ -46,7 +46,15 @@ export interface AtlasLayout {
   readonly columns: number;
   readonly rows: number;
   readonly cellsPerPage: number;
+  /**
+   * Physical pages in the baked artifact. The bake tool stacks bands
+   * vertically into ONE image (2048 × pageSize·pagesY), so runtime
+   * consumers always see a single texture; this stays 1 for every
+   * layout the tool emits today and remains the wire-format field.
+   */
   readonly pageCount: number;
+  /** Vertical 2048²-band stack depth backing {@link pageCount} = 1. */
+  readonly pagesY: number;
   readonly yawCount: number;
   readonly totalFrames: number;
   readonly actions: readonly PlannedAtlasAction[];
@@ -68,18 +76,26 @@ export interface UvRect {
  * Assign every (action → yaw → frame) triple to a grid cell and derive
  * its uv rect. Deterministic given identical metas: actions are sorted
  * by name first, so JSON key order upstream cannot shift cells.
+ *
+ * An action whose block would cross a 2048² band boundary starts a new
+ * band instead of raising: bands stack VERTICALLY inside one physical
+ * image (width pageSize, height pageSize·pagesY), so runtime consumers
+ * keep sampling a single texture. `maxPagesY` only guards against
+ * runaway stacks. For layouts that fit one band the emitted rects are
+ * byte-identical to the original single-page grid.
  */
 export function planAtlasLayout(
   metas: readonly AtlasActionMeta[],
   yawCount: number,
   frameSize: number,
   pageSize: number,
+  maxPagesY = 8,
 ): AtlasLayout {
   if (yawCount <= 0) throw new Error("yawCount must be positive");
   if (frameSize <= 0 || pageSize < frameSize)
     throw new Error("invalid frame/page size");
   const columns = Math.floor(pageSize / frameSize);
-  const rows = columns; // square pages, square cells
+  const rows = columns; // square bands, square cells
   const cellsPerPage = columns * rows;
 
   const sorted = [...metas].sort((a, b) =>
@@ -87,42 +103,49 @@ export function planAtlasLayout(
   );
   const seen = new Set<string>();
   let cell = 0;
+  let page = 0;
   const actions: PlannedAtlasAction[] = [];
   for (const meta of sorted) {
     if (seen.has(meta.name)) throw new Error(`duplicate action ${meta.name}`);
     seen.add(meta.name);
     if (meta.frameCount <= 0) throw new Error(`empty action ${meta.name}`);
-    const baseFrame = cell;
-    cell += meta.frameCount * yawCount;
-    if (
-      Math.floor((cell - 1) / cellsPerPage) !==
-      Math.floor(baseFrame / cellsPerPage)
-    ) {
-      throw new Error(
-        `action ${meta.name} would straddle a page boundary; raise pageSize`,
-      );
+    const block = meta.frameCount * yawCount;
+    if (cell + block > (page + 1) * cellsPerPage) {
+      // Straddle guard: restart this action at the top of the next band.
+      page++;
+      if (page >= maxPagesY) {
+        throw new Error(
+          `action ${meta.name} exceeds ${String(maxPagesY)} stacked pages; raise pageSize or split the unit`,
+        );
+      }
+      cell = page * cellsPerPage;
     }
     actions.push({
       name: meta.name,
-      baseFrame,
+      baseFrame: cell,
       frameCount: meta.frameCount,
       fps: meta.fps,
       duration: meta.frameCount / meta.fps,
-      page: Math.floor(baseFrame / cellsPerPage),
+      page,
     });
+    cell += block;
   }
 
   const totalFrames = cell;
-  const pageCount = Math.ceil(totalFrames / cellsPerPage);
+  const pagesY = Math.ceil(totalFrames / cellsPerPage);
+  const pageCount = 1; // bands stitch into one physical image
   const rects = new Float32Array(totalFrames * 4);
   const stepU = frameSize / pageSize;
   const stepV = frameSize / pageSize;
   for (let abs = 0; abs < totalFrames; abs++) {
     const col = abs % columns;
-    const row = Math.floor(abs / columns) % rows;
+    const rowInBand = Math.floor(abs / columns) % rows;
+    // Every action lives entirely inside one band, so the band index is
+    // still floor(abs / cellsPerPage) even after straddle restarts.
+    const globalRow = Math.floor(abs / cellsPerPage) * rows + rowInBand;
     const o = abs * 4;
     rects[o] = col * stepU;
-    rects[o + 1] = row * stepV;
+    rects[o + 1] = globalRow * stepV;
     rects[o + 2] = stepU;
     rects[o + 3] = stepV;
   }
@@ -134,6 +157,7 @@ export function planAtlasLayout(
     rows,
     cellsPerPage,
     pageCount,
+    pagesY,
     yawCount,
     totalFrames,
     actions,

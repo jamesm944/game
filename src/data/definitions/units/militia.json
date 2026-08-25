@@ -2,7 +2,10 @@
   "id": "militia",
   "name": "Militia",
   "kind": "unit",
-  "costs": { "food": 60, "gold": 20 },
+  "costs": {
+    "food": 60,
+    "gold": 20
+  },
   "ageGate": "dark",
   "techPrereqs": [],
   "trainTime": 630,
@@ -11,7 +14,19 @@
   "carryCapacity": 0,
   "attack": 4,
   "armorClasses": ["infantry"],
-  "attackBonuses": [{ "armorClass": "archer", "mult": 2 }],
+  "attackBonuses": [
+    {
+      "armorClass": "archer",
+      "mult": 2
+    }
+  ],
   "sightRadius": 5,
+  "activityAnims": {
+    "attack": "attack",
+    "hit": "hit",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  },
   "equipmentSlots": ["weapon", "armor"]
 }

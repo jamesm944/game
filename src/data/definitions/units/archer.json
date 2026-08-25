@@ -2,7 +2,10 @@
   "id": "archer",
   "name": "Archer",
   "kind": "unit",
-  "costs": { "wood": 25, "gold": 45 },
+  "costs": {
+    "wood": 25,
+    "gold": 45
+  },
   "ageGate": "feudal",
   "techPrereqs": [],
   "trainTime": 810,
@@ -13,7 +16,20 @@
   "range": 4,
   "reloadTicks": 60,
   "armorClasses": ["archer"],
-  "attackBonuses": [{ "armorClass": "cavalry", "mult": 1.5 }],
+  "attackBonuses": [
+    {
+      "armorClass": "cavalry",
+      "mult": 1.5
+    }
+  ],
   "sightRadius": 6,
+  "activityAnims": {
+    "attack": "shoot",
+    "aim": "aim",
+    "hit": "hit",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  },
   "equipmentSlots": ["weapon", "armor"]
 }

@@ -1,43 +1,35 @@
 /**
- * Atlas bake — headless three.js turntable sampler (SPEC §5, M1-T7).
+ * Atlas bake v2 — real-rig turntable sampler (issue #72, SPEC §6).
  *
- * Loads a rig (see SWAP notes), plays each action clip frame-by-frame,
- * rotates the rig through 8 yaw steps under a fixed orthographic
- * "turntable" camera, and rasterizes every (action × yaw × frame)
- * pose into a 128 px cell of a 2048² RGBA page. Outputs:
+ * For every unit definition the manifest (manifest.ts) selects real
+ * vendored CC0 rigs: Quaternius Universal Base Characters animated by
+ * the Universal Animation Library clips, KayKit Adventurers characters
+ * with their weapon accessories, and a horse+rider kitbash for the
+ * scout. Each action clip is sampled frame-by-frame × 8 yaws and
+ * rasterized into 128 px cells of stacked 2048² bands inside ONE
+ * physical PNG per unit (see planAtlasLayout for the vertical-stack
+ * rule that keeps runtime consumers single-texture).
  *
- *   <out>/<unitId>.png          the atlas page(s)
- *   <out>/<unitId>.frames.json  frame index {action,yaw,frame → uvRect}
+ * Outputs per unit:
+ *   <out>/<unitDefId>.png          atlas image (2048 × 2048·pagesY)
+ *   <out>/<unitDefId>.frames.json  frame index {action,yaw,frame → uvRect}
  *
- * DETERMINISM: no clock reads, no randomness; sampling order and zlib/
- * JSON serialization are fixed, so identical inputs produce byte-
- * identical outputs (the tool prints each artifact's sha256 so runs can
- * be compared).
- *
- * SOURCE STATUS / SWAP POINTS:
- * - Default source is the in-repo stand-in rig (standin.ts) — a rigged
- *   cube-human with synthetic walk/idle clips. The SPEC's production
- *   source is Quaternius Universal Base Characters (§6); pass
- *   `--gltf <path/to/model.glb>` to bake from a real GLTF instead.
- *   The GLTF branch uses GLTFLoader.parse on raw bytes, which works
- *   headless ONLY for self-contained .glb files (embedded buffers, no
- *   external textures). Skinned meshes additionally need the skinning
- *   stage noted in raster.ts flattenScene — rigid/parented rigs work
- *   as-is.
- * - The renderer back-end is a CPU triangle rasterizer (raster.ts);
- *   SWAP(gpu) there replaces it with WebGLRenderer+readPixels without
- *   touching this file's layout/compositing logic.
+ * DETERMINISM: no clock reads, no randomness; actions sort by name in
+ * the planner; sampling order is fixed; zlib/JSON serialization are
+ * fixed. Identical inputs produce byte-identical outputs — each run
+ * prints sha256 per artifact so rebakes can be compared, and records
+ * source-file hashes in the index so input drift is detectable.
  *
  * Usage:
- *   npx tsx tools/atlas-bake/index.ts [--gltf path] [--unit-id villager]
+ *   npx tsx tools/atlas-bake/index.ts [--all | --units villager,militia]
  *     [--out src/assets/atlas] [--frame-size 128] [--page-size 2048]
- *     [--yaw-count 8] [--pitch-deg 55]
+ *     [--yaw-count 8] [--pitch-deg 55] [--debug-dump <dir>]
  */
 
 import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { AnimationClip, AnimationMixer, Object3D } from "three";
+import { Matrix4, Object3D } from "three";
 import {
   PLAYBACK_QUANTUM_FPS,
   planAtlasLayout,
@@ -49,23 +41,30 @@ import {
   flattenScene,
   rasterizeView,
   turntableMvp,
+  type Framebuffer,
 } from "./raster";
 import { encodePng } from "./png";
-import { BAKE_ACTIONS, buildStandInRig, type RigSource } from "./standin";
+import { UNIT_BAKES, UNIT_BAKE_IDS, type UnitBake } from "./manifest";
+import {
+  assembleRig,
+  attachProps,
+  detachProps,
+  type AssembledRig,
+} from "./rig";
 
 interface BakeOptions {
-  gltfPath?: string | undefined;
-  unitId: string;
+  unitIds: string[];
   outDir: string;
   frameSize: number;
   pageSize: number;
   yawCount: number;
   pitchDeg: number;
+  debugDumpDir?: string | undefined;
 }
 
 function parseArgs(argv: readonly string[]): BakeOptions {
   const options: BakeOptions = {
-    unitId: "villager",
+    unitIds: [...UNIT_BAKE_IDS],
     outDir: "src/assets/atlas",
     frameSize: 128,
     pageSize: 2048,
@@ -75,14 +74,11 @@ function parseArgs(argv: readonly string[]): BakeOptions {
   for (let i = 0; i < argv.length; i++) {
     const value = argv[i + 1];
     switch (argv[i]) {
-      case "--gltf":
-        if (!value) throw new Error("--gltf needs a path");
-        options.gltfPath = value;
-        i++;
+      case "--all":
         break;
-      case "--unit-id":
-        if (!value) throw new Error("--unit-id needs a slug");
-        options.unitId = value;
+      case "--units":
+        if (!value) throw new Error("--units needs comma-separated ids");
+        options.unitIds = value.split(",").map((s) => s.trim());
         i++;
         break;
       case "--out":
@@ -106,6 +102,11 @@ function parseArgs(argv: readonly string[]): BakeOptions {
         options.pitchDeg = Number(value);
         i++;
         break;
+      case "--debug-dump":
+        if (!value) throw new Error("--debug-dump needs a directory");
+        options.debugDumpDir = value;
+        i++;
+        break;
       default:
         throw new Error(`unknown argument ${String(argv[i])}`);
     }
@@ -120,68 +121,46 @@ function parseArgs(argv: readonly string[]): BakeOptions {
   ) {
     throw new Error("invalid size/yaw/pitch arguments");
   }
+  const known = new Set<string>(UNIT_BAKE_IDS);
+  for (const id of options.unitIds) {
+    if (!known.has(id)) {
+      throw new Error(
+        `unknown unit "${id}" (known: ${UNIT_BAKE_IDS.join(", ")})`,
+      );
+    }
+  }
   return options;
 }
 
-interface GltfLike {
-  scene: Object3D;
-  animations: AnimationClip[];
+const sha256 = (bytes: Uint8Array | string): string =>
+  createHash("sha256").update(bytes).digest("hex");
+
+async function hashFile(file: string): Promise<string> {
+  return sha256(new Uint8Array(await fs.readFile(file)));
 }
 
-/**
- * Rig loading. No path → deterministic in-repo stand-in; otherwise a
- * self-contained .glb parsed headlessly (SWAP(gltf) — see file header).
- */
-async function loadRig(
+/** A debug strip image ready for PNG encoding. */
+interface DebugStrip {
+  width: number;
+  height: number;
+  rgba: Uint8Array;
+}
+
+interface BakeResult {
+  pngBytes: Buffer;
+  pagesY: number;
+  minCoverage: number;
+  maxCoverage: number;
+  /** Frame-0 yaw strip / yaw-0 frame strip per action (--debug-dump). */
+  debugStrips: Map<string, DebugStrip>;
+}
+
+function bakeUnit(
+  bake: UnitBake,
   options: BakeOptions,
-  wantedActions: readonly string[],
-): Promise<{ rig: RigSource; provenance: string }> {
-  if (!options.gltfPath) {
-    return {
-      rig: buildStandInRig(),
-      provenance: "synthetic stand-in rig generated by tools/atlas-bake",
-    };
-  }
-  const { GLTFLoader } =
-    await import("three/examples/jsm/loaders/GLTFLoader.js");
-  const bytes = await fs.readFile(options.gltfPath);
-  const arrayBuffer = bytes.buffer.slice(
-    bytes.byteOffset,
-    bytes.byteOffset + bytes.byteLength,
-  );
-  const loader = new GLTFLoader();
-  const gltf = (await new Promise<GltfLike>((resolve, reject) => {
-    loader.parse(arrayBuffer, path.dirname(options.gltfPath!), resolve, reject);
-  })) as unknown as GltfLike;
-
-  const byLower = new Map<string, AnimationClip>();
-  for (const clip of gltf.animations)
-    byLower.set(clip.name.toLowerCase(), clip);
-  const clipsOut: Record<string, AnimationClip> = {};
-  for (const name of wantedActions) {
-    const hit =
-      byLower.get(name.toLowerCase()) ??
-      [...byLower.entries()].find(([key]) =>
-        key.startsWith(name.toLowerCase()),
-      )?.[1];
-    if (!hit) {
-      throw new Error(
-        `${options.gltfPath} lacks a "${name}" clip (has: ${gltf.animations
-          .map((c) => c.name)
-          .join(", ")})`,
-      );
-    }
-    clipsOut[name] = hit;
-  }
-  return {
-    rig: { root: gltf.scene, clips: clipsOut },
-    provenance: `gltf:${options.gltfPath}`,
-  };
-}
-
-async function main(): Promise<void> {
-  const options = parseArgs(process.argv.slice(2));
-  const metas: AtlasActionMeta[] = BAKE_ACTIONS.map((a) => ({
+  rig: AssembledRig,
+): BakeResult {
+  const metas: AtlasActionMeta[] = bake.actions.map((a) => ({
     name: a.name,
     frameCount: a.frameCount,
     fps: a.fps,
@@ -192,11 +171,9 @@ async function main(): Promise<void> {
     options.frameSize,
     options.pageSize,
   );
+  const columns = layout.columns;
+  const rowsPerBand = layout.rows;
 
-  const { rig, provenance } = await loadRig(
-    options,
-    layout.actions.map((a) => a.name),
-  );
   // Wrapper owns the yaw rotation; mixers never fight it because clip
   // tracks target named children, not this node.
   const wrapper = new Object3D();
@@ -204,35 +181,63 @@ async function main(): Promise<void> {
 
   const fb = createFramebuffer(options.frameSize);
   const mvp = turntableMvp({
-    halfExtent: 1.15,
+    halfExtent: bake.halfExtent,
     pitchRad: (options.pitchDeg * Math.PI) / 180,
     distance: 10,
-    focusY: 0.85,
+    focusY: bake.focusY,
   });
 
-  const columns = Math.floor(options.pageSize / options.frameSize);
-  const pageCanvas = new Uint8Array(
-    options.pageSize * options.pageSize * 4 * layout.pageCount,
-  );
+  const heightPx = options.pageSize * layout.pagesY;
+  const pageCanvas = new Uint8Array(heightPx * options.pageSize * 4);
+  // Debug strips collect frame-0 rows per action when --debug-dump set.
+  const debugStrips = options.debugDumpDir
+    ? new Map<string, DebugStrip>()
+    : undefined;
 
+  const modelRot = new Matrix4();
   let minCoverage = Infinity;
   let maxCoverage = 0;
+
   for (const action of layout.actions) {
-    const clip = rig.clips[action.name];
-    if (!clip) throw new Error(`rig has no "${action.name}" clip`);
-    const mixer = new AnimationMixer(wrapper);
-    const mixerAction = mixer.clipAction(clip);
-    mixerAction.play();
+    attachProps(rig.actions.get(action.name)!, rig.root);
 
-    for (let yaw = 0; yaw < layout.yawCount; yaw++) {
-      wrapper.rotation.y = (yaw * Math.PI * 2) / layout.yawCount;
-      for (let f = 0; f < action.frameCount; f++) {
+    for (let f = 0; f < action.frameCount; f++) {
+      // Pose once at identity rotation; skinning + flattening run per
+      // FRAME, not per yaw — the 8 yaws reuse the cached triangles via
+      // the pure-rotation model matrix below.
+      const assembled = rig.actions.get(action.name)!;
+      for (const mixerAction of assembled.mixerActions) {
         mixerAction.time = f / action.fps;
-        mixer.update(0); // evaluate exactly at the sample time
-        wrapper.updateMatrixWorld(true);
+      }
+      for (const mixer of assembled.mixers) mixer.update(0);
+      wrapper.updateMatrixWorld(true);
+      const tris = flattenScene(wrapper);
 
+      if (debugStrips) {
+        if (!debugStrips.has(`${action.name}__yaws`)) {
+          debugStrips.set(`${action.name}__yaws`, {
+            width: layout.yawCount * options.frameSize,
+            height: options.frameSize,
+            rgba: new Uint8Array(
+              layout.yawCount * options.frameSize * options.frameSize * 4,
+            ),
+          });
+        }
+        if (!debugStrips.has(`${action.name}__frames`)) {
+          debugStrips.set(`${action.name}__frames`, {
+            width: action.frameCount * options.frameSize,
+            height: options.frameSize,
+            rgba: new Uint8Array(
+              action.frameCount * options.frameSize * options.frameSize * 4,
+            ),
+          });
+        }
+      }
+
+      for (let yaw = 0; yaw < layout.yawCount; yaw++) {
+        modelRot.makeRotationY((yaw * Math.PI * 2) / layout.yawCount);
         clearFramebuffer(fb);
-        rasterizeView(fb, flattenScene(wrapper), mvp);
+        rasterizeView(fb, tris, mvp, modelRot);
 
         let coverage = 0;
         for (let p = 3; p < fb.rgba.length; p += 4) {
@@ -243,84 +248,180 @@ async function main(): Promise<void> {
 
         const abs = action.baseFrame + yaw * action.frameCount + f;
         const col = abs % columns;
-        const row =
-          Math.floor(abs / columns) % (options.pageSize / options.frameSize);
-        const page = Math.floor(abs / layout.cellsPerPage);
-        const dstX = col * options.frameSize;
-        const dstY = row * options.frameSize;
-        for (let y = 0; y < options.frameSize; y++) {
-          const src = y * options.frameSize * 4;
-          const dst =
-            page * options.pageSize * options.pageSize * 4 +
-            ((dstY + y) * options.pageSize + dstX) * 4;
-          pageCanvas.set(
-            fb.rgba.subarray(src, src + options.frameSize * 4),
-            dst,
+        const rowInBand = Math.floor(abs / columns) % rowsPerBand;
+        const band = Math.floor(abs / layout.cellsPerPage);
+        blitCell(
+          pageCanvas,
+          fb,
+          col * options.frameSize,
+          (band * rowsPerBand + rowInBand) * options.frameSize,
+          options.pageSize,
+        );
+
+        if (debugStrips && f === 0) {
+          blitCell(
+            debugStrips.get(`${action.name}__yaws`)!.rgba,
+            fb,
+            yaw * options.frameSize,
+            0,
+            layout.yawCount * options.frameSize,
+          );
+        }
+        if (debugStrips && yaw === 0) {
+          blitCell(
+            debugStrips.get(`${action.name}__frames`)!.rgba,
+            fb,
+            f * options.frameSize,
+            0,
+            action.frameCount * options.frameSize,
           );
         }
       }
     }
+
+    detachProps(rig.actions.get(action.name)!);
   }
 
-  await fs.mkdir(options.outDir, { recursive: true });
-  const pngPath = path.join(options.outDir, `${options.unitId}.png`);
-  const pngBytes = encodePng(
-    options.pageSize,
-    options.pageSize,
-    pageCanvas.slice(0, options.pageSize * options.pageSize * 4),
-  );
-  await fs.writeFile(pngPath, pngBytes);
+  const pngBytes = encodePng(options.pageSize, heightPx, pageCanvas);
+  return {
+    pngBytes,
+    pagesY: layout.pagesY,
+    minCoverage,
+    maxCoverage,
+    debugStrips: debugStrips ?? new Map(),
+  };
+}
 
-  const indexJson = {
-    id: `atlas/${options.unitId}`,
-    generator: "tools/atlas-bake",
-    source: options.gltfPath ?? "stand-in:tools/atlas-bake/standin.ts",
-    provenance,
-    note: options.gltfPath
-      ? undefined
-      : "STAND-IN SOURCE: swap to Quaternius Universal Base Character via --gltf when the CC0 .glb is vendored (SPEC §6)",
-    frameSize: options.frameSize,
-    pageSize: options.pageSize,
-    columns,
-    rows: columns,
-    cellsPerPage: layout.cellsPerPage,
-    pageCount: layout.pageCount,
-    yawCount: layout.yawCount,
-    totalFrames: layout.totalFrames,
-    quantumFps: PLAYBACK_QUANTUM_FPS,
-    actions: layout.actions.map((a) => ({
+/** Copy one rendered cell into a row-major RGBA canvas at (x, y). */
+function blitCell(
+  canvas: Uint8Array,
+  fb: Framebuffer,
+  dstX: number,
+  dstY: number,
+  canvasWidth: number,
+): void {
+  for (let y = 0; y < fb.height; y++) {
+    const src = y * fb.width * 4;
+    const dst = ((dstY + y) * canvasWidth + dstX) * 4;
+    canvas.set(fb.rgba.subarray(src, src + fb.width * 4), dst);
+  }
+}
+
+async function main(): Promise<void> {
+  const options = parseArgs(process.argv.slice(2));
+  await fs.mkdir(options.outDir, { recursive: true });
+  if (options.debugDumpDir) {
+    await fs.mkdir(options.debugDumpDir, { recursive: true });
+  }
+
+  for (const bake of UNIT_BAKES.filter((u) => options.unitIds.includes(u.id))) {
+    const startedAtMs = Date.now();
+    const rig = await assembleRig(bake);
+    // Props stay detached until their action's sampling window.
+    for (const action of rig.actions.values()) detachProps(action);
+
+    const result = bakeUnit(bake, options, rig);
+
+    const pngPath = path.join(options.outDir, `${bake.id}.png`);
+    await fs.writeFile(pngPath, result.pngBytes);
+
+    const metas: AtlasActionMeta[] = bake.actions.map((a) => ({
       name: a.name,
-      slot: layout.actions.findIndex((x) => x === a),
-      baseFrame: a.baseFrame,
       frameCount: a.frameCount,
       fps: a.fps,
-      duration: a.duration,
-      page: a.page,
-    })),
-    rects: Array.from({ length: layout.totalFrames }, (_, abs) => [
-      layout.rects[abs * 4]!,
-      layout.rects[abs * 4 + 1]!,
-      layout.rects[abs * 4 + 2]!,
-      layout.rects[abs * 4 + 3]!,
-    ]),
-  };
-  const jsonText = JSON.stringify(indexJson, null, 2) + "\n";
-  const jsonPath = path.join(options.outDir, `${options.unitId}.frames.json`);
-  await fs.writeFile(jsonPath, jsonText, "utf8");
+    }));
+    const layout = planAtlasLayout(
+      metas,
+      options.yawCount,
+      options.frameSize,
+      options.pageSize,
+    );
 
-  const sha256 = (bytes: Uint8Array | string): string =>
-    createHash("sha256").update(bytes).digest("hex");
-  console.log(
-    `atlas-bake: ${layout.totalFrames} frames` +
-      ` (${layout.actions.map((a) => a.name).join(", ")})` +
-      ` × ${layout.yawCount} yaws @ ${options.frameSize}px`,
-  );
-  console.log(`coverage px/cell: min=${minCoverage} max=${maxCoverage}`);
-  console.log(`${pngPath}  sha256=${sha256(pngBytes)}`);
-  console.log(`${jsonPath}  sha256=${sha256(jsonText)}`);
+    const sourceFiles = [
+      ...new Set([
+        ...bake.parts.map((p) => p.file),
+        ...bake.actions.flatMap((a) => a.props ?? []).map((p) => p.file),
+      ]),
+    ].sort();
+    const hashes: Array<{ file: string; sha256: string }> = [];
+    for (const rel of sourceFiles) {
+      hashes.push({
+        file: `src/assets/models/${rel}`,
+        sha256: await hashFile(path.join("src/assets/models", rel)),
+      });
+    }
+
+    const indexJson = {
+      id: `atlas/${bake.id}`,
+      generator: "tools/atlas-bake@2",
+      generatorNote:
+        "real CC0 rigs via tools/atlas-bake manifest.ts (issue #72); bands stack vertically into one image",
+      provenance: hashes.map((h) => `${h.file} sha256=${h.sha256}`).join("; "),
+      sourceFiles: hashes,
+      gaps: bake.gaps ?? [],
+      frameSize: options.frameSize,
+      pageSize: options.pageSize,
+      columns: layout.columns,
+      rows: layout.rows,
+      cellsPerPage: layout.cellsPerPage,
+      pageCount: layout.pageCount,
+      pagesY: layout.pagesY,
+      yawCount: layout.yawCount,
+      totalFrames: layout.totalFrames,
+      quantumFps: PLAYBACK_QUANTUM_FPS,
+      actions: layout.actions.map((a) => ({
+        name: a.name,
+        slot: layout.actions.findIndex((x) => x === a),
+        baseFrame: a.baseFrame,
+        frameCount: a.frameCount,
+        fps: a.fps,
+        duration: a.duration,
+        page: a.page,
+      })),
+      rects: Array.from({ length: layout.totalFrames }, (_, abs) => [
+        layout.rects[abs * 4]!,
+        layout.rects[abs * 4 + 1]!,
+        layout.rects[abs * 4 + 2]!,
+        layout.rects[abs * 4 + 3]!,
+      ]),
+    };
+    const jsonText = `${JSON.stringify(indexJson, null, 2)}\n`;
+    const jsonPath = path.join(options.outDir, `${bake.id}.frames.json`);
+    await fs.writeFile(jsonPath, jsonText, "utf8");
+
+    for (const [actionName, strip] of result.debugStrips) {
+      const stripPath = path.join(
+        options.debugDumpDir ?? ".",
+        `${bake.id}__${actionName}.png`,
+      );
+      await fs.writeFile(
+        stripPath,
+        encodePng(strip.width, strip.height, strip.rgba),
+      );
+    }
+
+    console.log(
+      `atlas-bake[${bake.id}]: ${layout.totalFrames} frames` +
+        ` (${layout.actions.map((a) => a.name).join(", ")})` +
+        ` × ${layout.yawCount} yaws @ ${options.frameSize}px` +
+        ` bands=${result.pagesY}`,
+    );
+    console.log(
+      `coverage px/cell: min=${result.minCoverage} max=${result.maxCoverage}`,
+    );
+    console.log(`${pngPath}  sha256=${sha256(result.pngBytes)}`);
+    console.log(`${jsonPath}  sha256=${sha256(jsonText)}`);
+    console.log(`elapsed=${((Date.now() - startedAtMs) / 1000).toFixed(1)}s`);
+  }
+
+  if (options.debugDumpDir) {
+    console.log(`debug strips written to ${options.debugDumpDir}`);
+  }
 }
 
 main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error);
+  console.error(
+    error instanceof Error ? (error.stack ?? error.message) : error,
+  );
   process.exitCode = 1;
 });

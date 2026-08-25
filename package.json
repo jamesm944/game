@@ -12,7 +12,8 @@
     "test": "vitest run",
     "golden:record": "vitest run -t 'golden' --update",
     "replay:to-fixture": "tsx tools/replay-to-fixture.ts",
-    "bake:villager": "tsx tools/atlas-bake/index.ts --unit-id villager"
+    "bake:villager": "tsx tools/atlas-bake/index.ts --units villager",
+    "bake:units": "tsx tools/atlas-bake/index.ts --all"
   },
   "dependencies": {
     "bitecs": "^0.4.0",

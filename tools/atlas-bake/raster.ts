@@ -73,20 +73,32 @@ const LIGHT = (() => {
  * Rasterize one frame view: project `tris` through the ortho MVP and
  * flat-shade by world-normal · light into `fb`. Base gray is tint-
  * neutral so the runtime teamTint multiplies cleanly.
+ *
+ * `model` optionally places the triangle set before projection — used
+ * by the bake to rasterize one skinned pose at 8 yaws without re-
+ * evaluating skinning (a pure Y-rotation, so normals rotate by it
+ * directly). Lighting stays world-fixed: turning the rig changes its
+ * shading exactly like a physical turntable under a fixed lamp.
  */
 export function rasterizeView(
   fb: Framebuffer,
   tris: readonly WorldTri[],
   mvp: Matrix4,
+  model?: Matrix4,
 ): void {
   const { width, height } = fb;
   const e = mvp.elements;
   const px = new Float64Array(3);
   const py = new Float64Array(3);
   const pz = new Float64Array(3);
+  const normalRotate = model ?? null;
 
   triLoop: for (let t = 0; t < tris.length; t++) {
-    const tri = tris[t]!;
+    const src = tris[t]!;
+    let tri = src;
+    if (normalRotate) {
+      tri = rotateTri(src, normalRotate);
+    }
     const xs = [tri.ax, tri.bx, tri.cx];
     const ys = [tri.ay, tri.by, tri.cy];
     const zs = [tri.az, tri.bz, tri.cz];
@@ -170,12 +182,51 @@ export function rasterizeView(
 // ---- Scene flattening --------------------------------------------------------
 
 /**
+ * Apply a rigid transform to one world-space triangle. Used for the
+ * per-yaw pass over a cached skinned pose: positions rotate, normals
+ * rotate with them (pure rotation ⇒ normal matrix = the rotation).
+ */
+const _rotV = new Vector3();
+function rotateTri(tri: WorldTri, m: Matrix4): WorldTri {
+  const rot = (
+    x: number,
+    y: number,
+    z: number,
+  ): { x: number; y: number; z: number } => {
+    _rotV.set(x, y, z).applyMatrix4(m);
+    return { x: _rotV.x, y: _rotV.y, z: _rotV.z };
+  };
+  const a = rot(tri.ax, tri.ay, tri.az);
+  const b = rot(tri.bx, tri.by, tri.bz);
+  const c = rot(tri.cx, tri.cy, tri.cz);
+  const n = rot(tri.nx, tri.ny, tri.nz);
+  const len = Math.hypot(n.x, n.y, n.z) || 1;
+  return {
+    ax: a.x,
+    ay: a.y,
+    az: a.z,
+    bx: b.x,
+    by: b.y,
+    bz: b.z,
+    cx: c.x,
+    cy: c.y,
+    cz: c.z,
+    nx: n.x / len,
+    ny: n.y / len,
+    nz: n.z / len,
+  };
+}
+
+/**
  * Walk a scene (after updateMatrixWorld) and collect every mesh's
  * triangles in world space.
  *
- * SWAP(skinning): rigid parts parented to Bones need nothing here. A
- * real GLTF SkinnedMesh would add a vertex-skinning stage to this walk
- * (boneMatrices × skinIndex/skinWeight before the world matrix).
+ * SWAP(skinning) — RESOLVED (ASSET-INVENTORY change #2): SkinnedMesh
+ * vertices now go through three's own CPU skinning path
+ * (`getVertexPosition` → bone-weighted blend in mesh-local space)
+ * before the world matrix. Skinned surfaces derive FLAT face normals
+ * from the blended positions — bind-pose attribute normals would be
+ * wrong under deformation, and flat shading is the bake's look anyway.
  */
 export function flattenScene(root: Object3D): WorldTri[] {
   const tris: WorldTri[] = [];
@@ -183,10 +234,13 @@ export function flattenScene(root: Object3D): WorldTri[] {
   root.traverse((node) => {
     const mesh = node as Mesh;
     if (!mesh.isMesh || !mesh.geometry) return;
+    const skinned =
+      (mesh as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh === true;
     const geometry = mesh.geometry as BufferGeometry;
     const position = geometry.getAttribute("position") as BufferAttribute;
-    const normalAttr = geometry.getAttribute("normal") as
-      BufferAttribute | undefined;
+    const normalAttr = skinned
+      ? undefined
+      : (geometry.getAttribute("normal") as BufferAttribute | undefined);
     const world = mesh.matrixWorld;
     normalMatrix.getNormalMatrix(world);
     const index = geometry.getIndex();
@@ -196,9 +250,9 @@ export function flattenScene(root: Object3D): WorldTri[] {
       const ia = index ? index.getX(i)! : i;
       const ib = index ? index.getX(i + 1)! : i + 1;
       const ic = index ? index.getX(i + 2)! : i + 2;
-      const a = worldVertex(position, ia!, world);
-      const b = worldVertex(position, ib!, world);
-      const c = worldVertex(position, ic!, world);
+      const a = worldVertex(position, ia!, world, mesh, skinned);
+      const b = worldVertex(position, ib!, world, mesh, skinned);
+      const c = worldVertex(position, ic!, world, mesh, skinned);
 
       let nx: number;
       let ny: number;
@@ -217,6 +271,8 @@ export function flattenScene(root: Object3D): WorldTri[] {
           normalMatrix.elements[5]! * normalAttr.getY(ia!)! +
           normalMatrix.elements[8]! * normalAttr.getZ(ia!)!;
       } else {
+        // Face normal from the TRANSFORMED positions (correct under
+        // skinning; also the fallback for normal-less geometry).
         const ux = b.x - a.x;
         const uy = b.y - a.y;
         const uz = b.z - a.z;
@@ -247,11 +303,31 @@ export function flattenScene(root: Object3D): WorldTri[] {
 
 const va = new Vector3();
 
-function worldVertex(attr: BufferAttribute, i: number, m: Matrix4): Vector3 {
-  return va
-    .set(attr.getX(i)!, attr.getY(i)!, attr.getZ(i)!)
-    .applyMatrix4(m)
-    .clone();
+function worldVertex(
+  attr: BufferAttribute,
+  i: number,
+  m: Matrix4,
+  mesh: Mesh,
+  skinned: boolean,
+): Vector3 {
+  if (!skinned) {
+    return va
+      .set(attr.getX(i)!, attr.getY(i)!, attr.getZ(i)!)
+      .applyMatrix4(m)
+      .clone();
+  }
+  // CPU skinning via three's own implementation; returns a vertex in
+  // MESH-LOCAL space, then the usual world matrix applies.
+  const sm = mesh as unknown as {
+    getVertexPosition?(index: number, target: Vector3): Vector3;
+  };
+  const v = new Vector3();
+  if (sm.getVertexPosition) {
+    sm.getVertexPosition(i, v);
+  } else {
+    v.set(attr.getX(i)!, attr.getY(i)!, attr.getZ(i)!);
+  }
+  return v.applyMatrix4(m);
 }
 
 function normalized(

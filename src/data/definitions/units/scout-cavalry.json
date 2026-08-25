@@ -2,7 +2,9 @@
   "id": "scout-cavalry",
   "name": "Scout Cavalry",
   "kind": "unit",
-  "costs": { "food": 80 },
+  "costs": {
+    "food": 80
+  },
   "ageGate": "feudal",
   "techPrereqs": [],
   "trainTime": 900,
@@ -11,7 +13,18 @@
   "carryCapacity": 0,
   "attack": 3,
   "armorClasses": ["cavalry"],
-  "attackBonuses": [{ "armorClass": "archer", "mult": 1.5 }],
+  "attackBonuses": [
+    {
+      "armorClass": "archer",
+      "mult": 1.5
+    }
+  ],
   "sightRadius": 8,
+  "activityAnims": {
+    "attack": "attack",
+    "idle": "idle",
+    "walk": "gallop",
+    "death": "death"
+  },
   "equipmentSlots": ["weapon", "armor"]
 }
