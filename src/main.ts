@@ -111,6 +111,11 @@ import {
   strategyWeightsOf,
 } from "./sim/components/management";
 import { RtsCamera } from "./render/camera";
+import { hookGestureGate } from "./audio/context";
+import { createBuses } from "./audio/buses";
+import { VoicePool } from "./audio/voices";
+import { AudioScheduler } from "./audio/scheduler";
+import { collectAudioIntents, minuteOfDay } from "./audio/simBridge";
 import { createBuildingLayer } from "./render/buildings";
 import {
   copyFogTexture,
@@ -251,6 +256,45 @@ scene.add(terrain);
 const cameraRig = new RtsCamera({ mapSize: world.layers.size });
 cameraRig.resize(window.innerWidth, window.innerHeight);
 cameraRig.setCenter(world.layers.size / 2, world.layers.size / 2);
+
+// ---- Audio (M5-T1): gesture-gated context, buses, voice pool, scheduler -----
+hookGestureGate();
+const audioCtxHolder: { current: AudioContext | null } = { current: null };
+const getAudioCtx = (): AudioContext | null => {
+  if (!audioCtxHolder.current) {
+    const Ctor = window.AudioContext;
+    if (Ctor) audioCtxHolder.current = new Ctor();
+  }
+  if (audioCtxHolder.current?.state === "suspended")
+    void audioCtxHolder.current.resume();
+  return audioCtxHolder.current;
+};
+const audioBusesHolder: { current: ReturnType<typeof createBuses> | null } = {
+  current: null,
+};
+const voicePool = new VoicePool(
+  getAudioCtx,
+  () => {
+    const ctx = getAudioCtx();
+    if (!audioBusesHolder.current && ctx)
+      audioBusesHolder.current = createBuses(ctx);
+    return audioBusesHolder.current;
+  },
+  () => {
+    const cam = cameraRig.camera as OrthographicCameraLike;
+    return {
+      leftX: cam.position.x + cam.left,
+      rightX: cam.position.x + cam.right,
+    };
+  },
+);
+const audioScheduler = new AudioScheduler();
+let lastAudioTick = -1;
+interface OrthographicCameraLike {
+  position: { x: number };
+  left: number;
+  right: number;
+}
 
 // Mirror plumbing: reusable capture staging + allocation-free sampling.
 let staging: SimSnapshotFrame | undefined;
@@ -1127,6 +1171,19 @@ function frame(
   buildingFrame = captureBuildingSnapshot(world, comps, {
     reusable: buildingFrame,
   });
+
+  // Audio (M5-T1): poll new sim event rows → intents; ambient by clock;
+  // drain through the capped voice pool. Render-side only — sim untouched.
+  voicePool.beginFrame();
+  if (world.tick !== lastAudioTick) {
+    const since = lastAudioTick < 0 ? world.tick : lastAudioTick;
+    lastAudioTick = world.tick;
+    for (const intent of collectAudioIntents(world, comps, PLAYER_ONE, since)) {
+      audioScheduler.push(intent);
+    }
+    audioScheduler.ambient(minuteOfDay(world.tick), now);
+  }
+  audioScheduler.drain((batch) => voicePool.play(batch));
 
   // Fog texture rotation (SPEC §2.9): on a fog-dirty tick boundary,
   // curr becomes prev and fresh planes land in curr; uBlend then sweeps

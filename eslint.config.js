@@ -81,7 +81,14 @@ export default [
               message: "tests run headless; three.js needs a browser.",
             },
             {
-              group: ["**/audio/**"],
+              // Pure audio logic (intents/coalescing/clock math) IS testable
+              // headless; only AudioContext-coupled modules stay banned.
+              group: [
+                "**/audio/context",
+                "**/audio/buses",
+                "**/audio/voices",
+                "**/audio/placeholder",
+              ],
               message: "audio needs a browser AudioContext.",
             },
           ],
