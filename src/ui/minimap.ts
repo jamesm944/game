@@ -57,7 +57,13 @@ const TERRAIN_MINI_HEX: readonly number[] = [
   0x39562e, // forest-floor
 ];
 
-const UNIT_DOT_HEX = "#6fa8ff";
+// Dot palette (M5-T4 §2.13 readability pass): own dots brightened so
+// they stay readable over the night-dimmed terrain bake and the fog
+// dim overlay; enemy dots get their own warm hue instead of sharing
+// the own-unit blue — under a 0.45 black dim layer two same-hue dots
+// were indistinguishable. Exported for headless assertions.
+export const OWN_DOT_HEX = "#a9d2ff";
+export const ENEMY_DOT_HEX = "#ff8a66";
 const SELECTED_DOT_HEX = "#ffffff";
 
 function shade(hex: number, factor: number): string {
@@ -239,7 +245,11 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
             continue;
           }
           const selected = deps.isSelected(eid);
-          ctx.fillStyle = selected ? SELECTED_DOT_HEX : UNIT_DOT_HEX;
+          ctx.fillStyle = selected
+            ? SELECTED_DOT_HEX
+            : own
+              ? OWN_DOT_HEX
+              : ENEMY_DOT_HEX;
           const dot = selected ? 3 : 2;
           ctx.fillRect(
             x * pxPerTile - dot / 2,

@@ -17,9 +17,11 @@
 import { peekActivity, type Activity } from "./activities";
 import {
   BODY_PART_SLUGS,
+  injuryImpairmentOf,
   readInjuries,
   readScars,
   type BodyPartSlug,
+  type ImpairmentMultipliers,
   type InjuryReadout,
   type ScarReadout,
 } from "./components/body";
@@ -95,6 +97,12 @@ export interface PopCardData {
   readonly bodyParts: readonly PopCardBodyPart[];
   readonly injuries: readonly InjuryReadout[];
   readonly scars: readonly ScarReadout[];
+  /**
+   * Derived-on-read impairment factors from open wounds (§2.13:
+   * "injury must have visible mechanical meaning") — the exact
+   * multipliers the movement/work/combat systems apply.
+   */
+  readonly impairments: ImpairmentMultipliers;
   readonly morale?: PopCardMorale | undefined;
   readonly activity: string;
 }
@@ -184,6 +192,7 @@ export function buildPopCard(
   // ---- Body: per-part status + raw readouts --------------------------
   const injuries = readInjuries(world, comps, eid) ?? [];
   const scars = readScars(world, comps, eid) ?? [];
+  const impairments = injuryImpairmentOf(world, comps, eid);
   const bodyParts: PopCardBodyPart[] = BODY_PART_SLUGS.map((part) => {
     const openSeverity = injuries
       .filter((injury) => injury.part === part)
@@ -240,6 +249,7 @@ export function buildPopCard(
     bodyParts,
     injuries,
     scars,
+    impairments,
     morale,
     activity,
   };

@@ -27,8 +27,13 @@ import {
 
 /** Vertical world extent at default zoom (map is 120 tiles wide). */
 const DEFAULT_VIEW_HEIGHT = 90;
-const MIN_VIEW_HEIGHT = 24;
-const MAX_VIEW_HEIGHT = 240;
+/**
+ * Zoom clamp (exported for the §7 LOD band math): viewHeight between
+ * MIN and MAX maps linearly onto zoom-out [0,1]; past the far-band
+ * fraction sprite playback throttles to 7.5 fps.
+ */
+export const MIN_VIEW_HEIGHT = 24;
+export const MAX_VIEW_HEIGHT = 240;
 /** Screen-heights panned per second while a pan input is held. */
 const PAN_SPEED_PER_SECOND = 1.1;
 /** Pixels from the window edge where edge-scroll engages. */

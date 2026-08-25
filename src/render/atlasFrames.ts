@@ -308,6 +308,43 @@ export function writeSpriteAttributes(
 /** SPEC §7 near-band clip quantum. */
 export const PLAYBACK_QUANTUM_FPS = 15;
 
+// ---- LOD zoom bands (SPEC §7 / M5-T4) -----------------------------------------
+
+/**
+ * Far-band trigger: once the camera is ≥ this fraction of the way from
+ * fully-zoomed-in to fully-zoomed-out, sprite playback throttles to the
+ * far-band rate below (SPEC §7: "far band >60% zoom-out").
+ */
+export const FAR_BAND_ZOOM_OUT_FRACTION = 0.6;
+
+/**
+ * Far-band playback quantum: half the near-band rate — motion still
+ * reads at map scale, but frame flips (and their texture fetches)
+ * halve exactly when individual sprites are too small to show them.
+ */
+export const FAR_BAND_QUANTUM_FPS = PLAYBACK_QUANTUM_FPS / 2;
+
+/**
+ * Zoom-derived playback quantum for the billboard shader's time
+ * quantization (SPEC §7 LOD bands): `viewHeight` between the camera's
+ * min/near and max/far frustum heights maps linearly onto zoom-out
+ * [0,1]; past {@link FAR_BAND_ZOOM_OUT_FRACTION} the rate drops from
+ * the near-band 15 fps to the far-band 7.5 fps. Pure + three-free so
+ * the shader feeder and this suite share one definition of the bands.
+ */
+export function playbackRateForZoom(
+  viewHeight: number,
+  minHeight: number,
+  maxHeight: number,
+): number {
+  const span = maxHeight - minHeight;
+  if (!(span > 0)) return PLAYBACK_QUANTUM_FPS;
+  const zoomOut01 = (viewHeight - minHeight) / span;
+  return zoomOut01 >= FAR_BAND_ZOOM_OUT_FRACTION
+    ? FAR_BAND_QUANTUM_FPS
+    : PLAYBACK_QUANTUM_FPS;
+}
+
 // ---- Runtime atlas index (wire format shared with tools/atlas-bake) ----------
 
 /** One action row as serialized by the bake tool. */

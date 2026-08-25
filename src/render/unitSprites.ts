@@ -6,8 +6,10 @@
  * on the GPU:
  *
  * - Playback: the vertex shader advances frames from uTime alone,
- *   quantized to the near-band 15 fps clip rate — identical formula to
- *   render/atlasFrames.frameAtTime. CPU animation cost: zero.
+ *   quantized to a zoom-derived playback rate (uPlaybackRate) — the
+ *   §7 LOD bands: near band 15 fps, far band (>60% zoom-out) 7.5 fps,
+ *   identical formula to atlasFrames.frameAtTime. CPU animation cost:
+ *   zero.
  * - Frame lookup: two RGBA32F index textures built by parseAtlasIndex
  *   (per-frame uv rects + per-action base/count/duration); the shader
  *   resolves (action slot, directionIndex, quantized frame) → uv rect.
@@ -73,6 +75,12 @@ export interface UnitSpriteLayer {
     tintB: number,
   ): number;
   setTime(timeSec: number): void;
+  /**
+   * Set the zoom-derived playback rate (LOD band, SPEC §7): the
+   * quantization fps the vertex shader snaps uTime to before dividing
+   * the loop. Near band 15, far band 7.5 — see atlasFrames.
+   */
+  setPlaybackRate(quantumFps: number): void;
   dispose(): void;
 }
 
@@ -80,7 +88,7 @@ const VERTEX_SHADER = /* glsl */ `
   uniform sampler2D uRects;    // RGBA32F per absolute frame: u0, v0, du, dv
   uniform sampler2D uActions;  // RGBA32F per action slot: base, count, duration, yawCount
   uniform float uTime;
-  uniform float uQuantumFps;
+  uniform float uPlaybackRate; // LOD zoom band: quantization fps (15 near / 7.5 far)
   uniform float uActionSlot;
   uniform float uActionSlots;
   uniform float uRectFrames;
@@ -99,10 +107,11 @@ const VERTEX_SHADER = /* glsl */ `
       uActions,
       vec2((uActionSlot + 0.5) / uActionSlots, 0.5)
     );
-    // Near-band quantized playback (mirrors atlasFrames.frameAtTime):
-    // time snaps to the quantum BEFORE dividing the loop, so a whole
-    // type flips frames together on shared ticks.
-    float tq = floor(uTime * uQuantumFps) / uQuantumFps;
+    // Quantized playback (mirrors atlasFrames.frameAtTime): time snaps
+    // to the zoom-derived quantum BEFORE dividing the loop, so a whole
+    // type flips frames together on shared ticks — near band 15 fps,
+    // far band (>60% zoom-out) throttled to 7.5 fps (SPEC §7).
+    float tq = floor(uTime * uPlaybackRate) / uPlaybackRate;
     float wrapped = tq - floor(tq / am.z) * am.z;
     float local = min(floor(wrapped / am.z * am.y), am.y - 1.0);
     float absolute = am.x + aDirectionIndex * am.y + local;
@@ -186,7 +195,7 @@ export function createUnitSpriteLayer(
         value: buildFloatTexture(atlas.actionTexels, atlas.actions.length),
       },
       uTime: { value: 0 },
-      uQuantumFps: { value: PLAYBACK_QUANTUM_FPS },
+      uPlaybackRate: { value: PLAYBACK_QUANTUM_FPS },
       uActionSlot: { value: slot },
       uActionSlots: { value: atlas.actions.length },
       uRectFrames: { value: atlas.totalFrames },
@@ -224,6 +233,12 @@ export function createUnitSpriteLayer(
     setTime(timeSec: number) {
       const time = material.uniforms.uTime;
       if (time) time.value = timeSec;
+    },
+    setPlaybackRate(quantumFps: number) {
+      const rate = material.uniforms.uPlaybackRate;
+      if (rate && Number.isFinite(quantumFps) && quantumFps > 0) {
+        rate.value = quantumFps;
+      }
     },
     dispose() {
       quad.dispose();

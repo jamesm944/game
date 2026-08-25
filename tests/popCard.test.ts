@@ -14,12 +14,18 @@ import {
   spawnUnit,
 } from "../src/sim/components";
 import { setComponentValues } from "../src/sim/core/world";
-import { BODY_PART_SLUGS, BODY_PART_TORSO } from "../src/sim/components/body";
+import {
+  addInjuryStack,
+  BODY_PART_LEG_L,
+  BODY_PART_SLUGS,
+  BODY_PART_TORSO,
+} from "../src/sim/components/body";
 import { enterRouting } from "../src/sim/components/morale";
 import { awardPractice, grantKnowledge } from "../src/sim/systems/skills";
 import { activityLabelOf, buildPopCard } from "../src/sim/popCard";
 import {
   formatBodyStrip,
+  formatImpairmentLine,
   formatMoraleLine,
   formatPopCardTitle,
   formatSkillBarLabel,
@@ -168,6 +174,35 @@ describe("buildPopCard exporter", () => {
     expect(card.morale?.routing).toBe(true);
     expect(card.activity).toBe("Fleeing!");
     expect(formatMoraleLine(card)).toContain("ROUTING");
+  });
+
+  it("surfaces the derived impairment multipliers (M5-T4 §2.13)", () => {
+    const w = world();
+    const comps = defineSimComponents(w);
+    // Healthy: neutral — the card hides the line entirely.
+    const healthy = spawnUnit(w, comps, 5.5, 5.5, {
+      identity: true,
+      body: true,
+    });
+    const okCard = buildPopCard(w, comps, healthy)!;
+    expect(okCard.impairments).toEqual({
+      speedMult: 1,
+      attackMult: 1,
+      workMult: 1,
+    });
+    expect(formatImpairmentLine(okCard)).toBe("");
+    // One open leg wound at half group capacity: legs shave speed by
+    // IMPAIRMENT_MAX_PENALTY_PCT × 0.5 → ×0.75; arms/vitals untouched.
+    const hurt = spawnUnit(w, comps, 6.5, 5.5, {
+      identity: true,
+      body: true,
+    });
+    addInjuryStack(w, comps, hurt, BODY_PART_LEG_L, 50, 1500);
+    const card = buildPopCard(w, comps, hurt)!;
+    expect(card.impairments.speedMult).toBeCloseTo(0.75, 6);
+    expect(card.impairments.workMult).toBe(1);
+    expect(card.impairments.attackMult).toBe(1);
+    expect(formatImpairmentLine(card)).toBe("impairs speed ×0.75");
   });
 
   it("omits the break point for Pops without a Morale row", () => {

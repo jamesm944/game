@@ -1,7 +1,23 @@
 /** Mix graph: master → {music, sfx, ui, ambient} GainNodes; volumes persist to localStorage; ducking for jingles/stingers (SPEC §2.10). */
 
 export type BusName = "music" | "sfx" | "ui" | "ambient";
-const VOLUME_KEY = "ageofwind.volumes";
+/** localStorage key volumes persist under (ui/settings.ts writes the same format). */
+export const VOLUME_KEY = "ageofwind.volumes";
+
+/**
+ * Default bus gains — the single source shared by createBuses's
+ * loadVolume and the settings panel's initial slider positions.
+ */
+export const DEFAULT_BUS_VOLUMES: Readonly<Record<BusName | "master", number>> =
+  Object.freeze({
+    master: 0.8,
+    music: 0.6,
+    sfx: 0.9,
+    ui: 0.7,
+    ambient: 0.5,
+  });
+
+const DEFAULTS = DEFAULT_BUS_VOLUMES;
 
 export interface Buses {
   master: GainNode;
@@ -10,14 +26,6 @@ export interface Buses {
   ui: GainNode;
   ambient: GainNode;
 }
-
-const DEFAULTS: Record<BusName | "master", number> = {
-  master: 0.8,
-  music: 0.6,
-  sfx: 0.9,
-  ui: 0.7,
-  ambient: 0.5,
-};
 
 export function createBuses(ctx: AudioContext): Buses {
   const master = ctx.createGain();

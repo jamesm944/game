@@ -130,8 +130,9 @@ import {
   strategyWeightsOf,
 } from "./sim/components/management";
 import { RtsCamera } from "./render/camera";
+import { MAX_VIEW_HEIGHT, MIN_VIEW_HEIGHT } from "./render/camera";
 import { hookGestureGate } from "./audio/context";
-import { createBuses } from "./audio/buses";
+import { createBuses, setBusVolume } from "./audio/buses";
 import { VoicePool } from "./audio/voices";
 import { AudioScheduler } from "./audio/scheduler";
 import { collectAudioIntents, minuteOfDay } from "./audio/simBridge";
@@ -150,6 +151,10 @@ import {
 } from "./render/mirror";
 import { buildTerrainMesh, terrainHeightAt } from "./render/terrain";
 import { createUnitSpriteLayer } from "./render/unitSprites";
+import {
+  PLAYBACK_QUANTUM_FPS,
+  playbackRateForZoom,
+} from "./render/atlasFrames";
 import { createHealthBars } from "./render/healthBars";
 import {
   HEALTH_BAR_CAPACITY,
@@ -197,6 +202,16 @@ import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createToastHost } from "./ui/toast";
 import { sanitizeSlotName, createPauseMenu } from "./ui/pauseMenu";
 import {
+  consumeDifficulty,
+  createSettingsPanel,
+  formatAutosaveInterval,
+  persistVolume,
+  readStoredVolumes,
+  stashDifficulty,
+  type BusVolumeName,
+} from "./ui/settings";
+import { createDevStatsHud, type DevStatsHandle } from "./ui/devstats";
+import {
   createReplayDesyncPanel,
   createReplayProgressOverlay,
 } from "./ui/replayOverlay";
@@ -224,6 +239,13 @@ const DEV_SEED = 20260822;
  * bootstrap; absent one, the dev seed replays the familiar map.
  */
 const bootSeed = consumeNextSeed(window.localStorage) ?? DEV_SEED;
+/**
+ * Settings handoff (M5-T4): a stashed difficulty choice (ui/settings.ts
+ * panel) feeds THIS boot's session bootstrap — one stash fires exactly
+ * one match, same semantics as the restart seed above. Absent a stash
+ * the session default ("normal") applies.
+ */
+const chosenDifficulty = consumeDifficulty(window.localStorage);
 /**
  * Mirror/overlay sample capacity: sized past the dev start population
  * so M2-T6 trained armies render without re-allocating the frame loop's
@@ -264,6 +286,7 @@ if (pendingLoad !== undefined) {
   try {
     const restored = await restoreSkirmishSession(pendingLoad, {
       createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+      aiDifficulty: chosenDifficulty,
     });
     session = restored;
     console.info(
@@ -279,12 +302,14 @@ if (pendingLoad !== undefined) {
     window.setTimeout(() => banner.remove(), 6000);
     session = createSkirmishWorld(bootSeed, {
       createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+      aiDifficulty: chosenDifficulty,
     });
   }
 } else {
   session = createSkirmishWorld(bootSeed, {
     createTransport: () => createWorkerTransport(createPathWorkerFactory()),
     replay: recorder,
+    aiDifficulty: chosenDifficulty,
   });
 }
 recorder?.beginPlay();
@@ -597,6 +622,36 @@ function currentPlacementCheck(): {
 // Polite same-frame refusal feedback (SPEC §2.13): a click the sim
 // would reject for age shows why, right now.
 const toast = createToastHost();
+
+// ---- Settings panel (M5-T4): audio buses, difficulty, autosave line ----
+//
+// Volume moves persist through setBusVolume once the gesture-gated
+// context has built the bus graph; until then the storage-only path
+// writes the identical key/format so createBuses applies it on first
+// unlock. Difficulty rides the localStorage stash into THIS file's
+// session bootstrap above; the running match's knobs are fixed at boot.
+const settingsPanel = createSettingsPanel({
+  volumes: readStoredVolumes(window.localStorage),
+  autosaveLabel: formatAutosaveInterval(AUTOSAVE_INTERVAL_TICKS),
+  difficulty: session.aiDifficulty,
+  onSetVolume: (name: BusVolumeName, value: number) => {
+    const buses = audioBusesHolder.current;
+    if (buses) setBusVolume(buses, name, value);
+    else persistVolume(window.localStorage, name, value);
+  },
+  onSetDifficulty: (id) => {
+    stashDifficulty(window.localStorage, id);
+    toast.show(`AI ${id} — applies to the next match`);
+  },
+});
+void settingsPanel;
+
+// Dev-only §7 audit line (draw calls · triangles · playback band) —
+// production builds ship without it; see docs/m5-manual.md.
+let devStats: DevStatsHandle | undefined;
+if (import.meta.env.DEV) devStats = createDevStatsHud();
+/** Current LOD playback quantum — feeds the layer AND the dev line. */
+let currentPlaybackFps = PLAYBACK_QUANTUM_FPS;
 
 // ---- Saves + pause chrome (M5-T2, §2.12): slots, autosave, import/export -----
 //
@@ -1544,7 +1599,15 @@ function frame(
     noteLiveEids(staging.eids, staging.count);
   }
 
+  // §7 LOD zoom bands: the sprite shader's playback quantum derives
+  // from live zoom — near band 15 fps, far band (>60% zoom-out) 7.5.
+  currentPlaybackFps = playbackRateForZoom(
+    cameraRig.viewHeight,
+    MIN_VIEW_HEIGHT,
+    MAX_VIEW_HEIGHT,
+  );
   villagerLayer.setTime(spriteTimeSec);
+  villagerLayer.setPlaybackRate(currentPlaybackFps);
   writePopInstances(
     villagerLayer,
     culledPositions,
@@ -1716,9 +1779,12 @@ function frame(
   // SPEC §7 draw-call budget: terrain + instanced sprite field +
   // buildings + EXACTLY TWO overlay draws (selection rings + health
   // bars) must stay in the single digits. Logged every frame; the
-  // browser-only overlay-count dev check lives in docs/m2-overlays.md.
+  // dev HUD line (renderer.info draw calls/triangles live, M5-T4)
+  // makes the ≤150 @500-instance audit visible in-browser — manual
+  // pass documented in docs/m5-manual.md.
   const calls = renderer.info.render.calls;
   console.assert(calls <= 9, `draw calls ${calls} exceed §7 handful budget`);
+  devStats?.update(calls, renderer.info.render.triangles, currentPlaybackFps);
 }
 
 loadVillagerLayer()

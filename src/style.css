@@ -986,3 +986,128 @@ canvas {
   border-radius: 6px;
   cursor: pointer;
 }
+
+/* Dev-only §7 render-stats line (M5-T4 draw-call audit): sits just
+   above the minimap; turns red when calls exceed the hard cap. */
+#dev-stats {
+  position: fixed;
+  right: 12px;
+  bottom: 200px;
+  padding: 4px 9px;
+  font:
+    11px/1.4 ui-monospace,
+    monospace;
+  color: #8fd48f;
+  background: rgb(16 20 28 / 0.72);
+  border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
+}
+
+#dev-stats[data-over-budget="true"] {
+  color: #ff7b6b;
+  font-weight: 700;
+}
+
+/* Settings panel (M5-T4): toggle beside the minimap, panel above it. */
+#settings-toggle {
+  position: fixed;
+  right: 204px;
+  bottom: 12px;
+  padding: 5px 12px;
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#settings-toggle:hover {
+  border-color: rgb(255 255 255 / 0.45);
+}
+
+#settings-panel {
+  position: fixed;
+  right: 204px;
+  bottom: 46px;
+  z-index: 30;
+  width: 264px;
+  padding: 8px 12px 10px;
+  font:
+    12px/1.5 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.92);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 8px;
+}
+
+#settings-panel[hidden] {
+  display: none;
+}
+
+#settings-panel h3 {
+  margin: 0 0 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa3c7;
+}
+
+#settings-panel h4 {
+  margin: 8px 0 2px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8fa3c7;
+}
+
+.settings-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
+}
+
+.settings-volume-label {
+  flex: 0 0 58px;
+}
+
+.settings-volume-row input[type="range"] {
+  flex: 1 1 auto;
+  accent-color: #f0d9a0;
+}
+
+.settings-volume-value {
+  flex: 0 0 38px;
+  text-align: right;
+  color: #f0d9a0;
+}
+
+.settings-difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.settings-difficulty-row select {
+  font: inherit;
+  color: #10141c;
+  background: #e8edf5;
+  border: 0;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.settings-note {
+  color: #8fa3c7;
+}
+
+.settings-autosave-row {
+  margin-top: 10px;
+  color: #8fa3c7;
+}

@@ -64,6 +64,31 @@ export function formatBodyStrip(data: PopCardData): string {
     .join(" · ");
 }
 
+/** Any multiplier below this counts as an active penalty on the card. */
+const IMPAIRMENT_EPSILON = 0.999;
+
+/** Two-decimal multiplier fragment, e.g. `speed ×0.72`. */
+function impairmentFragment(label: string, mult: number): string | undefined {
+  if (mult >= IMPAIRMENT_EPSILON) return undefined;
+  return `${label} ×${mult.toFixed(2)}`;
+}
+
+/**
+ * The mechanical-meaning line for open wounds (§2.13): the exact
+ * derived multipliers the sim applies, e.g.
+ * `impairs speed ×0.72 · work ×0.85 · aim ×0.85`. Empty while healthy
+ * — the strip above already shows scars, which no longer impair.
+ */
+export function formatImpairmentLine(data: PopCardData): string {
+  const { speedMult, workMult, attackMult } = data.impairments;
+  const parts = [
+    impairmentFragment("speed", speedMult),
+    impairmentFragment("work", workMult),
+    impairmentFragment("aim", attackMult),
+  ].filter((part) => part !== undefined);
+  return parts.length === 0 ? "" : `impairs ${parts.join(" · ")}`;
+}
+
 export function createPopCard(deps: { getData(): PopCardData | undefined }): {
   refresh(): void;
 } {
@@ -80,6 +105,8 @@ export function createPopCard(deps: { getData(): PopCardData | undefined }): {
   skillsEl.className = "pop-card-skills";
   const bodyEl = document.createElement("div");
   bodyEl.className = "pop-card-body";
+  const impairmentEl = document.createElement("div");
+  impairmentEl.className = "pop-card-impairment";
   const moraleBarWrap = document.createElement("div");
   moraleBarWrap.className = "panel-bar pop-card-morale-bar";
   const moraleFill = document.createElement("div");
@@ -142,6 +169,9 @@ export function createPopCard(deps: { getData(): PopCardData | undefined }): {
         );
         if (data.skills.length === 0) skillsEl.textContent = "no training";
         bodyEl.textContent = formatBodyStrip(data);
+        const impairmentText = formatImpairmentLine(data);
+        impairmentEl.textContent = impairmentText;
+        impairmentEl.style.display = impairmentText === "" ? "none" : "block";
         if (data.hp) {
           const hpLine = document.createElement("div");
           hpLine.className = "pop-card-hp";
@@ -154,6 +184,7 @@ export function createPopCard(deps: { getData(): PopCardData | undefined }): {
           traitsEl,
           skillsEl,
           bodyEl,
+          impairmentEl,
           moraleBarWrap,
           moraleEl,
           activityEl,
