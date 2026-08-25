@@ -422,12 +422,13 @@ export function createSkirmishWorld(
   createPlayerStockpile(world, comps, PLAYER_ONE, [...STARTING_RESOURCES]);
   createCommodityStockpile(world, comps, PLAYER_ONE);
   createPlayerAgeState(world, comps, PLAYER_ONE);
+  const playerTcOrigin = findHumanTcOrigin(world, comps);
   stampFinishedBuilding(
     world,
     comps,
     "town-center",
-    Math.floor(centerSpot.x) - 1,
-    Math.floor(centerSpot.y) - 2,
+    playerTcOrigin.x,
+    playerTcOrigin.y,
     { playerId: PLAYER_ONE },
   );
   spawnStartVillagers(world, comps, centerSpot);
@@ -608,6 +609,34 @@ function requirePlayerTcEid(world: World, comps: SimComponents): number {
     }
   }
   throw new Error("player town center missing before AI bootstrap");
+}
+
+/**
+ * First central candidate whose 3×3 footprint stamps cleanly. The first
+ * candidate reproduces the historical blind stamp exactly (center tile,
+ * offset −1,−2), so seeds that already booted are byte-identical; seeds
+ * whose center footprint straddles water fall through to the next
+ * nearest passable candidate instead of throwing at boot.
+ */
+function findHumanTcOrigin(
+  world: World,
+  comps: SimComponents,
+): { x: number; y: number } {
+  for (const spot of centralPassableTiles(world, 40)) {
+    const tileX = Math.floor(spot.x) - 1;
+    const tileY = Math.floor(spot.y) - 2;
+    // Bootstrap privilege mirrors stampFinishedBuilding: age gate and
+    // fog ignored, geometry still enforced.
+    if (
+      validatePlacement(world, comps, "town-center", tileX, tileY, PLAYER_ONE, {
+        ignoreAgeGate: true,
+        ignoreFog: true,
+      }).ok
+    ) {
+      return { x: tileX, y: tileY };
+    }
+  }
+  throw new Error("no valid town-center site near the map center");
 }
 
 /** First mirrored candidate whose 3×3 footprint stamps cleanly. */

@@ -409,10 +409,24 @@ function emitForStep(
       // the §2.9 explored rule — scripted spots outside AI knowledge
       // are structurally unreachable. Same-pass reservations keep two
       // drafts off one footprint (sites exist only next tick).
-      if (reserved.isReserved(action.defId, slot.x, slot.y)) continue;
+      if (
+        reserved.isReserved(
+          slot.x,
+          slot.y,
+          def.footprint.width,
+          def.footprint.height,
+        )
+      ) {
+        continue;
+      }
       if (!k.canPlace(action.defId, slot.x, slot.y)) continue;
       budget.debit(def.costs);
-      reserved.reserve(action.defId, slot.x, slot.y);
+      reserved.reserve(
+        slot.x,
+        slot.y,
+        def.footprint.width,
+        def.footprint.height,
+      );
       return {
         kind: "placeBuilding",
         data: {

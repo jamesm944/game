@@ -125,16 +125,31 @@ function placeOneHouse(
   reserved: SpotReservation,
   out: CommandDraft[],
 ): boolean {
-  const costs = buildingDefOf("house").costs;
+  const houseDef = buildingDefOf("house");
+  const costs = houseDef.costs;
   if (!budget.afford(costs)) return false;
   const tcEid = k.finishedBuildings("town-center")[0];
   const origin = tcEid !== undefined ? k.ownBuildingOrigin(tcEid) : undefined;
   if (!origin) return false;
   for (const slot of houseCandidateSlots(origin.x, origin.y)) {
-    if (reserved.isReserved("house", slot.x, slot.y)) continue;
+    if (
+      reserved.isReserved(
+        slot.x,
+        slot.y,
+        houseDef.footprint.width,
+        houseDef.footprint.height,
+      )
+    ) {
+      continue;
+    }
     if (!k.canPlace("house", slot.x, slot.y)) continue;
     budget.debit(costs);
-    reserved.reserve("house", slot.x, slot.y);
+    reserved.reserve(
+      slot.x,
+      slot.y,
+      houseDef.footprint.width,
+      houseDef.footprint.height,
+    );
     out.push({
       kind: "placeBuilding",
       data: {

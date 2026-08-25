@@ -512,23 +512,47 @@ export function createResourceBudget(knowledge: AiKnowledge): ResourceBudget {
 }
 
 export interface SpotReservation {
-  isReserved: (defId: string, tileX: number, tileY: number) => boolean;
-  reserve: (defId: string, tileX: number, tileY: number) => void;
+  isReserved: (
+    tileX: number,
+    tileY: number,
+    width: number,
+    height: number,
+  ) => boolean;
+  reserve: (
+    tileX: number,
+    tileY: number,
+    width: number,
+    height: number,
+  ) => void;
 }
 
 /**
  * Footprints claimed by drafts already emitted THIS pass. Placement
  * sites only materialize at the next tick boundary, so two same-pass
  * emissions would otherwise validate against the same free ground and
- * the loser would throw "occupied" on execution.
+ * the loser would throw "occupied" on execution. Claims are recorded
+ * per TILE over each candidate's whole footprint and are
+ * definition-independent — a house draft must block a barracks draft
+ * that overlaps it, not merely another house at the same origin.
  */
 export function createSpotReservation(): SpotReservation {
   const reserved = new Set<string>();
-  const key = (defId: string, x: number, y: number): string =>
-    `${defId}:${String(x)}:${String(y)}`;
+  const key = (x: number, y: number): string => `${String(x)}:${String(y)}`;
   return {
-    isReserved: (defId, tileX, tileY) => reserved.has(key(defId, tileX, tileY)),
-    reserve: (defId, tileX, tileY) =>
-      void reserved.add(key(defId, tileX, tileY)),
+    isReserved: (tileX, tileY, width, height) => {
+      for (let dy = 0; dy < height; dy++) {
+        for (let dx = 0; dx < width; dx++) {
+          if (reserved.has(key(tileX + dx, tileY + dy))) return true;
+        }
+      }
+      return false;
+    },
+    reserve: (tileX, tileY, width, height) => {
+      for (let dy = 0; dy < height; dy++) {
+        for (let dx = 0; dx < width; dx++) {
+          void reserved.add(key(tileX + dx, tileY + dy));
+        }
+      }
+    },
   };
 }

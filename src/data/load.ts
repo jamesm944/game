@@ -63,19 +63,6 @@ export interface LoadDefinitionsOptions {
 
 type ViteRawGlob = Record<string, string>;
 
-interface GlobImportMeta {
-  glob?: (
-    pattern: string,
-    options: {
-      query: "?raw";
-      import: "default";
-      eager: true;
-    },
-  ) => ViteRawGlob;
-}
-
-const DEFINITIONS_GLOB_PATTERN =
-  "./definitions/{units,buildings,techs,recipes,victory}/*.json";
 const DEFINITIONS_KIND_DIRS = [
   "units",
   "buildings",
@@ -87,20 +74,33 @@ const DEFINITIONS_KIND_DIRS = [
 /**
  * Every built-in definition file as raw text, sorted by label so error
  * listing and downstream iteration are platform-independent.
+ *
+ * The glob MUST be invoked as a direct literal call: Vite rewrites
+ * `import.meta.glob(...)` call sites at compile time (dev transform and
+ * build alike). Assigning the function to a local first defeats the
+ * rewrite — the browser then sees `undefined` and would fall into the
+ * Node-only path below and throw at boot. Non-Vite runtimes (plain
+ * Node/tsx tools) reject the call, which routes them to the filesystem
+ * fallback.
  */
 export function builtinSources(): DefinitionSource[] {
-  const glob = (import.meta as unknown as GlobImportMeta).glob;
-  if (typeof glob === "function") {
-    const modules: ViteRawGlob = glob(DEFINITIONS_GLOB_PATTERN, {
-      query: "?raw",
-      import: "default",
-      eager: true,
-    });
+  try {
+    // Pattern must be an inline literal — Vite's static analysis of
+    // import.meta.glob accepts literals only (pattern included).
+    const modules: ViteRawGlob = import.meta.glob(
+      "./definitions/{units,buildings,techs,recipes,victory}/*.json",
+      {
+        query: "?raw",
+        import: "default",
+        eager: true,
+      },
+    );
     return toSortedSources(
       Object.entries(modules).map(([label, json]) => ({ label, json })),
     );
+  } catch {
+    return toSortedSources(nodeSourceEntries());
   }
-  return toSortedSources(nodeSourceEntries());
 }
 
 function toSortedSources(entries: DefinitionSource[]): DefinitionSource[] {
