@@ -1,14 +1,17 @@
 /**
- * Pause menu with the save/load section — SPEC §2.12 + §2.13 game
- * chrome (M5-T2, issue #64).
+ * Pause menu with the save/load + replay section — SPEC §2.12 + §2.13
+ * game chrome (M5-T2 issue #64, M5-T3 issue #65).
  *
  * Full-screen overlay (framework-free vanilla DOM like every ui/ panel):
  * Resume plus a SAVES block listing every IndexedDB slot — three rolling
  * autosaves and named manual slots — each row offering Load, Export,
- * Delete; header actions offer "Save as…" (named manual slot) and an
- * Import `.ageof` file picker. All persistence flows through injected
- * async callbacks (game/saveManager.ts owns storage); this module is
- * pure chrome and never touches IndexedDB itself.
+ * Delete; header actions offer "Save as…" (named manual slot), an
+ * Import `.ageof` file picker, "Export replay" (`<map>-<tick>.ageofreplay`
+ * download) and an Import-replay picker that headlessly replays the
+ * attached artifact. All persistence flows through injected async
+ * callbacks (game/saveManager.ts owns storage, game/replayPlayer.ts owns
+ * playback); this module is pure chrome and never touches IndexedDB or
+ * the sim itself.
  *
  * While open the caller pauses stepping (the `paused` getter); Esc
  * toggles via `toggle()`. Slot rows repaint on every `refresh()`.
@@ -33,6 +36,10 @@ export interface PauseMenuCallbacks {
   onDelete(name: string): Promise<void>;
   /** Validate + store an imported `.ageof` file as a manual slot. */
   onImport(file: File): Promise<void>;
+  /** Download this match's recorded replay as `.ageofreplay`. */
+  onExportReplay(): Promise<void>;
+  /** Parse + headlessly replay an imported `.ageofreplay` file. */
+  onImportReplay(file: File): Promise<void>;
   /** Fresh slot list for the rows table (called before each paint). */
   listSlots(): Promise<readonly SaveSlotRow[]>;
 }
@@ -82,6 +89,11 @@ export function createPauseMenu(
         <button id="pause-import">Import .ageof…</button>
         <input id="pause-import-file" type="file" accept=".ageof" hidden />
       </div>
+      <div class="pause-actions">
+        <button id="pause-export-replay">Export replay</button>
+        <button id="pause-import-replay">Import replay…</button>
+        <input id="pause-import-replay-file" type="file" accept=".ageofreplay,application/json" hidden />
+      </div>
       <p id="save-note" hidden></p>
       <h3>Saves</h3>
       <div id="save-slots"></div>
@@ -93,6 +105,9 @@ export function createPauseMenu(
   const noteEl = root.querySelector("#save-note") as HTMLParagraphElement;
   const importInput = root.querySelector(
     "#pause-import-file",
+  ) as HTMLInputElement;
+  const replayImportInput = root.querySelector(
+    "#pause-import-replay-file",
   ) as HTMLInputElement;
 
   function note(message: string): void {
@@ -194,6 +209,18 @@ export function createPauseMenu(
     const file = importInput.files?.[0];
     importInput.value = "";
     if (file !== undefined) void guarded(() => callbacks.onImport(file));
+  });
+
+  root.querySelector("#pause-export-replay")!.addEventListener("click", () => {
+    void guarded(() => callbacks.onExportReplay());
+  });
+  root.querySelector("#pause-import-replay")!.addEventListener("click", () => {
+    replayImportInput.click();
+  });
+  replayImportInput.addEventListener("change", () => {
+    const file = replayImportInput.files?.[0];
+    replayImportInput.value = "";
+    if (file !== undefined) void guarded(() => callbacks.onImportReplay(file));
   });
 
   return {

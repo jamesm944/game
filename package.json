@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "golden:record": "vitest run -t 'golden' --update",
+    "replay:to-fixture": "tsx tools/replay-to-fixture.ts",
     "bake:villager": "tsx tools/atlas-bake/index.ts --unit-id villager"
   },
   "dependencies": {

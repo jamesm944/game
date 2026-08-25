@@ -12,6 +12,17 @@ export interface SimCommand {
   readonly data?: Readonly<Record<string, unknown>>;
 }
 
+/**
+ * Replay instrumentation seam (M5-T3): fired once per drainDue with the
+ * consumed tick and a private copy of the due commands, in consumption
+ * order. step() drains exactly once per completed tick (a held boundary
+ * returns before draining), so observers see one event per advanced tick.
+ */
+export type DrainObserver = (
+  tick: number,
+  commands: readonly SimCommand[],
+) => void;
+
 interface QueuedCommand {
   readonly seq: number;
   readonly command: SimCommand;
@@ -21,6 +32,28 @@ export class CommandInbox {
   readonly #queue: QueuedCommand[] = [];
   #nextSeq = 0;
   #consumedThroughTick = -1;
+  #drainObserver: DrainObserver | undefined;
+  #submitObserver: ((command: SimCommand) => void) | undefined;
+
+  /**
+   * Attach/detach the replay recorder's drain observer (M5-T3). At most
+   * one observer — the recorder is the only sanctioned consumer.
+   */
+  setDrainObserver(observer: DrainObserver | undefined): void {
+    this.#drainObserver = observer;
+  }
+
+  /**
+   * Attach/detach the replay recorder's submit observer (M5-T3): fires
+   * for every accepted submission, giving the recorder the provenance
+   * it needs to tell player orders (external) from sim-generated ones
+   * (planner/pop brain, emitted during step) apart.
+   */
+  setSubmitObserver(
+    observer: ((command: SimCommand) => void) | undefined,
+  ): void {
+    this.#submitObserver = observer;
+  }
 
   /**
    * Enqueue a command for a future tick. Submitting a command whose
@@ -55,6 +88,7 @@ export class CommandInbox {
       index -= 1;
     }
     this.#queue.splice(index, 0, entry);
+    this.#submitObserver?.(command);
   }
 
   /**
@@ -71,6 +105,9 @@ export class CommandInbox {
       this.#queue.shift();
     }
     if (tick > this.#consumedThroughTick) this.#consumedThroughTick = tick;
+    if (this.#drainObserver !== undefined && due.length > 0) {
+      this.#drainObserver(tick, [...due]);
+    }
     return due;
   }
 

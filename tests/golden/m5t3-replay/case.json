@@ -1,0 +1,206 @@
+{
+  "formatVersion": 1,
+  "seed": 20260902,
+  "mapHash": "fnv1a64:daa4462e1c18dae4",
+  "ticks": 900,
+  "milestoneEvery": 30,
+  "commands": [
+    {
+      "tick": 5,
+      "type": "groupMove",
+      "payload": {
+        "entityIds": [3, 4, 5],
+        "x": 67.5,
+        "y": 63.5
+      }
+    },
+    {
+      "tick": 40,
+      "type": "gather",
+      "payload": {
+        "entityIds": [3, 4],
+        "nodeId": 20
+      }
+    },
+    {
+      "tick": 90,
+      "type": "placeBuilding",
+      "payload": {
+        "defId": "house",
+        "tileX": 61,
+        "tileY": 58
+      }
+    },
+    {
+      "tick": 91,
+      "type": "build",
+      "payload": {
+        "entityIds": [3, 4],
+        "siteEid": 34
+      }
+    },
+    {
+      "tick": 105,
+      "type": "placeBuilding",
+      "payload": {
+        "defId": "house",
+        "tileX": 57,
+        "tileY": 51
+      }
+    },
+    {
+      "tick": 106,
+      "type": "build",
+      "payload": {
+        "entityIds": [5, 6],
+        "siteEid": 34
+      }
+    },
+    {
+      "tick": 210,
+      "type": "stop",
+      "payload": {
+        "entityIds": [6, 7]
+      }
+    },
+    {
+      "tick": 260,
+      "type": "groupMove",
+      "payload": {
+        "entityIds": [6, 7],
+        "x": 50.75,
+        "y": 52.25
+      }
+    },
+    {
+      "tick": 820,
+      "type": "trainUnit",
+      "payload": {
+        "siteEid": 2,
+        "unitId": "villager"
+      }
+    }
+  ],
+  "milestones": [
+    {
+      "tick": 30,
+      "digest": "fnv1a64:6bb4c064287d0b2d"
+    },
+    {
+      "tick": 60,
+      "digest": "fnv1a64:1458903592e1b689"
+    },
+    {
+      "tick": 90,
+      "digest": "fnv1a64:dd0d5f8e94d98f90"
+    },
+    {
+      "tick": 120,
+      "digest": "fnv1a64:0158e21c9424b6b3"
+    },
+    {
+      "tick": 150,
+      "digest": "fnv1a64:e717b21e71c0068c"
+    },
+    {
+      "tick": 180,
+      "digest": "fnv1a64:eeca66330f614427"
+    },
+    {
+      "tick": 210,
+      "digest": "fnv1a64:0128e7e2e93f3fb1"
+    },
+    {
+      "tick": 240,
+      "digest": "fnv1a64:8ec65e3b4835577c"
+    },
+    {
+      "tick": 270,
+      "digest": "fnv1a64:00f28d81dfad93a7"
+    },
+    {
+      "tick": 300,
+      "digest": "fnv1a64:34ee7be41e89f79b"
+    },
+    {
+      "tick": 330,
+      "digest": "fnv1a64:d37f0b98b26bc59d"
+    },
+    {
+      "tick": 360,
+      "digest": "fnv1a64:1fa0f755667159d8"
+    },
+    {
+      "tick": 390,
+      "digest": "fnv1a64:b4a81678b8575374"
+    },
+    {
+      "tick": 420,
+      "digest": "fnv1a64:4d6b35187edccc19"
+    },
+    {
+      "tick": 450,
+      "digest": "fnv1a64:a80b2205c95a48f9"
+    },
+    {
+      "tick": 480,
+      "digest": "fnv1a64:5b46335b5eabf95a"
+    },
+    {
+      "tick": 510,
+      "digest": "fnv1a64:0698dccb09dda38a"
+    },
+    {
+      "tick": 540,
+      "digest": "fnv1a64:8240afc828f2a916"
+    },
+    {
+      "tick": 570,
+      "digest": "fnv1a64:1e2497a005097a43"
+    },
+    {
+      "tick": 600,
+      "digest": "fnv1a64:a4e7e45e2e46c32d"
+    },
+    {
+      "tick": 630,
+      "digest": "fnv1a64:ace62fd8743c52c6"
+    },
+    {
+      "tick": 660,
+      "digest": "fnv1a64:d862f03eee034f95"
+    },
+    {
+      "tick": 690,
+      "digest": "fnv1a64:3a47d2424fb29251"
+    },
+    {
+      "tick": 720,
+      "digest": "fnv1a64:3217d2ce72b441f4"
+    },
+    {
+      "tick": 750,
+      "digest": "fnv1a64:eed7d19f448077d9"
+    },
+    {
+      "tick": 780,
+      "digest": "fnv1a64:19494677e85ee190"
+    },
+    {
+      "tick": 810,
+      "digest": "fnv1a64:c203091f4a917d27"
+    },
+    {
+      "tick": 840,
+      "digest": "fnv1a64:fd55e72101dccf3e"
+    },
+    {
+      "tick": 870,
+      "digest": "fnv1a64:894c965caabab035"
+    },
+    {
+      "tick": 900,
+      "digest": "fnv1a64:5bda05efefcf49ef"
+    }
+  ]
+}

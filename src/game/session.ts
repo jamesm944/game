@@ -69,6 +69,7 @@ import {
 import { createPlayerAgeState } from "../sim/components/age";
 import { createWorld, registerSystem, type World } from "../sim/core/world";
 import { PathScheduler, type PathTransport } from "../sim/path/scheduler";
+import { ReplayRecorder } from "../sim/replay/record";
 import { createMovementSystem } from "../sim/systems/movement";
 import { createGatherSystem } from "../sim/systems/gather";
 import {
@@ -152,6 +153,13 @@ export interface SkirmishWorldOptions {
    * {@link SkirmishWorld.aiDifficulty} so the HUD badge can disclose it.
    */
   readonly aiDifficulty?: AiDifficultyId | undefined;
+  /**
+   * Replay recording (M5-T3, SPEC §2.12): when provided, the bootstrap
+   * attaches it BEFORE any command is submitted so AI opening drafts
+   * classify as sim-internal. Callers then beginPlay()/stepWorld()
+   * through the recorder; restored saves never record.
+   */
+  readonly replay?: ReplayRecorder | undefined;
 }
 
 export interface SkirmishWorld {
@@ -392,6 +400,11 @@ export function createSkirmishWorld(
     resolve: createRowEntityResolver(world, comps),
     eidsAscending: () => world.entities,
   });
+
+  // Replay recording (M5-T3): attach BEFORE the bootstrap submits its
+  // AI opening drafts so every sim-generated command classifies as
+  // internal and stays out of the artifact.
+  options.replay?.attach(world, world.inbox);
 
   const persistent = createSkirmishPersistentStates();
   const roster = wireSkirmishSystems(

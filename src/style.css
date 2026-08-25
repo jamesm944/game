@@ -884,3 +884,105 @@ canvas {
 .save-label {
   overflow-wrap: anywhere;
 }
+
+/* Replay playback chrome (M5-T3, §2.12): progress + desync overlays. */
+#replay-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font:
+    13px/1.5 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(8 10 15 / 0.82);
+}
+
+#replay-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(460px, calc(100vw - 32px));
+  padding: 20px 24px;
+  background: rgb(16 20 28 / 0.96);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 10px;
+}
+
+#replay-panel h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: #f0d9a0;
+}
+
+#replay-progress-line {
+  margin: 0;
+}
+
+#replay-progress-track {
+  height: 10px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.1);
+  border-radius: 5px;
+}
+
+#replay-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: #f0d9a0;
+  transition: width 120ms linear;
+}
+
+#replay-panel[data-failed="true"] #replay-note,
+#replay-note:not([hidden]) {
+  margin: 0;
+  padding: 6px 10px;
+  color: #ffb59e;
+  background: rgb(224 108 90 / 0.14);
+  border: 1px solid rgb(224 108 90 / 0.45);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+#replay-desync {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font:
+    13px/1.7 ui-monospace,
+    monospace;
+  color: #ffd9d0;
+  background: rgb(30 8 8 / 0.9);
+}
+
+#replay-desync-report {
+  margin: 0;
+  max-width: min(720px, calc(100vw - 48px));
+  max-height: 70vh;
+  overflow: auto;
+  padding: 18px 22px;
+  white-space: pre-wrap;
+  color: #ffe2da;
+  font-size: 15px;
+  background: rgb(16 20 28 / 0.96);
+  border: 1px solid rgb(224 108 90 / 0.65);
+  border-radius: 10px;
+}
+
+#replay-desync-dismiss {
+  padding: 8px 16px;
+  font: inherit;
+  color: #10141c;
+  background: #f0d9a0;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}

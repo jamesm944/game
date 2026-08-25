@@ -98,6 +98,13 @@ import {
   SaveNotSafeError,
 } from "./game/session";
 import type { SkirmishWorld } from "./game/session";
+import { replayOutcomeOf, runReplayHeadless } from "./game/replayPlayer";
+import { parseReplayJson } from "./sim/replay/play";
+import {
+  ReplayRecorder,
+  replayFileName,
+  serializeReplay,
+} from "./sim/replay/record";
 import {
   AUTOSAVE_INTERVAL_TICKS,
   assertMapHash,
@@ -189,6 +196,10 @@ import { victoryPathReadouts } from "./sim/systems/victory";
 import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createToastHost } from "./ui/toast";
 import { sanitizeSlotName, createPauseMenu } from "./ui/pauseMenu";
+import {
+  createReplayDesyncPanel,
+  createReplayProgressOverlay,
+} from "./ui/replayOverlay";
 import { MINIMAP_REDRAW_MS, createMinimap } from "./ui/minimap";
 import { wireOrderInput } from "./ui/orders";
 import {
@@ -243,6 +254,12 @@ async function takePendingLoadContainer(): Promise<Uint8Array | undefined> {
 
 let session: SkirmishWorld;
 const pendingLoad = await takePendingLoadContainer();
+// Replay recording (M5-T3): fresh matches record from tick 0 — the
+// bootstrap attaches the recorder before its own AI drafts so only
+// player-originated commands enter the artifact. Restored saves do NOT
+// record (their world resumed from bytes, not replay).
+let recorder: ReplayRecorder | undefined =
+  pendingLoad === undefined ? new ReplayRecorder() : undefined;
 if (pendingLoad !== undefined) {
   try {
     const restored = await restoreSkirmishSession(pendingLoad, {
@@ -267,9 +284,20 @@ if (pendingLoad !== undefined) {
 } else {
   session = createSkirmishWorld(bootSeed, {
     createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+    replay: recorder,
   });
 }
+recorder?.beginPlay();
 const { world, comps, fog } = session;
+
+/**
+ * Advance one sim tick — through the recorder while recording so
+ * system-emitted commands classify as sim-internal.
+ */
+function advanceOneTick(): void {
+  if (recorder?.recording === true) recorder.stepWorld();
+  else step(world);
+}
 
 // ---- Renderer ---------------------------------------------------------------
 
@@ -618,6 +646,18 @@ function downloadAgeof(name: string, bytes: Uint8Array): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** Replay export: plain JSON text, `<map>-<tick>.ageofreplay`. */
+function downloadReplay(fileName: string, text: string): void {
+  const url = URL.createObjectURL(
+    new Blob([text], { type: "application/json" }),
+  );
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 const AUTOSAVE_NAME_SET = new Set(["autosave-1", "autosave-2", "autosave-3"]);
 
 const pauseMenu = createPauseMenu({
@@ -670,6 +710,55 @@ const pauseMenu = createPauseMenu({
       saveBlob: new Blob([bytes as BlobPart]),
     });
     toast.show(`Imported “${unique}”`);
+  },
+  onExportReplay: async () => {
+    const active = recorder;
+    if (active === undefined) {
+      throw new Error(
+        "No replay records this match — replays record from a fresh match start only.",
+      );
+    }
+    // One artifact per recording; finalize detaches the drain observer.
+    const artifact = active.finalize();
+    recorder = undefined;
+    downloadReplay(replayFileName(artifact), serializeReplay(artifact));
+    toast.show(
+      `Replay exported — ${String(artifact.commands.length)} orders · tick ${String(artifact.ticks)}`,
+    );
+  },
+  onImportReplay: async (file) => {
+    const text = await file.text();
+    // Loud format validation BEFORE any playback chrome appears.
+    const replay = parseReplayJson(text);
+    pauseMenu.hide(); // the menu handle hides itself below via guarded()
+    const overlay = createReplayProgressOverlay();
+    overlay.setProgress(0, replay.ticks);
+    try {
+      const result = await runReplayHeadless(replay, {
+        createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+        onProgress: (tickDone, total) => overlay.setProgress(tickDone, total),
+      });
+      overlay.complete();
+      if (result.divergence !== undefined) {
+        createReplayDesyncPanel(result.divergence);
+        toast.show("Replay DESYNCED — see the report");
+        return;
+      }
+      const outcome = replayOutcomeOf(result.session);
+      if (outcome.decided) {
+        victoryScreen.show({
+          side: outcome.side,
+          reason: outcome.reason,
+          stats: outcome.stats,
+        });
+      } else {
+        toast.show(
+          `Replay complete — ${String(replay.ticks)} ticks, no divergence`,
+        );
+      }
+    } catch (error) {
+      overlay.fail(error instanceof Error ? error.message : String(error));
+    }
   },
   listSlots: async () => {
     const records = await saveStore.getAll();
@@ -1355,7 +1444,7 @@ function frame(
 
   let steps = 0;
   while (!paused && accumulator >= TICK_DT_MS && steps < MAX_STEPS_PER_FRAME) {
-    step(world); // may hold a tick internally on a late path response
+    advanceOneTick(); // may hold a tick internally on a late path response
     steps += 1;
     accumulator -= TICK_DT_MS;
   }
