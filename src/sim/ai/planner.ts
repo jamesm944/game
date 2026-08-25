@@ -48,6 +48,7 @@ import {
   planCounterTraining,
   planDefenseRally,
   planOffensive,
+  type MilitaryMemory,
 } from "./militaryManager";
 import { aiDifficultyOf, type AiDifficultyId } from "./difficulty";
 import type { SimSystem, World } from "../core/world";
@@ -124,6 +125,13 @@ export interface AiPlannerOptions {
    * purity (tests inject performance.now).
    */
   readonly now?: (() => number) | undefined;
+  /**
+   * Injectable cross-pass memories (SPEC §2.12 save/restore): the save
+   * ticket serializes both so a restored session's planner keeps its
+   * build-order and military state. Fresh memories when omitted.
+   */
+  readonly memory?: BuildOrderMemory | undefined;
+  readonly militaryMemory?: MilitaryMemory | undefined;
 }
 
 /**
@@ -138,8 +146,8 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
       : options.strategy;
   const k = options.knowledge;
   const telemetry = options.telemetry ?? createPlannerTelemetry();
-  const memory: BuildOrderMemory = {};
-  const militaryMemory = createMilitaryMemory();
+  const memory = options.memory ?? {};
+  const militaryMemory = options.militaryMemory ?? createMilitaryMemory();
   const preset = aiDifficultyOf(options.difficulty);
   const latency = options.reactionLatency ?? 1;
   if (!Number.isInteger(latency) || latency < 1) {

@@ -89,11 +89,23 @@ import { createWorkerTransport } from "./sim/path/scheduler";
 import { getProductionCycleRow } from "./sim/components/production";
 import { createPathWorkerFactory } from "./game/paths";
 import {
+  captureSkirmishSave,
   consumeNextSeed,
   createSkirmishWorld,
   freshSeed,
+  restoreSkirmishSession,
   stashNextSeed,
+  SaveNotSafeError,
 } from "./game/session";
+import type { SkirmishWorld } from "./game/session";
+import {
+  AUTOSAVE_INTERVAL_TICKS,
+  assertMapHash,
+  createIdbSaveStore,
+  decodeAgeof,
+  pickAutosaveTarget,
+} from "./game/saveManager";
+import { parsePayload } from "./sim/save/serialize";
 import {
   SURRENDER_COMMAND_KIND,
   evaluateOutcome,
@@ -176,6 +188,7 @@ import { createTopbar, formatStockpileLine } from "./ui/hud";
 import { victoryPathReadouts } from "./sim/systems/victory";
 import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createToastHost } from "./ui/toast";
+import { sanitizeSlotName, createPauseMenu } from "./ui/pauseMenu";
 import { MINIMAP_REDRAW_MS, createMinimap } from "./ui/minimap";
 import { wireOrderInput } from "./ui/orders";
 import {
@@ -214,10 +227,48 @@ const SPRITE_WORLD_WIDTH = 0.95;
 const SPRITE_WORLD_HEIGHT = 1.5;
 
 // ---- World (the shared skirmish bootstrap — identical to tests) -------------
+//
+// M5-T2: boot consumes a stashed `.ageof` container first — the pause
+// menu's Load button stashes one and reloads, so a loaded match boots
+// through THIS exact path (restore = byte-copy + digest verification,
+// no replay). Any rejection falls back to the fresh bootstrap loudly.
 
-const session = createSkirmishWorld(bootSeed, {
-  createTransport: () => createWorkerTransport(createPathWorkerFactory()),
-});
+const saveStore = createIdbSaveStore();
+
+async function takePendingLoadContainer(): Promise<Uint8Array | undefined> {
+  const blob = await saveStore.takePendingLoad();
+  if (blob === undefined) return undefined;
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+let session: SkirmishWorld;
+const pendingLoad = await takePendingLoadContainer();
+if (pendingLoad !== undefined) {
+  try {
+    const restored = await restoreSkirmishSession(pendingLoad, {
+      createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+    });
+    session = restored;
+    console.info(
+      `restored .ageof save at tick ${String(restored.restoredFromTick)}`,
+    );
+  } catch (error) {
+    console.error("save restore rejected", error);
+    const banner = document.createElement("div");
+    banner.id = "toast";
+    banner.className = "visible";
+    banner.textContent = `Save failed to load: ${error instanceof Error ? error.message : String(error)} — started a fresh match.`;
+    document.body.appendChild(banner);
+    window.setTimeout(() => banner.remove(), 6000);
+    session = createSkirmishWorld(bootSeed, {
+      createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+    });
+  }
+} else {
+  session = createSkirmishWorld(bootSeed, {
+    createTransport: () => createWorkerTransport(createPathWorkerFactory()),
+  });
+}
 const { world, comps, fog } = session;
 
 // ---- Renderer ---------------------------------------------------------------
@@ -519,6 +570,143 @@ function currentPlacementCheck(): {
 // would reject for age shows why, right now.
 const toast = createToastHost();
 
+// ---- Saves + pause chrome (M5-T2, §2.12): slots, autosave, import/export -----
+//
+// Play time accumulates ONLY while unpaused; the autosave cadence fires
+// every AUTOSAVE_INTERVAL_TICKS (~2 sim-minutes) of unpaused stepping,
+// re-anchored from the restored tick after a load. Manual slots are
+// user-named; Load stashes the container and reloads so the rebuilt
+// session boots through THIS file's restore path byte-identically.
+
+let playtimeSeconds =
+  "playtimeSeconds" in session && typeof session.playtimeSeconds === "number"
+    ? session.playtimeSeconds
+    : 0;
+let nextAutosaveAtTick = world.tick + AUTOSAVE_INTERVAL_TICKS;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+/**
+ * Capture container bytes, tolerating a briefly-busy path pipeline
+ * (saves wait for step boundaries; the worker usually drains in ms).
+ */
+async function captureContainerForSave(): Promise<Uint8Array> {
+  const deadline = Date.now() + 3000;
+  for (;;) {
+    try {
+      return await captureSkirmishSave(session, playtimeSeconds);
+    } catch (error) {
+      if (error instanceof SaveNotSafeError && Date.now() < deadline) {
+        await sleep(120);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+function downloadAgeof(name: string, bytes: Uint8Array): void {
+  const url = URL.createObjectURL(
+    new Blob([bytes as BlobPart], { type: "application/octet-stream" }),
+  );
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${name}.ageof`;
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const AUTOSAVE_NAME_SET = new Set(["autosave-1", "autosave-2", "autosave-3"]);
+
+const pauseMenu = createPauseMenu({
+  onResume: () => {}, // the menu hides itself; the loop reads isOpen
+  onSave: async (name) => {
+    const bytes = await captureContainerForSave();
+    await saveStore.put({
+      name,
+      savedAt: Date.now(),
+      playtimeSeconds,
+      saveBlob: new Blob([bytes as BlobPart]),
+    });
+    toast.show(`Saved “${name}”`);
+  },
+  onLoad: async (name) => {
+    const record = await saveStore.get(name);
+    if (record === undefined) throw new Error(`no such slot: ${name}`);
+    const bytes = new Uint8Array(await record.saveBlob.arrayBuffer());
+    decodeAgeof(bytes); // loud pre-flight BEFORE tearing the page down
+    await saveStore.putPendingLoad(new Blob([bytes as BlobPart]));
+    window.location.reload();
+  },
+  onExport: async (name) => {
+    const record = await saveStore.get(name);
+    if (record === undefined) throw new Error(`no such slot: ${name}`);
+    downloadAgeof(name, new Uint8Array(await record.saveBlob.arrayBuffer()));
+  },
+  onDelete: async (name) => {
+    await saveStore.delete(name);
+    toast.show(`Deleted “${name}”`);
+  },
+  onImport: async (file) => {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    // Full header validation without building a world: magic → version
+    // → framing → gzip → payload sections → MAP HASH.
+    const { meta, payload } = decodeAgeof(bytes);
+    assertMapHash(meta, parsePayload(payload).mapBytes);
+    const baseName = sanitizeSlotName(file.name.replace(/\.ageof$/i, ""));
+    const name = baseName.length > 0 ? baseName : "imported";
+    let unique = name;
+    for (let attempt = 2; ; attempt++) {
+      const existing = await saveStore.get(unique);
+      if (existing === undefined) break;
+      unique = `${name} ${String(attempt)}`;
+    }
+    await saveStore.put({
+      name: unique,
+      savedAt: Date.now(),
+      playtimeSeconds: meta.playtimeSeconds,
+      saveBlob: new Blob([bytes as BlobPart]),
+    });
+    toast.show(`Imported “${unique}”`);
+  },
+  listSlots: async () => {
+    const records = await saveStore.getAll();
+    return records
+      .map((record) => ({
+        name: record.name,
+        savedAt: record.savedAt,
+        playtimeSeconds: record.playtimeSeconds,
+      }))
+      .sort((a, b) => {
+        const aAuto = AUTOSAVE_NAME_SET.has(a.name) ? 0 : 1;
+        const bAuto = AUTOSAVE_NAME_SET.has(b.name) ? 0 : 1;
+        if (aAuto !== bAuto) return aAuto - bAuto;
+        if (aAuto === 0) return a.name.localeCompare(b.name);
+        return b.savedAt - a.savedAt;
+      });
+  },
+});
+
+/** Rolling autosave — oldest slot evicted, quiet-boundary captures. */
+async function runAutosave(): Promise<void> {
+  try {
+    const records = await saveStore.getAll();
+    const target = pickAutosaveTarget(records);
+    const bytes = await captureContainerForSave();
+    await saveStore.put({
+      name: target,
+      savedAt: Date.now(),
+      playtimeSeconds,
+      saveBlob: new Blob([bytes as BlobPart]),
+    });
+    toast.show(`Autosaved → ${target}`);
+  } catch (error) {
+    console.warn("autosave skipped", error);
+  }
+}
+
 canvas.addEventListener("click", (event: MouseEvent) => {
   if (event.button !== 0) return;
   // Armed attack-move (A): the click becomes an attackMove order at
@@ -603,9 +791,14 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
   if (event.repeat || event.metaKey || event.ctrlKey) return;
   const key = event.key.toLowerCase();
   if (key === "escape") {
-    disarmAttackMove();
+    if (attackMoveArmed) {
+      disarmAttackMove();
+      return;
+    }
+    if (!matchDecidedShown) pauseMenu.toggle();
     return;
   }
+  if (pauseMenu.isOpen) return; // paused chrome swallows gameplay keys
   if (selectionCount() === 0) return;
   if (key === "a") {
     attackMoveArmed = true;
@@ -1153,17 +1346,27 @@ function frame(
   requestAnimationFrame((next) => frame(next, villagerLayer));
   const frameMs = Math.min(now - lastFrame, FRAME_CLAMP_MS);
   lastFrame = now;
-  spriteTimeSec += frameMs / 1000;
-  accumulator += frameMs;
+  const paused = pauseMenu.isOpen;
+  if (!paused) {
+    spriteTimeSec += frameMs / 1000;
+    accumulator += frameMs;
+    playtimeSeconds += frameMs / 1000;
+  }
 
   let steps = 0;
-  while (accumulator >= TICK_DT_MS && steps < MAX_STEPS_PER_FRAME) {
+  while (!paused && accumulator >= TICK_DT_MS && steps < MAX_STEPS_PER_FRAME) {
     step(world); // may hold a tick internally on a late path response
     steps += 1;
     accumulator -= TICK_DT_MS;
   }
   if (steps === MAX_STEPS_PER_FRAME && accumulator > TICK_DT_MS) {
     accumulator = 0; // shed backlog rather than death-spiral catching up
+  }
+
+  // Rolling autosave (M5-T2): every ~2 sim-minutes of unpaused play.
+  if (!paused && world.tick >= nextAutosaveAtTick) {
+    nextAutosaveAtTick = world.tick + AUTOSAVE_INTERVAL_TICKS;
+    void runAutosave();
   }
 
   // Snapshot AFTER stepping, interpolate BETWEEN the last two ticks.

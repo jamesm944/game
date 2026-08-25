@@ -439,6 +439,15 @@ export interface FogVisibilityHandle {
   isExplored(tileX: number, tileY: number, player: number): boolean;
   /** Curated knowledge surface for one viewer (AI/replay/observer). */
   knowledgeFor(viewer: number): KnowledgeView;
+  /** Memory-ghost records one viewer holds (save/restore seam). */
+  knownGhostRecords(viewer: number): readonly GhostBuildingRecord[];
+  /**
+   * Replace every viewer's memory-ghost map with the given records
+   * (save/restore seam; per-viewer lists indexed by player id).
+   */
+  replaceGhostRecords(
+    perViewer: readonly (readonly GhostBuildingRecord[])[],
+  ): void;
 }
 
 /**
@@ -679,5 +688,105 @@ export function createFogVisibility(
         },
       };
     },
+    knownGhostRecords(viewer: number): readonly GhostBuildingRecord[] {
+      assertPlayer(viewer);
+      return [...knownBuildings.get(viewer)!.values()];
+    },
+    replaceGhostRecords(perViewer) {
+      if (perViewer.length !== playerCount) {
+        throw new Error(
+          `ghost record replacement expects ${String(playerCount)} viewer lists, got ${String(perViewer.length)}`,
+        );
+      }
+      perViewer.forEach((records, viewer) => {
+        const map = knownBuildings.get(viewer)!;
+        map.clear();
+        for (const record of records) map.set(record.eid, { ...record });
+      });
+    },
   };
+}
+
+// ---- Save/restore seam (SPEC §2.12 / M5-T2) -----------------------------------
+
+/** One player's planes, copied for the `.ageof` fog section. */
+export interface FogPlaneSnapshot {
+  readonly explored: Uint8Array;
+  readonly visible: Uint8Array;
+  readonly contributorCount: Uint16Array;
+}
+
+/** Full fog singleton state: planes verbatim + memory ghosts. */
+export interface FogSnapshot {
+  readonly size: number;
+  readonly playerCount: number;
+  readonly planes: readonly FogPlaneSnapshot[];
+  /** Memory-ghost records per viewer (eid → last-known building). */
+  readonly ghosts: readonly (readonly GhostBuildingRecord[])[];
+}
+
+/**
+ * Copy the whole fog state for persistence: explored/visible verbatim
+ * (explored is historical and NOT derivable from live stamps), plus the
+ * ghost maps the KnowledgeView serves to AI/render consumers.
+ *
+ * Sight stamps are deliberately NOT captured — every stamped record
+ * corresponds to a live entity at any step boundary, so restore rebuilds
+ * them with recomputeAll() before overwriting the planes verbatim.
+ */
+export function captureFogSnapshot(handle: FogVisibilityHandle): FogSnapshot {
+  return {
+    size: handle.state.size,
+    playerCount: handle.state.playerCount,
+    planes: handle.state.planes.map((plane) => ({
+      explored: plane.explored.slice(),
+      visible: plane.visible.slice(),
+      contributorCount: plane.contributorCount.slice(),
+    })),
+    ghosts: [...handle.state.planes.keys()].map((viewer) =>
+      [...handle.knownGhostRecords(viewer)].map((record) => ({ ...record })),
+    ),
+  };
+}
+
+/**
+ * Byte-copy a captured snapshot back in. Call AFTER rows are restored
+ * and recomputeAll() rebuilt the sight stamps: planes are overwritten
+ * verbatim (fast-path resume, no replay) and ghost memories replaced.
+ * Geometry must match exactly — mismatched size/player count throws.
+ */
+export function applyFogSnapshot(
+  handle: FogVisibilityHandle,
+  snapshot: FogSnapshot,
+): void {
+  const state = handle.state;
+  if (
+    snapshot.size !== state.size ||
+    snapshot.playerCount !== state.playerCount ||
+    snapshot.planes.length !== state.planes.length ||
+    snapshot.ghosts.length !== state.planes.length
+  ) {
+    throw new Error(
+      `fog snapshot geometry mismatch: save was ${String(snapshot.size)}²×${String(snapshot.playerCount)} players, world is ${String(state.size)}²×${String(state.playerCount)}`,
+    );
+  }
+  const tiles = state.size * state.size;
+  snapshot.planes.forEach((saved, player) => {
+    const plane = state.planes[player]!;
+    if (
+      saved.explored.length !== tiles ||
+      saved.visible.length !== tiles ||
+      saved.contributorCount.length !== tiles
+    ) {
+      throw new Error(
+        `fog plane ${String(player)} length mismatch: expected ${String(tiles)} tiles`,
+      );
+    }
+    plane.explored.set(saved.explored);
+    plane.visible.set(saved.visible);
+    plane.contributorCount.set(saved.contributorCount);
+  });
+  handle.replaceGhostRecords(
+    snapshot.ghosts.map((records) => structuredClone(records)),
+  );
 }

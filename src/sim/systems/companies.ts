@@ -407,6 +407,34 @@ export interface CompaniesSystemOptions {
   readonly players?: readonly number[] | undefined;
   readonly diagnostics?: CompanyDiagnostics | undefined;
   readonly lifecycleConfig?: LifecycleConfig | undefined;
+  /**
+   * Injectable persistent ledger state (SPEC §2.12 save/restore): the
+   * output-profitability map and per-player organic-founding cooldowns
+   * live outside the digest by design, so the save ticket owns their
+   * serialization. Fresh maps when omitted (new match).
+   */
+  readonly persistentState?: CompaniesPersistentState | undefined;
+}
+
+/**
+ * Closure state that outlives any single tick yet stays deliberately
+ * out of the component rows (never digest-hashed): profitability stamps
+ * feeding the organic-founding scan and the per-player founding
+ * cooldowns. The session owns one instance and hands it back for
+ * `.ageof` serialization.
+ */
+export interface CompaniesPersistentState {
+  /** Building eid → tick of its last credited output event. */
+  readonly lastOutputTickByBuilding: Map<number, number>;
+  /** Player id → tick of its last organic founding (scan cooldown). */
+  readonly lastOrganicFoundingTick: Map<number, number>;
+}
+
+export function createCompaniesPersistentState(): CompaniesPersistentState {
+  return {
+    lastOutputTickByBuilding: new Map(),
+    lastOrganicFoundingTick: new Map(),
+  };
 }
 
 export interface CompaniesSystemHandle {
@@ -423,6 +451,8 @@ export function createCompaniesSystem(
   const players = options.players;
   const diagnostics = options.diagnostics ?? createCompanyDiagnostics();
   const lifecycleConfig = options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG;
+  const persistent =
+    options.persistentState ?? createCompaniesPersistentState();
 
   /**
    * Closure-scoped world reference: valid inside the returned system
@@ -432,20 +462,13 @@ export function createCompaniesSystem(
   let world: World | undefined;
 
   // Pending same-tick accruals keyed by company eid (milli-credits).
+  // Always empty between steps: the observer accumulates during the
+  // gather/production passes and this system flushes it in the SAME
+  // tick — nothing to serialize (SPEC §2.12 saves at step boundaries).
   let pendingMilli = new Map<number, number>();
 
-  /**
-   * Profitability closure (M4-T3): building eid → tick of its last
-   * credited output event. Fed by the observer for EVERY workplace —
-   * branch or direct — and read by the organic-founding scan. Deliber-
-   * ately not a component: worlds that never produce carry no rows and
-   * legacy digests stay byte-identical; persistence rides the save
-   * ticket (SPEC §2.12 already reserves organic-founder cooldowns).
-   */
-  const lastOutputTickByBuilding = new Map<number, number>();
-
-  /** Per-player tick of the last organic founding (scan cooldown). */
-  const lastOrganicFoundingTick = new Map<number, number>();
+  const lastOutputTickByBuilding = persistent.lastOutputTickByBuilding;
+  const lastOrganicFoundingTick = persistent.lastOrganicFoundingTick;
 
   /** True when `ownerId` belongs to a served player. */
   const servedPlayer = (ownerId: number): boolean =>

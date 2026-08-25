@@ -27,7 +27,12 @@ export type ComponentRows = Map<number, number[]>;
 
 export interface World {
   readonly seed: number;
-  readonly prng: Prng;
+  /**
+   * Mutable ONLY through the save/restore seam (SPEC §2.12): boot builds
+   * the warm-started stream from the seed; restorePrng swaps in the
+   * serialized 4×u32 state bit-exactly.
+   */
+  prng: Prng;
   readonly registry: ComponentRegistry;
   readonly inbox: CommandInbox;
   /** Live entity ids, ascending (spawn order is stable). */

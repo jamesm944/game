@@ -82,4 +82,33 @@ export class CommandInbox {
   get size(): number {
     return this.#queue.length;
   }
+
+  /**
+   * Snapshot of every queued (not yet due) command in drain order —
+   * SPEC §2.12's pending-command save section. Order is exactly the
+   * (targetTick, submission seq) sort step() consumes, so resubmitting
+   * the list through {@link restoreState} reproduces the queue.
+   */
+  pendingCommands(): readonly SimCommand[] {
+    return this.#queue.map((entry) => entry.command);
+  }
+
+  /**
+   * Save/restore seam: seal consumption through `tick`, then enqueue
+   * `commands` in list order. Every target tick must be strictly
+   * future (the same late-command rule submit enforces); callers pass
+   * the snapshot from {@link pendingCommands} verbatim.
+   */
+  restoreState(tick: number, commands: readonly SimCommand[]): void {
+    if (!Number.isInteger(tick) || tick < -1) {
+      throw new Error(
+        `consumed-through tick must be an integer ≥ -1, got ${String(tick)}`,
+      );
+    }
+    if (this.#queue.length > 0 || this.#consumedThroughTick !== -1) {
+      throw new Error("restoreState on a non-fresh inbox");
+    }
+    this.#consumedThroughTick = tick;
+    for (const command of commands) this.submit(command);
+  }
 }

@@ -30,6 +30,36 @@ import {
   WORK_SLOTS_PER_NODE,
   type SimComponents,
 } from "../sim/components";
+import {
+  AGEOF_FORMAT_VERSION,
+  SaveFormatError,
+  assertMapHash,
+  decodeAgeof,
+  encodeAgeof,
+} from "./saveManager";
+import {
+  parsePayload,
+  snapshotPayload,
+  type CompaniesSaveState,
+} from "../sim/save/serialize";
+import type { PlannerSaveState } from "../sim/save/serialize";
+import { applyFogSnapshot, captureFogSnapshot } from "../sim/systems/fog";
+import {
+  createFogVisibility,
+  createRowEntityResolver,
+  type FogVisibilityHandle,
+} from "../sim/systems/fog";
+import { restorePrng, serializePrngState } from "../sim/core/prng";
+import { SIM_VERSION } from "../sim/version";
+import { fnv1a64 } from "../sim/core/digest";
+import { serializeLayers } from "../sim/world/layers";
+import { computeWorldDigest } from "../sim/core/world";
+import type { BuildOrderMemory } from "../sim/ai/buildOrder";
+import type { MilitaryMemory } from "../sim/ai/militaryManager";
+import {
+  createCompaniesPersistentState,
+  type CompaniesPersistentState,
+} from "../sim/systems/companies";
 import { buildingIdOfCode } from "../data/definitions";
 import {
   PLAYER_ONE,
@@ -39,11 +69,6 @@ import {
 import { createPlayerAgeState } from "../sim/components/age";
 import { createWorld, registerSystem, type World } from "../sim/core/world";
 import { PathScheduler, type PathTransport } from "../sim/path/scheduler";
-import {
-  createFogVisibility,
-  createRowEntityResolver,
-} from "../sim/systems/fog";
-import type { FogVisibilityHandle } from "../sim/systems/fog";
 import { createMovementSystem } from "../sim/systems/movement";
 import { createGatherSystem } from "../sim/systems/gather";
 import {
@@ -140,41 +165,58 @@ export interface SkirmishWorld {
   readonly aiTelemetry: PlannerTelemetry;
   /** Resolved difficulty preset id (defaults "normal"). */
   readonly aiDifficulty: AiDifficultyId;
+  /**
+   * Persistent closure state the digest never sees (SPEC §2.12): the
+   * save path serializes these; restore re-injects them before any
+   * system runs, so a loaded session plans identically to a fresh one.
+   */
+  readonly aiMemory: BuildOrderMemory;
+  readonly militaryMemory: MilitaryMemory;
+  readonly companiesPersistent: CompaniesPersistentState;
 }
 
 /**
  * Stand up one complete two-player skirmish from a seed. Pure function
  * of (seed, options): same seed ⇒ byte-identical world at tick 0.
  */
-export function createSkirmishWorld(
-  seed: number,
-  options: SkirmishWorldOptions,
-): SkirmishWorld {
-  const lifecycleConfig = normalizeLifecycleConfig(
-    options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG,
-  );
-  const difficulty = aiDifficultyOf(options.aiDifficulty);
-  const scheduler = new PathScheduler(options.createTransport());
-  const size = options.size ?? 120;
-  const fog = createFogVisibility(size, 2);
-  const world = createWorld(seed, {
-    size,
-    pathScheduler: scheduler,
-    visibility: fog.provider,
-  });
-  const comps = defineSimComponents(world);
-  fog.bindSource({
-    resolve: createRowEntityResolver(world, comps),
-    eidsAscending: () => world.entities,
-  });
+export interface SkirmishPersistentStates {
+  readonly companies: CompaniesPersistentState;
+  readonly aiMemory: BuildOrderMemory;
+  readonly militaryMemory: MilitaryMemory;
+}
 
-  // System roster mirrors production registration order; the victory
-  // evaluator runs after combat (settled destruction state) and the AI
-  // planner stays LAST per its contract.
+function createSkirmishPersistentStates(): SkirmishPersistentStates {
+  return {
+    companies: createCompaniesPersistentState(),
+    aiMemory: {},
+    militaryMemory: { threatSince: new Map(), countersTrained: 0 },
+  };
+}
+
+/**
+ * The production system roster — IDENTICAL for fresh boots and save
+ * restores. Registration order matters: the companies ledger observes
+ * every output credit event (wired into gather + production BEFORE
+ * they register), the victory evaluator runs after combat, and the AI
+ * planner stays LAST per its contract.
+ */
+function wireSkirmishSystems(
+  world: World,
+  comps: SimComponents,
+  scheduler: PathScheduler,
+  fog: FogVisibilityHandle,
+  lifecycleConfig: LifecycleConfig,
+  difficulty: ReturnType<typeof aiDifficultyOf>,
+  persistent: SkirmishPersistentStates,
+): { aiKnowledge: AiKnowledge; aiTelemetry: PlannerTelemetry } {
   // M4-T2: the companies ledger observes every output credit event, so
   // its observer wires into gather + production BEFORE they register;
   // the companies system itself runs after the delegation layer.
-  const companies = createCompaniesSystem({ comps, players: [PLAYER_ONE] });
+  const companies = createCompaniesSystem({
+    comps,
+    players: [PLAYER_ONE],
+    persistentState: persistent.companies,
+  });
   const outputObservers: OutputObservers = {
     onOutput: companies.onOutput,
     // M4-T6: the hard-difficulty income cheat rides the same credit
@@ -305,6 +347,63 @@ export function createSkirmishWorld(
   // the AI planner per its last-on-the-roster contract.
   registerSystem(world, companies.system);
 
+  const aiKnowledge = createAiKnowledge({
+    world,
+    comps,
+    view: fog.knowledgeFor(AI_PLAYER),
+  });
+  const aiTelemetry = createPlannerTelemetry();
+  registerSystem(
+    world,
+    createAiPlannerSystem({
+      knowledge: aiKnowledge,
+      strategy: "fast-castle-knights",
+      telemetry: aiTelemetry,
+      difficulty: difficulty.id,
+      memory: persistent.aiMemory,
+      militaryMemory: persistent.militaryMemory,
+    }),
+  );
+  return { aiKnowledge, aiTelemetry };
+}
+
+/**
+ * Stand up one complete two-player skirmish from a seed. Pure function
+ * of (seed, options): same seed ⇒ byte-identical world at tick 0.
+ */
+export function createSkirmishWorld(
+  seed: number,
+  options: SkirmishWorldOptions,
+): SkirmishWorld {
+  const lifecycleConfig = normalizeLifecycleConfig(
+    options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG,
+  );
+  const difficulty = aiDifficultyOf(options.aiDifficulty);
+  const scheduler = new PathScheduler(options.createTransport());
+  const size = options.size ?? 120;
+  const fog = createFogVisibility(size, 2);
+  const world = createWorld(seed, {
+    size,
+    pathScheduler: scheduler,
+    visibility: fog.provider,
+  });
+  const comps = defineSimComponents(world);
+  fog.bindSource({
+    resolve: createRowEntityResolver(world, comps),
+    eidsAscending: () => world.entities,
+  });
+
+  const persistent = createSkirmishPersistentStates();
+  const roster = wireSkirmishSystems(
+    world,
+    comps,
+    scheduler,
+    fog,
+    lifecycleConfig,
+    difficulty,
+    persistent,
+  );
+
   // ---- Human start: ledger + age ladder + central TC + villagers ------
   const centerSpot = centralPassableTiles(world, 1)[0]!;
   createPlayerStockpile(world, comps, PLAYER_ONE, [...STARTING_RESOURCES]);
@@ -359,22 +458,6 @@ export function createSkirmishWorld(
     }
   }
 
-  const aiKnowledge = createAiKnowledge({
-    world,
-    comps,
-    view: fog.knowledgeFor(AI_PLAYER),
-  });
-  const aiTelemetry = createPlannerTelemetry();
-  registerSystem(
-    world,
-    createAiPlannerSystem({
-      knowledge: aiKnowledge,
-      strategy: "fast-castle-knights",
-      telemetry: aiTelemetry,
-      difficulty: difficulty.id,
-    }),
-  );
-
   // ---- Gatherable ring near both bases ---------------------------------
   const scattered = scatterResourceNodes(world.layers, seed ^ 0x9e3779b9, {
     count: NODE_CANDIDATES,
@@ -412,9 +495,12 @@ export function createSkirmishWorld(
     comps,
     scheduler,
     fog,
-    aiKnowledge,
-    aiTelemetry,
+    aiKnowledge: roster.aiKnowledge,
+    aiTelemetry: roster.aiTelemetry,
     aiDifficulty: difficulty.id,
+    aiMemory: persistent.aiMemory,
+    militaryMemory: persistent.militaryMemory,
+    companiesPersistent: persistent.companies,
   };
 }
 
@@ -589,4 +675,203 @@ export function consumeNextSeed(store: SeedStore): number | undefined {
     return undefined;
   }
   return parsed;
+}
+
+// ---- Save / restore (M5-T2, SPEC §2.12, issue #64) -----------------------------
+
+/**
+ * A save was attempted while path requests are still in flight. Saves
+ * happen ONLY at quiet step boundaries: pending responses carry system
+ * closures that cannot survive serialization, so the manager retries
+ * next tick instead of saving a world that would resume diverged.
+ */
+export class SaveNotSafeError extends Error {
+  constructor() {
+    super(
+      "cannot save now — path requests are still in flight; retry on the next step boundary",
+    );
+    this.name = "SaveNotSafeError";
+  }
+}
+
+/** Serialized planner memory (plain data for the payload section). */
+function plannerSaveStateOf(session: SkirmishWorld): PlannerSaveState {
+  return {
+    attackedTick: session.aiMemory.attackedTick,
+    threatSince: session.militaryMemory.threatSince,
+    lastRallyTick: session.militaryMemory.lastRallyTick,
+    countersTrained: session.militaryMemory.countersTrained,
+  };
+}
+
+function companiesSaveStateOf(session: SkirmishWorld): CompaniesSaveState {
+  return {
+    lastOutputTickByBuilding:
+      session.companiesPersistent.lastOutputTickByBuilding,
+    lastOrganicFoundingTick:
+      session.companiesPersistent.lastOrganicFoundingTick,
+  };
+}
+
+/**
+ * Capture the whole session as `.ageof` container bytes. Throws
+ * {@link SaveNotSafeError} when the path pipeline has not drained —
+ * callers (autosave cadence, pause menu) simply retry next tick.
+ */
+export async function captureSkirmishSave(
+  session: SkirmishWorld,
+  playtimeSeconds: number,
+): Promise<Uint8Array> {
+  if (session.scheduler.pendingCount > 0) throw new SaveNotSafeError();
+  const payload = snapshotPayload({
+    world: session.world,
+    playtimeSeconds,
+    fog: captureFogSnapshot(session.fog),
+    companies: companiesSaveStateOf(session),
+    planner: plannerSaveStateOf(session),
+  });
+  return encodeAgeof(
+    {
+      seed: session.world.seed,
+      tick: session.world.tick,
+      playtimeSeconds,
+      mapHash: fnv1a64(serializeLayers(session.world.layers)),
+    },
+    payload,
+  );
+}
+
+export interface RestoredSkirmishSession extends SkirmishWorld {
+  /** Simulated tick the save was taken at (= world.tick after restore). */
+  readonly restoredFromTick: number;
+  /** Play time carried in the header, resumed by the caller's clock. */
+  readonly playtimeSeconds: number;
+}
+
+/**
+ * Rebuild a full skirmish session from `.ageof` container bytes.
+ *
+ * Restore does NOT replay (SPEC §2.12): a fresh world allocates from
+ * the stored seed + map, every section copies back byte-exactly, and
+ * the §7 digest recipe re-runs against the stored stateDigest as the
+ * free corruption check. Validation is loud, in order: magic → format
+ * version → framing → gzip → map hash → sim/registry identity → digest.
+ */
+export async function restoreSkirmishSession(
+  bytes: Uint8Array,
+  options: SkirmishWorldOptions,
+): Promise<RestoredSkirmishSession> {
+  const { meta, payload } = decodeAgeof(bytes);
+  const parsed = parsePayload(payload);
+  assertMapHash(meta, parsed.mapBytes);
+  if (meta.formatVersion !== AGEOF_FORMAT_VERSION) {
+    throw new SaveFormatError(
+      `.ageof format ${String(meta.formatVersion)} unsupported (this build reads ${String(AGEOF_FORMAT_VERSION)})`,
+    );
+  }
+  if (parsed.simVersion !== SIM_VERSION) {
+    throw new SaveFormatError(
+      `save came from sim ${JSON.stringify(parsed.simVersion)}, this build is ${JSON.stringify(SIM_VERSION)} — incompatible`,
+    );
+  }
+
+  const fog = createFogVisibility(parsed.fog.size, parsed.fog.playerCount);
+  const scheduler = new PathScheduler(options.createTransport());
+  const world = createWorld(meta.seed, {
+    layers: parsed.layers,
+    pathScheduler: scheduler,
+    visibility: fog.provider,
+  });
+  const comps = defineSimComponents(world);
+  const localNames = world.registry.namesInOrder();
+  if (
+    localNames.length !== parsed.registryNames.length ||
+    localNames.some((name, i) => name !== parsed.registryNames[i])
+  ) {
+    throw new SaveFormatError(
+      `save component registry mismatch — save carries [${parsed.registryNames.join(", ")}], this build registers [${localNames.join(", ")}]`,
+    );
+  }
+  fog.bindSource({
+    resolve: createRowEntityResolver(world, comps),
+    eidsAscending: () => world.entities,
+  });
+
+  // Roster FIRST (systems run only during step()), then byte-copy the
+  // core state in before any of it can execute.
+  const persistent = createSkirmishPersistentStates();
+  const roster = wireSkirmishSystems(
+    world,
+    comps,
+    scheduler,
+    fog,
+    normalizeLifecycleConfig(
+      options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG,
+    ),
+    aiDifficultyOf(options.aiDifficulty),
+    persistent,
+  );
+
+  world.tick = meta.tick;
+  world.lastAllocatedEid = parsed.lastAllocatedEid;
+  world.entities.length = 0;
+  for (const eid of parsed.entities) world.entities.push(eid);
+  world.prng = restorePrng(serializePrngState(parsed.prngWords));
+  world.inbox.restoreState(meta.tick, parsed.commands);
+
+  for (const name of localNames) {
+    const id = world.registry.idOf(name);
+    const rows = world.rowsByComponentId.get(id);
+    if (!rows) throw new Error(`unregistered component id: ${String(id)}`);
+    rows.clear();
+    for (const [eid, values] of parsed.componentRows.get(name) ?? []) {
+      rows.set(eid, [...values]);
+    }
+  }
+
+  // Sight stamps rebuild from the restored rows, then planes + memory
+  // ghosts copy over them verbatim (explored history is NOT derivable).
+  fog.recomputeAll();
+  applyFogSnapshot(fog, parsed.fog);
+
+  persistent.companies.lastOutputTickByBuilding.clear();
+  for (const [eid, tick] of parsed.companies.lastOutputTickByBuilding) {
+    persistent.companies.lastOutputTickByBuilding.set(eid, tick);
+  }
+  persistent.companies.lastOrganicFoundingTick.clear();
+  for (const [player, tick] of parsed.companies.lastOrganicFoundingTick) {
+    persistent.companies.lastOrganicFoundingTick.set(player, tick);
+  }
+  persistent.aiMemory.attackedTick = parsed.planner.attackedTick;
+  persistent.militaryMemory.threatSince.clear();
+  for (const [eid, tick] of parsed.planner.threatSince) {
+    persistent.militaryMemory.threatSince.set(eid, tick);
+  }
+  persistent.militaryMemory.lastRallyTick = parsed.planner.lastRallyTick;
+  persistent.militaryMemory.countersTrained = parsed.planner.countersTrained;
+
+  // THE corruption check: one canonical serializer serves hashing and
+  // persistence, so a byte-perfect copy reproduces the digest exactly.
+  const actualDigest = computeWorldDigest(world);
+  if (actualDigest !== parsed.stateDigest) {
+    throw new SaveFormatError(
+      `.ageof digest verification failed: save says ${parsed.stateDigest}, rebuilt world hashes ${actualDigest} — the file is corrupted or from an incompatible build`,
+    );
+  }
+
+  return {
+    seed: meta.seed,
+    world,
+    comps,
+    scheduler,
+    fog,
+    aiKnowledge: roster.aiKnowledge,
+    aiTelemetry: roster.aiTelemetry,
+    aiDifficulty: aiDifficultyOf(options.aiDifficulty).id,
+    aiMemory: persistent.aiMemory,
+    militaryMemory: persistent.militaryMemory,
+    companiesPersistent: persistent.companies,
+    restoredFromTick: meta.tick,
+    playtimeSeconds: meta.playtimeSeconds,
+  };
 }
