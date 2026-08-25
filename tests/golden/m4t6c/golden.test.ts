@@ -80,7 +80,7 @@ import { TERRAIN_GRASS, buildLayers } from "../../../src/sim/world/layers";
 
 const SIZE = 40;
 const SEED = 20261009;
-const ECON_LIMIT_TICKS = 2400;
+const ECON_LIMIT_TICKS = 6000;
 const MILESTONE_EVERY = 150;
 const RESOURCE_CODES: Record<string, number> = { food: 0, wood: 1, gold: 2 };
 

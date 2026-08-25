@@ -5,7 +5,7 @@
   "costs": { "food": 500 },
   "ageGate": "dark",
   "techPrereqs": [],
-  "researchTime": 1800,
+  "researchTime": 3900,
   "effects": [],
   "ageAdvance": 2
 }

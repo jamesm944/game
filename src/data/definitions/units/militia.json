@@ -11,7 +11,7 @@
   "carryCapacity": 0,
   "attack": 4,
   "armorClasses": ["infantry"],
-  "attackBonuses": [],
+  "attackBonuses": [{ "armorClass": "archer", "mult": 2 }],
   "sightRadius": 5,
   "equipmentSlots": ["weapon", "armor"]
 }

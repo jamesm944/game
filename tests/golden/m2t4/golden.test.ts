@@ -351,14 +351,15 @@ describe("golden harness m2t4", () => {
     ]);
 
     // The ladder completes on exact ticks — each advance enqueues at T,
-    // escrows immediately and completes at T + researchTime − 1:
-    //   feudal   @3    (+1800 − 1 → 1802)
-    //   castle   @3000 (+2700 − 1 → 5699)
-    //   imperial @5750 (+3600 − 1 → 9349)
+    // escrows immediately and completes at T + researchTime − 1 (AoE2
+    // documented durations since M5-T5):
+    //   feudal   @3    (+3900 − 1 → 3902)
+    //   castle   @4800 (+4800 − 1 → 9599, once both blacksmiths stand)
+    //   imperial @9700 (+5100 − 1 → 14799)
     expect(run.ageEvents).toEqual([
-      [1802, 2],
-      [5699, 3],
-      [9349, 4],
+      [3902, 2],
+      [9599, 3],
+      [14799, 4],
     ]);
     expect(run.finalRank).toBe(4);
 

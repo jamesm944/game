@@ -5,7 +5,7 @@
   "costs": { "food": 800, "gold": 200 },
   "ageGate": "feudal",
   "techPrereqs": ["feudal-age"],
-  "researchTime": 2700,
+  "researchTime": 4800,
   "effects": [],
   "ageAdvance": 3
 }

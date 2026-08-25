@@ -11,7 +11,7 @@
   "carryCapacity": 0,
   "attack": 3,
   "armorClasses": ["cavalry"],
-  "attackBonuses": [],
+  "attackBonuses": [{ "armorClass": "archer", "mult": 1.5 }],
   "sightRadius": 8,
   "equipmentSlots": ["weapon", "armor"]
 }

@@ -160,24 +160,24 @@ describe("age advancement (M2-T4)", () => {
     expect(stockpileAmountsOf(h.world, h.comps, PLAYER_ONE)[0]).toBe(
       6000 - 500,
     );
-    // Same-tick first countdown mirrors training parity: 1800 → 1799.
+    // Same-tick first countdown mirrors training parity: 3900 → 3899.
     expect(getAgeResearchRow(h.world, h.comps, tc)).toEqual([
       0,
       techCodeOf("feudal-age"),
-      1799,
+      3899,
     ]);
 
-    while (h.world.tick < 1799) step(h.world);
+    while (h.world.tick < 3899) step(h.world);
     expect(ageRankOf(h.world, h.comps, PLAYER_ONE)).toBe(AGE_DARK_RANK);
     expect(readAgeAdvancedEvents(h.world, h.comps, PLAYER_ONE)).toEqual([]);
 
-    // Tick 1800 = enqueueTick(1) + researchTime(1800) − 1: the command
+    // Tick 3900 = enqueueTick(1) + researchTime(3900) − 1: the command
     // tick itself counts as the first research tick (training parity).
     step(h.world);
-    expect(h.world.tick).toBe(1800);
+    expect(h.world.tick).toBe(3900);
     expect(ageRankOf(h.world, h.comps, PLAYER_ONE)).toBe(2);
     expect(readAgeAdvancedEvents(h.world, h.comps, PLAYER_ONE)).toEqual([
-      { tick: 1800, ageRank: 2 },
+      { tick: 3900, ageRank: 2 },
     ]);
     expect(getAgeResearchRow(h.world, h.comps, tc)).toBeUndefined();
     expect(h.age.advancesCompleted).toBe(1);
@@ -241,11 +241,11 @@ describe("age advancement (M2-T4)", () => {
 
     // Exact pinned rungs: the command tick counts as the first research
     // tick, so each advance completes at enqueue + researchTime − 1
-    // (enqueues at 1 / 1801 / 4501 → 1800 / 4500 / 8100).
+    // (enqueues at 1 / 3901 / 8701 → 3900 / 8700 / 13800).
     expect(readAgeAdvancedEvents(h.world, h.comps, PLAYER_ONE)).toEqual([
-      { tick: 1800, ageRank: 2 },
-      { tick: 4500, ageRank: 3 },
-      { tick: 8100, ageRank: 4 },
+      { tick: 3900, ageRank: 2 },
+      { tick: 8700, ageRank: 3 },
+      { tick: 13800, ageRank: 4 },
     ]);
     // Total ladder cost: 500f + 800f·200g + 1000f·800g.
     const amounts = stockpileAmountsOf(h.world, h.comps, PLAYER_ONE);

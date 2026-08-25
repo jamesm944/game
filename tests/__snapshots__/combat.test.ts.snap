@@ -273,11 +273,11 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × defende
 {
   "archer": {
     "archer": 4,
-    "knight": 4,
+    "knight": 6,
     "man-at-arms": 4,
     "militia": 4,
     "monk": 4,
-    "scout-cavalry": 4,
+    "scout-cavalry": 6,
     "skirmisher": 4,
     "villager": 4,
   },
@@ -302,13 +302,13 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × defende
     "villager": 6,
   },
   "militia": {
-    "archer": 4,
+    "archer": 8,
     "knight": 4,
     "man-at-arms": 4,
     "militia": 4,
     "monk": 4,
     "scout-cavalry": 4,
-    "skirmisher": 4,
+    "skirmisher": 8,
     "villager": 4,
   },
   "monk": {
@@ -322,13 +322,13 @@ exports[`damage counter table (SPEC §2.5) > snapshots every attacker × defende
     "villager": 1,
   },
   "scout-cavalry": {
-    "archer": 3,
+    "archer": 4,
     "knight": 3,
     "man-at-arms": 3,
     "militia": 3,
     "monk": 3,
     "scout-cavalry": 3,
-    "skirmisher": 3,
+    "skirmisher": 4,
     "villager": 3,
   },
   "skirmisher": {

@@ -542,13 +542,14 @@ describe("golden harness m2t9", () => {
     expect(run.finalTick).toBe(fixture.ticks);
     expect(run.aiRank).toBe(3);
     expect(run.p0Rank).toBe(1); // the idle human stays in the Dark Age
-    // Feudal completes on enqueue(t30) + 1800 − 1; Castle once both
-    // prior-age buildings stand (~t2.8k) + 2700 − 1. M3-T2: AI builders
-    // now carry Skills rows, so construction practice speeds their
-    // later sites — Castle lands 3 ticks of boosted work earlier.
+    // Feudal completes on enqueue(t30) + 3900 − 1 (AoE2 research
+    // duration); Castle once both prior-age buildings stand (~t5.2k)
+    // + 4800 − 1. M3-T2: AI builders carry Skills rows, so construction
+    // practice speeds their later sites — Castle lands 3 ticks of
+    // boosted work earlier.
     expect(run.aiAgeEvents).toEqual([
-      [1830, 2],
-      [5400, 3],
+      [3930, 2],
+      [9960, 3],
     ]);
 
     // Exactly one foundation per definition, all finished; knights

@@ -1,9 +1,9 @@
 {
   "name": "m2t4",
-  "description": "Age-advancement ladder fixture on the pinned seed-20260823 map: a Dark-Age town center, stable and house stand pre-stamped while six villagers idling nearby drive the whole Dark→Feudal→Castle→Imperial run through researchAge commands at the TC. The fixture opens with both polite gate refusals — a blacksmith placement and a stable scout-cavalry order while still Dark Age — recorded as digest-visible GateRejected rows that pay nothing and spawn nothing. Feudal lands at tick 1802, unlocking the first blacksmith pair (placed and built by villagers one and two/three-and-four respectively), a scout-cavalry trains out of the stable, Castle follows at 5699 once the two prior-age military buildings stand, and Imperial completes at 9349. Every advance escrows its tech cost at enqueue and counts its command tick as the first research tick (completion = enqueue + researchTime − 1). Milestone digests every 30th tick plus final; doubles as the determinism canary.",
+  "description": "Age-advancement ladder fixture on the pinned seed-20260823 map: a Dark-Age town center, stable and house stand pre-stamped while six villagers idling nearby drive the whole Dark\u2192Feudal\u2192Castle\u2192Imperial run through researchAge commands at the TC. The fixture opens with both polite gate refusals \u2014 a blacksmith placement and a stable scout-cavalry order while still Dark Age \u2014 recorded as digest-visible GateRejected rows that pay nothing and spawn nothing. Feudal lands at tick 3902, unlocking the first blacksmith pair (placed and built by villagers one and two/three-and-four respectively), a scout-cavalry trains out of the stable, Castle follows at 9599 once the two prior-age military buildings stand, and Imperial completes at 14799. Every advance escrows its tech cost at enqueue and counts its command tick as the first research tick (completion = enqueue + researchTime \u2212 1). Milestone digests every 30th tick plus final; doubles as the determinism canary.",
   "seed": 20260823,
   "size": 32,
-  "ticks": 9500,
+  "ticks": 14900,
   "milestoneEvery": 30,
   "ageState": true,
   "stockpile": {
@@ -16,28 +16,73 @@
     "clay": 0
   },
   "spawns": [
-    { "eid": 1, "x": 19.5, "y": 9.5 },
-    { "eid": 2, "x": 20.5, "y": 9.5 },
-    { "eid": 3, "x": 22.5, "y": 9.5 },
-    { "eid": 4, "x": 23.5, "y": 10.5 },
-    { "eid": 5, "x": 25.5, "y": 9.5 },
-    { "eid": 6, "x": 27.5, "y": 10.5 }
+    {
+      "eid": 1,
+      "x": 19.5,
+      "y": 9.5
+    },
+    {
+      "eid": 2,
+      "x": 20.5,
+      "y": 9.5
+    },
+    {
+      "eid": 3,
+      "x": 22.5,
+      "y": 9.5
+    },
+    {
+      "eid": 4,
+      "x": 23.5,
+      "y": 10.5
+    },
+    {
+      "eid": 5,
+      "x": 25.5,
+      "y": 9.5
+    },
+    {
+      "eid": 6,
+      "x": 27.5,
+      "y": 10.5
+    }
   ],
   "buildings": [
-    { "eid": 8, "defId": "town-center", "tileX": 20, "tileY": 3 },
-    { "eid": 9, "defId": "stable", "tileX": 24, "tileY": 6 },
-    { "eid": 10, "defId": "house", "tileX": 28, "tileY": 7 }
+    {
+      "eid": 8,
+      "defId": "town-center",
+      "tileX": 20,
+      "tileY": 3
+    },
+    {
+      "eid": 9,
+      "defId": "stable",
+      "tileX": 24,
+      "tileY": 6
+    },
+    {
+      "eid": 10,
+      "defId": "house",
+      "tileX": 28,
+      "tileY": 7
+    }
   ],
   "commands": [
     {
       "kind": "placeBuilding",
       "targetTick": 1,
-      "data": { "defId": "blacksmith", "tileX": 26, "tileY": 10 }
+      "data": {
+        "defId": "blacksmith",
+        "tileX": 26,
+        "tileY": 10
+      }
     },
     {
       "kind": "trainVillager",
       "targetTick": 2,
-      "data": { "siteEid": 9 }
+      "data": {
+        "siteEid": 9
+      }
     },
     {
       "kind": "researchAge",
@@ -46,37 +91,53 @@
     },
     {
       "kind": "placeBuilding",
-      "targetTick": 1810,
-      "data": { "defId": "blacksmith", "tileX": 24, "tileY": 3 }
+      "targetTick": 3910,
+      "data": {
+        "defId": "blacksmith",
+        "tileX": 24,
+        "tileY": 3
+      }
     },
     {
       "kind": "build",
-      "targetTick": 1811,
-      "data": { "entityIds": [1, 2], "siteEid": 11 }
+      "targetTick": 3911,
+      "data": {
+        "entityIds": [1, 2],
+        "siteEid": 11
+      }
     },
     {
       "kind": "placeBuilding",
-      "targetTick": 1815,
-      "data": { "defId": "blacksmith", "tileX": 28, "tileY": 3 }
+      "targetTick": 3915,
+      "data": {
+        "defId": "blacksmith",
+        "tileX": 28,
+        "tileY": 3
+      }
     },
     {
       "kind": "build",
-      "targetTick": 1816,
-      "data": { "entityIds": [3, 4], "siteEid": 12 }
+      "targetTick": 3916,
+      "data": {
+        "entityIds": [3, 4],
+        "siteEid": 12
+      }
     },
     {
       "kind": "trainVillager",
-      "targetTick": 2000,
-      "data": { "siteEid": 9 }
+      "targetTick": 4050,
+      "data": {
+        "siteEid": 9
+      }
     },
     {
       "kind": "researchAge",
-      "targetTick": 3000,
+      "targetTick": 4800,
       "data": {}
     },
     {
       "kind": "researchAge",
-      "targetTick": 5750,
+      "targetTick": 9700,
       "data": {}
     }
   ]

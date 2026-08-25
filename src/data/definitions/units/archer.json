@@ -13,7 +13,7 @@
   "range": 4,
   "reloadTicks": 60,
   "armorClasses": ["archer"],
-  "attackBonuses": [],
+  "attackBonuses": [{ "armorClass": "cavalry", "mult": 1.5 }],
   "sightRadius": 6,
   "equipmentSlots": ["weapon", "armor"]
 }

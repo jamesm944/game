@@ -3,7 +3,7 @@
   "description": "AI build-order + economy golden (issue #43): a player-zero town starts idle at (6,6) while the scripted fast-castle-knights opponent mirrors it at (39,39) on a symmetric 48x48 field of hand-placed berry/tree/gold nodes. The AI plays exclusively through command drafts into the shared inbox \u2014 housing ring slots around its TC, villager queue saturation toward twelve, builder pulls above the gatherer floor, weight-balanced forage assignment, Feudal clicked off the opening surplus while the dark-age barracks rises in parallel, Stable behind it, Castle once both prior-age buildings stand, then knights until four muster (~t9.6k). Bases sit far outside each other's fog planes, so the minimal attack trigger never arms: no vision, no order. Milestone digests every 30th tick plus final; doubles as the extended determinism canary.",
   "seed": 20260901,
   "size": 48,
-  "ticks": 10200,
+  "ticks": 14000,
   "milestoneEvery": 30,
   "playerZero": {
     "tcOrigin": [6, 6],

@@ -87,17 +87,24 @@ installSimPurityShims();
 const SEED = 20260902;
 const MAP_SIZE = 120;
 
-/** Hard ceiling: a stalled match fails loudly instead of hanging. */
-const MAX_TICKS = 40_000;
+/**
+ * Hard ceiling: a stalled match fails loudly instead of hanging. Sized
+ * for the AoE2 research durations (M5-T5): the FC ladder alone spans
+ * ~8.8k ticks of research before the knight push begins.
+ */
+const MAX_TICKS = 56_000;
 /** Player director cadence — the 1 s planning rhythm (§2.8-adjacent). */
 const DIRECTOR_INTERVAL_TICKS = 30;
 /** Knight wave the stables keep filled while Castle-age production runs.
  *  Sized for a DEFENDING opponent: since M4-T6 the AI rallies its whole
  *  army under attack and refills losses from its own economy, so the
- *  demo push needs local superiority (≈3:1) to break through. */
-const KNIGHT_WAVE = 12;
+ *  demo push needs local superiority (≈3:1). Re-sized in M5-T5: the
+ *  AoE2 research durations give the defender ~5k more ticks to boom,
+ *  and its §2.8 counter-picks now answer knights with the §2.5 archer
+ *  column (archer → cavalry). */
+const KNIGHT_WAVE = 20;
 /** Army size that launches the push. */
-const PUSH_ARMY = 9;
+const PUSH_ARMY = 16;
 
 /**
  * Scenario-grade Fast Castle bank: food for both age advances plus
@@ -108,7 +115,7 @@ const PUSH_ARMY = 9;
  * push trades units instead of rolling over — the bank must cover the
  * attrition or the demo stalls mid-push.
  */
-const FC_CAPITAL = [6000, 4000, 4000, 0, 0, 0, 0];
+const FC_CAPITAL = [6000, 4000, 5000, 0, 0, 0, 0];
 
 interface MacroState {
   phase: "build" | "push";

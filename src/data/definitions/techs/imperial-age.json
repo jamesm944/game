@@ -5,7 +5,7 @@
   "costs": { "food": 1000, "gold": 800 },
   "ageGate": "castle",
   "techPrereqs": ["castle-age"],
-  "researchTime": 3600,
+  "researchTime": 5100,
   "effects": [],
   "ageAdvance": 4
 }
