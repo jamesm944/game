@@ -53,7 +53,7 @@ export interface UnitSpriteLayerOptions {
   /** Bake tool's frames JSON (already object-parsed). */
   readonly indexJson: unknown;
   /** Which baked action this field loops (one layer per unit type). */
-  readonly action: string;
+  readonly action?: string;
   readonly maxInstances: number;
   /** Sprite size in world units (feet anchored at the instance origin). */
   readonly worldWidth: number;
@@ -62,21 +62,24 @@ export interface UnitSpriteLayerOptions {
 
 export interface UnitSpriteLayer {
   readonly mesh: Mesh;
+  readonly atlas: ParsedAtlasIndex;
   /**
-   * Fill instance attributes for this frame from a mirror sample;
-   * returns instances written (= mesh's instanceCount).
+   * Rewrite the instance attributes from a mirror sample and plant
+   * every sprite on the ground. Returns the written count (clamped to
+   * maxInstances).
    */
   writeInstances(
     samples: SpriteSampleInput,
     heights: Float32Array,
     camAzimuthRad: number,
-    tintR: number,
-    tintG: number,
-    tintB: number,
+    tintR?: number,
+    tintG?: number,
+    tintB?: number,
   ): number;
+  /** Push wall-clock time forward (seconds, monotonically increasing). */
   setTime(timeSec: number): void;
   /**
-   * Set the zoom-derived playback rate (LOD band, SPEC §7): the
+   * Select playback rate (SPEC §7 zoom bands): snaps playback to the
    * quantization fps the vertex shader snaps uTime to before dividing
    * the loop. Near band 15, far band 7.5 — see atlasFrames.
    */
@@ -89,7 +92,6 @@ const VERTEX_SHADER = /* glsl */ `
   uniform sampler2D uActions;  // RGBA32F per action slot: base, count, duration, yawCount
   uniform float uTime;
   uniform float uPlaybackRate; // LOD zoom band: quantization fps (15 near / 7.5 far)
-  uniform float uActionSlot;
   uniform float uActionSlots;
   uniform float uRectFrames;
   uniform float uSpriteWidth;
@@ -97,6 +99,7 @@ const VERTEX_SHADER = /* glsl */ `
 
   attribute vec3 aOrigin;
   attribute float aDirectionIndex;
+  attribute float aActionSlot;
   attribute vec3 aTeamTint;
 
   varying vec2 vUv;
@@ -105,7 +108,7 @@ const VERTEX_SHADER = /* glsl */ `
   void main() {
     vec4 am = texture2D(
       uActions,
-      vec2((uActionSlot + 0.5) / uActionSlots, 0.5)
+      vec2((aActionSlot + 0.5) / uActionSlots, 0.5)
     );
     // Quantized playback (mirrors atlasFrames.frameAtTime): time snaps
     // to the zoom-derived quantum BEFORE dividing the loop, so a whole
@@ -160,7 +163,12 @@ export function createUnitSpriteLayer(
       `unit sprites support single-page atlases (got ${String(atlas.pageCount)}); extend the runtime when a bake exceeds one page`,
     );
   }
-  const { slot } = atlasActionSlot(atlas, options.action);
+  const defaultAction =
+    options.action ??
+    (atlas.actions.some((a) => a.name === "idle")
+      ? "idle"
+      : atlas.actions[0]?.name ?? "idle");
+  const { slot: defaultSlot } = atlasActionSlot(atlas, defaultAction);
 
   const quad = new PlaneGeometry(1, 1);
   quad.translate(0, 0.5, 0); // feet at instance origin
@@ -175,16 +183,19 @@ export function createUnitSpriteLayer(
     origins: new Float32Array(capacity * 3),
     directions: new Float32Array(capacity),
     tints: new Float32Array(capacity * 3),
+    actionSlots: new Float32Array(capacity),
   };
   const originAttr = new InstancedBufferAttribute(arrays.origins, 3);
   const directionAttr = new InstancedBufferAttribute(arrays.directions, 1);
   const tintAttr = new InstancedBufferAttribute(arrays.tints, 3);
-  for (const attr of [originAttr, directionAttr, tintAttr]) {
+  const actionAttr = new InstancedBufferAttribute(arrays.actionSlots!, 1);
+  for (const attr of [originAttr, directionAttr, tintAttr, actionAttr]) {
     attr.setUsage(DynamicDrawUsage);
   }
   geometry.setAttribute("aOrigin", originAttr);
   geometry.setAttribute("aDirectionIndex", directionAttr);
   geometry.setAttribute("aTeamTint", tintAttr);
+  geometry.setAttribute("aActionSlot", actionAttr);
   geometry.instanceCount = 0;
 
   const material = new ShaderMaterial({
@@ -196,7 +207,6 @@ export function createUnitSpriteLayer(
       },
       uTime: { value: 0 },
       uPlaybackRate: { value: PLAYBACK_QUANTUM_FPS },
-      uActionSlot: { value: slot },
       uActionSlots: { value: atlas.actions.length },
       uRectFrames: { value: atlas.totalFrames },
       uSpriteWidth: { value: options.worldWidth },
@@ -212,12 +222,13 @@ export function createUnitSpriteLayer(
 
   return {
     mesh,
-    writeInstances(samples, heights, camAzimuthRad, tintR, tintG, tintB) {
+    atlas,
+    writeInstances(samples, heights, camAzimuthRad, tintR = 1, tintG = 1, tintB = 1) {
       const count = writeSpriteAttributes(
         arrays,
         samples,
         heights,
-        { yawCount: atlas.yawCount },
+        { yawCount: atlas.yawCount, defaultActionSlot: defaultSlot },
         camAzimuthRad,
         tintR,
         tintG,
@@ -225,9 +236,11 @@ export function createUnitSpriteLayer(
         capacity,
       );
       geometry.instanceCount = count;
+      mesh.visible = count > 0;
       originAttr.needsUpdate = true;
       directionAttr.needsUpdate = true;
       tintAttr.needsUpdate = true;
+      actionAttr.needsUpdate = true;
       return count;
     },
     setTime(timeSec: number) {

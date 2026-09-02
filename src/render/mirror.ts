@@ -32,6 +32,9 @@ export interface MirrorBuffer {
   headings: Float32Array;
   /** Health 0..1 per rank (M2-T6 overlay feed). */
   hpFractions: Float32Array;
+  defCodes: Uint8Array;
+  activityCodes: Uint8Array;
+  ownerIds: Uint8Array;
 }
 
 export interface RenderMirror {
@@ -51,6 +54,12 @@ export interface MirrorSampleOut {
   headings: Float32Array;
   /** Health 0..1; written up to returned count (M2-T6 overlays). */
   hpFractions: Float32Array;
+  /** Unit def codes; written up to returned count. */
+  defCodes?: Uint8Array | undefined;
+  /** Unit activity codes; written up to returned count. */
+  activityCodes?: Uint8Array | undefined;
+  /** Unit owner ids; written up to returned count. */
+  ownerIds?: Uint8Array | undefined;
   /**
    * RGB lighting tint [r,g,b] ∈ [0,1]³ mapped from the newest buffer's
    * sim-clock minute of day (M3-T6, §2.4 "visual = lighting tint on
@@ -133,6 +142,15 @@ function ensureI32(array: Int32Array, needed: number): Int32Array {
   return grown;
 }
 
+function ensureU8(array: Uint8Array, needed: number): Uint8Array {
+  if (array.length >= needed) return array;
+  let capacity = Math.max(array.length, 256);
+  while (capacity < needed) capacity *= 2;
+  const grown = new Uint8Array(capacity);
+  grown.set(array);
+  return grown;
+}
+
 function emptyBuffer(): MirrorBuffer {
   return {
     tick: TICK_UNSET,
@@ -141,6 +159,9 @@ function emptyBuffer(): MirrorBuffer {
     positions: new Float32Array(0),
     headings: new Float32Array(0),
     hpFractions: new Float32Array(0),
+    defCodes: new Uint8Array(0),
+    activityCodes: new Uint8Array(0),
+    ownerIds: new Uint8Array(0),
   };
 }
 
@@ -178,6 +199,18 @@ export function pushFrame(mirror: RenderMirror, frame: SimSnapshotFrame): void {
   b.positions.set(a.positions.subarray(0, a.count * 2));
   b.headings.set(a.headings.subarray(0, a.count));
   b.hpFractions.set(a.hpFractions.subarray(0, a.count));
+  if (frame.defCodes) {
+    b.defCodes = ensureU8(b.defCodes, Math.max(a.count, 1));
+    b.defCodes.set(a.defCodes.subarray(0, a.count));
+  }
+  if (frame.activityCodes) {
+    b.activityCodes = ensureU8(b.activityCodes, Math.max(a.count, 1));
+    b.activityCodes.set(a.activityCodes.subarray(0, a.count));
+  }
+  if (frame.ownerIds) {
+    b.ownerIds = ensureU8(b.ownerIds, Math.max(a.count, 1));
+    b.ownerIds.set(a.ownerIds.subarray(0, a.count));
+  }
   b.tick = a.tick;
   b.count = a.count;
 
@@ -190,6 +223,18 @@ export function pushFrame(mirror: RenderMirror, frame: SimSnapshotFrame): void {
   a.positions.set(frame.positions.subarray(0, frame.count * 2));
   a.headings.set(frame.headings.subarray(0, frame.count));
   a.hpFractions.set(frame.hpFractions.subarray(0, frame.count));
+  if (frame.defCodes) {
+    a.defCodes = ensureU8(a.defCodes, Math.max(frame.count, 1));
+    a.defCodes.set(frame.defCodes.subarray(0, frame.count));
+  }
+  if (frame.activityCodes) {
+    a.activityCodes = ensureU8(a.activityCodes, Math.max(frame.count, 1));
+    a.activityCodes.set(frame.activityCodes.subarray(0, frame.count));
+  }
+  if (frame.ownerIds) {
+    a.ownerIds = ensureU8(a.ownerIds, Math.max(frame.count, 1));
+    a.ownerIds.set(frame.ownerIds.subarray(0, frame.count));
+  }
   a.tick = frame.tick;
   a.count = frame.count;
 
@@ -257,6 +302,15 @@ export function sampleMirror(
     outPos[p + 1] = posA[p + 1]!;
     outHead[i] = headA[i]!;
     outHp[i] = hpA[i]!;
+  }
+  if (out.defCodes && a.defCodes.length >= copied) {
+    out.defCodes.set(a.defCodes.subarray(0, copied));
+  }
+  if (out.activityCodes && a.activityCodes.length >= copied) {
+    out.activityCodes.set(a.activityCodes.subarray(0, copied));
+  }
+  if (out.ownerIds && a.ownerIds.length >= copied) {
+    out.ownerIds.set(a.ownerIds.subarray(0, copied));
   }
   // M3-T6: day/night tint rides the newest buffer's tick — render-side
   // only, no interpolation (the sim clock is integer minutes).

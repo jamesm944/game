@@ -19,9 +19,28 @@
 import type { SimComponents } from "./components";
 import { combatDefOf, getCombatRow } from "./components/combat";
 import { getBuildingRow, getBuildingSiteRow } from "./components/buildings";
-import { buildingDefOf, buildingIdOfCode } from "../data/definitions";
+import {
+  RESOURCE_WOOD,
+  RESOURCE_FOOD,
+  RESOURCE_GOLD,
+  RESOURCE_CLAY,
+} from "./components/economy";
+import type { OwnerComponents } from "./components/owner";
+import { buildingDefOf, buildingIdOfCode, unitCodeOf } from "../data/definitions";
 import { WORK_MILLI_SCALE } from "./systems/construction";
 import type { World } from "./core/world";
+
+export const ACTIVITY_IDLE = 0;
+export const ACTIVITY_WALK = 1;
+export const ACTIVITY_CHOP = 2;
+export const ACTIVITY_FARM = 3;
+export const ACTIVITY_MINE = 4;
+export const ACTIVITY_BUILD = 5;
+export const ACTIVITY_CARRY_WOOD = 6;
+export const ACTIVITY_CARRY_FOOD = 7;
+export const ACTIVITY_CARRY_ORE = 8;
+export const ACTIVITY_ATTACK = 9;
+export const ACTIVITY_DEATH = 10;
 
 /** One post-step frame of unit state, ready for the double buffer. */
 export interface SimSnapshotFrame {
@@ -37,6 +56,12 @@ export interface SimSnapshotFrame {
   readonly headings: Float32Array;
   /** Health 0..1 per rank, capacity ≥ count (M2-T6 overlays). */
   readonly hpFractions: Float32Array;
+  /** Unit def code (0 = villager, or combatDef code). */
+  readonly defCodes?: Uint8Array;
+  /** Activity code (idle, walk, chop, farm, mine, build, carry-wood, carry-food, carry-ore, attack, death). */
+  readonly activityCodes?: Uint8Array;
+  /** Owner player id (0 = human, 1 = AI). */
+  readonly ownerIds?: Uint8Array;
 }
 
 export interface CaptureSnapshotOptions {
@@ -64,6 +89,97 @@ function growI32(array: Int32Array, needed: number): Int32Array {
   const grown = new Int32Array(capacity);
   grown.set(array);
   return grown;
+}
+
+function growU8(array: Uint8Array, needed: number): Uint8Array {
+  if (array.length >= needed) return array;
+  let capacity = Math.max(array.length, 64);
+  while (capacity < needed) capacity *= 2;
+  const grown = new Uint8Array(capacity);
+  grown.set(array);
+  return grown;
+}
+
+const VILLAGER_DEF_CODE = unitCodeOf("villager");
+
+const ACT_KIND_MOVE = 1;
+const ACT_KIND_GATHER = 3;
+const ACT_KIND_DELIVER = 4;
+const ACT_KIND_ATTACK = 5;
+const ACT_KIND_ATTACK_MOVE = 6;
+
+function unitActivityOf(
+  world: World,
+  comps: SimComponents,
+  eid: number,
+  isDead: boolean,
+): number {
+  if (isDead) return ACTIVITY_DEATH;
+
+  const actRows = comps.activityQueueId
+    ? world.rowsByComponentId.get(comps.activityQueueId)
+    : undefined;
+  const actRow = actRows?.get(eid);
+  const headCount = actRow ? actRow[0]! : 0;
+  const headKind = headCount > 0 ? actRow![1]! : 0;
+
+  const invRows = comps.inventoryId
+    ? world.rowsByComponentId.get(comps.inventoryId)
+    : undefined;
+  const invRow = invRows?.get(eid);
+  const carriedAmount = invRow ? invRow[1]! : 0;
+  const resourceCode = invRow ? invRow[0]! : 0;
+
+  const assignedNodeRows = comps.assignedNodeId
+    ? world.rowsByComponentId.get(comps.assignedNodeId)
+    : undefined;
+  const nodeEid = assignedNodeRows?.get(eid)?.[0];
+
+  const resourceNodeRows = comps.resourceNodeId
+    ? world.rowsByComponentId.get(comps.resourceNodeId)
+    : undefined;
+
+  if (headKind === ACT_KIND_GATHER) {
+    const resCode =
+      nodeEid !== undefined ? (resourceNodeRows?.get(nodeEid)?.[0] ?? -1) : -1;
+    if (resCode === RESOURCE_WOOD) return ACTIVITY_CHOP;
+    if (resCode === RESOURCE_FOOD) return ACTIVITY_FARM;
+    if (resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY) return ACTIVITY_MINE;
+    return ACTIVITY_CHOP;
+  }
+
+  if (
+    headKind === ACT_KIND_DELIVER ||
+    headKind === ACT_KIND_MOVE ||
+    headKind === ACT_KIND_ATTACK_MOVE
+  ) {
+    if (carriedAmount > 0) {
+      if (resourceCode === RESOURCE_WOOD) return ACTIVITY_CARRY_WOOD;
+      if (resourceCode === RESOURCE_FOOD) return ACTIVITY_CARRY_FOOD;
+      return ACTIVITY_CARRY_ORE;
+    }
+    return ACTIVITY_WALK;
+  }
+
+  if (headKind === ACT_KIND_ATTACK) {
+    return ACTIVITY_ATTACK;
+  }
+
+  const assignedSiteRows = comps.assignedSiteId
+    ? world.rowsByComponentId.get(comps.assignedSiteId)
+    : undefined;
+  if (assignedSiteRows?.has(eid)) {
+    return ACTIVITY_BUILD;
+  }
+
+  if (nodeEid !== undefined) {
+    const resCode = resourceNodeRows?.get(nodeEid)?.[0] ?? -1;
+    if (resCode === RESOURCE_WOOD) return ACTIVITY_CHOP;
+    if (resCode === RESOURCE_FOOD) return ACTIVITY_FARM;
+    if (resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY) return ACTIVITY_MINE;
+  }
+
+  return ACTIVITY_IDLE;
 }
 
 /**
@@ -96,9 +212,18 @@ export function captureSimSnapshot(
     options.reusable?.hpFractions ?? new Float32Array(0),
     needed,
   );
+  let defCodes = growU8(options.reusable?.defCodes ?? new Uint8Array(0), needed);
+  let activityCodes = growU8(
+    options.reusable?.activityCodes ?? new Uint8Array(0),
+    needed,
+  );
+  let ownerIds = growU8(options.reusable?.ownerIds ?? new Uint8Array(0), needed);
 
   const positionRows = world.rowsByComponentId.get(comps.positionId);
   const velocityRows = world.rowsByComponentId.get(comps.velocityId);
+  const ownerRows = (comps as OwnerComponents).ownerId
+    ? world.rowsByComponentId.get((comps as OwnerComponents).ownerId)
+    : undefined;
   // maxHp per def code, memoized per capture (codes are dense u8s).
   const maxHpByDefCode = new Map<number, number>();
 
@@ -127,10 +252,23 @@ export function captureSimSnapshot(
       fraction = Math.min(1, Math.max(0, combatRow[2]! / maxHp));
     }
     hpFractions[count] = fraction;
+    defCodes[count] = combatRow ? combatRow[0]! : VILLAGER_DEF_CODE;
+    activityCodes[count] = unitActivityOf(world, comps, eid, fraction <= 0);
+    ownerIds[count] = ownerRows?.get(eid)?.[0] ?? 0;
     count++;
   }
 
-  return { tick: world.tick, count, eids, positions, headings, hpFractions };
+  return {
+    tick: world.tick,
+    count,
+    eids,
+    positions,
+    headings,
+    hpFractions,
+    defCodes,
+    activityCodes,
+    ownerIds,
+  };
 }
 
 /**

@@ -44,8 +44,23 @@ import {
   WebGLRenderer,
   type DataTexture,
 } from "three";
-import atlasUrl from "./assets/atlas/villager.png";
-import atlasIndexJson from "./assets/atlas/villager.frames.json";
+import archerPng from "./assets/atlas/archer.png";
+import archerJson from "./assets/atlas/archer.frames.json";
+import knightPng from "./assets/atlas/knight.png";
+import knightJson from "./assets/atlas/knight.frames.json";
+import manAtArmsPng from "./assets/atlas/man-at-arms.png";
+import manAtArmsJson from "./assets/atlas/man-at-arms.frames.json";
+import militiaPng from "./assets/atlas/militia.png";
+import militiaJson from "./assets/atlas/militia.frames.json";
+import monkPng from "./assets/atlas/monk.png";
+import monkJson from "./assets/atlas/monk.frames.json";
+import scoutCavalryPng from "./assets/atlas/scout-cavalry.png";
+import scoutCavalryJson from "./assets/atlas/scout-cavalry.frames.json";
+import skirmisherPng from "./assets/atlas/skirmisher.png";
+import skirmisherJson from "./assets/atlas/skirmisher.frames.json";
+import villagerPng from "./assets/atlas/villager.png";
+import villagerJson from "./assets/atlas/villager.frames.json";
+import type { UnitSpriteLayer } from "./render/unitSprites";
 import { createRingMarkerPool } from "./render/ringMarkers";
 import {
   SELECTION_RING_CAPACITY,
@@ -58,6 +73,8 @@ import {
   populationCapOf,
   populationOf,
   readTrainQueue,
+  spawnResourceNode,
+  spawnUnit,
 } from "./sim/components";
 import {
   buildingDefOf,
@@ -68,6 +85,8 @@ import {
   recipesForBuilding,
   unitDefOf,
   unitIdOfCode,
+  unitCodeOf,
+  UNIT_DEFINITIONS,
 } from "./data/definitions";
 import {
   PLAYER_ONE,
@@ -161,7 +180,9 @@ import {
   packHealthBarAttributes,
   type HealthBarAttributeArrays,
 } from "./render/overlayPack";
-import { issueAttackMove, issueStop } from "./ui/orders";
+import { issueAttackMove, issueGather, issueStop } from "./ui/orders";
+import { spawnCombatUnit } from "./sim/components/combat";
+import { RESOURCE_WOOD } from "./sim/components/economy";
 import {
   issuePlaceBuilding,
   snapGhostOrigin,
@@ -251,7 +272,7 @@ const chosenDifficulty = consumeDifficulty(window.localStorage);
  * so M2-T6 trained armies render without re-allocating the frame loop's
  * scratch arrays.
  */
-const RENDER_CAPACITY = 128;
+const RENDER_CAPACITY = 512;
 /** SPEC §7 loop safety: clamp + max-steps-per-frame cap. */
 const FRAME_CLAMP_MS = 250;
 const MAX_STEPS_PER_FRAME = 5;
@@ -314,6 +335,19 @@ if (pendingLoad !== undefined) {
 }
 recorder?.beginPlay();
 const { world, comps, fog } = session;
+
+if (typeof window !== "undefined") {
+  (window as any).__game = {
+    world,
+    comps,
+    session,
+    spawnUnit,
+    spawnCombatUnit,
+    spawnResourceNode,
+    RESOURCE_WOOD,
+    issueGather,
+  };
+}
 
 /**
  * Advance one sim tick — through the recorder while recording so
@@ -406,6 +440,9 @@ const sampleOut: MirrorSampleOut = {
   positions: new Float32Array(RENDER_CAPACITY * 2),
   headings: new Float32Array(RENDER_CAPACITY),
   hpFractions: new Float32Array(RENDER_CAPACITY),
+  defCodes: new Uint8Array(RENDER_CAPACITY),
+  activityCodes: new Uint8Array(RENDER_CAPACITY),
+  ownerIds: new Uint8Array(RENDER_CAPACITY),
   lightTint: new Float32Array(3),
 };
 const groundHeights = new Float32Array(RENDER_CAPACITY);
@@ -418,8 +455,6 @@ const mirror = createRenderMirror();
 // mirror ranks with invisible units forced to "undamaged" so no bar
 // floats over a hidden enemy.
 const viewerKnowledge = fog.knowledgeFor(VIEWER);
-const culledPositions = new Float32Array(RENDER_CAPACITY * 2);
-const culledHeadings = new Float32Array(RENDER_CAPACITY);
 const barHpFractions = new Float32Array(RENDER_CAPACITY);
 /** Building feed cap mirrors the instanced layer's MAX_BUILDINGS. */
 const BUILDING_RENDER_CAP = 128;
@@ -430,46 +465,95 @@ const bProgress = new Float32Array(BUILDING_RENDER_CAP);
 const bEids = new Int32Array(BUILDING_RENDER_CAP);
 const bGhosts = new Uint8Array(BUILDING_RENDER_CAP);
 
-async function loadVillagerLayer(): Promise<
-  ReturnType<typeof createUnitSpriteLayer>
-> {
-  const texture = await new TextureLoader().loadAsync(atlasUrl);
-  texture.colorSpace = SRGBColorSpace; // bake colors are sRGB PNG bytes
-  return createUnitSpriteLayer({
-    atlasTexture: texture,
-    indexJson: atlasIndexJson,
-    action: "walk",
-    maxInstances: RENDER_CAPACITY,
-    worldWidth: SPRITE_WORLD_WIDTH,
-    worldHeight: SPRITE_WORLD_HEIGHT,
-  });
+interface LayerScratch {
+  count: number;
+  positions: Float32Array;
+  headings: Float32Array;
+  actionSlots: Float32Array;
+  tints: Float32Array;
+  groundHeights: Float32Array;
 }
 
-function writePopInstances(
-  layer: ReturnType<typeof createUnitSpriteLayer>,
-  positions: Float32Array,
-  headings: Float32Array,
-  sampledCount: number,
-): void {
-  for (let i = 0; i < sampledCount && i < RENDER_CAPACITY; i++) {
-    groundHeights[i] = terrainHeightAt(
-      world.layers,
-      positions[i * 2]!,
-      positions[i * 2 + 1]!,
-    );
+const UNIT_SPECS: Record<
+  string,
+  { png: string; json: unknown; width: number; height: number }
+> = {
+  villager: { png: villagerPng, json: villagerJson, width: 0.95, height: 1.5 },
+  militia: { png: militiaPng, json: militiaJson, width: 0.95, height: 1.5 },
+  "man-at-arms": { png: manAtArmsPng, json: manAtArmsJson, width: 0.95, height: 1.5 },
+  "scout-cavalry": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.3, height: 1.7 },
+  knight: { png: knightPng, json: knightJson, width: 1.3, height: 1.7 },
+  archer: { png: archerPng, json: archerJson, width: 0.95, height: 1.5 },
+  skirmisher: { png: skirmisherPng, json: skirmisherJson, width: 0.95, height: 1.5 },
+  monk: { png: monkPng, json: monkJson, width: 0.95, height: 1.5 },
+};
+
+const ACTIVITY_NAMES: readonly string[] = [
+  "idle",
+  "walk",
+  "gather-wood",
+  "gather-food",
+  "gather-gold",
+  "build",
+  "carry-wood",
+  "carry-food",
+  "carry-ore",
+  "attack",
+  "death",
+];
+
+const layerScratches: LayerScratch[] = [];
+const slotLookup: number[][] = [];
+for (let i = 0; i < 16; i++) {
+  layerScratches.push({
+    count: 0,
+    positions: new Float32Array(RENDER_CAPACITY * 2),
+    headings: new Float32Array(RENDER_CAPACITY),
+    actionSlots: new Float32Array(RENDER_CAPACITY),
+    tints: new Float32Array(RENDER_CAPACITY * 3),
+    groundHeights: new Float32Array(RENDER_CAPACITY),
+  });
+  slotLookup.push(new Array(16).fill(0));
+}
+
+async function loadUnitLayers(): Promise<Array<UnitSpriteLayer | undefined>> {
+  const loader = new TextureLoader();
+  const layersByCode: Array<UnitSpriteLayer | undefined> = new Array(16).fill(undefined);
+
+  for (const [id, spec] of Object.entries(UNIT_SPECS)) {
+    const code = unitCodeOf(id);
+    const texture = await loader.loadAsync(spec.png);
+    texture.colorSpace = SRGBColorSpace;
+    const layer = createUnitSpriteLayer({
+      atlasTexture: texture,
+      indexJson: spec.json,
+      maxInstances: RENDER_CAPACITY,
+      worldWidth: spec.width,
+      worldHeight: spec.height,
+    });
+    layersByCode[code] = layer;
+
+    const def = UNIT_DEFINITIONS.get(id);
+    const anims = def?.activityAnims ?? {};
+    const defaultIdle = layer.atlas.actions.find((a) => a.name === "idle")?.slot ?? 0;
+
+    for (let actCode = 0; actCode < ACTIVITY_NAMES.length; actCode++) {
+      const actName = ACTIVITY_NAMES[actCode]!;
+      let clip = anims[actName];
+      if (!clip) {
+        if (actName.startsWith("gather-")) {
+          clip = anims["chop"] ?? anims["farm"] ?? anims["mine"];
+        } else if (actName.startsWith("carry-")) {
+          clip = anims["walk"];
+        }
+      }
+      if (!clip) clip = anims["idle"] ?? "idle";
+      const action = layer.atlas.actions.find((a) => a.name === clip);
+      slotLookup[code]![actCode] = action ? action.slot : defaultIdle;
+    }
   }
-  layer.writeInstances(
-    {
-      positions,
-      headings,
-      count: sampledCount,
-    },
-    groundHeights,
-    cameraRig.azimuthRad,
-    1,
-    1,
-    1,
-  );
+
+  return layersByCode;
 }
 
 // ---- Command UI (M1-T8) -----------------------------------------------------
@@ -1485,9 +1569,9 @@ let combinedEids = new Int32Array(0);
 
 function frame(
   now: number,
-  villagerLayer: ReturnType<typeof createUnitSpriteLayer>,
+  unitLayers: readonly (UnitSpriteLayer | undefined)[],
 ): void {
-  requestAnimationFrame((next) => frame(next, villagerLayer));
+  requestAnimationFrame((next) => frame(next, unitLayers));
   const frameMs = Math.min(now - lastFrame, FRAME_CLAMP_MS);
   lastFrame = now;
   const paused = pauseMenu.isOpen;
@@ -1566,21 +1650,44 @@ function frame(
   sun.intensity = BASE_SUN_INTENSITY * (0.25 + 0.75 * lum);
   hemisphereLight.intensity = BASE_HEMI_INTENSITY * (0.35 + 0.65 * lum);
 
-  // Entity CPU culling against the visible plane (SPEC §2.9) before
-  // any instancing work.
-  let visibleCount = 0;
+  for (let c = 0; c < layerScratches.length; c++) {
+    layerScratches[c]!.count = 0;
+  }
+
   for (let i = 0; i < sampledCount; i++) {
     const x = sampleOut.positions[i * 2]!;
     const y = sampleOut.positions[i * 2 + 1]!;
     const seen =
       sampledCount > 0 && fog.isVisible(Math.floor(x), Math.floor(y), VIEWER);
-    if (seen && visibleCount < RENDER_CAPACITY) {
-      culledPositions[visibleCount * 2] = x;
-      culledPositions[visibleCount * 2 + 1] = y;
-      culledHeadings[visibleCount] = sampleOut.headings[i]!;
-      visibleCount += 1;
-    }
     barHpFractions[i] = seen ? sampleOut.hpFractions[i]! : 1;
+    if (!seen) continue;
+
+    const defCode = sampleOut.defCodes ? sampleOut.defCodes[i]! : 8;
+    const bucket = layerScratches[defCode];
+    if (!bucket || bucket.count >= RENDER_CAPACITY) continue;
+
+    const idx = bucket.count;
+    bucket.positions[idx * 2] = x;
+    bucket.positions[idx * 2 + 1] = y;
+    bucket.headings[idx] = sampleOut.headings[i]!;
+
+    const actCode = sampleOut.activityCodes ? sampleOut.activityCodes[i]! : 0;
+    bucket.actionSlots[idx] = slotLookup[defCode]?.[actCode] ?? 0;
+
+    const ownerId = sampleOut.ownerIds ? sampleOut.ownerIds[i]! : 0;
+    const o3 = idx * 3;
+    if (ownerId === VIEWER) {
+      bucket.tints[o3] = 1.0;
+      bucket.tints[o3 + 1] = 1.0;
+      bucket.tints[o3 + 2] = 1.0;
+    } else {
+      bucket.tints[o3] = 1.25;
+      bucket.tints[o3 + 1] = 0.65;
+      bucket.tints[o3 + 2] = 0.65;
+    }
+
+    bucket.groundHeights[idx] = terrainHeightAt(world.layers, x, y);
+    bucket.count++;
   }
 
   // Selection bookkeeping against the fresh snapshot (prune dead).
@@ -1606,14 +1713,30 @@ function frame(
     MIN_VIEW_HEIGHT,
     MAX_VIEW_HEIGHT,
   );
-  villagerLayer.setTime(spriteTimeSec);
-  villagerLayer.setPlaybackRate(currentPlaybackFps);
-  writePopInstances(
-    villagerLayer,
-    culledPositions,
-    culledHeadings,
-    visibleCount,
-  );
+
+  for (let defCode = 0; defCode < unitLayers.length; defCode++) {
+    const layer = unitLayers[defCode];
+    if (!layer) continue;
+    const bucket = layerScratches[defCode]!;
+    if (bucket.count > 0) {
+      layer.mesh.visible = true;
+      layer.setTime(spriteTimeSec);
+      layer.setPlaybackRate(currentPlaybackFps);
+      layer.writeInstances(
+        {
+          positions: bucket.positions,
+          headings: bucket.headings,
+          actionSlots: bucket.actionSlots,
+          tints: bucket.tints,
+          count: bucket.count,
+        },
+        bucket.groundHeights,
+        cameraRig.azimuthRad,
+      );
+    } else {
+      layer.mesh.visible = false;
+    }
+  }
 
   // Building meshes repaint from the fresh snapshot every frame, gated
   // by fog: own buildings always render; enemy ones only while
@@ -1787,13 +1910,15 @@ function frame(
   devStats?.update(calls, renderer.info.render.triangles, currentPlaybackFps);
 }
 
-loadVillagerLayer()
-  .then((villagerLayer) => {
-    scene.add(villagerLayer.mesh);
-    requestAnimationFrame((now) => frame(now, villagerLayer));
+loadUnitLayers()
+  .then((unitLayers) => {
+    for (const layer of unitLayers) {
+      if (layer) scene.add(layer.mesh);
+    }
+    requestAnimationFrame((now) => frame(now, unitLayers));
   })
   .catch((error: unknown) => {
-    console.error("villager atlas failed to load", error);
+    console.error("unit atlases failed to load", error);
     document.body.textContent =
-      "Failed to load unit atlas — run `npm run bake:villager`.";
+      "Failed to load unit atlases — check atlas frames and assets.";
   });

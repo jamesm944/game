@@ -136,7 +136,7 @@ export function planAtlasLayout(
   const pageCount = 1; // bands stitch into one physical image
   const rects = new Float32Array(totalFrames * 4);
   const stepU = frameSize / pageSize;
-  const stepV = frameSize / pageSize;
+  const stepV = frameSize / (pageSize * pagesY);
   for (let abs = 0; abs < totalFrames; abs++) {
     const col = abs % columns;
     const rowInBand = Math.floor(abs / columns) % rows;
@@ -271,6 +271,8 @@ export interface SpriteAttributeArrays {
   directions: Float32Array;
   /** rgb team tint per instance. */
   tints: Float32Array;
+  /** Atlas action slot index per instance. */
+  actionSlots?: Float32Array;
 }
 
 /** SoA sample produced by render/mirror.sampleMirror. */
@@ -278,6 +280,8 @@ export interface SpriteSampleInput {
   positions: Float32Array;
   headings: Float32Array;
   count: number;
+  actionSlots?: Float32Array;
+  tints?: Float32Array;
 }
 
 /**
@@ -288,6 +292,7 @@ export interface SpriteSampleInput {
  */
 export interface SpritePlaybackContext {
   readonly yawCount: number;
+  readonly defaultActionSlot?: number;
 }
 
 /**
@@ -312,19 +317,53 @@ export function writeSpriteAttributes(
   maxInstances: number,
 ): number {
   const count = Math.min(samples.count, maxInstances);
-  for (let i = 0; i < count; i++) {
-    const o3 = i * 3;
-    out.origins[o3] = samples.positions[i * 2]!;
-    out.origins[o3 + 1] = heights[i]!;
-    out.origins[o3 + 2] = samples.positions[i * 2 + 1]!;
-    out.directions[i] = directionIndexFor(
-      samples.headings[i]!,
-      camAzimuthRad,
-      context.yawCount,
-    );
-    out.tints[o3] = tintR;
-    out.tints[o3 + 1] = tintG;
-    out.tints[o3 + 2] = tintB;
+  const actions = samples.actionSlots;
+  const tints = samples.tints;
+  const defaultSlot = context.defaultActionSlot ?? 0;
+  const outActions = out.actionSlots;
+  const outOrigins = out.origins;
+  const outDirections = out.directions;
+  const outTints = out.tints;
+  const inPositions = samples.positions;
+  const inHeadings = samples.headings;
+  const yawCount = context.yawCount;
+
+  if (actions && outActions && tints) {
+    for (let i = 0; i < count; i++) {
+      const o3 = i * 3;
+      outOrigins[o3] = inPositions[i * 2]!;
+      outOrigins[o3 + 1] = heights[i]!;
+      outOrigins[o3 + 2] = inPositions[i * 2 + 1]!;
+      outDirections[i] = directionIndexFor(inHeadings[i]!, camAzimuthRad, yawCount);
+      outActions[i] = actions[i]!;
+      outTints[o3] = tints[o3]!;
+      outTints[o3 + 1] = tints[o3 + 1]!;
+      outTints[o3 + 2] = tints[o3 + 2]!;
+    }
+  } else if (actions && outActions) {
+    for (let i = 0; i < count; i++) {
+      const o3 = i * 3;
+      outOrigins[o3] = inPositions[i * 2]!;
+      outOrigins[o3 + 1] = heights[i]!;
+      outOrigins[o3 + 2] = inPositions[i * 2 + 1]!;
+      outDirections[i] = directionIndexFor(inHeadings[i]!, camAzimuthRad, yawCount);
+      outActions[i] = actions[i]!;
+      outTints[o3] = tintR;
+      outTints[o3 + 1] = tintG;
+      outTints[o3 + 2] = tintB;
+    }
+  } else {
+    for (let i = 0; i < count; i++) {
+      const o3 = i * 3;
+      outOrigins[o3] = inPositions[i * 2]!;
+      outOrigins[o3 + 1] = heights[i]!;
+      outOrigins[o3 + 2] = inPositions[i * 2 + 1]!;
+      outDirections[i] = directionIndexFor(inHeadings[i]!, camAzimuthRad, yawCount);
+      if (outActions) outActions[i] = defaultSlot;
+      outTints[o3] = tintR;
+      outTints[o3 + 1] = tintG;
+      outTints[o3 + 2] = tintB;
+    }
   }
   return count;
 }
@@ -465,17 +504,24 @@ export function parseAtlasIndex(json: unknown): ParsedAtlasIndex {
     }
     return { ...(record as unknown as AtlasActionJson), slot };
   });
-  for (let i = 1; i < actions.length; i++) {
-    const prev = actions[i - 1]!;
+  const totalFrames = source.totalFrames as number;
+  for (let i = 0; i < actions.length; i++) {
     const curr = actions[i]!;
     const yawCount = source.yawCount as number;
-    if (curr.baseFrame !== prev.baseFrame + prev.frameCount * yawCount) {
+    if (curr.baseFrame < 0 || curr.baseFrame + curr.frameCount * yawCount > totalFrames) {
       throw new Error(
-        `action "${curr.name}" baseFrame is not contiguous after "${prev.name}"`,
+        `action "${curr.name}" frame range [${curr.baseFrame}, ${curr.baseFrame + curr.frameCount * yawCount}) exceeds totalFrames ${totalFrames}`,
       );
     }
+    if (i > 0) {
+      const prev = actions[i - 1]!;
+      if (curr.baseFrame < prev.baseFrame + prev.frameCount * yawCount) {
+        throw new Error(
+          `action "${curr.name}" baseFrame overlaps "${prev.name}"`,
+        );
+      }
+    }
   }
-  const totalFrames = source.totalFrames as number;
   const rawRects = source.rects;
   if (
     !Array.isArray(rawRects) ||
@@ -488,14 +534,27 @@ export function parseAtlasIndex(json: unknown): ParsedAtlasIndex {
   // JSON rects are IMAGE space (v measured from the page's top row);
   // the shader samples GL texture space, where three.js's flipY PNG
   // upload puts image vImg at vGl = 1 − vImg. Convert once here.
+  const pagesY =
+    typeof source.pagesY === "number" && source.pagesY > 0
+      ? (source.pagesY as number)
+      : 1;
   const rectTexels = new Float32Array(totalFrames * 4);
+  let maxV = 0;
+  for (let abs = 0; abs < totalFrames; abs++) {
+    const r = rawRects[abs] as number[];
+    const vEnd = r[1]! + r[3]!;
+    if (vEnd > maxV) maxV = vEnd;
+  }
+  const vScale = pagesY > 1 && maxV > 1.001 ? pagesY : 1;
   for (let abs = 0; abs < totalFrames; abs++) {
     const [u0, vImg0, du, dv] = rawRects[abs]! as number[];
     const o = abs * 4;
+    const vImg = vImg0! / vScale;
+    const dvImg = dv! / vScale;
     rectTexels[o] = u0!;
-    rectTexels[o + 1] = 1 - vImg0! - dv!; // GL bottom edge of the cell
+    rectTexels[o + 1] = 1 - vImg - dvImg; // GL bottom edge of the cell
     rectTexels[o + 2] = du!;
-    rectTexels[o + 3] = dv!;
+    rectTexels[o + 3] = dvImg;
   }
 
   const actionTexels = new Float32Array(actions.length * 4);
