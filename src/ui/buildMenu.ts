@@ -28,10 +28,19 @@ export const BUILD_MENU_IDS: readonly string[] = [
   "barracks",
   "mill",
   "farm",
+  "lumber-camp",
+  "mining-camp",
+  "church",
+  "school",
   "blacksmith",
   "archery-range",
   "stable",
   "watch-tower",
+  "monastery",
+  "monument",
+  "grand-monument",
+  "grand-academy",
+  "wonder",
 ];
 
 /** Legacy alias (M1 demo flow prefix of BUILD_MENU_IDS). */

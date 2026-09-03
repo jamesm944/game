@@ -25,7 +25,10 @@ import {
   type BufferGeometry,
   type Mesh,
 } from "three";
-import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import {
+  GLTFLoader,
+  type GLTF,
+} from "three/examples/jsm/loaders/GLTFLoader.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { BuildingSnapshotFrame } from "../sim/mirror";
 import type { WorldLayers } from "../sim/world/layers";
@@ -82,6 +85,12 @@ import tcSecond1 from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Tow
 import wonder1 from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Wonder_FirstAge_Level1.gltf";
 import wonder2 from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Wonder_SecondAge_Level3.gltf";
 
+import academy from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/TownCenter_SecondAge_Level2.gltf";
+import monumentModel from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Wonder_FirstAge_Level2.gltf";
+import grandMonumentModel from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Wonder_SecondAge_Level2.gltf";
+import monasteryCastle from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Temple_SecondAge_Level2.gltf";
+import monasteryImperial from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Temple_SecondAge_Level3.gltf";
+
 const MODEL_URLS: Record<string, string> = {
   tcDark,
   tcFeudal,
@@ -119,6 +128,11 @@ const MODEL_URLS: Record<string, string> = {
   tcSecond1,
   wonder1,
   wonder2,
+  academy,
+  monumentModel,
+  grandMonumentModel,
+  monasteryCastle,
+  monasteryImperial,
 };
 
 const MAX_INSTANCES_PER_MODEL = 64;
@@ -165,21 +179,9 @@ function extractMergedGeometry(gltf: GLTF): BufferGeometry {
       if (!posAttr) return;
       const count = posAttr.count;
       const colors = new Float32Array(count * 3);
-      const r = color
-        ? "r" in color
-          ? color.r
-          : (color[0] ?? 0.8)
-        : 0.8;
-      const gCol = color
-        ? "g" in color
-          ? color.g
-          : (color[1] ?? 0.8)
-        : 0.8;
-      const b = color
-        ? "b" in color
-          ? color.b
-          : (color[2] ?? 0.8)
-        : 0.8;
+      const r = color ? ("r" in color ? color.r : (color[0] ?? 0.8)) : 0.8;
+      const gCol = color ? ("g" in color ? color.g : (color[1] ?? 0.8)) : 0.8;
+      const b = color ? ("b" in color ? color.b : (color[2] ?? 0.8)) : 0.8;
       for (let i = 0; i < count; i++) {
         colors[i * 3] = r;
         colors[i * 3 + 1] = gCol;
@@ -199,7 +201,14 @@ function extractMergedGeometry(gltf: GLTF): BufferGeometry {
 function createScaffoldingGeometry(): BufferGeometry {
   const parts: BufferGeometry[] = [];
   const timberColor = [0.54, 0.41, 0.26];
-  function addBox(w: number, h: number, d: number, x: number, y: number, z: number) {
+  function addBox(
+    w: number,
+    h: number,
+    d: number,
+    x: number,
+    y: number,
+    z: number,
+  ) {
     const b = new BoxGeometry(w, h, d);
     b.translate(x, y, z);
     const count = b.attributes.position!.count;
@@ -282,19 +291,22 @@ export function modelKeyFor(defId: string, ageRank: number): string {
     case "market":
       return ageRank <= 2 ? "market1" : "market2";
     case "church":
-    case "monastery":
       return ageRank <= 2 ? "temple1" : "temple2";
+    case "monastery":
+      return ageRank <= 3 ? "monasteryCastle" : "monasteryImperial";
     case "school":
       return "house3_1";
     case "grand-academy":
-      return "tcSecond1";
+      return "academy";
     case "tavern":
     case "brothel":
     case "kitchen":
       return ageRank <= 2 ? "house2_1" : "house2_2";
-    case "wonder":
     case "monument":
+      return "monumentModel";
     case "grand-monument":
+      return "grandMonumentModel";
+    case "wonder":
       return ageRank <= 3 ? "wonder1" : "wonder2";
     default:
       return "storage1";

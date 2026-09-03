@@ -26,9 +26,14 @@ import {
   RESOURCE_CLAY,
 } from "./components/economy";
 import type { OwnerComponents } from "./components/owner";
-import { buildingDefOf, buildingIdOfCode, unitCodeOf } from "../data/definitions";
+import {
+  buildingDefOf,
+  buildingIdOfCode,
+  unitCodeOf,
+} from "../data/definitions";
 import { WORK_MILLI_SCALE } from "./systems/construction";
 import { currentAgeRankOf } from "./systems/age";
+import { relicsOf, RELIC_GROUND } from "./components/relic";
 import type { World } from "./core/world";
 
 export const ACTIVITY_IDLE = 0;
@@ -135,7 +140,8 @@ function unitActivityOf(
       nodeEid !== undefined ? (resourceNodeRows?.get(nodeEid)?.[0] ?? -1) : -1;
     if (resCode === RESOURCE_WOOD) return ACTIVITY_CHOP;
     if (resCode === RESOURCE_FOOD) return ACTIVITY_FARM;
-    if (resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY) return ACTIVITY_MINE;
+    if (resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY)
+      return ACTIVITY_MINE;
     return ACTIVITY_CHOP;
   }
 
@@ -164,7 +170,8 @@ function unitActivityOf(
     const resCode = resourceNodeRows?.get(nodeEid)?.[0] ?? -1;
     if (resCode === RESOURCE_WOOD) return ACTIVITY_CHOP;
     if (resCode === RESOURCE_FOOD) return ACTIVITY_FARM;
-    if (resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY) return ACTIVITY_MINE;
+    if (resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY)
+      return ACTIVITY_MINE;
   }
 
   return ACTIVITY_IDLE;
@@ -200,12 +207,18 @@ export function captureSimSnapshot(
     options.reusable?.hpFractions ?? new Float32Array(0),
     needed,
   );
-  let defCodes = growU8(options.reusable?.defCodes ?? new Uint8Array(0), needed);
+  let defCodes = growU8(
+    options.reusable?.defCodes ?? new Uint8Array(0),
+    needed,
+  );
   let activityCodes = growU8(
     options.reusable?.activityCodes ?? new Uint8Array(0),
     needed,
   );
-  let ownerIds = growU8(options.reusable?.ownerIds ?? new Uint8Array(0), needed);
+  let ownerIds = growU8(
+    options.reusable?.ownerIds ?? new Uint8Array(0),
+    needed,
+  );
 
   const positionRows = world.rowsByComponentId.get(comps.positionId);
   const velocityRows = world.rowsByComponentId.get(comps.velocityId);
@@ -268,18 +281,17 @@ export function captureSimSnapshot(
     }
     hpFractions[count] = fraction;
     defCodes[count] = combatRow ? combatRow[0]! : VILLAGER_DEF_CODE;
-    activityCodes[count] =
-      hasActivityComps
-        ? unitActivityOf(
-            eid,
-            fraction <= 0,
-            actQueueRows,
-            invRows,
-            assignedNodeRows,
-            resourceNodeRows,
-            assignedSiteRows,
-          )
-        : ACTIVITY_IDLE;
+    activityCodes[count] = hasActivityComps
+      ? unitActivityOf(
+          eid,
+          fraction <= 0,
+          actQueueRows,
+          invRows,
+          assignedNodeRows,
+          resourceNodeRows,
+          assignedSiteRows,
+        )
+      : ACTIVITY_IDLE;
     ownerIds[count] = ownerRows?.get(eid)?.[0] ?? 0;
     count++;
   }
@@ -428,5 +440,87 @@ export function captureBuildingSnapshot(
     defCodes: defCodes.subarray(0, Math.max(count, 1)),
     ownerIds: ownerIds.subarray(0, Math.max(count, 1)),
     ageRanks: ageRanks.subarray(0, Math.max(count, 1)),
+  };
+}
+
+/**
+ * One post-step frame of relic state (issue #76 / SPEC §2.11).
+ * Pure SoA mirror snapshot for 3D relic rendering and minimap projection.
+ */
+export interface RelicSnapshotFrame {
+  /** Count of relics tracked; arrays valid up to this count. */
+  readonly count: number;
+  /** Relic entity IDs. */
+  readonly eids: Int32Array;
+  /** Positions packed x, y per index. */
+  readonly positions: Float32Array;
+  /** 0 = ground, 1 = carried, 2 = stored. */
+  readonly states: Uint8Array;
+  /** Holder entity ID (monk if carried, monastery if stored, 0 if ground). */
+  readonly holderEids: Int32Array;
+}
+
+export interface CaptureRelicOptions {
+  readonly reusable?: RelicSnapshotFrame | undefined;
+}
+
+export function captureRelicSnapshot(
+  world: World,
+  comps: Pick<SimComponents, "positionId"> & { readonly relicId?: number },
+  options: CaptureRelicOptions = {},
+): RelicSnapshotFrame {
+  if (!comps.relicId || !world.rowsByComponentId.has(comps.relicId)) {
+    return {
+      count: 0,
+      eids: new Int32Array(0),
+      positions: new Float32Array(0),
+      states: new Uint8Array(0),
+      holderEids: new Int32Array(0),
+    };
+  }
+
+  const allRelics = relicsOf(world, { relicId: comps.relicId });
+  const count = allRelics.length;
+
+  let eids = options.reusable?.eids ?? new Int32Array(0);
+  if (eids.length < count) {
+    eids = new Int32Array(Math.max(count, 16));
+  }
+  let positions = options.reusable?.positions ?? new Float32Array(0);
+  if (positions.length < count * 2) {
+    positions = new Float32Array(Math.max(count * 2, 32));
+  }
+  let states = options.reusable?.states ?? new Uint8Array(0);
+  if (states.length < count) {
+    states = new Uint8Array(Math.max(count, 16));
+  }
+  let holderEids = options.reusable?.holderEids ?? new Int32Array(0);
+  if (holderEids.length < count) {
+    holderEids = new Int32Array(Math.max(count, 16));
+  }
+
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+
+  for (let i = 0; i < count; i++) {
+    const { eid, row } = allRelics[i]!;
+    eids[i] = eid;
+    states[i] = row.state;
+    holderEids[i] = row.holderEid;
+
+    const targetEid = row.state === RELIC_GROUND ? eid : row.holderEid;
+    let pos = posRows?.get(targetEid);
+    if (!pos && targetEid !== eid) {
+      pos = posRows?.get(eid);
+    }
+    positions[i * 2] = pos ? pos[0]! : 0;
+    positions[i * 2 + 1] = pos ? pos[1]! : 0;
+  }
+
+  return {
+    count,
+    eids: eids.subarray(0, Math.max(count, 1)),
+    positions,
+    states: states.subarray(0, Math.max(count, 1)),
+    holderEids: holderEids.subarray(0, Math.max(count, 1)),
   };
 }

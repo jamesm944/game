@@ -49,9 +49,15 @@ export interface BuildingPanelData {
   readonly foreman?: string | undefined;
   /** Appointment candidates, best first (workplaces only). */
   readonly candidates?: readonly BuildingPanelCandidate[] | undefined;
+  /** Train action options if trainable (unitId, label). */
+  readonly trainableUnits?: readonly {
+    readonly unitId: string;
+    readonly label: string;
+  }[];
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
+export const TRAIN_UNIT_KIND = "trainUnit";
 /** M4-T1 appointment command kind — validated by systems/management.ts. */
 export const APPOINT_FOREMAN_KIND = "appointForeman";
 
@@ -64,6 +70,20 @@ export function issueTrainVillager(
     kind: TRAIN_VILLAGER_KIND,
     targetTick: currentTick + 1,
     data: {},
+  });
+}
+
+/** Issue one authoritative trainUnit order for `currentTick + 1`. */
+export function issueTrainUnit(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEid: number,
+  unitId: string,
+): void {
+  inbox.submit({
+    kind: TRAIN_UNIT_KIND,
+    targetTick: currentTick + 1,
+    data: { siteEid: buildingEid, unitId },
   });
 }
 
@@ -149,9 +169,33 @@ export function createBuildingPanel(deps: {
         metaEl.textContent = "";
         queueEl.textContent = "";
         foremanEl.textContent = "";
-        appointWrap.textContent = "";
-        if (data.queue !== undefined) panel.appendChild(trainButton);
-        trainButton.disabled = !(data.canTrain ?? false);
+        if (data.queue !== undefined) {
+          if (data.trainableUnits && data.trainableUnits.length > 0) {
+            for (const u of data.trainableUnits) {
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "panel-train";
+              btn.textContent = u.label;
+              btn.disabled = !(data.canTrain ?? false);
+              btn.addEventListener("click", () => {
+                if (data.buildingEid && u.unitId !== "villager") {
+                  issueTrainUnit(
+                    deps.inbox,
+                    deps.currentTick(),
+                    data.buildingEid,
+                    u.unitId,
+                  );
+                } else {
+                  issueTrainVillager(deps.inbox, deps.currentTick());
+                }
+              });
+              panel.appendChild(btn);
+            }
+          } else {
+            panel.appendChild(trainButton);
+            trainButton.disabled = !(data.canTrain ?? false);
+          }
+        }
         // M4-T1 appointment section: ranked candidates, one button each
         // (best first), issuing the authoritative appointForeman command.
         if (

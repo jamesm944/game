@@ -98,7 +98,7 @@ import { TICK_DT_MS, step, type World } from "./sim/core/world";
 import type { SimComponents } from "./sim/components";
 import { canEnqueueTraining } from "./sim/systems/training";
 import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
-import { canAfford, validatePlacement } from "./sim/systems/placement";
+import { canAfford, validatePlacement, stampFinishedBuilding } from "./sim/systems/placement";
 import { WORK_MILLI_SCALE } from "./sim/systems/construction";
 import {
   captureBuildingSnapshot,
@@ -161,6 +161,19 @@ import {
   createBuildingModelsLayer,
   type BuildingModelsLayer,
 } from "./render/buildingModels";
+import {
+  createRelicModelsLayer,
+  type RelicModelsLayer,
+} from "./render/relicModels";
+import {
+  captureRelicSnapshot,
+  type RelicSnapshotFrame,
+} from "./sim/mirror";
+import {
+  relicsOf,
+  RELIC_GROUND,
+  RELIC_CARRIED,
+} from "./sim/components/relic";
 import {
   copyFogTexture,
   createFogShaderUniforms,
@@ -329,6 +342,7 @@ if (pendingLoad !== undefined) {
     session = createSkirmishWorld(bootSeed, {
       createTransport: () => createWorkerTransport(createPathWorkerFactory()),
       aiDifficulty: chosenDifficulty,
+      spawnRelics: true,
     });
   }
 } else {
@@ -336,6 +350,7 @@ if (pendingLoad !== undefined) {
     createTransport: () => createWorkerTransport(createPathWorkerFactory()),
     replay: recorder,
     aiDifficulty: chosenDifficulty,
+    spawnRelics: true,
   });
 }
 recorder?.beginPlay();
@@ -353,6 +368,12 @@ if (typeof window !== "undefined") {
     issueGather,
     setPlayerAge: (rank: number) => {
       setPlayerAgeRank(world, comps, PLAYER_ONE, rank);
+    },
+    stampFinishedBuilding: (defId: string, x: number, y: number, options?: { playerId?: number }) => {
+      return stampFinishedBuilding(world, comps, defId as any, x, y, options ?? { playerId: PLAYER_ONE });
+    },
+    validatePlacement: (defId: string, x: number, y: number) => {
+      return validatePlacement(world, comps, defId, x, y, PLAYER_ONE);
     },
   };
 }
@@ -417,6 +438,9 @@ scene.add(terrain);
 const cameraRig = new RtsCamera({ mapSize: world.layers.size });
 cameraRig.resize(window.innerWidth, window.innerHeight);
 cameraRig.setCenter(world.layers.size / 2, world.layers.size / 2);
+if (typeof window !== "undefined" && (window as any).__game) {
+  (window as any).__game.cameraRig = cameraRig;
+}
 
 // ---- Audio (M5-T1): gesture-gated context, buses, voice pool, scheduler -----
 hookGestureGate();
@@ -1009,6 +1033,35 @@ canvas.addEventListener("contextmenu", (event: MouseEvent) => {
   buildMenu.disarm();
 });
 
+function relicAt(worldX: number, worldY: number): number | undefined {
+  if (!comps.relicId) return undefined;
+  const relics = relicsOf(world, comps);
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  if (!posRows) return undefined;
+  for (const { eid, row } of relics) {
+    if (row.state !== RELIC_GROUND) continue;
+    const pos = posRows.get(eid);
+    if (!pos) continue;
+    const dx = pos[0]! - worldX;
+    const dy = pos[1]! - worldY;
+    if (dx * dx + dy * dy <= 1.5 * 1.5) {
+      return eid;
+    }
+  }
+  return undefined;
+}
+
+function isUnitCarryingRelic(unitEid: number): boolean {
+  if (!comps.relicId) return false;
+  const relics = relicsOf(world, comps);
+  for (const { row } of relics) {
+    if (row.state === RELIC_CARRIED && row.holderEid === unitEid) {
+      return true;
+    }
+  }
+  return false;
+}
+
 wireOrderInput({
   canvas,
   panelRoot: document.body,
@@ -1025,6 +1078,16 @@ wireOrderInput({
       ? eid
       : undefined;
   },
+  relicAt: (x, y) => relicAt(x, y),
+  monasteryAt: (x, y) => {
+    const eid = buildingAt(x, y);
+    if (eid === undefined) return undefined;
+    const row = getBuildingRow(world, comps, eid);
+    if (!row || row[0] !== VIEWER) return undefined;
+    const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
+    return bDef.id === "monastery" ? eid : undefined;
+  },
+  isCarryingRelic: (unitEid) => isUnitCarryingRelic(unitEid),
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -1149,6 +1212,8 @@ function pollMatchOutcome(): void {
 // Building visuals (instanced 3D GLTF models per def/age-stage) fed from the pure
 // building-snapshot mirror, plus the single-building selection panel.
 let buildingModelsLayer: BuildingModelsLayer | undefined;
+let relicModelsLayer: RelicModelsLayer | undefined;
+let relicReuseFrame: RelicSnapshotFrame | undefined;
 let buildingFrame = captureBuildingSnapshot(world, comps);
 
 const buildingPanel = createBuildingPanel({
@@ -1235,8 +1300,20 @@ const buildingPanel = createBuildingPanel({
       };
     }
     if (!def.trainQueue) return { title: def.name };
+    const trainableUnits = def.trainQueue.trainable.map((t) => {
+      const uDef = unitDefOf(t.unitId);
+      const costStr = Object.entries(uDef.costs)
+        .filter(([, amt]) => amt > 0)
+        .map(([res, amt]) => `${String(amt)} ${res}`)
+        .join(" · ");
+      return {
+        unitId: t.unitId,
+        label: `Train ${uDef.name} (${costStr})`,
+      };
+    });
     return {
       title: def.name,
+      buildingEid: eid,
       queue: readTrainQueue(world, comps, eid).map((entry) => ({
         label: unitDefOf(unitIdOfCode(entry.unitCode)).name,
         remainingTicks: entry.remainingTicks,
@@ -1246,6 +1323,7 @@ const buildingPanel = createBuildingPanel({
         cap: populationCapOf(world, comps),
       },
       canTrain: canEnqueueTraining(world, comps, eid),
+      trainableUnits,
     };
   },
 });
@@ -1831,6 +1909,18 @@ function frame(
     );
   }
 
+  if (relicModelsLayer) {
+    relicReuseFrame = captureRelicSnapshot(world, comps, {
+      reusable: relicReuseFrame,
+    });
+    relicModelsLayer.write(relicReuseFrame, world.layers, {
+      fog: {
+        isVisible: (x, y) => fog.isVisible(x, y, VIEWER),
+        isExplored: (x, y) => fog.isExplored(x, y, VIEWER),
+      },
+    });
+  }
+
   // Armed placement ghost follows the pointer each frame so it stays
   // glued while panning/zooming, not just on mousemove.
   const ghostCandidate = currentPlacementCheck();
@@ -1946,17 +2036,23 @@ function frame(
   devStats?.update(calls, renderer.info.render.triangles, currentPlaybackFps);
 }
 
-Promise.all([loadUnitLayers(), createBuildingModelsLayer()])
-  .then(([unitLayers, bLayer]) => {
+Promise.all([
+  loadUnitLayers(),
+  createBuildingModelsLayer(),
+  createRelicModelsLayer(),
+])
+  .then(([unitLayers, bLayer, rLayer]) => {
     for (const layer of unitLayers) {
       if (layer) scene.add(layer.mesh);
     }
     buildingModelsLayer = bLayer;
     scene.add(buildingModelsLayer.group);
+    relicModelsLayer = rLayer;
+    scene.add(relicModelsLayer.group);
     requestAnimationFrame((now) => frame(now, unitLayers));
   })
   .catch((error: unknown) => {
-    console.error("unit atlases or building models failed to load", error);
+    console.error("unit atlases, buildings or relics failed to load", error);
     document.body.textContent =
-      "Failed to load unit atlases or building models — check assets.";
+      "Failed to load unit atlases or models — check assets.";
   });

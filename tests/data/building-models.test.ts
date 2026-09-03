@@ -13,7 +13,10 @@ import { describe, expect, it } from "vitest";
 import { BUILDING_DEFINITIONS } from "../../src/data/definitions";
 import { modelKeyFor } from "../../src/render/buildingModels";
 
-const MODEL_DIR = resolve(__dirname, "../../src/assets/models/quaternius-ultimate-fantasy-rts/glTF");
+const MODEL_DIR = resolve(
+  __dirname,
+  "../../src/assets/models/quaternius-ultimate-fantasy-rts/glTF",
+);
 
 // Map of model keys to their filenames
 const KEY_TO_FILE: Record<string, string> = {
@@ -53,6 +56,11 @@ const KEY_TO_FILE: Record<string, string> = {
   tcSecond1: "TownCenter_SecondAge_Level1.gltf",
   wonder1: "Wonder_FirstAge_Level1.gltf",
   wonder2: "Wonder_SecondAge_Level3.gltf",
+  academy: "TownCenter_SecondAge_Level2.gltf",
+  monumentModel: "Wonder_FirstAge_Level2.gltf",
+  grandMonumentModel: "Wonder_SecondAge_Level2.gltf",
+  monasteryCastle: "Temple_SecondAge_Level2.gltf",
+  monasteryImperial: "Temple_SecondAge_Level3.gltf",
 };
 
 describe("building models mapping", () => {
@@ -62,11 +70,19 @@ describe("building models mapping", () => {
     for (const [id] of BUILDING_DEFINITIONS) {
       for (const ageRank of [1, 2, 3, 4]) {
         const key = modelKeyFor(id, ageRank);
-        expect(key, `No model key returned for ${id} in age rank ${ageRank}`).toBeDefined();
+        expect(
+          key,
+          `No model key returned for ${id} in age rank ${ageRank}`,
+        ).toBeDefined();
         const filename = KEY_TO_FILE[key];
-        expect(filename, `Model key ${key} has no mapped filename`).toBeDefined();
+        expect(
+          filename,
+          `Model key ${key} has no mapped filename`,
+        ).toBeDefined();
         const fullPath = resolve(MODEL_DIR, filename!);
-        expect(existsSync(fullPath), `Model file missing: ${fullPath}`).toBe(true);
+        expect(existsSync(fullPath), `Model file missing: ${fullPath}`).toBe(
+          true,
+        );
       }
     }
   });
@@ -111,5 +127,18 @@ describe("building models mapping", () => {
     expect(feudal).toBe("barracksFeudal");
     expect(castle).toBe("barracksCastle");
     expect(imperial).toBe("barracksImperial");
+  });
+
+  it("Victory-act buildings resolve to authentic models", () => {
+    // Grand Academy (knowledge)
+    expect(modelKeyFor("grand-academy", 4)).toBe("academy");
+    // Monument & Grand Monument (culture)
+    expect(modelKeyFor("monument", 3)).toBe("monumentModel");
+    expect(modelKeyFor("grand-monument", 4)).toBe("grandMonumentModel");
+    // Wonder (wonder)
+    expect(modelKeyFor("wonder", 4)).toBe("wonder2");
+    // Monastery (relics)
+    expect(modelKeyFor("monastery", 3)).toBe("monasteryCastle");
+    expect(modelKeyFor("monastery", 4)).toBe("monasteryImperial");
   });
 });

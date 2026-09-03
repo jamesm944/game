@@ -133,6 +133,11 @@ canvas {
   background: #f0b429;
 }
 
+.order-kind-relic {
+  background: #f5c842;
+  color: #2b1d00;
+}
+
 /* Control group chips — bottom-center. */
 #group-bar {
   position: fixed;
@@ -203,6 +208,7 @@ canvas {
   position: fixed;
   left: 12px;
   bottom: 12px;
+  max-width: min(720px, calc(100vw - 220px));
   padding: 6px 10px 10px;
   font:
     12px/1.4 ui-monospace,
@@ -211,6 +217,7 @@ canvas {
   background: rgb(16 20 28 / 0.72);
   border-radius: 6px;
   user-select: none;
+  z-index: 10;
 }
 
 #build-menu h3 {
@@ -223,7 +230,10 @@ canvas {
 
 .build-grid {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .build-button {

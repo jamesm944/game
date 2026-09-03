@@ -221,7 +221,7 @@ function canonicalIds(ids: readonly number[], label: string): number[] {
 
 // ---- Order log (capped, newest-first) ---------------------------------------
 
-export type OrderKind = "move" | "gather" | "build";
+export type OrderKind = "move" | "gather" | "build" | "relic";
 
 export interface OrderLogEntry {
   readonly seq: number;
@@ -305,8 +305,53 @@ export interface OrderInputDeps {
    * build orders (priority over ground moves, below gather).
    */
   siteAt?(x: number, y: number): number | undefined;
+  /**
+   * Grounded relic entity under a world point, or undefined (issue #76 / §2.11).
+   */
+  relicAt?(x: number, y: number): number | undefined;
+  /**
+   * Monastery building entity under a world point, or undefined.
+   */
+  monasteryAt?(x: number, y: number): number | undefined;
+  /**
+   * Query if a selected unit is carrying a relic.
+   */
+  isCarryingRelic?(unitEid: number): boolean;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
+}
+
+export const COLLECT_RELIC_COMMAND_KIND = "collectRelic";
+export const DEPOSIT_RELIC_COMMAND_KIND = "depositRelic";
+
+export function issueCollectRelic(
+  inbox: CommandInbox,
+  currentTick: number,
+  unitEid: number,
+  relicEid: number,
+): SimCommand {
+  const command: SimCommand = {
+    kind: COLLECT_RELIC_COMMAND_KIND,
+    targetTick: currentTick + 1,
+    data: { unitEid, relicEid },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export function issueDepositRelic(
+  inbox: CommandInbox,
+  currentTick: number,
+  unitEid: number,
+  monasteryEid: number,
+): SimCommand {
+  const command: SimCommand = {
+    kind: DEPOSIT_RELIC_COMMAND_KIND,
+    targetTick: currentTick + 1,
+    data: { unitEid, monasteryEid },
+  };
+  inbox.submit(command);
+  return command;
 }
 
 const ORDERS_PANEL_LIMIT = 20;
@@ -329,18 +374,23 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     for (const entry of log.entries()) {
       const item = document.createElement("li");
       const kind = document.createElement("span");
-      kind.className =
+      const kindClass =
         entry.kind === "gather"
           ? "order-kind order-kind-gather"
           : entry.kind === "build"
             ? "order-kind order-kind-build"
-            : "order-kind";
+            : entry.kind === "relic"
+              ? "order-kind order-kind-relic"
+              : "order-kind";
+      kind.className = kindClass;
       kind.textContent =
         entry.kind === "gather"
           ? "GTH"
           : entry.kind === "build"
             ? "BLD"
-            : "MOV";
+            : entry.kind === "relic"
+              ? "REL"
+              : "MOV";
       const text = document.createElement("span");
       text.textContent = entry.label;
       item.append(kind, text);
@@ -354,8 +404,50 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     if (!ground || deps.selectionCount() === 0) return;
     const selection = deps.selection();
 
-    // Contextual dispatch: node → gather, construction site → build,
-    // otherwise ground move.
+    // Contextual dispatch:
+    // 1. Relic collection: if grounded relic is clicked
+    const relicId = deps.relicAt?.(ground.x, ground.y);
+    if (relicId !== undefined && selection.length > 0) {
+      const carrier = selection[0]!;
+      const command = issueCollectRelic(
+        deps.inbox,
+        deps.currentTick(),
+        carrier,
+        relicId,
+      );
+      deps.onMoveOrdered(ground.x, ground.y);
+      log.push(command.targetTick, {
+        kind: "relic",
+        label: `tick ${String(command.targetTick)} · Collect Relic #${String(relicId)}`,
+      });
+      renderList();
+      return;
+    }
+
+    // 2. Relic deposition: if monastery is clicked with carrier selected
+    const monasteryId = deps.monasteryAt?.(ground.x, ground.y);
+    if (monasteryId !== undefined && selection.length > 0) {
+      const carrier =
+        selection.find((eid) => deps.isCarryingRelic?.(eid)) ??
+        (deps.isCarryingRelic?.(selection[0]!) ? selection[0] : undefined);
+      if (carrier !== undefined) {
+        const command = issueDepositRelic(
+          deps.inbox,
+          deps.currentTick(),
+          carrier,
+          monasteryId,
+        );
+        deps.onMoveOrdered(ground.x, ground.y);
+        log.push(command.targetTick, {
+          kind: "relic",
+          label: `tick ${String(command.targetTick)} · Deposit Relic into Monastery #${String(monasteryId)}`,
+        });
+        renderList();
+        return;
+      }
+    }
+
+    // 3. Node -> gather
     const nodeId = deps.nodeAt?.(ground.x, ground.y);
     if (nodeId !== undefined) {
       const command = issueGather(
@@ -374,6 +466,7 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       return;
     }
 
+    // 4. Construction site -> build
     const siteId = deps.siteAt?.(ground.x, ground.y);
     if (siteId !== undefined) {
       const command = issueBuild(

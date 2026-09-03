@@ -98,6 +98,7 @@ import { createSchoolSystem } from "../sim/systems/school";
 import { createKnowledgeSystem } from "../sim/systems/knowledge";
 import { createCultureSystem } from "../sim/systems/culture";
 import { createRelicSystem } from "../sim/systems/relics";
+import { spawnRelic } from "../sim/components/relic";
 import { createMassSystem, MASS_CLOSE_MINUTE } from "../sim/systems/mass";
 import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
 import { createSocialSystem, isLeisureTime } from "../sim/systems/social";
@@ -160,6 +161,12 @@ export interface SkirmishWorldOptions {
    * through the recorder; restored saves never record.
    */
   readonly replay?: ReplayRecorder | undefined;
+  /**
+   * Whether to spawn neutral relics on the map (issue #76 / §2.11).
+   * Enabled in production play; omitted in headless test fixtures to
+   * preserve byte-identical golden digests. Can be boolean or number.
+   */
+  readonly spawnRelics?: boolean | number | undefined;
 }
 
 export interface SkirmishWorld {
@@ -500,6 +507,20 @@ export function createSkirmishWorld(
     );
   }
 
+  // ---- Neutral sacred relics (issue #76 / SPEC §2.11) -----------------
+  if (options.spawnRelics) {
+    const relicTarget =
+      typeof options.spawnRelics === "number" ? options.spawnRelics : 5;
+    spawnSkirmishRelics(
+      world,
+      comps,
+      seed ^ 0x5a5a5a5a,
+      relicTarget,
+      centerSpot,
+      { x: aiTcOrigin.x + 1.5, y: aiTcOrigin.y + 1.5 },
+    );
+  }
+
   // Map-gen full fog recompute (§2.9) — the ONLY non-incremental pass.
   fog.recomputeAll();
 
@@ -518,7 +539,42 @@ export function createSkirmishWorld(
   };
 }
 
-// ---- Spawn-site helpers (verbatim semantics from main.ts) ---------------------
+function spawnSkirmishRelics(
+  world: World,
+  comps: SimComponents,
+  seed: number,
+  count: number,
+  playerCenter: { x: number; y: number },
+  aiCenter: { x: number; y: number },
+): void {
+  const size = world.layers.size;
+  const passability = world.layers.derivedPassability;
+  let rng = seed >>> 0;
+  const nextRng = () => {
+    rng = (Math.imul(rng, 1664525) + 1013904223) >>> 0;
+    return rng / 4294967296;
+  };
+
+  const minBaseDistSq = 18 * 18;
+  const margin = 10;
+  let spawned = 0;
+  let attempts = 0;
+
+  while (spawned < count && attempts < 200) {
+    attempts++;
+    const tx = margin + Math.floor(nextRng() * (size - margin * 2));
+    const ty = margin + Math.floor(nextRng() * (size - margin * 2));
+    if (passability[ty * size + tx] !== 1) continue;
+
+    const dPlayerSq =
+      (tx + 0.5 - playerCenter.x) ** 2 + (ty + 0.5 - playerCenter.y) ** 2;
+    const dAiSq = (tx + 0.5 - aiCenter.x) ** 2 + (ty + 0.5 - aiCenter.y) ** 2;
+    if (dPlayerSq < minBaseDistSq || dAiSq < minBaseDistSq) continue;
+
+    spawnRelic(world, comps, tx + 0.5, ty + 0.5);
+    spawned++;
+  }
+}
 
 function centralPassableTiles(
   world: World,
