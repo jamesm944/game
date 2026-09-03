@@ -37,6 +37,7 @@ import {
   Color,
   DirectionalLight,
   HemisphereLight,
+  PCFSoftShadowMap,
   Scene,
   SRGBColorSpace,
   TextureLoader,
@@ -142,6 +143,7 @@ import {
   managementRatingOf,
   managerOfDomain,
 } from "./sim/systems/management";
+import { setPlayerAgeRank } from "./sim/components/age";
 import {
   DOMAIN_NAMES,
   domainOfBuildingDef,
@@ -155,7 +157,10 @@ import { createBuses, setBusVolume } from "./audio/buses";
 import { VoicePool } from "./audio/voices";
 import { AudioScheduler } from "./audio/scheduler";
 import { collectAudioIntents, minuteOfDay } from "./audio/simBridge";
-import { createBuildingLayer } from "./render/buildings";
+import {
+  createBuildingModelsLayer,
+  type BuildingModelsLayer,
+} from "./render/buildingModels";
 import {
   copyFogTexture,
   createFogShaderUniforms,
@@ -346,6 +351,9 @@ if (typeof window !== "undefined") {
     spawnResourceNode,
     RESOURCE_WOOD,
     issueGather,
+    setPlayerAge: (rank: number) => {
+      setPlayerAgeRank(world, comps, PLAYER_ONE, rank);
+    },
   };
 }
 
@@ -363,6 +371,8 @@ function advanceOneTick(): void {
 const renderer = new WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // §7 budget
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
 const scene = new Scene();
@@ -371,7 +381,19 @@ scene.background = new Color(0x10141c);
 const hemisphereLight = new HemisphereLight(0xcfd8e8, 0x3a4436, 1.05);
 scene.add(hemisphereLight);
 const sun = new DirectionalLight(0xfff2d9, 1.35);
-sun.position.set(0.55, 1, 0.35);
+sun.position.set(world.layers.size * 0.5 + 40, 75, world.layers.size * 0.5 + 25);
+sun.target.position.set(world.layers.size * 0.5, 0, world.layers.size * 0.5);
+scene.add(sun.target);
+sun.castShadow = true;
+sun.shadow.camera.near = 10;
+sun.shadow.camera.far = 180;
+sun.shadow.camera.left = -world.layers.size * 0.6;
+sun.shadow.camera.right = world.layers.size * 0.6;
+sun.shadow.camera.top = world.layers.size * 0.6;
+sun.shadow.camera.bottom = -world.layers.size * 0.6;
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+sun.shadow.bias = -0.0005;
 scene.add(sun);
 
 // M3-T6 day/night lighting (render-only): the mirror sample's tint
@@ -389,6 +411,7 @@ const fogUniforms = createFogShaderUniforms(fog.state, VIEWER);
 let fogRevision = fog.revision;
 
 const terrain = buildTerrainMesh(world.layers, fogUniforms);
+terrain.receiveShadow = true;
 scene.add(terrain);
 
 const cameraRig = new RtsCamera({ mapSize: world.layers.size });
@@ -464,6 +487,9 @@ const bStates = new Uint8Array(BUILDING_RENDER_CAP);
 const bProgress = new Float32Array(BUILDING_RENDER_CAP);
 const bEids = new Int32Array(BUILDING_RENDER_CAP);
 const bGhosts = new Uint8Array(BUILDING_RENDER_CAP);
+const bDefCodes = new Uint8Array(BUILDING_RENDER_CAP);
+const bOwnerIds = new Uint8Array(BUILDING_RENDER_CAP);
+const bAgeRanks = new Uint8Array(BUILDING_RENDER_CAP);
 
 interface LayerScratch {
   count: number;
@@ -1120,10 +1146,9 @@ function pollMatchOutcome(): void {
   });
 }
 
-// Building visuals (one instanced draw call) fed from the pure
+// Building visuals (instanced 3D GLTF models per def/age-stage) fed from the pure
 // building-snapshot mirror, plus the single-building selection panel.
-const buildingLayer = createBuildingLayer();
-scene.add(buildingLayer.mesh);
+let buildingModelsLayer: BuildingModelsLayer | undefined;
 let buildingFrame = captureBuildingSnapshot(world, comps);
 
 const buildingPanel = createBuildingPanel({
@@ -1779,21 +1804,32 @@ function frame(
     bSizes[bCount * 2 + 1] = h;
     bStates[bCount] = buildingFrame.states[i]!;
     bProgress[bCount] = buildingFrame.progress[i]!;
+    bDefCodes[bCount] = buildingFrame.defCodes[i]!;
+    bOwnerIds[bCount] = buildingFrame.ownerIds[i]!;
+    bAgeRanks[bCount] = buildingFrame.ageRanks[i]!;
     bGhosts[bCount] = ghost ? 1 : 0;
     bCount += 1;
   }
-  buildingLayer.write(
-    {
-      count: bCount,
-      eids: bEids,
-      origins: bOrigins,
-      sizes: bSizes,
-      states: bStates,
-      progress: bProgress,
-    },
-    world.layers,
-    { isGhost: (index) => bGhosts[index] === 1 },
-  );
+  if (buildingModelsLayer) {
+    buildingModelsLayer.write(
+      {
+        count: bCount,
+        eids: bEids,
+        origins: bOrigins,
+        sizes: bSizes,
+        states: bStates,
+        progress: bProgress,
+        defCodes: bDefCodes,
+        ownerIds: bOwnerIds,
+        ageRanks: bAgeRanks,
+      },
+      world.layers,
+      {
+        isGhost: (index) => bGhosts[index] === 1,
+        viewerId: VIEWER,
+      },
+    );
+  }
 
   // Armed placement ghost follows the pointer each frame so it stays
   // glued while panning/zooming, not just on mousemove.
@@ -1906,19 +1942,21 @@ function frame(
   // makes the ≤150 @500-instance audit visible in-browser — manual
   // pass documented in docs/m5-manual.md.
   const calls = renderer.info.render.calls;
-  console.assert(calls <= 9, `draw calls ${calls} exceed §7 handful budget`);
+  console.assert(calls <= 150, `draw calls ${calls} exceed §7 budget`);
   devStats?.update(calls, renderer.info.render.triangles, currentPlaybackFps);
 }
 
-loadUnitLayers()
-  .then((unitLayers) => {
+Promise.all([loadUnitLayers(), createBuildingModelsLayer()])
+  .then(([unitLayers, bLayer]) => {
     for (const layer of unitLayers) {
       if (layer) scene.add(layer.mesh);
     }
+    buildingModelsLayer = bLayer;
+    scene.add(buildingModelsLayer.group);
     requestAnimationFrame((now) => frame(now, unitLayers));
   })
   .catch((error: unknown) => {
-    console.error("unit atlases failed to load", error);
+    console.error("unit atlases or building models failed to load", error);
     document.body.textContent =
-      "Failed to load unit atlases — check atlas frames and assets.";
+      "Failed to load unit atlases or building models — check assets.";
   });

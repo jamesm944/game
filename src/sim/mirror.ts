@@ -28,6 +28,7 @@ import {
 import type { OwnerComponents } from "./components/owner";
 import { buildingDefOf, buildingIdOfCode, unitCodeOf } from "../data/definitions";
 import { WORK_MILLI_SCALE } from "./systems/construction";
+import { currentAgeRankOf } from "./systems/age";
 import type { World } from "./core/world";
 
 export const ACTIVITY_IDLE = 0;
@@ -109,35 +110,25 @@ const ACT_KIND_ATTACK = 5;
 const ACT_KIND_ATTACK_MOVE = 6;
 
 function unitActivityOf(
-  world: World,
-  comps: SimComponents,
   eid: number,
   isDead: boolean,
+  actRows: Map<number, readonly number[]> | undefined,
+  invRows: Map<number, readonly number[]> | undefined,
+  assignedNodeRows: Map<number, readonly number[]> | undefined,
+  resourceNodeRows: Map<number, readonly number[]> | undefined,
+  assignedSiteRows: Map<number, readonly number[]> | undefined,
 ): number {
   if (isDead) return ACTIVITY_DEATH;
 
-  const actRows = comps.activityQueueId
-    ? world.rowsByComponentId.get(comps.activityQueueId)
-    : undefined;
   const actRow = actRows?.get(eid);
   const headCount = actRow ? actRow[0]! : 0;
   const headKind = headCount > 0 ? actRow![1]! : 0;
 
-  const invRows = comps.inventoryId
-    ? world.rowsByComponentId.get(comps.inventoryId)
-    : undefined;
   const invRow = invRows?.get(eid);
   const carriedAmount = invRow ? invRow[1]! : 0;
   const resourceCode = invRow ? invRow[0]! : 0;
 
-  const assignedNodeRows = comps.assignedNodeId
-    ? world.rowsByComponentId.get(comps.assignedNodeId)
-    : undefined;
   const nodeEid = assignedNodeRows?.get(eid)?.[0];
-
-  const resourceNodeRows = comps.resourceNodeId
-    ? world.rowsByComponentId.get(comps.resourceNodeId)
-    : undefined;
 
   if (headKind === ACT_KIND_GATHER) {
     const resCode =
@@ -165,9 +156,6 @@ function unitActivityOf(
     return ACTIVITY_ATTACK;
   }
 
-  const assignedSiteRows = comps.assignedSiteId
-    ? world.rowsByComponentId.get(comps.assignedSiteId)
-    : undefined;
   if (assignedSiteRows?.has(eid)) {
     return ACTIVITY_BUILD;
   }
@@ -224,6 +212,33 @@ export function captureSimSnapshot(
   const ownerRows = (comps as OwnerComponents).ownerId
     ? world.rowsByComponentId.get((comps as OwnerComponents).ownerId)
     : undefined;
+  const actQueueRows = comps.activityQueueId
+    ? world.rowsByComponentId.get(comps.activityQueueId)
+    : undefined;
+  const invRows = comps.inventoryId
+    ? world.rowsByComponentId.get(comps.inventoryId)
+    : undefined;
+  const assignedNodeRows = comps.assignedNodeId
+    ? world.rowsByComponentId.get(comps.assignedNodeId)
+    : undefined;
+  const resourceNodeRows = comps.resourceNodeId
+    ? world.rowsByComponentId.get(comps.resourceNodeId)
+    : undefined;
+  const assignedSiteRows = comps.assignedSiteId
+    ? world.rowsByComponentId.get(comps.assignedSiteId)
+    : undefined;
+
+  const combatRows = (comps as any).combatId
+    ? world.rowsByComponentId.get((comps as any).combatId)
+    : undefined;
+  const hasActivityComps = !!(
+    actQueueRows ||
+    invRows ||
+    assignedNodeRows ||
+    resourceNodeRows ||
+    assignedSiteRows
+  );
+
   // maxHp per def code, memoized per capture (codes are dense u8s).
   const maxHpByDefCode = new Map<number, number>();
 
@@ -240,7 +255,7 @@ export function captureSimSnapshot(
     positions[count * 2 + 1] = posRow[1]!;
     headings[count] = velRow[0]!; // Velocity row layout: headingRad first
 
-    const combatRow = getCombatRow(world, comps, eid);
+    const combatRow = combatRows?.get(eid);
     let fraction = 1;
     if (combatRow) {
       const defCode = combatRow[0]!;
@@ -253,7 +268,18 @@ export function captureSimSnapshot(
     }
     hpFractions[count] = fraction;
     defCodes[count] = combatRow ? combatRow[0]! : VILLAGER_DEF_CODE;
-    activityCodes[count] = unitActivityOf(world, comps, eid, fraction <= 0);
+    activityCodes[count] =
+      hasActivityComps
+        ? unitActivityOf(
+            eid,
+            fraction <= 0,
+            actQueueRows,
+            invRows,
+            assignedNodeRows,
+            resourceNodeRows,
+            assignedSiteRows,
+          )
+        : ACTIVITY_IDLE;
     ownerIds[count] = ownerRows?.get(eid)?.[0] ?? 0;
     count++;
   }
@@ -288,6 +314,12 @@ export interface BuildingSnapshotFrame {
   readonly states: Uint8Array;
   /** Build progress clamped to [0,1]; finished buildings report 1. */
   readonly progress: Float32Array;
+  /** Numeric building definition code. */
+  readonly defCodes: Uint8Array;
+  /** Owner player ID. */
+  readonly ownerIds: Uint8Array;
+  /** Owner age rank (1=Dark, 2=Feudal, 3=Castle, 4=Imperial). */
+  readonly ageRanks: Uint8Array;
 }
 
 export interface CaptureBuildingOptions {
@@ -328,6 +360,24 @@ export function captureBuildingSnapshot(
     return new Uint8Array(Math.max(needed, 64));
   })();
   let progress = grow(options.reusable?.progress ?? new Float32Array(0), 1);
+  let defCodes = (() => {
+    const needed = Math.max(entityCount, 1);
+    let array = options.reusable?.defCodes ?? new Uint8Array(0);
+    if (array.length >= needed) return array;
+    return new Uint8Array(Math.max(needed, 64));
+  })();
+  let ownerIds = (() => {
+    const needed = Math.max(entityCount, 1);
+    let array = options.reusable?.ownerIds ?? new Uint8Array(0);
+    if (array.length >= needed) return array;
+    return new Uint8Array(Math.max(needed, 64));
+  })();
+  let ageRanks = (() => {
+    const needed = Math.max(entityCount, 1);
+    let array = options.reusable?.ageRanks ?? new Uint8Array(0);
+    if (array.length >= needed) return array;
+    return new Uint8Array(Math.max(needed, 64));
+  })();
 
   let count = 0;
   for (let i = 0; i < entityCount; i++) {
@@ -337,7 +387,9 @@ export function captureBuildingSnapshot(
     const site = getBuildingSiteRow(world, comps, eid);
     const built = getBuildingRow(world, comps, eid);
     if (!site && !built) continue;
-    const defCode = (site ?? built)![1]!;
+    const row = (site ?? built)!;
+    const owner = row[0]!;
+    const defCode = row[1]!;
     const def = buildingDefOf(buildingIdOfCode(defCode));
     const centerX = posRow[0]!;
     const centerY = posRow[1]!;
@@ -349,6 +401,12 @@ export function captureBuildingSnapshot(
     origins[count * 2 + 1] = centerY - h / 2;
     sizes[count * 2] = w;
     sizes[count * 2 + 1] = h;
+    defCodes[count] = defCode;
+    ownerIds[count] = owner;
+    ageRanks[count] = comps.ageStateId
+      ? currentAgeRankOf(world, comps, owner)
+      : 1;
+
     if (built) {
       states[count] = 1;
       progress[count] = 1;
@@ -367,5 +425,8 @@ export function captureBuildingSnapshot(
     sizes,
     states: states.subarray(0, Math.max(count, 1)),
     progress,
+    defCodes: defCodes.subarray(0, Math.max(count, 1)),
+    ownerIds: ownerIds.subarray(0, Math.max(count, 1)),
+    ageRanks: ageRanks.subarray(0, Math.max(count, 1)),
   };
 }

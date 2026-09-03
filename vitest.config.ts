@@ -8,6 +8,7 @@ import { defineConfig } from "vitest/config";
  * stays far under its 60 s wall-clock requirement (SPEC §7).
  */
 export default defineConfig({
+  assetsInclude: ["**/*.gltf", "**/*.glb"],
   test: {
     fileParallelism: false,
   },
