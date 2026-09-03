@@ -114,11 +114,17 @@ function pupilAndTeacher(
 
 describe("lesson window math", () => {
   it("opens at 09:00 and closes at 15:00 sim-clock", () => {
-    const canonical = DEFAULT_LIFECYCLE_CONFIG;
-    expect(isLessonTime(SCHOOL_OPEN_MINUTE * 10 - 1, canonical)).toBe(false);
-    expect(isLessonTime(SCHOOL_OPEN_MINUTE * 10, canonical)).toBe(true);
-    expect(isLessonTime(SCHOOL_CLOSE_MINUTE * 10 - 1, canonical)).toBe(true);
-    expect(isLessonTime(SCHOOL_CLOSE_MINUTE * 10, canonical)).toBe(false);
+    const zeroOffset = { ...DEFAULT_LIFECYCLE_CONFIG, clockOffsetMinutes: 0 };
+    expect(isLessonTime(SCHOOL_OPEN_MINUTE * 10 - 1, zeroOffset)).toBe(false);
+    expect(isLessonTime(SCHOOL_OPEN_MINUTE * 10, zeroOffset)).toBe(true);
+    expect(isLessonTime(SCHOOL_CLOSE_MINUTE * 10 - 1, zeroOffset)).toBe(true);
+    expect(isLessonTime(SCHOOL_CLOSE_MINUTE * 10, zeroOffset)).toBe(false);
+
+    // With canonical 7:00 AM boot (420m offset):
+    // tick 0 (07:00 AM) is before school opens (09:00 AM)
+    expect(isLessonTime(0, DEFAULT_LIFECYCLE_CONFIG)).toBe(false);
+    // tick 1200 (120 min elapsed -> 09:00 AM) school opens
+    expect(isLessonTime(1200, DEFAULT_LIFECYCLE_CONFIG)).toBe(true);
   });
 
   it("rotates subjects by day and staggers pupils inside the window", () => {

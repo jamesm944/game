@@ -112,9 +112,14 @@ describe("lifecycle stage math", () => {
 
   it("maps ticks to sim-clock minutes and day indices", () => {
     const canonical = DEFAULT_LIFECYCLE_CONFIG;
-    expect(minuteOfDay(0, canonical)).toBe(0);
-    // Tick 5400 = minute 540 = 09:00 on the canonical 14,400-tick day.
-    expect(minuteOfDay(5400, canonical)).toBe(540);
+    // Canonical boots at 07:00 AM (420 minutes).
+    expect(minuteOfDay(0, canonical)).toBe(420);
+    // Tick 5400 = 540 sim minutes elapsed -> 420 + 540 = 960 (16:00).
+    expect(minuteOfDay(5400, canonical)).toBe(960);
+    // Zero-offset config for raw day fraction tests:
+    const zeroOffset = normalizeLifecycleConfig({ clockOffsetMinutes: 0 });
+    expect(minuteOfDay(0, zeroOffset)).toBe(0);
+    expect(minuteOfDay(5400, zeroOffset)).toBe(540);
     expect(dayIndexOf(29_999, canonical)).toBe(2);
     expect(dayIndexOf(28_800, canonical)).toBe(2);
   });

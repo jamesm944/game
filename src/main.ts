@@ -166,6 +166,10 @@ import {
   type RelicModelsLayer,
 } from "./render/relicModels";
 import {
+  createResourceModelsLayer,
+  type ResourceModelsLayer,
+} from "./render/resourceModels";
+import {
   captureRelicSnapshot,
   type RelicSnapshotFrame,
 } from "./sim/mirror";
@@ -437,7 +441,23 @@ scene.add(terrain);
 
 const cameraRig = new RtsCamera({ mapSize: world.layers.size });
 cameraRig.resize(window.innerWidth, window.innerHeight);
-cameraRig.setCenter(world.layers.size / 2, world.layers.size / 2);
+const startBuiltRows = world.rowsByComponentId.get(comps.buildingId);
+const startPosRows = world.rowsByComponentId.get(comps.positionId);
+let startCamX = world.layers.size / 2;
+let startCamY = world.layers.size / 2;
+if (startBuiltRows && startPosRows) {
+  for (const [eid, r] of startBuiltRows.entries()) {
+    if (r[0] === PLAYER_ONE && r[1] === 1) { // Player 1 TC
+      const p = startPosRows.get(eid);
+      if (p && p[0] !== undefined && p[1] !== undefined) {
+        startCamX = p[0] + 1.5;
+        startCamY = p[1] + 1.5;
+        break;
+      }
+    }
+  }
+}
+cameraRig.setCenter(startCamX, startCamY);
 if (typeof window !== "undefined" && (window as any).__game) {
   (window as any).__game.cameraRig = cameraRig;
 }
@@ -1213,6 +1233,7 @@ function pollMatchOutcome(): void {
 // building-snapshot mirror, plus the single-building selection panel.
 let buildingModelsLayer: BuildingModelsLayer | undefined;
 let relicModelsLayer: RelicModelsLayer | undefined;
+let resourceModelsLayer: ResourceModelsLayer | undefined;
 let relicReuseFrame: RelicSnapshotFrame | undefined;
 let buildingFrame = captureBuildingSnapshot(world, comps);
 
@@ -1740,18 +1761,52 @@ function frame(
   fogUniforms.uBlend.value = alpha;
   const sampledCount = sampleMirror(mirror, alpha, sampleOut);
 
-  // M3-T6: day/night tint from the sim clock — background and light rig
-  // scale together so nights are visibly navy and dawns warmly lit.
+  // Issue #75: Time-of-day atmospheric sky & lighting rig
   const tint = sampleOut.lightTint!;
   const lum = Math.max(tint[0]!, tint[1]!, tint[2]!);
+
   scratchBackground.setRGB(
-    baseBackground.r * (0.4 + 0.6 * tint[0]!),
-    baseBackground.g * (0.4 + 0.6 * tint[1]!),
-    baseBackground.b * (0.4 + 0.6 * tint[2]!),
+    baseBackground.r * (0.35 + 0.65 * tint[0]!),
+    baseBackground.g * (0.38 + 0.62 * tint[1]!),
+    baseBackground.b * (0.45 + 0.55 * tint[2]!),
   );
   scene.background = scratchBackground;
-  sun.intensity = BASE_SUN_INTENSITY * (0.25 + 0.75 * lum);
-  hemisphereLight.intensity = BASE_HEMI_INTENSITY * (0.35 + 0.65 * lum);
+
+  // Sun orbit & color based on minute of the day (offset 7:00 AM)
+  const currentMinute = minuteOfDay(world.tick);
+  const sunAngle = ((currentMinute - 360) / 1440) * Math.PI * 2;
+  const mapCenter = world.layers.size * 0.5;
+  sun.position.set(
+    mapCenter + Math.cos(sunAngle) * 60,
+    65 + Math.sin(Math.max(0.15, (currentMinute > 300 && currentMinute < 1260 ? (currentMinute - 300) / 960 : 0.5) * Math.PI)) * 22,
+    mapCenter + Math.sin(sunAngle) * 40,
+  );
+  sun.target.position.set(mapCenter, 0, mapCenter);
+
+  if (currentMinute >= 300 && currentMinute < 480) {
+    // Dawn / morning golden peach light
+    const t = (currentMinute - 300) / 180;
+    sun.color.setRGB(1.0, 0.88 + t * 0.12, 0.72 + t * 0.28);
+  } else if (currentMinute >= 480 && currentMinute < 1080) {
+    // Midday bright crisp daylight
+    sun.color.setRGB(1.0, 0.98, 0.94);
+  } else if (currentMinute >= 1080 && currentMinute < 1260) {
+    // Sunset / twilight amber-orange
+    const t = (currentMinute - 1080) / 180;
+    sun.color.setRGB(1.0, 0.98 - t * 0.22, 0.94 - t * 0.45);
+  } else {
+    // Moonlit slate-cyan night
+    sun.color.setRGB(0.72, 0.82, 0.96);
+  }
+
+  // Raised night floor so terrain and units are crisp, readable navy
+  sun.intensity = BASE_SUN_INTENSITY * (0.42 + 0.58 * lum);
+  hemisphereLight.intensity = BASE_HEMI_INTENSITY * (0.50 + 0.50 * lum);
+  hemisphereLight.color.setRGB(0.68 + 0.32 * tint[0]!, 0.74 + 0.26 * tint[1]!, 0.85 + 0.15 * tint[2]!);
+  hemisphereLight.groundColor.setRGB(0.24 + 0.25 * tint[0]!, 0.26 + 0.22 * tint[1]!, 0.28 + 0.20 * tint[2]!);
+
+  // Advance terrain animated shaders (water shimmer)
+  (terrain as any).uTime.value = now * 0.001;
 
   for (let c = 0; c < layerScratches.length; c++) {
     layerScratches[c]!.count = 0;
@@ -1921,6 +1976,34 @@ function frame(
     });
   }
 
+  if (resourceModelsLayer) {
+    resourceModelsLayer.uTime.value = now * 0.001;
+    const nodeRows = world.rowsByComponentId.get(comps.resourceNodeId);
+    const posRows = world.rowsByComponentId.get(comps.positionId);
+    if (nodeRows && posRows) {
+      resourceModelsLayer.write(nodeRows as any, posRows as any, world.layers, {
+        fog: {
+          isVisible: (x, y) => fog.isVisible(x, y, VIEWER),
+          isExplored: (x, y) => fog.isExplored(x, y, VIEWER),
+        },
+      });
+    }
+  }
+
+  // Update farm furrows on terrain
+  const buildingRows = world.rowsByComponentId.get(comps.buildingId);
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  const farmTiles: Array<{ x: number; y: number; width: number; height: number }> = [];
+  if (buildingRows && posRows) {
+    for (const [eid, bRow] of buildingRows) {
+      if (bRow[1] === 5) {
+        const p = posRows.get(eid);
+        if (p) farmTiles.push({ x: Math.floor(p[0]!), y: Math.floor(p[1]!), width: 3, height: 3 });
+      }
+    }
+  }
+  terrain.updateFarms(farmTiles);
+
   // Armed placement ghost follows the pointer each frame so it stays
   // glued while panning/zooming, not just on mousemove.
   const ghostCandidate = currentPlacementCheck();
@@ -2040,8 +2123,9 @@ Promise.all([
   loadUnitLayers(),
   createBuildingModelsLayer(),
   createRelicModelsLayer(),
+  createResourceModelsLayer(),
 ])
-  .then(([unitLayers, bLayer, rLayer]) => {
+  .then(([unitLayers, bLayer, rLayer, resLayer]) => {
     for (const layer of unitLayers) {
       if (layer) scene.add(layer.mesh);
     }
@@ -2049,10 +2133,12 @@ Promise.all([
     scene.add(buildingModelsLayer.group);
     relicModelsLayer = rLayer;
     scene.add(relicModelsLayer.group);
+    resourceModelsLayer = resLayer;
+    scene.add(resourceModelsLayer.group);
     requestAnimationFrame((now) => frame(now, unitLayers));
   })
   .catch((error: unknown) => {
-    console.error("unit atlases, buildings or relics failed to load", error);
+    console.error("unit atlases, buildings, relics or resources failed to load", error);
     document.body.textContent =
       "Failed to load unit atlases or models — check assets.";
   });

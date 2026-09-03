@@ -3,11 +3,11 @@ import { minuteOfDay } from "../src/audio/simBridge";
 import { AudioScheduler } from "../src/audio/scheduler";
 
 describe("audio scheduling glue", () => {
-  it("clock math: 8-min day at 30Hz → 10 ticks per sim minute", () => {
-    expect(minuteOfDay(0)).toBe(0); // midnight
-    expect(minuteOfDay(300)).toBe(30); // 00:30
-    expect(minuteOfDay(10 * 1440)).toBe(0); // exactly one day later
-    expect(minuteOfDay(10 * (1440 + 720))).toBe(720); // noon next day
+  it("clock math: 8-min day at 30Hz → 10 ticks per sim minute (offset 7:00 AM)", () => {
+    expect(minuteOfDay(0)).toBe(420); // 07:00 AM boot
+    expect(minuteOfDay(300)).toBe(450); // 07:30 AM
+    expect(minuteOfDay(10 * 1440)).toBe(420); // exactly one day later (07:00 AM)
+    expect(minuteOfDay(10 * (1440 + 720))).toBe(1140); // 12h later (19:00 PM)
   });
 
   it("ambient flips day↔night across the boundaries and throttles", () => {

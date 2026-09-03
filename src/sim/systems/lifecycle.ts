@@ -65,6 +65,13 @@ export const ELDER_AGE_DAYS = 4;
 /** SPEC §2.3: lifespan ~40 real minutes ⇒ five canonical days. */
 export const LIFESPAN_DAYS = 5;
 
+/**
+ * Boot-time minute-of-day offset (SPEC §2.4 / Issue #75): games boot at
+ * 07:00 AM (420 minutes) so the initial scene is bathed in morning sunlight
+ * and villagers are already awake for their workday.
+ */
+export const BOOT_MINUTE_OFFSET = 420;
+
 /** Lifecycle timescale — override in fixtures for compressed weeks. */
 export interface LifecycleConfig {
   /** Ticks per simulated day (canonical 14,400). */
@@ -75,6 +82,8 @@ export interface LifecycleConfig {
   readonly elderAgeDays: number;
   /** Natural death at this many whole days of effective age. */
   readonly lifespanDays: number;
+  /** Clock offset in minutes applied to minuteOfDay (canonical 420 = 7:00 AM). */
+  readonly clockOffsetMinutes?: number | undefined;
 }
 
 /** The production clock: SPEC §2.3 lifetimes on the §2.4 day grid. */
@@ -83,6 +92,7 @@ export const DEFAULT_LIFECYCLE_CONFIG: LifecycleConfig = {
   adultAgeDays: ADULT_AGE_DAYS,
   elderAgeDays: ELDER_AGE_DAYS,
   lifespanDays: LIFESPAN_DAYS,
+  clockOffsetMinutes: BOOT_MINUTE_OFFSET,
 };
 
 export function normalizeLifecycleConfig(
@@ -103,6 +113,9 @@ export function normalizeLifecycleConfig(
     adultAgeDays: config.adultAgeDays ?? ADULT_AGE_DAYS,
     elderAgeDays: config.elderAgeDays ?? ELDER_AGE_DAYS,
     lifespanDays: config.lifespanDays ?? LIFESPAN_DAYS,
+    clockOffsetMinutes:
+      config.clockOffsetMinutes ??
+      (config.dayTicks !== undefined ? 0 : BOOT_MINUTE_OFFSET),
   };
   if (!(
     cfg.adultAgeDays < cfg.elderAgeDays && cfg.elderAgeDays <= cfg.lifespanDays
@@ -128,7 +141,9 @@ export function lifespanTicksOf(config: LifecycleConfig): number {
 /** Sim-clock minute of one tick under `config`'s day length (0–1439). */
 export function minuteOfDay(tick: number, config: LifecycleConfig): number {
   const perMinute = config.dayTicks / 1440;
-  return Math.floor((tick % config.dayTicks) / perMinute);
+  const rawMinute = Math.floor((tick % config.dayTicks) / perMinute);
+  const offset = config.clockOffsetMinutes ?? 0;
+  return (rawMinute + offset) % 1440;
 }
 
 /** Day index of one tick (whole days elapsed since tick 0). */

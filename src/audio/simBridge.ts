@@ -48,7 +48,7 @@ export function collectAudioIntents(
   return intents;
 }
 
-/** Day/night clock: 8-min day @30Hz → 10 ticks per sim minute. */
+/** Day/night clock: 8-min day @30Hz → 10 ticks per sim minute, offset 7:00 AM. */
 export function minuteOfDay(tick: number): number {
-  return Math.floor(tick / 10) % 1440;
+  return (Math.floor(tick / 10) + 420) % 1440;
 }

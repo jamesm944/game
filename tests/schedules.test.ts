@@ -79,7 +79,11 @@ import {
 import { lightingTintAtMinute, lightingTintAtTick } from "../src/render/mirror";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
 
-const CANONICAL: LifecycleConfig = DEFAULT_LIFECYCLE_CONFIG;
+const CANONICAL: LifecycleConfig = normalizeLifecycleConfig({
+  dayTicks: 14_400,
+  clockOffsetMinutes: 0,
+});
+const BOOT_CANONICAL: LifecycleConfig = DEFAULT_LIFECYCLE_CONFIG;
 const COMPRESSED = normalizeLifecycleConfig({ dayTicks: 600 });
 
 function openWorld(seed: number) {
@@ -128,6 +132,12 @@ describe("schedule windows (§2.4 clock)", () => {
     expect(isSleepTime(0, CANONICAL)).toBe(true); // midnight
     expect(isSleepTime(2999, CANONICAL)).toBe(true); // 04:59:50
     expect(isSleepTime(3000, CANONICAL)).toBe(false); // 05:00
+  });
+
+  it("boots at 07:00 AM on default production clock", () => {
+    expect(minuteOfDay(0, BOOT_CANONICAL)).toBe(420);
+    // Villagers are awake at 07:00 AM boot:
+    expect(isSleepTime(0, BOOT_CANONICAL)).toBe(false);
   });
 
   it("jitter is bounded, deterministic, and clock-proportional", () => {
@@ -233,6 +243,7 @@ describe("schedule steering", () => {
         comps,
         players: [PLAYER_ONE],
         diagnostics: schedulesDiagnostics,
+        lifecycleConfig: CANONICAL,
       }),
     );
     createPlayerStockpile(world, comps, PLAYER_ONE, [500, 500, 0, 0, 0, 0, 0]);
@@ -506,13 +517,13 @@ describe("render-side lighting tint (M3-T6)", () => {
     lightingTintAtMinute(720, tint); // noon: full daylight
     expect([...tint]).toEqual([1, 1, 1]);
     lightingTintAtMinute(0, tint); // deep night
-    expect(tint[0]).toBeCloseTo(0.16);
+    expect(tint[0]).toBeCloseTo(0.38);
     lightingTintAtMinute(1439, tint); // one minute before wrap ≈ night
-    expect(tint[0]).toBeCloseTo(0.16, 1);
+    expect(tint[0]).toBeCloseTo(0.38, 1);
     lightingTintAtMinute(-5, tint); // clamped
-    expect(tint[0]).toBeCloseTo(0.16);
+    expect(tint[0]).toBeCloseTo(0.38);
     lightingTintAtMinute(1500, tint);
-    expect(tint[0]).toBeCloseTo(0.16);
+    expect(tint[0]).toBeCloseTo(0.38);
 
     // Dawn warms monotonically toward the sunrise stop.
     const early = new Float32Array(3);
@@ -525,9 +536,13 @@ describe("render-side lighting tint (M3-T6)", () => {
 
   it("maps world ticks through the canonical clock", () => {
     const tint = new Float32Array(3);
-    lightingTintAtTick(7200, tint); // tick 7200 = 12:00
+    // Boot is 07:00 AM (420 min). Noon (720 min) is 300 min = 3000 ticks later:
+    lightingTintAtTick(3000, tint);
     expect([...tint]).toEqual([1, 1, 1]);
-    lightingTintAtTick(14400, tint); // next midnight
-    expect(tint[0]).toBeCloseTo(0.16);
+    // Midnight (0 min) is 1020 min = 10200 ticks later:
+    lightingTintAtTick(10200, tint);
+    expect(tint[0]).toBeCloseTo(0.38);
+    expect(tint[1]).toBeCloseTo(0.44);
+    expect(tint[2]).toBeCloseTo(0.65);
   });
 });

@@ -82,16 +82,16 @@ const LIGHTING_KEYFRAMES: readonly {
   readonly minute: number;
   readonly tint: readonly [number, number, number];
 }[] = [
-  { minute: 0, tint: [0.16, 0.18, 0.3] },
-  { minute: 240, tint: [0.16, 0.18, 0.3] },
-  { minute: 300, tint: [0.55, 0.42, 0.45] },
-  { minute: 360, tint: [1.0, 0.78, 0.58] },
+  { minute: 0, tint: [0.38, 0.44, 0.65] },
+  { minute: 240, tint: [0.38, 0.44, 0.65] },
+  { minute: 300, tint: [0.65, 0.56, 0.6] },
+  { minute: 360, tint: [1.0, 0.85, 0.68] },
   { minute: 480, tint: [1.0, 1.0, 1.0] },
   { minute: 1080, tint: [1.0, 1.0, 1.0] },
-  { minute: 1140, tint: [1.0, 0.72, 0.5] },
-  { minute: 1260, tint: [0.45, 0.34, 0.48] },
-  { minute: 1320, tint: [0.16, 0.18, 0.3] },
-  { minute: 1440, tint: [0.16, 0.18, 0.3] },
+  { minute: 1140, tint: [1.0, 0.78, 0.58] },
+  { minute: 1260, tint: [0.55, 0.48, 0.65] },
+  { minute: 1320, tint: [0.38, 0.44, 0.65] },
+  { minute: 1440, tint: [0.38, 0.44, 0.65] },
 ];
 
 /**
