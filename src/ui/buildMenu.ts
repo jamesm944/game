@@ -37,6 +37,7 @@ export const BUILD_MENU_IDS: readonly string[] = [
   "church",
   "school",
   "blacksmith",
+  "market",
   "archery-range",
   "stable",
   "watch-tower",

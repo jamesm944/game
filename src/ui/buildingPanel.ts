@@ -49,6 +49,8 @@ export interface BuildingPanelData {
   readonly foreman?: string | undefined;
   /** Appointment candidates, best first (workplaces only). */
   readonly candidates?: readonly BuildingPanelCandidate[] | undefined;
+  /** True if selected building is a Market for commodity trading. */
+  readonly isMarket?: boolean | undefined;
   /** Train action options if trainable (unitId, label). */
   readonly trainableUnits?: readonly {
     readonly unitId: string;
@@ -60,6 +62,22 @@ const TRAIN_VILLAGER_KIND = "trainVillager";
 export const TRAIN_UNIT_KIND = "trainUnit";
 /** M4-T1 appointment command kind — validated by systems/management.ts. */
 export const APPOINT_FOREMAN_KIND = "appointForeman";
+export const MARKET_EXCHANGE_KIND = "marketExchange";
+
+export function issueMarketExchange(
+  inbox: CommandInbox,
+  currentTick: number,
+  playerId: number,
+  action: "buy" | "sell",
+  resource: "wood" | "food" | "stone",
+  amount = 100,
+): void {
+  inbox.submit({
+    kind: MARKET_EXCHANGE_KIND,
+    targetTick: currentTick + 1,
+    data: { playerId, action, resource, amount },
+  });
+}
 
 /** Issue one authoritative trainVillager order for `currentTick + 1`. */
 export function issueTrainVillager(
@@ -222,6 +240,52 @@ export function createBuildingPanel(deps: {
             });
             appointWrap.appendChild(button);
           }
+        }
+
+        // V9 Market commodity exchange section
+        if (data.isMarket) {
+          const exchangeWrap = document.createElement("div");
+          exchangeWrap.className = "panel-market-exchange";
+          exchangeWrap.style.marginTop = "8px";
+          const heading = document.createElement("div");
+          heading.className = "panel-appoint-heading";
+          heading.textContent = "Commodity Exchange";
+          exchangeWrap.appendChild(heading);
+
+          const commodities: Array<{ res: "wood" | "food" | "stone"; label: string }> = [
+            { res: "wood", label: "Wood" },
+            { res: "food", label: "Food" },
+            { res: "stone", label: "Stone" },
+          ];
+
+          for (const c of commodities) {
+            const row = document.createElement("div");
+            row.style.display = "flex";
+            row.style.gap = "6px";
+            row.style.marginBottom = "4px";
+
+            const sellBtn = document.createElement("button");
+            sellBtn.type = "button";
+            sellBtn.className = "panel-train";
+            sellBtn.style.flex = "1";
+            sellBtn.textContent = `Sell 100 ${c.label} (+70g)`;
+            sellBtn.addEventListener("click", () => {
+              issueMarketExchange(deps.inbox, deps.currentTick(), 0, "sell", c.res, 100);
+            });
+
+            const buyBtn = document.createElement("button");
+            buyBtn.type = "button";
+            buyBtn.className = "panel-train";
+            buyBtn.style.flex = "1";
+            buyBtn.textContent = `Buy 100 ${c.label} (-130g)`;
+            buyBtn.addEventListener("click", () => {
+              issueMarketExchange(deps.inbox, deps.currentTick(), 0, "buy", c.res, 100);
+            });
+
+            row.append(sellBtn, buyBtn);
+            exchangeWrap.appendChild(row);
+          }
+          panel.appendChild(exchangeWrap);
         }
       }
 

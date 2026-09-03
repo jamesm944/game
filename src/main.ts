@@ -381,6 +381,7 @@ if (typeof window !== "undefined") {
     validatePlacement: (defId: string, x: number, y: number) => {
       return validatePlacement(world, comps, defId, x, y, PLAYER_ONE);
     },
+    setSelection: (eids: number[]) => setSelection(eids),
   };
 }
 
@@ -1169,6 +1170,20 @@ wireOrderInput({
     const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
     return bDef.id === "monastery" ? eid : undefined;
   },
+  marketAt: (x, y) => {
+    const eid = buildingAt(x, y);
+    if (eid === undefined) return undefined;
+    const row = getBuildingRow(world, comps, eid);
+    if (!row) return undefined;
+    const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
+    return bDef.id === "market" ? eid : undefined;
+  },
+  isTradeCart: (unitEid) => {
+    const combatRow = world.rowsByComponentId.get(comps.combatId)?.get(unitEid);
+    if (!combatRow) return false;
+    const def = unitDefOf(unitIdOfCode(combatRow[0]!));
+    return def.id === "trade-cart";
+  },
   isCarryingRelic: (unitEid) => isUnitCarryingRelic(unitEid),
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
@@ -1407,6 +1422,7 @@ const buildingPanel = createBuildingPanel({
       },
       canTrain: canEnqueueTraining(world, comps, eid),
       trainableUnits,
+      isMarket: def.id === "market",
     };
   },
 });

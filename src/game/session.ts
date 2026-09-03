@@ -98,6 +98,7 @@ import { createSchoolSystem } from "../sim/systems/school";
 import { createKnowledgeSystem } from "../sim/systems/knowledge";
 import { createCultureSystem } from "../sim/systems/culture";
 import { createRelicSystem } from "../sim/systems/relics";
+import { createMarketSystem } from "../sim/systems/market";
 import { spawnRelic } from "../sim/components/relic";
 import { createMassSystem, MASS_CLOSE_MINUTE } from "../sim/systems/mass";
 import { createSchedulesSystem, isRestDay } from "../sim/systems/schedules";
@@ -291,6 +292,8 @@ function wireSkirmishSystems(
   // map relics between the ground, monk carries and Monastery storage;
   // the victory evaluator reads the resulting rows on its own cadence.
   registerSystem(world, createRelicSystem({ comps }));
+  // Content Breadth (V9): Market commodity trading & Trade Cart routes
+  registerSystem(world, createMarketSystem({ comps }));
   // M3-T8: the Sunday Morning Mass planner books communal [Move,
   // Leisure{MASS}] chains whenever a finished Church stands — before
   // social (which executes arrivals) and schedules (whose night band

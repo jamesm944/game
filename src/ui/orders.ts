@@ -221,7 +221,7 @@ function canonicalIds(ids: readonly number[], label: string): number[] {
 
 // ---- Order log (capped, newest-first) ---------------------------------------
 
-export type OrderKind = "move" | "gather" | "build" | "relic";
+export type OrderKind = "move" | "gather" | "build" | "relic" | "trade";
 
 export interface OrderLogEntry {
   readonly seq: number;
@@ -314,15 +314,35 @@ export interface OrderInputDeps {
    */
   monasteryAt?(x: number, y: number): number | undefined;
   /**
-   * Query if a selected unit is carrying a relic.
+   * Market building entity under a world point, or undefined.
    */
-  isCarryingRelic?(unitEid: number): boolean;
+  marketAt?(x: number, y: number): number | undefined;
+  /**
+   * Query if a selected unit is a trade cart.
+   */
+  isTradeCart?(unitEid: number): boolean;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
 
 export const COLLECT_RELIC_COMMAND_KIND = "collectRelic";
 export const DEPOSIT_RELIC_COMMAND_KIND = "depositRelic";
+export const TRADE_ROUTE_COMMAND_KIND = "tradeRoute";
+
+export function issueTradeRoute(
+  inbox: CommandInbox,
+  currentTick: number,
+  unitEid: number,
+  targetMarketEid: number,
+): SimCommand {
+  const command: SimCommand = {
+    kind: TRADE_ROUTE_COMMAND_KIND,
+    targetTick: currentTick + 1,
+    data: { unitEid, targetMarketEid },
+  };
+  inbox.submit(command);
+  return command;
+}
 
 export function issueCollectRelic(
   inbox: CommandInbox,
@@ -381,7 +401,9 @@ export function wireOrderInput(deps: OrderInputDeps): void {
             ? "order-kind order-kind-build"
             : entry.kind === "relic"
               ? "order-kind order-kind-relic"
-              : "order-kind";
+              : entry.kind === "trade"
+                ? "order-kind order-kind-trade"
+                : "order-kind";
       kind.className = kindClass;
       kind.textContent =
         entry.kind === "gather"
@@ -390,7 +412,9 @@ export function wireOrderInput(deps: OrderInputDeps): void {
             ? "BLD"
             : entry.kind === "relic"
               ? "REL"
-              : "MOV";
+              : entry.kind === "trade"
+                ? "TRD"
+                : "MOV";
       const text = document.createElement("span");
       text.textContent = entry.label;
       item.append(kind, text);
@@ -447,7 +471,28 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       }
     }
 
-    // 3. Node -> gather
+    // 3. Market -> Trade Route (if a Trade Cart is selected)
+    const marketId = deps.marketAt?.(ground.x, ground.y);
+    if (marketId !== undefined && selection.length > 0) {
+      const cartEid = selection.find((eid) => deps.isTradeCart?.(eid));
+      if (cartEid !== undefined) {
+        const command = issueTradeRoute(
+          deps.inbox,
+          deps.currentTick(),
+          cartEid,
+          marketId,
+        );
+        deps.onMoveOrdered(ground.x, ground.y);
+        log.push(command.targetTick, {
+          kind: "trade",
+          label: `tick ${String(command.targetTick)} · Trade Route to Market #${String(marketId)}`,
+        });
+        renderList();
+        return;
+      }
+    }
+
+    // 4. Node -> gather
     const nodeId = deps.nodeAt?.(ground.x, ground.y);
     if (nodeId !== undefined) {
       const command = issueGather(
