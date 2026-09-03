@@ -15,6 +15,12 @@
   "populationCap": 0,
   "trainQueue": {
     "capacity": 15,
-    "trainable": [{ "unitId": "scout-cavalry" }, { "unitId": "knight" }]
+    "trainable": [
+      { "unitId": "scout-cavalry" },
+      { "unitId": "light-cavalry" },
+      { "unitId": "knight" },
+      { "unitId": "cavalier" },
+      { "unitId": "paladin" }
+    ]
   }
 }

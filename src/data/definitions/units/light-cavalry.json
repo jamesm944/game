@@ -14,5 +14,12 @@
   "reloadTicks": 60,
   "armorClasses": ["cavalry"],
   "attackBonuses": [{ "armorClass": "monk", "mult": 2.0 }],
-  "sightRadius": 8
+  "sightRadius": 8,
+  "activityAnims": {
+    "attack": "attack",
+    "idle": "idle",
+    "walk": "gallop",
+    "death": "death"
+  },
+  "equipmentSlots": ["weapon", "armor"]
 }

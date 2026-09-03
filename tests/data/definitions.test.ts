@@ -66,6 +66,7 @@ describe("definition loader happy path", () => {
     expect(range.trainQueue?.trainable.map((entry) => entry.unitId)).toEqual([
       "archer",
       "skirmisher",
+      "arbalest",
     ]);
 
     // Spot-check an age tech's advance descriptor.

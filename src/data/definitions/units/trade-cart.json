@@ -14,5 +14,11 @@
   "reloadTicks": 60,
   "armorClasses": ["cavalry"],
   "attackBonuses": [],
-  "sightRadius": 7
+  "sightRadius": 7,
+  "activityAnims": {
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  },
+  "equipmentSlots": []
 }

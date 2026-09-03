@@ -14,5 +14,13 @@
   "reloadTicks": 60,
   "armorClasses": ["archer"],
   "attackBonuses": [{ "armorClass": "infantry", "mult": 1.5 }],
-  "sightRadius": 7
+  "sightRadius": 7,
+  "activityAnims": {
+    "attack": "shoot",
+    "idle": "idle",
+    "walk": "walk",
+    "hit": "hit",
+    "death": "death"
+  },
+  "equipmentSlots": ["weapon", "armor"]
 }

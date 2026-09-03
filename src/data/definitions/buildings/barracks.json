@@ -15,6 +15,11 @@
   "populationCap": 0,
   "trainQueue": {
     "capacity": 15,
-    "trainable": [{ "unitId": "militia" }, { "unitId": "man-at-arms" }]
+    "trainable": [
+      { "unitId": "militia" },
+      { "unitId": "man-at-arms" },
+      { "unitId": "longswordsman" },
+      { "unitId": "two-handed-swordsman" }
+    ]
   }
 }

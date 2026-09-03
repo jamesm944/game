@@ -376,6 +376,8 @@ if (typeof window !== "undefined") {
     stampFinishedBuilding: (defId: string, x: number, y: number, options?: { playerId?: number }) => {
       return stampFinishedBuilding(world, comps, defId as any, x, y, options ?? { playerId: PLAYER_ONE });
     },
+    unitCodeOf,
+    unitDefOf,
     validatePlacement: (defId: string, x: number, y: number) => {
       return validatePlacement(world, comps, defId, x, y, PLAYER_ONE);
     },
@@ -551,11 +553,18 @@ const UNIT_SPECS: Record<
   villager: { png: villagerPng, json: villagerJson, width: 0.95, height: 1.5 },
   militia: { png: militiaPng, json: militiaJson, width: 0.95, height: 1.5 },
   "man-at-arms": { png: manAtArmsPng, json: manAtArmsJson, width: 0.95, height: 1.5 },
+  longswordsman: { png: manAtArmsPng, json: manAtArmsJson, width: 1.0, height: 1.55 },
+  "two-handed-swordsman": { png: manAtArmsPng, json: manAtArmsJson, width: 1.05, height: 1.6 },
   "scout-cavalry": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.3, height: 1.7 },
+  "light-cavalry": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.35, height: 1.75 },
   knight: { png: knightPng, json: knightJson, width: 1.3, height: 1.7 },
+  cavalier: { png: knightPng, json: knightJson, width: 1.35, height: 1.75 },
+  paladin: { png: knightPng, json: knightJson, width: 1.4, height: 1.8 },
   archer: { png: archerPng, json: archerJson, width: 0.95, height: 1.5 },
+  arbalest: { png: archerPng, json: archerJson, width: 1.0, height: 1.55 },
   skirmisher: { png: skirmisherPng, json: skirmisherJson, width: 0.95, height: 1.5 },
   monk: { png: monkPng, json: monkJson, width: 0.95, height: 1.5 },
+  "trade-cart": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.3, height: 1.6 },
 };
 
 const ACTIVITY_NAMES: readonly string[] = [
@@ -574,7 +583,7 @@ const ACTIVITY_NAMES: readonly string[] = [
 
 const layerScratches: LayerScratch[] = [];
 const slotLookup: number[][] = [];
-for (let i = 0; i < 16; i++) {
+for (let i = 0; i < 32; i++) {
   layerScratches.push({
     count: 0,
     positions: new Float32Array(RENDER_CAPACITY * 2),
@@ -588,7 +597,7 @@ for (let i = 0; i < 16; i++) {
 
 async function loadUnitLayers(): Promise<Array<UnitSpriteLayer | undefined>> {
   const loader = new TextureLoader();
-  const layersByCode: Array<UnitSpriteLayer | undefined> = new Array(16).fill(undefined);
+  const layersByCode: Array<UnitSpriteLayer | undefined> = new Array(32).fill(undefined);
 
   for (const [id, spec] of Object.entries(UNIT_SPECS)) {
     const code = unitCodeOf(id);
