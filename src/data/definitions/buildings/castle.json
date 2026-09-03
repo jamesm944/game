@@ -1,0 +1,19 @@
+{
+  "id": "castle",
+  "name": "Castle",
+  "kind": "building",
+  "costs": { "stone": 650 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "buildTime": 2400,
+  "footprint": { "width": 4, "height": 4 },
+  "hp": 4800,
+  "attack": 11,
+  "range": 8,
+  "reloadTicks": 60,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 11,
+  "populationCap": 20
+}

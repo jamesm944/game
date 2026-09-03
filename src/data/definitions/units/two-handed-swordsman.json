@@ -1,0 +1,18 @@
+{
+  "id": "two-handed-swordsman",
+  "name": "Two-Handed Swordsman",
+  "kind": "unit",
+  "costs": { "food": 60, "gold": 20 },
+  "ageGate": "imperial",
+  "techPrereqs": [],
+  "trainTime": 630,
+  "hp": 70,
+  "speed": 0.9,
+  "carryCapacity": 0,
+  "attack": 12,
+  "range": 0.5,
+  "reloadTicks": 60,
+  "armorClasses": ["infantry"],
+  "attackBonuses": [],
+  "sightRadius": 5
+}

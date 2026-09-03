@@ -329,6 +329,8 @@ export function modelKeyFor(defId: string, ageRank: number): string {
       return "gateDarkOpen";
     case "stone-gate":
       return "gateFeudalOpen";
+    case "castle":
+      return "tcImperial";
     default:
       return "storage1";
   }

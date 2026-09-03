@@ -1,0 +1,23 @@
+{
+  "id": "chain-mail",
+  "name": "Chain Mail Armor",
+  "kind": "tech",
+  "costs": { "food": 200, "gold": 100 },
+  "ageGate": "castle",
+  "techPrereqs": ["scale-mail"],
+  "researchTime": 1200,
+  "effects": [
+    {
+      "target": "class:infantry",
+      "stat": "melee-armor",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:infantry",
+      "stat": "pierce-armor",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

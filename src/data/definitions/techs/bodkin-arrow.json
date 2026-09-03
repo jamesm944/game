@@ -1,0 +1,23 @@
+{
+  "id": "bodkin-arrow",
+  "name": "Bodkin Arrow",
+  "kind": "tech",
+  "costs": { "food": 200, "gold": 100 },
+  "ageGate": "castle",
+  "techPrereqs": ["fletching"],
+  "researchTime": 1200,
+  "effects": [
+    {
+      "target": "class:archer",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:archer",
+      "stat": "range",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

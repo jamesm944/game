@@ -1,0 +1,23 @@
+{
+  "id": "plate-barding",
+  "name": "Plate Barding Armor",
+  "kind": "tech",
+  "costs": { "food": 350, "gold": 200 },
+  "ageGate": "imperial",
+  "techPrereqs": ["chain-barding"],
+  "researchTime": 1500,
+  "effects": [
+    {
+      "target": "class:cavalry",
+      "stat": "melee-armor",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:cavalry",
+      "stat": "pierce-armor",
+      "op": "add",
+      "value": 2
+    }
+  ]
+}

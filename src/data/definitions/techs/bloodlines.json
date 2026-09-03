@@ -1,0 +1,17 @@
+{
+  "id": "bloodlines",
+  "name": "Bloodlines",
+  "kind": "tech",
+  "costs": { "food": 150, "gold": 100 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 900,
+  "effects": [
+    {
+      "target": "class:cavalry",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

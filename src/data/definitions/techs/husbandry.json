@@ -1,0 +1,17 @@
+{
+  "id": "husbandry",
+  "name": "Husbandry",
+  "kind": "tech",
+  "costs": { "food": 150 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 900,
+  "effects": [
+    {
+      "target": "class:cavalry",
+      "stat": "speed",
+      "op": "mult",
+      "value": 1.1
+    }
+  ]
+}

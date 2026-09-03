@@ -1,0 +1,23 @@
+{
+  "id": "iron-casting",
+  "name": "Iron Casting",
+  "kind": "tech",
+  "costs": { "food": 220, "gold": 120 },
+  "ageGate": "castle",
+  "techPrereqs": ["forging"],
+  "researchTime": 1200,
+  "effects": [
+    {
+      "target": "class:infantry",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:cavalry",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

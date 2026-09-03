@@ -1,0 +1,23 @@
+{
+  "id": "chain-barding",
+  "name": "Chain Barding Armor",
+  "kind": "tech",
+  "costs": { "food": 250, "gold": 150 },
+  "ageGate": "castle",
+  "techPrereqs": ["scale-barding"],
+  "researchTime": 1200,
+  "effects": [
+    {
+      "target": "class:cavalry",
+      "stat": "melee-armor",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:cavalry",
+      "stat": "pierce-armor",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "fletching",
+  "name": "Fletching",
+  "kind": "tech",
+  "costs": { "food": 100, "gold": 50 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 900,
+  "effects": [
+    {
+      "target": "class:archer",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:archer",
+      "stat": "range",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

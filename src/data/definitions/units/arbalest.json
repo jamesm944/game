@@ -1,0 +1,18 @@
+{
+  "id": "arbalest",
+  "name": "Arbalest",
+  "kind": "unit",
+  "costs": { "wood": 25, "gold": 45 },
+  "ageGate": "imperial",
+  "techPrereqs": [],
+  "trainTime": 810,
+  "hp": 40,
+  "speed": 0.96,
+  "carryCapacity": 0,
+  "attack": 6,
+  "range": 5,
+  "reloadTicks": 60,
+  "armorClasses": ["archer"],
+  "attackBonuses": [{ "armorClass": "infantry", "mult": 1.5 }],
+  "sightRadius": 7
+}

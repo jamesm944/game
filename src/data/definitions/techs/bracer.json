@@ -1,0 +1,23 @@
+{
+  "id": "bracer",
+  "name": "Bracer",
+  "kind": "tech",
+  "costs": { "food": 300, "gold": 200 },
+  "ageGate": "imperial",
+  "techPrereqs": ["bodkin-arrow"],
+  "researchTime": 1500,
+  "effects": [
+    {
+      "target": "class:archer",
+      "stat": "attack",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:archer",
+      "stat": "range",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

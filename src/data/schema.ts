@@ -238,6 +238,12 @@ export const buildingSchema = z.object({
   trainQueue: trainQueueSchema.optional(),
   /** True for gate structures (passable for own units, blocked for enemies). */
   isGate: z.boolean().optional(),
+  /** Defensive attack power (towers, castle). */
+  attack: z.number().int().nonnegative().optional(),
+  /** Defensive attack reach in tiles. */
+  range: z.number().positive().optional(),
+  /** Ticks between defensive strikes. */
+  reloadTicks: z.number().int().positive().optional(),
   /**
    * §2.11 victory-path role (M4-T4): generator yields on Schools and
    * Monuments, sustain gate + hold timer on the Grand Academy/Grand

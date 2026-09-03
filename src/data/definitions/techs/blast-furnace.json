@@ -1,0 +1,23 @@
+{
+  "id": "blast-furnace",
+  "name": "Blast Furnace",
+  "kind": "tech",
+  "costs": { "food": 275, "gold": 225 },
+  "ageGate": "imperial",
+  "techPrereqs": ["iron-casting"],
+  "researchTime": 1500,
+  "effects": [
+    {
+      "target": "class:infantry",
+      "stat": "attack",
+      "op": "add",
+      "value": 2
+    },
+    {
+      "target": "class:cavalry",
+      "stat": "attack",
+      "op": "add",
+      "value": 2
+    }
+  ]
+}

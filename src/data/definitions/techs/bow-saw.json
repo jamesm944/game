@@ -1,0 +1,17 @@
+{
+  "id": "bow-saw",
+  "name": "Bow Saw",
+  "kind": "tech",
+  "costs": { "food": 150, "wood": 100 },
+  "ageGate": "castle",
+  "techPrereqs": ["double-bit-axe"],
+  "researchTime": 1200,
+  "effects": [
+    {
+      "target": "unit:villager",
+      "stat": "speed",
+      "op": "mult",
+      "value": 1.1
+    }
+  ]
+}

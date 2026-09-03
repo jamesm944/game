@@ -33,14 +33,16 @@ import {
 
 describe("definition loader happy path", () => {
   it("loads every M2-T1 definition into typed registries", () => {
-    expect(UNIT_DEFINITIONS.size).toBe(8);
+    expect(UNIT_DEFINITIONS.size).toBe(15);
     // M3-T5: the §2.3 school joins the building set (17). M3-T7 adds
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
     // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).
     // M4-T5: the wonder + monastery completing acts (25).
     // V6: palisade-wall, stone-wall, palisade-gate, stone-gate (29).
-    expect(BUILDING_DEFINITIONS.size).toBe(29);
-    expect(TECH_DEFINITIONS.size).toBe(8);
+    // V7/V9: castle, market (31).
+    expect(BUILDING_DEFINITIONS.size).toBe(31);
+    // V8: 8 canonical + 13 branch techs (21).
+    expect(TECH_DEFINITIONS.size).toBe(21);
     expect(RECIPE_DEFINITIONS.size).toBe(6);
     // M4-T5: the §2.11 victory-path constants are their own family.
     expect(VICTORY_PATH_DEFINITIONS.size).toBe(1);
@@ -447,8 +449,8 @@ describe("shipped M2-T1 content integrity", () => {
   });
 
   it("covers the Feudal+ content checklist from issue #35", () => {
-    expect([...UNIT_DEFINITIONS.keys()].sort()).toEqual(
-      [
+    expect([...UNIT_DEFINITIONS.keys()]).toEqual(
+      expect.arrayContaining([
         "archer",
         "knight",
         "man-at-arms",
@@ -457,7 +459,7 @@ describe("shipped M2-T1 content integrity", () => {
         "scout-cavalry",
         "skirmisher",
         "villager",
-      ].sort(),
+      ]),
     );
     for (const id of [
       "town-center",

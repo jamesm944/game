@@ -1,0 +1,23 @@
+{
+  "id": "scale-barding",
+  "name": "Scale Barding Armor",
+  "kind": "tech",
+  "costs": { "food": 150 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 900,
+  "effects": [
+    {
+      "target": "class:cavalry",
+      "stat": "melee-armor",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:cavalry",
+      "stat": "pierce-armor",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

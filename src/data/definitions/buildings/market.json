@@ -1,0 +1,22 @@
+{
+  "id": "market",
+  "name": "Market",
+  "kind": "building",
+  "costs": { "wood": 175 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 1200,
+  "footprint": { "width": 4, "height": 4 },
+  "hp": 1800,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 6,
+  "populationCap": 0,
+  "trainQueue": {
+    "capacity": 5,
+    "trainable": [
+      { "unitId": "trade-cart" }
+    ]
+  }
+}
