@@ -1,0 +1,17 @@
+{
+  "id": "stone-gate",
+  "name": "Stone Gate",
+  "kind": "building",
+  "costs": { "stone": 30 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 350,
+  "footprint": { "width": 2, "height": 1 },
+  "hp": 1500,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 4,
+  "populationCap": 0,
+  "isGate": true
+}

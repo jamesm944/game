@@ -236,6 +236,8 @@ export const buildingSchema = z.object({
   populationCap: z.number().int().nonnegative(),
   /** Present only on production buildings (M1: town-center). */
   trainQueue: trainQueueSchema.optional(),
+  /** True for gate structures (passable for own units, blocked for enemies). */
+  isGate: z.boolean().optional(),
   /**
    * §2.11 victory-path role (M4-T4): generator yields on Schools and
    * Monuments, sustain gate + hold timer on the Grand Academy/Grand

@@ -38,7 +38,8 @@ describe("definition loader happy path", () => {
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
     // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).
     // M4-T5: the wonder + monastery completing acts (25).
-    expect(BUILDING_DEFINITIONS.size).toBe(25);
+    // V6: palisade-wall, stone-wall, palisade-gate, stone-gate (29).
+    expect(BUILDING_DEFINITIONS.size).toBe(29);
     expect(TECH_DEFINITIONS.size).toBe(8);
     expect(RECIPE_DEFINITIONS.size).toBe(6);
     // M4-T5: the §2.11 victory-path constants are their own family.
@@ -82,7 +83,8 @@ describe("definition loader happy path", () => {
       (a, b) => a[1] - b[1],
     );
     expect(buildingCodes[0]).toEqual(["archery-range", 1]);
-    expect(buildingCodes.at(-1)?.[0]).toBe("wonder");
+    expect(buildingCodes[24]).toEqual(["wonder", 25]);
+    expect(buildingCodes.at(-1)?.[0]).toBe("stone-wall");
 
     expect(unitCodeOf("militia")).toBeGreaterThan(unitCodeOf("knight"));
     expect(buildingCodeOf("town-center")).toBeGreaterThan(

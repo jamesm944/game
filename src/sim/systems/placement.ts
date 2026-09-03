@@ -35,10 +35,10 @@ import {
 import type { SimComponents } from "../components";
 import { getResourceNodeRow } from "../components/economy";
 import { appendGateRejection, GATE_HANDLER_PLACE } from "../components/age";
-import { buildingCodeOf, buildingDefOf } from "../../data/definitions";
+import { buildingCodeOf, buildingDefOf, buildingIdOfCode } from "../../data/definitions";
 import { canAffordCosts, payCosts } from "./costs";
 import { isDefAgeUnlocked } from "./age";
-import { IMPASSABLE, isWaterTerrain } from "../world/layers";
+import { IMPASSABLE, PASSABLE, isWaterTerrain } from "../world/layers";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
 
@@ -268,6 +268,117 @@ function payCostUpFront(
  * execution in systems/companies.ts). Mid-path villagers repath the
  * same tick the footprint appears (ADR-0003 invalidation).
  */
+/**
+ * Traces a contiguous 8-way grid line of 1x1 wall tiles from (startX, startY)
+ * to (endX, endY) using Bresenham's line algorithm.
+ */
+export interface TileCoord {
+  readonly x: number;
+  readonly y: number;
+}
+
+export function traceWallRun(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+): TileCoord[] {
+  const points: TileCoord[] = [];
+  const dx = Math.abs(endX - startX);
+  const dy = Math.abs(endY - startY);
+  const sx = startX < endX ? 1 : -1;
+  const sy = startY < endY ? 1 : -1;
+  let err = dx - dy;
+
+  let currX = startX;
+  let currY = startY;
+
+  while (true) {
+    points.push({ x: currX, y: currY });
+    if (currX === endX && currY === endY) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      currX += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      currY += sy;
+    }
+  }
+  return points;
+}
+
+/**
+ * Return the passability grid for a specific player:
+ * - By default, all walls, buildings, water, and enemy gates are IMPASSABLE (0).
+ * - For gates owned by `playerId`, those tiles are set to PASSABLE (1),
+ *   allowing the owner's units to walk through their own gates.
+ */
+export function passabilityForPlayer(
+  world: World,
+  comps: { buildingId: number; buildingSiteId?: number | undefined; positionId?: number | undefined },
+  playerId: number,
+): Uint8Array {
+  const size = world.layers.size;
+  const buildingRows = world.rowsByComponentId.get(comps.buildingId);
+  const siteRows = comps.buildingSiteId !== undefined
+    ? world.rowsByComponentId.get(comps.buildingSiteId)
+    : undefined;
+
+  const friendlyGateTiles: Array<{ x: number; y: number }> = [];
+
+  if (buildingRows) {
+    for (const [, row] of buildingRows) {
+      const owner = row[0]!;
+      if (owner !== playerId) continue;
+      const defCode = row[1]!;
+      const def = buildingDefOf(buildingIdOfCode(defCode));
+      if (!def.isGate) continue;
+      const originX = row[2]!;
+      const originY = row[3]!;
+      for (let dy = 0; dy < def.footprint.height; dy++) {
+        for (let dx = 0; dx < def.footprint.width; dx++) {
+          friendlyGateTiles.push({ x: originX + dx, y: originY + dy });
+        }
+      }
+    }
+  }
+
+  if (siteRows) {
+    for (const [eid, row] of siteRows) {
+      const owner = row[0]!;
+      if (owner !== playerId) continue;
+      const defCode = row[1]!;
+      const def = buildingDefOf(buildingIdOfCode(defCode));
+      if (!def.isGate) continue;
+      const posRow = comps.positionId !== undefined
+        ? world.rowsByComponentId.get(comps.positionId)?.get(eid)
+        : undefined;
+      if (!posRow) continue;
+      const originX = Math.round(posRow[0]! - def.footprint.width / 2);
+      const originY = Math.round(posRow[1]! - def.footprint.height / 2);
+      for (let dy = 0; dy < def.footprint.height; dy++) {
+        for (let dx = 0; dx < def.footprint.width; dx++) {
+          friendlyGateTiles.push({ x: originX + dx, y: originY + dy });
+        }
+      }
+    }
+  }
+
+  if (friendlyGateTiles.length === 0) {
+    return world.layers.derivedPassability;
+  }
+
+  const pass = world.layers.derivedPassability.slice();
+  for (const t of friendlyGateTiles) {
+    if (t.x >= 0 && t.x < size && t.y >= 0 && t.y < size) {
+      pass[t.y * size + t.x] = PASSABLE;
+    }
+  }
+  return pass;
+}
+
 export function blockFootprintTiles(world: World, rect: FootprintRect): void {
   const size = world.layers.size;
   const passability = world.layers.derivedPassability;

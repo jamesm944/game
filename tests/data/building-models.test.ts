@@ -61,6 +61,12 @@ const KEY_TO_FILE: Record<string, string> = {
   grandMonumentModel: "Wonder_SecondAge_Level2.gltf",
   monasteryCastle: "Temple_SecondAge_Level2.gltf",
   monasteryImperial: "Temple_SecondAge_Level3.gltf",
+  wallDark: "Wall_FirstAge.gltf",
+  wallFeudal: "Wall_SecondAge.gltf",
+  gateDarkOpen: "WallTowers_Door_FirstAge.gltf",
+  gateDarkClosed: "WallTowers_DoorClosed_FirstAge.gltf",
+  gateFeudalOpen: "WallTowers_Door_SecondAge.gltf",
+  gateFeudalClosed: "WallTowers_DoorClosed_SecondAge.gltf",
 };
 
 describe("building models mapping", () => {

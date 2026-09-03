@@ -41,12 +41,85 @@ function assignCodes<T extends { id: string }>(
   return codes;
 }
 
-export const UNIT_DEF_CODES = assignCodes(REGISTRY.units);
-export const BUILDING_DEF_CODES = assignCodes(REGISTRY.buildings);
+function assignCanonicalCodes<T extends { id: string }>(
+  defs: ReadonlyMap<string, T>,
+  canonicalIds: readonly string[],
+): ReadonlyMap<string, number> {
+  const codes = new Map<string, number>();
+  let nextCode = 1;
+  for (const id of canonicalIds) {
+    if (defs.has(id)) {
+      codes.set(id, nextCode++);
+    }
+  }
+  const remaining = [...defs.keys()]
+    .filter((id) => !codes.has(id))
+    .sort();
+  for (const id of remaining) {
+    codes.set(id, nextCode++);
+  }
+  return codes;
+}
+
+/** Canonical unit ids preserve u8 codes 1..8 across new additions. */
+const CANONICAL_UNIT_IDS: readonly string[] = [
+  "archer",
+  "knight",
+  "man-at-arms",
+  "militia",
+  "monk",
+  "scout-cavalry",
+  "skirmisher",
+  "villager",
+];
+
+/** Canonical base building ids preserve u8 codes 1..25 across new additions. */
+const CANONICAL_BUILDING_IDS: readonly string[] = [
+  "archery-range",
+  "barracks",
+  "blacksmith",
+  "brothel",
+  "church",
+  "farm",
+  "forge",
+  "grand-academy",
+  "grand-monument",
+  "house",
+  "kiln",
+  "kitchen",
+  "lumber-camp",
+  "mill",
+  "mining-camp",
+  "monastery",
+  "monument",
+  "sawpit",
+  "school",
+  "smithy",
+  "stable",
+  "tavern",
+  "town-center",
+  "watch-tower",
+  "wonder",
+];
+
+/** Canonical tech ids preserve u8 codes 1..8 across new additions. */
+const CANONICAL_TECH_IDS: readonly string[] = [
+  "castle-age",
+  "double-bit-axe",
+  "feudal-age",
+  "forging",
+  "hand-cart",
+  "imperial-age",
+  "scale-mail",
+  "wheelbarrow",
+];
+
+export const UNIT_DEF_CODES = assignCanonicalCodes(REGISTRY.units, CANONICAL_UNIT_IDS);
+export const BUILDING_DEF_CODES = assignCanonicalCodes(REGISTRY.buildings, CANONICAL_BUILDING_IDS);
 /** u8 recipe codes (ascending slug) — ProductionCycle rows carry these. */
 export const RECIPE_DEF_CODES = assignCodes(REGISTRY.recipes);
 /** u8 tech codes (ascending slug) — AgeResearch/GateRejected rows carry these. */
-export const TECH_DEF_CODES = assignCodes(REGISTRY.techs);
+export const TECH_DEF_CODES = assignCanonicalCodes(REGISTRY.techs, CANONICAL_TECH_IDS);
 
 export function unitDefOf(id: string): UnitDefinition {
   const def = REGISTRY.units.get(id);

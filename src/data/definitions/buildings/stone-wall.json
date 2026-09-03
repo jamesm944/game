@@ -1,0 +1,16 @@
+{
+  "id": "stone-wall",
+  "name": "Stone Wall",
+  "kind": "building",
+  "costs": { "stone": 5 },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "buildTime": 250,
+  "footprint": { "width": 1, "height": 1 },
+  "hp": 900,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 2,
+  "populationCap": 0
+}

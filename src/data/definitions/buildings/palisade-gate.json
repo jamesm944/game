@@ -1,0 +1,17 @@
+{
+  "id": "palisade-gate",
+  "name": "Palisade Gate",
+  "kind": "building",
+  "costs": { "wood": 20 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 200,
+  "footprint": { "width": 2, "height": 1 },
+  "hp": 400,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 4,
+  "populationCap": 0,
+  "isGate": true
+}

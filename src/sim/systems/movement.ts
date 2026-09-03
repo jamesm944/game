@@ -51,6 +51,9 @@ import {
 import { TICK_HZ, type SimSystem, type World } from "../core/world";
 import type { SimCommand } from "../core/inbox";
 import { type BodyComponents, injuryImpairmentOf } from "../components/body";
+import { type OwnerComponents, ownerOfUnit } from "../components/owner";
+import { type BuildingComponents } from "../components/buildings";
+import { passabilityForPlayer } from "./placement";
 import { hasLineOfSight } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
 
@@ -416,14 +419,13 @@ function nearestPassableTile(
  */
 export function issueGroupRoute(
   world: World,
-  comps: MovementComponents,
+  comps: MovementComponents & Partial<OwnerComponents> & Partial<BuildingComponents>,
   diagnostics: MovementDiagnostics | undefined,
   paths: PathScheduler,
   order: GroupRouteOrder,
   hooks: GroupRouteHooks,
 ): void {
   const { x, y } = order;
-  const passability = world.layers.derivedPassability;
   const size = world.layers.size;
 
   const members: { eid: number; x: number; y: number }[] = [];
@@ -462,6 +464,22 @@ export function issueGroupRoute(
 
   const startTileX = Math.floor(leader.x);
   const startTileY = Math.floor(leader.y);
+  const leaderOwner =
+    comps.ownerId !== undefined
+      ? ownerOfUnit(world, { ownerId: comps.ownerId }, leader.eid)
+      : 0;
+  const passability =
+    comps.buildingId !== undefined
+      ? passabilityForPlayer(
+          world,
+          {
+            buildingId: comps.buildingId,
+            buildingSiteId: comps.buildingSiteId,
+            positionId: comps.positionId,
+          },
+          leaderOwner,
+        )
+      : world.layers.derivedPassability;
   if (!tileIsPassable(passability, size, startTileX, startTileY)) return;
   const goal = nearestPassableTile(
     passability,
@@ -575,7 +593,10 @@ function handleGroupMove(
  * or telemetry.
  */
 export function createMovementSystem(
-  comps: MovementComponents & Partial<Pick<BodyComponents, "bodyId">>,
+  comps: MovementComponents &
+    Partial<Pick<BodyComponents, "bodyId">> &
+    Partial<OwnerComponents> &
+    Partial<BuildingComponents>,
   paths: PathScheduler,
   diagnostics: MovementDiagnostics = createMovementDiagnostics(),
 ): SimSystem {
@@ -583,6 +604,28 @@ export function createMovementSystem(
     const dt = TICK_DT;
     const size = world.layers.size;
     const passability = world.layers.derivedPassability;
+
+    const passCache = new Map<number, Uint8Array>();
+    const getUnitPassability = (eid: number): Uint8Array => {
+      if (comps.buildingId === undefined || comps.ownerId === undefined) {
+        return passability;
+      }
+      const owner = ownerOfUnit(world, { ownerId: comps.ownerId }, eid);
+      let p = passCache.get(owner);
+      if (!p) {
+        p = passabilityForPlayer(
+          world,
+          {
+            buildingId: comps.buildingId,
+            buildingSiteId: comps.buildingSiteId,
+            positionId: comps.positionId,
+          },
+          owner,
+        );
+        passCache.set(owner, p);
+      }
+      return p;
+    };
 
     // 0) Apply responses that became due for THIS tick boundary before
     // any steering runs (pump already gated/block-checked in step()).
@@ -694,7 +737,7 @@ export function createMovementSystem(
             goalY * size + goalX,
             world.tick,
           ),
-          passability,
+          passability: getUnitPassability(eid),
           // A version-stale response is discarded by the scheduler
           // without onApply; release the hold so the unit re-issues a
           // fresh repath next tick instead of freezing forever.
@@ -921,7 +964,7 @@ export function createMovementSystem(
       // holds position until the fresh route applies.
       if (
         !hasLineOfSight(
-          passability,
+          getUnitPassability(unit.eid),
           size,
           Math.floor(unit.x),
           Math.floor(unit.y),

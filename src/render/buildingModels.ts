@@ -91,6 +91,13 @@ import grandMonumentModel from "../assets/models/quaternius-ultimate-fantasy-rts
 import monasteryCastle from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Temple_SecondAge_Level2.gltf";
 import monasteryImperial from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Temple_SecondAge_Level3.gltf";
 
+import wallDark from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Wall_FirstAge.gltf";
+import wallFeudal from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Wall_SecondAge.gltf";
+import gateDarkOpen from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/WallTowers_Door_FirstAge.gltf";
+import gateDarkClosed from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/WallTowers_DoorClosed_FirstAge.gltf";
+import gateFeudalOpen from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/WallTowers_Door_SecondAge.gltf";
+import gateFeudalClosed from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/WallTowers_DoorClosed_SecondAge.gltf";
+
 const MODEL_URLS: Record<string, string> = {
   tcDark,
   tcFeudal,
@@ -133,9 +140,15 @@ const MODEL_URLS: Record<string, string> = {
   grandMonumentModel,
   monasteryCastle,
   monasteryImperial,
+  wallDark,
+  wallFeudal,
+  gateDarkOpen,
+  gateDarkClosed,
+  gateFeudalOpen,
+  gateFeudalClosed,
 };
 
-const MAX_INSTANCES_PER_MODEL = 64;
+const MAX_INSTANCES_PER_MODEL = 256;
 const GHOST_COLOR = new Color(0.4, 0.42, 0.46);
 const LIVE_COLOR = new Color(1.0, 1.0, 1.0);
 const ENEMY_COLOR = new Color(1.1, 0.85, 0.85);
@@ -308,6 +321,14 @@ export function modelKeyFor(defId: string, ageRank: number): string {
       return "grandMonumentModel";
     case "wonder":
       return ageRank <= 3 ? "wonder1" : "wonder2";
+    case "palisade-wall":
+      return "wallDark";
+    case "stone-wall":
+      return "wallFeudal";
+    case "palisade-gate":
+      return "gateDarkOpen";
+    case "stone-gate":
+      return "gateFeudalOpen";
     default:
       return "storage1";
   }

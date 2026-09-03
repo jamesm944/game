@@ -119,6 +119,8 @@ export interface SelectionInputDeps {
    * clicks can select buildings as well as Pops.
    */
   buildingAt?(x: number, y: number): number | undefined;
+  /** True when placement is armed (prevents dragging selection box during placement). */
+  isPlacementArmed?(): boolean;
 }
 
 interface MarqueeRect {
@@ -270,7 +272,7 @@ export function wireSelectionInput(deps: SelectionInputDeps): void {
   };
 
   deps.canvas.addEventListener("pointerdown", (event: PointerEvent) => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || deps.isPlacementArmed?.()) return;
     down = true;
     dragging = false;
     shiftDown = event.shiftKey;

@@ -1,0 +1,16 @@
+{
+  "id": "palisade-wall",
+  "name": "Palisade Wall",
+  "kind": "building",
+  "costs": { "wood": 2 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 120,
+  "footprint": { "width": 1, "height": 1 },
+  "hp": 250,
+  "workSlots": 0,
+  "dropoffFilters": [],
+  "acceptsRoles": [],
+  "sightRadius": 2,
+  "populationCap": 0
+}

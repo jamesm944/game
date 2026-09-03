@@ -98,7 +98,7 @@ import { TICK_DT_MS, step, type World } from "./sim/core/world";
 import type { SimComponents } from "./sim/components";
 import { canEnqueueTraining } from "./sim/systems/training";
 import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
-import { canAfford, validatePlacement, stampFinishedBuilding } from "./sim/systems/placement";
+import { canAfford, validatePlacement, stampFinishedBuilding, traceWallRun } from "./sim/systems/placement";
 import { WORK_MILLI_SCALE } from "./sim/systems/construction";
 import {
   captureBuildingSnapshot,
@@ -681,6 +681,7 @@ wireSelectionInput({
   worldPerPixel,
   isOnScreen,
   buildingAt,
+  isPlacementArmed: () => buildMenu.armedDefId() !== null,
 });
 
 // Green ring feedback pool + orders log; the marker spawns synchronously
@@ -1005,6 +1006,21 @@ async function runAutosave(): Promise<void> {
   }
 }
 
+let wallDragStart: { tileX: number; tileY: number } | null = null;
+
+canvas.addEventListener("pointerdown", (event: PointerEvent) => {
+  if (event.button !== 0) return;
+  const candidate = currentPlacementCheck();
+  if (
+    candidate &&
+    (candidate.defId === "palisade-wall" || candidate.defId === "stone-wall")
+  ) {
+    wallDragStart = { tileX: candidate.tileX, tileY: candidate.tileY };
+  } else {
+    wallDragStart = null;
+  }
+});
+
 canvas.addEventListener("click", (event: MouseEvent) => {
   if (event.button !== 0) return;
   // Armed attack-move (A): the click becomes an attackMove order at
@@ -1025,6 +1041,42 @@ canvas.addEventListener("click", (event: MouseEvent) => {
     return;
   }
   const candidate = currentPlacementCheck();
+  if (
+    wallDragStart &&
+    candidate &&
+    (candidate.defId === "palisade-wall" || candidate.defId === "stone-wall")
+  ) {
+    const run = traceWallRun(
+      wallDragStart.tileX,
+      wallDragStart.tileY,
+      candidate.tileX,
+      candidate.tileY,
+    );
+    for (const pt of run) {
+      const check = validatePlacement(
+        world,
+        comps,
+        candidate.defId,
+        pt.x,
+        pt.y,
+        VIEWER,
+      );
+      if (check.ok) {
+        issuePlaceBuilding(
+          world.inbox,
+          world.tick,
+          candidate.defId,
+          pt.x,
+          pt.y,
+        );
+      }
+    }
+    buildMenu.disarm();
+    wallDragStart = null;
+    return;
+  }
+  wallDragStart = null;
+
   if (!candidate || !candidate.ok) {
     if (candidate?.reason === "age-gated") {
       const def = BUILDING_DEFINITIONS.get(candidate.defId);
@@ -1047,6 +1099,7 @@ canvas.addEventListener("click", (event: MouseEvent) => {
 // order lets it intercept the shared canvas contextmenu stream first.
 canvas.addEventListener("contextmenu", (event: MouseEvent) => {
   disarmAttackMove();
+  wallDragStart = null;
   if (buildMenu.armedDefId() === null) return;
   event.preventDefault();
   event.stopImmediatePropagation();
