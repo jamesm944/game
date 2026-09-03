@@ -584,6 +584,23 @@ const ACTIVITY_NAMES: readonly string[] = [
 
 const layerScratches: LayerScratch[] = [];
 const slotLookup: number[][] = [];
+const deathSlotsByCode: number[] = new Array(32).fill(0);
+
+interface RenderCorpse {
+  x: number;
+  y: number;
+  heading: number;
+  defCode: number;
+  deathSlot: number;
+  tint: [number, number, number];
+  startSec: number;
+  expireSec: number;
+}
+const activeCorpses: RenderCorpse[] = [];
+const hitFlashTimers = new Map<number, number>();
+const lastUnitHp = new Map<number, number>();
+const lastUnitInfo = new Map<number, { x: number; y: number; heading: number; defCode: number; ownerId: number }>();
+
 for (let i = 0; i < 32; i++) {
   layerScratches.push({
     count: 0,
@@ -616,6 +633,8 @@ async function loadUnitLayers(): Promise<Array<UnitSpriteLayer | undefined>> {
     const def = UNIT_DEFINITIONS.get(id);
     const anims = def?.activityAnims ?? {};
     const defaultIdle = layer.atlas.actions.find((a) => a.name === "idle")?.slot ?? 0;
+    const deathAction = layer.atlas.actions.find((a) => a.name === "death");
+    deathSlotsByCode[code] = deathAction ? deathAction.slot : defaultIdle;
 
     for (let actCode = 0; actCode < ACTIVITY_NAMES.length; actCode++) {
       const actName = ACTIVITY_NAMES[actCode]!;
@@ -1890,6 +1909,51 @@ function frame(
     layerScratches[c]!.count = 0;
   }
 
+  // Hit flash & unit death tracking
+  const liveEidsThisFrame = new Set<number>();
+  if (staging) {
+    for (let i = 0; i < staging.count; i++) {
+      const eid = staging.eids[i]!;
+      liveEidsThisFrame.add(eid);
+      const hp = staging.hpFractions[i]!;
+      const prevHp = lastUnitHp.get(eid);
+      if (prevHp !== undefined && hp < prevHp - 0.001) {
+        hitFlashTimers.set(eid, 4); // 4 frames of bright white flash on damage
+      }
+      lastUnitHp.set(eid, hp);
+      lastUnitInfo.set(eid, {
+        x: staging.positions[i * 2]!,
+        y: staging.positions[i * 2 + 1]!,
+        heading: staging.headings[i]!,
+        defCode: staging.defCodes ? staging.defCodes[i]! : 8,
+        ownerId: staging.ownerIds ? staging.ownerIds[i]! : 0,
+      });
+    }
+  }
+
+  // Detect fallen units: transition into lingering corpses
+  for (const [eid, info] of lastUnitInfo) {
+    if (!liveEidsThisFrame.has(eid)) {
+      const lastHp = lastUnitHp.get(eid) ?? 0;
+      if (lastHp <= 0.25 || lastHp === 0) {
+        const isViewer = info.ownerId === VIEWER;
+        activeCorpses.push({
+          x: info.x,
+          y: info.y,
+          heading: info.heading,
+          defCode: info.defCode,
+          deathSlot: deathSlotsByCode[info.defCode] ?? 0,
+          tint: isViewer ? [1.0, 1.0, 1.0] : [1.25, 0.65, 0.65],
+          startSec: spriteTimeSec,
+          expireSec: spriteTimeSec + 5.0, // 5s = 150 ticks
+        });
+      }
+      lastUnitHp.delete(eid);
+      lastUnitInfo.delete(eid);
+      hitFlashTimers.delete(eid);
+    }
+  }
+
   for (let i = 0; i < sampledCount; i++) {
     const x = sampleOut.positions[i * 2]!;
     const y = sampleOut.positions[i * 2 + 1]!;
@@ -1912,7 +1976,15 @@ function frame(
 
     const ownerId = sampleOut.ownerIds ? sampleOut.ownerIds[i]! : 0;
     const o3 = idx * 3;
-    if (ownerId === VIEWER) {
+    const eid = staging ? staging.eids[i] : undefined;
+    const flashFrames = eid !== undefined ? (hitFlashTimers.get(eid) ?? 0) : 0;
+    if (flashFrames > 0 && eid !== undefined) {
+      hitFlashTimers.set(eid, flashFrames - 1);
+      // Saturated bright white hit flash
+      bucket.tints[o3] = 3.5;
+      bucket.tints[o3 + 1] = 3.5;
+      bucket.tints[o3 + 2] = 3.5;
+    } else if (ownerId === VIEWER) {
       bucket.tints[o3] = 1.0;
       bucket.tints[o3 + 1] = 1.0;
       bucket.tints[o3 + 2] = 1.0;
@@ -1923,6 +1995,37 @@ function frame(
     }
 
     bucket.groundHeights[idx] = terrainHeightAt(world.layers, x, y);
+    bucket.count++;
+  }
+
+  // Render active corpses with death collapse and smooth fade-out
+  for (let c = activeCorpses.length - 1; c >= 0; c--) {
+    const corpse = activeCorpses[c]!;
+    if (spriteTimeSec >= corpse.expireSec) {
+      activeCorpses.splice(c, 1);
+      continue;
+    }
+    const bucket = layerScratches[corpse.defCode];
+    if (!bucket || bucket.count >= RENDER_CAPACITY) continue;
+
+    const seen = fog.isVisible(Math.floor(corpse.x), Math.floor(corpse.y), VIEWER);
+    if (!seen) continue;
+
+    const idx = bucket.count;
+    bucket.positions[idx * 2] = corpse.x;
+    bucket.positions[idx * 2 + 1] = corpse.y;
+    bucket.headings[idx] = corpse.heading;
+    bucket.actionSlots[idx] = corpse.deathSlot;
+
+    // Fade out during the last 1.0s before expiring
+    const timeLeft = corpse.expireSec - spriteTimeSec;
+    const fade = Math.min(1.0, Math.max(0.0, timeLeft / 1.0));
+    const o3 = idx * 3;
+    bucket.tints[o3] = corpse.tint[0] * fade;
+    bucket.tints[o3 + 1] = corpse.tint[1] * fade;
+    bucket.tints[o3 + 2] = corpse.tint[2] * fade;
+
+    bucket.groundHeights[idx] = terrainHeightAt(world.layers, corpse.x, corpse.y);
     bucket.count++;
   }
 

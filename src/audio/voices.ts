@@ -138,15 +138,53 @@ export class VoicePool {
     return Math.min(1, Math.max(-1, t * 2 - 1));
   }
 
+  public async preload(ctx: AudioContext): Promise<void> {
+    const clips: import("./intents").AudioClip[] = [
+      "ui.click",
+      "ui.order",
+      "act.chop",
+      "act.mine",
+      "act.build",
+      "combat.strike",
+      "combat.death",
+      "econ.meal",
+      "age.up",
+      "victory.win",
+      "victory.defeat",
+      "ambient.day",
+      "ambient.night",
+    ];
+    await Promise.all(clips.map((clip) => this.loadClipAsync(ctx, clip)));
+  }
+
+  private async loadClipAsync(
+    ctx: AudioContext,
+    clip: import("./intents").AudioClip,
+  ): Promise<void> {
+    try {
+      const url = new URL(`../assets/audio/${clip}.wav`, import.meta.url).href;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const arr = await resp.arrayBuffer();
+        const decoded = await ctx.decodeAudioData(arr);
+        this.buffers.set(clip, decoded);
+      }
+    } catch {
+      // retain synth fallback
+    }
+  }
+
   private loadClip(
     ctx: AudioContext,
     clip: import("./intents").AudioClip,
   ): AudioBuffer {
     let buf = this.buffers.get(clip);
     if (!buf) {
-      // real-file swap point: try fetch(`src/assets/audio/${clip}.wav`) first in browser builds
       buf = synthBuffer(ctx, clip);
       this.buffers.set(clip, buf);
+      if (typeof window !== "undefined" && typeof fetch !== "undefined") {
+        void this.loadClipAsync(ctx, clip);
+      }
     }
     return buf;
   }
