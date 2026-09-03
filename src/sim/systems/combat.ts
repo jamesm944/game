@@ -98,6 +98,8 @@ import {
 } from "../components/buildings";
 import { injuryImpairmentOf } from "../components/body";
 import { isRoutingOf } from "../components/morale";
+import { ageRankOf } from "../components/age";
+import { buildingDefOf, buildingIdOfCode } from "../../data/definitions";
 import { dropCarriedRelicsOf, dropStoredRelicsOf } from "../components/relic";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
@@ -117,6 +119,7 @@ import {
 import { MELEE_RANGE, type UnitDefinition } from "../../data/schema";
 import {
   deriveUnitStats,
+  effectiveArmorOf,
   strikeDamage,
   strikeDamageOnBuilding,
   type DerivedStats,
@@ -977,6 +980,79 @@ export function createCombatSystem(
             ?.set(combatant.eid, [standPoint.x, standPoint.y]);
           combatant.dirty = true;
         }
+      }
+    }
+
+    // ---- 6b) Defensive structure strikes (Watch Towers & Castles):
+    // Finished buildings with attack > 0 acquire the nearest enemy unit
+    // in range and fire on reloadTicks cadence.
+    for (const [buildingEid, structure] of structures) {
+      if (structure.kind !== "finished") continue;
+      const bDef = buildingDefOf(buildingIdOfCode(structure.defCode));
+      if (!bDef.attack || bDef.attack <= 0 || !bDef.range || bDef.range <= 0) {
+        continue;
+      }
+      const reloadTicks = bDef.reloadTicks ?? 60;
+      if ((world.tick + buildingEid) % reloadTicks !== 0) continue;
+
+      const towerPos = positions.get(buildingEid);
+      if (!towerPos) continue;
+
+      // Determine attack stat (scale watch-tower with age: Feudal=5, Castle=7, Imperial=8)
+      let attack = bDef.attack;
+      if (bDef.id === "watch-tower") {
+        const rank = ageRankOf(world, comps, structure.owner) ?? 2;
+        if (rank === 3) attack = 7;
+        else if (rank >= 4) attack = 8;
+      }
+
+      // Find nearest alive enemy combatant within range
+      let bestDistSq = bDef.range * bDef.range;
+      let targetEid = 0;
+      for (const combatant of combatants) {
+        if (!alive.has(combatant.eid)) continue;
+        if (combatant.owner === structure.owner) continue;
+        const cPos = positions.get(combatant.eid);
+        if (!cPos) continue;
+        const dx = cPos.x - towerPos.x;
+        const dy = cPos.y - towerPos.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq <= bestDistSq) {
+          bestDistSq = distSq;
+          targetEid = combatant.eid;
+        }
+      }
+
+      if (targetEid === 0) continue;
+
+      const targetCombatant = combatantByEid.get(targetEid);
+      const targetRow = getCombatRow(world, comps, targetEid);
+      if (!targetCombatant || !targetRow) continue;
+
+      const defenderStats = statsOf(targetCombatant);
+      const armor = effectiveArmorOf(defenderStats, targetCombatant.def.armorClasses);
+      const damage = Math.max(1, Math.floor(attack - armor));
+      targetRow[2] = Math.max(0, targetRow[2]! - damage);
+      diagnostics.strikes += 1;
+
+      appendCombatEvent(world, comps, structure.owner, {
+        tick: world.tick,
+        kind: COMBAT_EVENT_SHOT,
+        attackerEid: buildingEid,
+        victimEid: targetEid,
+        amount: damage,
+      });
+      appendCombatEvent(world, comps, targetCombatant.owner, {
+        tick: world.tick,
+        kind: COMBAT_EVENT_DAMAGE,
+        attackerEid: buildingEid,
+        victimEid: targetEid,
+        amount: damage,
+      });
+
+      const wounds = applyStrikeInjuries(world, comps, targetEid, damage);
+      if (targetRow[2]! <= 0 || wounds.fatal) {
+        kill(targetEid, buildingEid, damage);
       }
     }
 

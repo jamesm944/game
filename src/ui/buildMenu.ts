@@ -40,6 +40,7 @@ export const BUILD_MENU_IDS: readonly string[] = [
   "archery-range",
   "stable",
   "watch-tower",
+  "castle",
   "monastery",
   "monument",
   "grand-monument",
