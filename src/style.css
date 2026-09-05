@@ -406,6 +406,217 @@ canvas {
   background: rgb(255 255 255 / 0.18);
 }
 
+/* Unit selection panel — bottom HUD (V13, Part of #88, #90). */
+#unit-panel {
+  position: fixed;
+  left: 12px;
+  bottom: 118px;
+  width: 330px;
+  padding: 8px 12px;
+  font:
+    12px/1.4 ui-monospace,
+    monospace;
+  color: #cfd6e4;
+  background: rgb(16 20 28 / 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
+  user-select: none;
+  z-index: 12;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out;
+  transform: translateY(16px);
+  opacity: 0;
+}
+
+#unit-panel.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.unit-single-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.unit-portrait-box {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  border: 2px solid #3b82f6;
+  background: rgb(0 0 0 / 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.unit-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unit-player-tag {
+  position: absolute;
+  bottom: -6px;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.unit-info-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.unit-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.unit-hp-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.unit-hp-bar {
+  flex: 1;
+  height: 7px;
+  background: rgb(255 255 255 / 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.unit-hp-fill {
+  height: 100%;
+  transition: width 0.15s ease-out;
+}
+
+.unit-hp-text {
+  font-weight: 600;
+  color: #f0d9a0;
+  font-variant-numeric: tabular-nums;
+}
+
+.unit-stats-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+  color: #94a3c8;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.unit-multi-container,
+.unit-bulk-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.unit-multi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+}
+
+.unit-multi-title {
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.unit-multi-hint {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.unit-grid-12 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.unit-grid-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: rgb(0 0 0 / 0.35);
+  border: 1.5px solid #3b82f6;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    background 0.1s ease;
+}
+
+.unit-grid-cell:hover {
+  background: rgb(255 255 255 / 0.12);
+  transform: translateY(-1px);
+}
+
+.unit-cell-hp-bar {
+  width: 100%;
+  height: 3px;
+  background: rgb(255 255 255 / 0.2);
+  border-radius: 2px;
+  margin-top: 3px;
+  overflow: hidden;
+}
+
+.unit-cell-hp-fill {
+  height: 100%;
+}
+
+.unit-type-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.unit-type-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.15);
+  border-radius: 4px;
+  color: #cfd6e4;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.unit-type-chip:hover {
+  background: rgb(255 255 255 / 0.18);
+  color: #fff;
+}
+
 /* Domain strategy sliders (M4-T1, SPEC §2.7). */
 #domain-panel {
   position: fixed;
@@ -619,7 +830,7 @@ canvas {
 /* Pop card — single-Pop selection sheet (M3-T9, SPEC §2.13). */
 #pop-card {
   position: fixed;
-  left: 12px;
+  left: 354px;
   bottom: 118px;
   width: 320px;
   padding: 6px 10px 10px;

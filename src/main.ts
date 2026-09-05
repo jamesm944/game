@@ -220,6 +220,9 @@ import {
   wireBuildMenu,
 } from "./ui/buildMenu";
 import { createBuildingPanel } from "./ui/buildingPanel";
+import { createUnitPanel, type SelectedUnitSummary } from "./ui/unitPanel";
+import { deriveUnitStats } from "./sim/combat/stats";
+import { givenNameOf } from "./sim/components/pop";
 import { createDomainPanel, type DomainPanelData } from "./ui/domainPanel";
 import {
   createCompanyPanel,
@@ -1585,6 +1588,23 @@ const buildingPanel = createBuildingPanel({
   },
 });
 
+// Unit selection HUD panel (V13, #90)
+const unitPanel = createUnitPanel({
+  onFocusUnit: (eid) => {
+    setSelection([eid]);
+  },
+  onFilterByType: (unitId) => {
+    const matching: number[] = [];
+    for (const eid of getSelectedEids()) {
+      const combatRow = world.rowsByComponentId.get(comps.combatId)?.get(eid);
+      if (combatRow && unitIdOfCode(combatRow[0]!) === unitId) {
+        matching.push(eid);
+      }
+    }
+    if (matching.length > 0) setSelection(matching);
+  },
+});
+
 // Pop card (M3-T9): exactly one selected named Pop renders their
 // identity/traits/skills/body/morale sheet — fed by the pure sim
 // read-row exporter so chrome and digests cannot disagree.
@@ -2475,6 +2495,44 @@ function frame(
   controlGroups.refreshChips();
   buildMenu.refresh();
   buildingPanel.refresh();
+
+  // Unit selection HUD panel (V13, #90)
+  const selEids = getSelectedEids();
+  const selectedUnits: SelectedUnitSummary[] = [];
+  for (const eid of selEids) {
+    if (getBuildingRow(world, comps, eid) || getBuildingSiteRow(world, comps, eid)) continue;
+    const combatRow = world.rowsByComponentId.get(comps.combatId)?.get(eid);
+    if (!combatRow) continue;
+    const defCode = combatRow[0]!;
+    const ownerId = combatRow[1]!;
+    const hp = combatRow[2]!;
+    const unitId = unitIdOfCode(defCode);
+    const def = unitDefOf(unitId);
+    const stats = deriveUnitStats(def);
+    const identityRow = world.rowsByComponentId.get(comps.identityId)?.get(eid);
+    const popName = identityRow ? givenNameOf(world, identityRow[0]!) : undefined;
+    let armor = 0;
+    for (const tag of def.armorClasses) {
+      const a = stats.armorByClass[tag as keyof typeof stats.armorByClass];
+      if (typeof a === "number" && a > armor) armor = a;
+    }
+    selectedUnits.push({
+      eid,
+      unitId,
+      name: def.name,
+      popName,
+      hp,
+      maxHp: def.hp,
+      attack: stats.attack,
+      armor,
+      range: stats.range > 1.5 ? stats.range : undefined,
+      speed: stats.speed,
+      ownerId,
+      isMilitary: unitId !== "villager" && unitId !== "trade-cart",
+    });
+  }
+  unitPanel.update(selectedUnits);
+
   popCard.refresh();
   domainPanel.refresh();
   companyPanel.refresh();
