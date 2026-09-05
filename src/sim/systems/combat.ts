@@ -74,10 +74,19 @@ import {
   attackActivity,
   attackMoveActivity,
   cancelActivities,
+  dequeueCurrentActivity,
+  guardActivity,
   moveActivity,
+  patrolActivity,
   peekActivity,
   type ActivityQueue,
 } from "../activities";
+import {
+  getStance,
+  parseStance,
+  setStance,
+  type UnitStance,
+} from "../components/stance";
 import {
   appendCombatEvent,
   combatDefOf,
@@ -141,6 +150,9 @@ import type { PathScheduler } from "../path/scheduler";
 export const ATTACK_COMMAND_KIND = "attack";
 export const ATTACK_MOVE_COMMAND_KIND = "attackMove";
 export const STOP_COMMAND_KIND = "stop";
+export const PATROL_COMMAND_KIND = "patrol";
+export const GUARD_COMMAND_KIND = "guard";
+export const SET_STANCE_COMMAND_KIND = "setStance";
 
 /**
  * An approach leg re-aims once the target strays this far from the
@@ -173,6 +185,12 @@ export interface CombatDiagnostics {
   attackMoveCommands: number;
   /** stop commands applied. */
   stopCommands: number;
+  /** patrol commands applied. */
+  patrolCommands: number;
+  /** guard commands applied. */
+  guardCommands: number;
+  /** setStance commands applied. */
+  setStanceCommands: number;
   /** Strikes landed (ranged shots included). */
   strikes: number;
   /** Units killed. */
@@ -195,6 +213,9 @@ export function createCombatDiagnostics(): CombatDiagnostics {
     attackCommands: 0,
     attackMoveCommands: 0,
     stopCommands: 0,
+    patrolCommands: 0,
+    guardCommands: 0,
+    setStanceCommands: 0,
     strikes: 0,
     kills: 0,
     buildingsDestroyed: 0,
@@ -289,6 +310,12 @@ export function createCombatSystem(
       } else if (command.kind === STOP_COMMAND_KIND) {
         if (!command.data) throw new Error("stop requires command data");
         applyStopCommand(world, comps, diagnostics, command.data);
+      } else if (command.kind === PATROL_COMMAND_KIND) {
+        applyPatrolCommand(world, comps, diagnostics, command);
+      } else if (command.kind === GUARD_COMMAND_KIND) {
+        applyGuardCommand(world, comps, diagnostics, command);
+      } else if (command.kind === SET_STANCE_COMMAND_KIND) {
+        applySetStanceCommand(world, comps, diagnostics, command);
       }
     }
 
@@ -494,7 +521,7 @@ export function createCombatSystem(
       const target = combatant.row[3]!;
       if (head === undefined) return false;
       if (head.kind === "attack") return head.targetEid === target;
-      if (head.kind === "move" || head.kind === "attackMove") {
+      if (head.kind === "move" || head.kind === "attackMove" || head.kind === "patrol") {
         const second = combatant.queue[1];
         return second !== undefined && second.kind === "attack"
           ? second.targetEid === target
@@ -512,28 +539,42 @@ export function createCombatSystem(
      */
     const restoreMarchTarget = (combatant: Combatant): void => {
       const head = combatant.queue[0];
-      if (
-        head === undefined ||
-        (head.kind !== "move" && head.kind !== "attackMove")
-      ) {
-        return;
+      if (head === undefined) return;
+      if (head.kind === "move" || head.kind === "attackMove") {
+        const tailX = head.waypoints[head.waypoints.length - 2]!;
+        const tailY = head.waypoints[head.waypoints.length - 1]!;
+        world.rowsByComponentId
+          .get(comps.moveTargetId)
+          ?.set(combatant.eid, [tailX, tailY]);
+      } else if (head.kind === "patrol") {
+        const targetX = head.waypoints[head.cursor]!;
+        const targetY = head.waypoints[head.cursor + 1]!;
+        world.rowsByComponentId
+          .get(comps.moveTargetId)
+          ?.set(combatant.eid, [targetX, targetY]);
+      } else if (head.kind === "guard") {
+        const targetPos = positions.get(head.targetEid);
+        if (targetPos) {
+          world.rowsByComponentId
+            .get(comps.moveTargetId)
+            ?.set(combatant.eid, [targetPos.x, targetPos.y]);
+        }
       }
-      const tailX = head.waypoints[head.waypoints.length - 2]!;
-      const tailY = head.waypoints[head.waypoints.length - 1]!;
-      world.rowsByComponentId
-        .get(comps.moveTargetId)
-        ?.set(combatant.eid, [tailX, tailY]);
     };
 
     const dropEngagement = (combatant: Combatant): void => {
-      const head = combatant.queue[0];
-      if (head !== undefined && head.kind === "attack") {
-        // A stale paired approach leg in front of a dropped head is
-        // orphaned with it — remove one Move directly behind the head.
-        combatant.queue.shift();
-        const prev = combatant.queue[0];
-        if (prev !== undefined && prev.kind === "move") {
-          combatant.queue.shift();
+      const first = peekActivity(combatant.queue);
+      if (first?.kind === "move") {
+        const second = combatant.queue[1];
+        if (second?.kind === "attack") {
+          dequeueCurrentActivity(combatant.queue);
+          dequeueCurrentActivity(combatant.queue);
+        }
+      } else if (first?.kind === "attack") {
+        dequeueCurrentActivity(combatant.queue);
+        const next = peekActivity(combatant.queue);
+        if (next?.kind === "move") {
+          dequeueCurrentActivity(combatant.queue);
         }
       }
       combatant.row[3] = 0;
@@ -948,6 +989,19 @@ export function createCombatSystem(
         continue;
       }
 
+      // Out of reach: check stance pursuit rules!
+      const stance = getStance(world, comps, combatant.eid);
+      if (stance === "stand-ground") {
+        dropEngagement(combatant);
+        continue;
+      }
+      if (stance === "defensive") {
+        if (distSq > 16.0) {
+          dropEngagement(combatant);
+          continue;
+        }
+      }
+
       // Out of reach: keep a Move approach leg ahead of the Attack head.
       const standPoint = passableApproachPoint(
         standPointOf(combatant, targetBody, reach),
@@ -962,7 +1016,7 @@ export function createCombatSystem(
         combatant.dirty = true;
         continue;
       }
-      if (head.kind === "move" || head.kind === "attackMove") {
+      if (head.kind === "move" || head.kind === "attackMove" || head.kind === "patrol") {
         const second = combatant.queue[1];
         if (second === undefined || second.kind !== "attack") continue;
         const tailX = head.waypoints[head.waypoints.length - 2]!;
@@ -1060,7 +1114,7 @@ export function createCombatSystem(
     }
 
     // ---- 7) Acquisition: retaliation first (this tick's damage
-    // ledger), then aggro for attack-marchers — both pause-and-resume.
+    // ledger), then aggro for attack-marchers, patrol, guard, and stances.
     // M3-T9: ROUTERS never acquire — broken units can be attacked down
     // but don't fight back (their morale system owns the flight).
     for (const combatant of combatants) {
@@ -1068,13 +1122,19 @@ export function createCombatSystem(
       if (combatant.row[3] !== 0) continue; // already engaged
       if (isRoutingOf(world, comps, combatant.eid)) continue;
 
+      const stance = getStance(world, comps, combatant.eid);
+      if (stance === "no-attack") continue;
+
       const attackerEid = damageThisTick.get(combatant.eid);
       if (attackerEid !== undefined && alive.has(attackerEid)) {
         const attackerPos = positions.get(attackerEid)!;
         const ddx = attackerPos.x - combatant.posRow[0]!;
         const ddy = attackerPos.y - combatant.posRow[1]!;
-        const aggroRange = combatant.def.sightRadius;
-        if (ddx * ddx + ddy * ddy <= aggroRange * aggroRange) {
+        const maxRetaliate =
+          stance === "stand-ground"
+            ? (combatant.def.range ?? MELEE_RANGE) + combatant.radius + attackerPos.radius
+            : combatant.def.sightRadius;
+        if (ddx * ddx + ddy * ddy <= maxRetaliate * maxRetaliate) {
           engage(combatant, attackerEid);
           diagnostics.retaliations += 1;
           continue;
@@ -1082,8 +1142,32 @@ export function createCombatSystem(
       }
 
       const head = peekActivity(combatant.queue);
-      if (head !== undefined && head.kind === "attackMove") {
+      const isGuard = head !== undefined && head.kind === "guard";
+      const isPatrol = head !== undefined && head.kind === "patrol";
+      const isAttackMove = head !== undefined && head.kind === "attackMove";
+
+      if (isGuard) {
+        // Guard auto-attacks anything that attacks the guarded target!
+        const guardedEid = head.targetEid;
+        const guardedAttacker = damageThisTick.get(guardedEid);
+        if (guardedAttacker !== undefined && alive.has(guardedAttacker)) {
+          engage(combatant, guardedAttacker);
+          diagnostics.aggroAcquisitions += 1;
+          continue;
+        }
+        // Also engage nearest enemy in sight
         const enemy = nearestEnemy(combatant, combatant.def.sightRadius);
+        if (enemy !== undefined) {
+          engage(combatant, enemy.eid);
+          diagnostics.aggroAcquisitions += 1;
+          continue;
+        }
+      } else if (isAttackMove || isPatrol) {
+        const maxRange =
+          stance === "stand-ground"
+            ? (combatant.def.range ?? MELEE_RANGE)
+            : combatant.def.sightRadius;
+        const enemy = nearestEnemy(combatant, maxRange);
         if (enemy !== undefined) {
           engage(combatant, enemy.eid);
           diagnostics.aggroAcquisitions += 1;
@@ -1263,4 +1347,124 @@ function applyStopCommand(
     }
   }
   diagnostics.stopCommands += 1;
+}
+
+function applyPatrolCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const rawWaypoints = data.waypoints;
+  if (!Array.isArray(rawWaypoints) || rawWaypoints.length < 2) {
+    throw new Error("patrol requires at least 2 waypoints");
+  }
+  const flatWaypoints: number[] = [];
+  for (const wp of rawWaypoints) {
+    if (typeof wp === "number") {
+      flatWaypoints.push(wp);
+    } else if (typeof wp === "object" && wp !== null && "x" in wp && "y" in wp) {
+      flatWaypoints.push(
+        requireFiniteNumber((wp as { x: unknown }).x, "patrol waypoint x"),
+        requireFiniteNumber((wp as { y: unknown }).y, "patrol waypoint y"),
+      );
+    }
+  }
+  if (flatWaypoints.length < 4 || flatWaypoints.length % 2 !== 0) {
+    throw new Error("patrol requires an even number of coordinates >= 4");
+  }
+
+  const rawIds = data.ids ?? data.entityIds ?? data.attackerIds;
+  const ids: number[] = rawIds ? parseEntityIds(rawIds, "patrol") : [];
+  if (ids.length === 0) {
+    for (const eid of world.entities) {
+      if (world.rowsByComponentId.get(comps.activityQueueId)?.has(eid)) {
+        ids.push(eid);
+      }
+    }
+  }
+
+  for (const eid of ids) {
+    if (!world.rowsByComponentId.get(comps.activityQueueId)?.has(eid)) continue;
+    clearAssignedNode(world, comps, eid);
+    clearAssignedSite(world, comps, eid);
+    const queue = readActivityQueue(world, comps, eid);
+    cancelActivities(queue);
+    queue.push(patrolActivity(flatWaypoints, 0, 1));
+    writeActivityQueue(world, comps, eid, queue);
+    const combatRow = getCombatRow(world, comps, eid);
+    if (combatRow) combatRow[3] = 0;
+    world.rowsByComponentId
+      .get(comps.moveTargetId)
+      ?.set(eid, [flatWaypoints[0]!, flatWaypoints[1]!]);
+    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+    if (velRow) resetSteeringBookkeeping(velRow);
+  }
+  diagnostics.patrolCommands += 1;
+}
+
+function applyGuardCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const targetId = requirePositiveInt(
+    data.targetId ?? data.targetEid,
+    "guard targetId",
+  );
+  const rawIds = data.ids ?? data.entityIds ?? data.guardIds;
+  const ids: number[] = rawIds ? parseEntityIds(rawIds, "guard") : [];
+  if (ids.length === 0) {
+    for (const eid of world.entities) {
+      if (
+        eid !== targetId &&
+        world.rowsByComponentId.get(comps.activityQueueId)?.has(eid)
+      ) {
+        ids.push(eid);
+      }
+    }
+  }
+
+  for (const eid of ids) {
+    if (eid === targetId) continue;
+    if (!world.rowsByComponentId.get(comps.activityQueueId)?.has(eid)) continue;
+    clearAssignedNode(world, comps, eid);
+    clearAssignedSite(world, comps, eid);
+    const queue = readActivityQueue(world, comps, eid);
+    cancelActivities(queue);
+    queue.push(guardActivity(targetId));
+    writeActivityQueue(world, comps, eid, queue);
+    const combatRow = getCombatRow(world, comps, eid);
+    if (combatRow) combatRow[3] = 0;
+    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+    if (velRow) resetSteeringBookkeeping(velRow);
+  }
+  diagnostics.guardCommands += 1;
+}
+
+function applySetStanceCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const stance = parseStance(data.stance);
+  const rawIds = data.ids ?? data.entityIds;
+  const ids: number[] = rawIds ? parseEntityIds(rawIds, "setStance") : [];
+  if (ids.length === 0) {
+    for (const eid of world.entities) {
+      if (getCombatRow(world, comps, eid)) {
+        ids.push(eid);
+      }
+    }
+  }
+
+  for (const eid of ids) {
+    setStance(world, comps, eid, stance);
+  }
+  diagnostics.setStanceCommands += 1;
 }

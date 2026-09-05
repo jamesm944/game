@@ -31,12 +31,14 @@ describe("commandPanel button definitions (V13, #91)", () => {
 });
 
 describe("commandPanel stance cycle", () => {
-  it("cycles through all three combat stances", () => {
+  it("cycles through all four combat stances", () => {
     let stance: UnitStance = "aggressive";
     stance = nextStance(stance);
     expect(stance).toBe("defensive");
     stance = nextStance(stance);
     expect(stance).toBe("stand-ground");
+    stance = nextStance(stance);
+    expect(stance).toBe("no-attack");
     stance = nextStance(stance);
     expect(stance).toBe("aggressive");
   });
@@ -45,5 +47,6 @@ describe("commandPanel stance cycle", () => {
     expect(formatStanceLabel("aggressive")).toBe("Stance: Aggressive");
     expect(formatStanceLabel("defensive")).toBe("Stance: Defensive");
     expect(formatStanceLabel("stand-ground")).toBe("Stance: Stand Ground");
+    expect(formatStanceLabel("no-attack")).toBe("Stance: No Attack");
   });
 });

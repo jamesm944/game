@@ -172,6 +172,11 @@ import {
   type SocialEventComponents,
 } from "./socialEvents";
 import {
+  STANCE,
+  STANCE_ARITY,
+  type StanceComponents,
+} from "./stance";
+import {
   COMMODITY_STOCKPILE,
   DROP_OFF,
   STOCKPILE,
@@ -328,6 +333,8 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M3-T7: SocialEvents registers alphabetically between Skills and
   // Stockpile (core/stockpile.ts, not tabulated here).
   [SOCIAL_EVENTS, SOCIAL_EVENTS_ARITY],
+  // V13: Stance registers alphabetically between SocialEvents and Stockpile.
+  [STANCE, STANCE_ARITY],
   // M4-T1: StrategySliders registers alphabetically between Stockpile
   // (core/stockpile.ts, not tabulated here) and TrainQueue.
   [STRATEGY_SLIDERS, STRATEGY_SLIDERS_ARITY],
@@ -374,6 +381,7 @@ export interface SimComponents
     RelationshipComponents,
     SkillComponents,
     SocialEventComponents,
+    StanceComponents,
     VictoryComponents {}
 
 /**
@@ -471,6 +479,8 @@ export function defineSimComponents(world: World): SimComponents {
     // M3-T7: SocialEvents registers alphabetically between Skills and
     // Stockpile.
     socialEventsId: defineComponent(world, SOCIAL_EVENTS),
+    // V13: Stance registers alphabetically between SocialEvents and Stockpile.
+    stanceId: defineComponent(world, STANCE),
     stockpileId: defineComponent(world, STOCKPILE),
     // M4-T1: StrategySliders registers alphabetically between Stockpile
     // and TrainQueue.
@@ -771,3 +781,4 @@ export * from "./production";
 export * from "./pop";
 export * from "./relic";
 export * from "./skills";
+export * from "./stance";

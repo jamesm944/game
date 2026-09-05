@@ -211,7 +211,14 @@ import {
   packHealthBarAttributes,
   type HealthBarAttributeArrays,
 } from "./render/overlayPack";
-import { issueAttackMove, issueGather, issueStop } from "./ui/orders";
+import {
+  issueAttackMove,
+  issueGather,
+  issueGuard,
+  issuePatrol,
+  issueSetStance,
+  issueStop,
+} from "./ui/orders";
 import { spawnCombatUnit } from "./sim/components/combat";
 import { RESOURCE_WOOD } from "./sim/components/economy";
 import {
@@ -1202,6 +1209,49 @@ canvas.addEventListener("click", (event: MouseEvent) => {
     }
     return;
   }
+  if (patrolArmed) {
+    patrolArmed = false;
+    const ground = groundAt(event.clientX, event.clientY);
+    if (ground && selectionCount() > 0) {
+      const selected = getSelectedEids();
+      const firstPos = world.rowsByComponentId
+        .get(comps.positionId)
+        ?.get(selected[0]!);
+      const startX = firstPos ? firstPos[0]! : ground.x;
+      const startY = firstPos ? firstPos[1]! : ground.y;
+      issuePatrol(world.inbox, world.tick, selected, [
+        { x: startX, y: startY },
+        { x: ground.x, y: ground.y },
+      ]);
+      moveMarkers.spawn(ground.x, ground.y);
+      toast.show("Patrol route set");
+    }
+    return;
+  }
+  if (guardArmed) {
+    guardArmed = false;
+    const ground = groundAt(event.clientX, event.clientY);
+    if (ground && selectionCount() > 0) {
+      let bestEid: number | undefined;
+      let bestDistSq = 2.0 * 2.0;
+      for (const eid of world.entities) {
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!pos) continue;
+        const dx = pos[0]! - ground.x;
+        const dy = pos[1]! - ground.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < bestDistSq) {
+          bestDistSq = d2;
+          bestEid = eid;
+        }
+      }
+      if (bestEid !== undefined) {
+        issueGuard(world.inbox, world.tick, getSelectedEids(), bestEid);
+        toast.show("Guarding target");
+      }
+    }
+    return;
+  }
   const candidate = currentPlacementCheck();
   if (
     wallDragStart &&
@@ -1359,10 +1409,14 @@ wireOrderInput({
 // stops the selection immediately. Escape or a right-click disarms.
 
 let attackMoveArmed = false;
+let patrolArmed = false;
+let guardArmed = false;
 
 function disarmAttackMove(): void {
-  if (!attackMoveArmed) return;
+  if (!attackMoveArmed && !patrolArmed && !guardArmed) return;
   attackMoveArmed = false;
+  patrolArmed = false;
+  guardArmed = false;
 }
 
 let currentStance: UnitStance = "aggressive";
@@ -1374,20 +1428,31 @@ function handleStopCommand(): void {
 
 function handleAttackMoveCommand(): void {
   attackMoveArmed = true;
+  patrolArmed = false;
+  guardArmed = false;
   toast.show("Attack-move — click a destination");
 }
 
 function handlePatrolCommand(): void {
-  attackMoveArmed = true;
-  toast.show("Patrol — click patrol route");
+  patrolArmed = true;
+  attackMoveArmed = false;
+  guardArmed = false;
+  toast.show("Patrol — click destination waypoint");
 }
 
 function handleGuardCommand(): void {
-  toast.show("Guard — defending position");
+  guardArmed = true;
+  attackMoveArmed = false;
+  patrolArmed = false;
+  toast.show("Guard — click unit to guard");
 }
 
 function handleCycleStanceCommand(): void {
   currentStance = nextStance(currentStance);
+  if (selectionCount() > 0) {
+    issueSetStance(world.inbox, world.tick, getSelectedEids(), currentStance);
+    commandPanel.update(true, currentStance, false);
+  }
   toast.show(formatStanceLabel(currentStance));
 }
 
@@ -1399,7 +1464,7 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
   if (event.repeat || event.metaKey || event.ctrlKey) return;
   const key = event.key.toLowerCase();
   if (key === "escape") {
-    if (attackMoveArmed) {
+    if (attackMoveArmed || patrolArmed || guardArmed) {
       disarmAttackMove();
       return;
     }

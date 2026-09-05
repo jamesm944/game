@@ -13,7 +13,11 @@
  * Features SVG icons, hotkey letter badges, and interactive tooltips.
  */
 
-export type UnitStance = "aggressive" | "defensive" | "stand-ground";
+export type UnitStance =
+  | "aggressive"
+  | "defensive"
+  | "stand-ground"
+  | "no-attack";
 
 export interface CommandPanelDeps {
   readonly onStop: () => void;
@@ -60,7 +64,7 @@ export const COMMAND_BUTTONS: readonly CommandButtonMeta[] = [
     id: "stance",
     hotkey: "Z",
     name: "Stance",
-    description: "Cycle stance: Aggressive, Defensive, Stand Ground (Z)",
+    description: "Cycle stance: Aggressive, Defensive, Stand Ground, No Attack (Z)",
   },
   {
     id: "garrison",
@@ -78,6 +82,8 @@ export function formatStanceLabel(stance: UnitStance): string {
       return "Stance: Defensive";
     case "stand-ground":
       return "Stance: Stand Ground";
+    case "no-attack":
+      return "Stance: No Attack";
   }
 }
 
@@ -88,6 +94,8 @@ export function nextStance(current: UnitStance): UnitStance {
     case "defensive":
       return "stand-ground";
     case "stand-ground":
+      return "no-attack";
+    case "no-attack":
       return "aggressive";
   }
 }

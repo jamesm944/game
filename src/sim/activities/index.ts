@@ -137,6 +137,25 @@ export interface LeisureActivity {
   targetEid: number;
 }
 
+/**
+ * Patrol: walk between waypoints indefinitely, auto-attacking enemies in sight range,
+ * reversing direction when the final/initial waypoint is reached (V13, Issue #95).
+ */
+export interface PatrolActivity {
+  readonly kind: "patrol";
+  waypoints: number[];
+  cursor: number;
+  direction: number; // 1 for forward, -1 for backward
+}
+
+/**
+ * Guard: follow targetEid at ≤1.5 tile distance and auto-attack anything that attacks it (V13, Issue #95).
+ */
+export interface GuardActivity {
+  readonly kind: "guard";
+  targetEid: number;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
@@ -146,7 +165,9 @@ export type Activity =
   | AttackMoveActivity
   | EatActivity
   | SleepActivity
-  | LeisureActivity;
+  | LeisureActivity
+  | PatrolActivity
+  | GuardActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -158,6 +179,8 @@ export const ACTIVITY_KIND_ATTACK_MOVE = 6;
 export const ACTIVITY_KIND_EAT = 7;
 export const ACTIVITY_KIND_SLEEP = 8;
 export const ACTIVITY_KIND_LEISURE = 9;
+export const ACTIVITY_KIND_PATROL = 10;
+export const ACTIVITY_KIND_GUARD = 11;
 
 /** Stable leisure-venue codes carried inside Leisure payloads. */
 export const LEISURE_VENUE_TAVERN = 1;
@@ -311,6 +334,43 @@ export function leisureActivity(
   return { kind: "leisure", venueCode, targetEid };
 }
 
+/** Build a Patrol activity over a copy of the given flat waypoints. */
+export function patrolActivity(
+  waypoints: readonly number[],
+  cursor = 0,
+  direction = 1,
+): PatrolActivity {
+  if (waypoints.length < 4 || waypoints.length % 2 !== 0) {
+    throw new Error(
+      `patrol activity needs an even number of waypoint coordinates ≥ 4, got ${String(waypoints.length)}`,
+    );
+  }
+  if (
+    !Number.isInteger(cursor) ||
+    cursor < 0 ||
+    cursor % 2 !== 0 ||
+    cursor > waypoints.length - 2
+  ) {
+    throw new Error(`patrol cursor out of range: ${String(cursor)}`);
+  }
+  return {
+    kind: "patrol",
+    waypoints: [...waypoints],
+    cursor,
+    direction: direction === -1 ? -1 : 1,
+  };
+}
+
+/** Build a Guard activity targeting entity targetEid. */
+export function guardActivity(targetEid: number): GuardActivity {
+  if (!Number.isInteger(targetEid) || targetEid < 1) {
+    throw new Error(
+      `guard target entity id must be a positive integer, got ${String(targetEid)}`,
+    );
+  }
+  return { kind: "guard", targetEid };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -352,6 +412,16 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
         activity.venueCode,
         activity.targetEid,
       );
+    } else if (activity.kind === "patrol") {
+      row.push(
+        ACTIVITY_KIND_PATROL,
+        activity.waypoints.length + 2,
+        activity.cursor,
+        activity.direction === -1 ? 0 : 1,
+        ...activity.waypoints,
+      );
+    } else if (activity.kind === "guard") {
+      row.push(ACTIVITY_KIND_GUARD, 1, activity.targetEid);
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
       row.push(
@@ -526,6 +596,45 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "leisure", venueCode, targetEid });
+    } else if (kind === ACTIVITY_KIND_PATROL) {
+      if (payloadLength < 4 || (payloadLength - 2) % 2 !== 0) {
+        throw new Error(
+          `patrol activity ${String(i)} has malformed waypoint payload`,
+        );
+      }
+      const cursor = payload[0]!;
+      const dirFlag = payload[1]!;
+      if (dirFlag !== 0 && dirFlag !== 1) {
+        throw new Error(`patrol activity ${String(i)} has malformed direction flag`);
+      }
+      const waypoints = payload.slice(2);
+      if (
+        !Number.isInteger(cursor) ||
+        cursor < 0 ||
+        cursor % 2 !== 0 ||
+        cursor > waypoints.length - 2
+      ) {
+        throw new Error(`patrol activity ${String(i)} has out-of-range cursor`);
+      }
+      queue.push({
+        kind: "patrol",
+        waypoints,
+        cursor,
+        direction: dirFlag === 1 ? 1 : -1,
+      });
+    } else if (kind === ACTIVITY_KIND_GUARD) {
+      if (payloadLength !== 1) {
+        throw new Error(
+          `guard activity ${String(i)} must carry exactly one value`,
+        );
+      }
+      const targetEid = payload[0]!;
+      if (!Number.isInteger(targetEid) || targetEid < 1) {
+        throw new Error(
+          `guard activity ${String(i)} has malformed target entity id`,
+        );
+      }
+      queue.push({ kind: "guard", targetEid });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

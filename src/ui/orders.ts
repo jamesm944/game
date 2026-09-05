@@ -201,6 +201,64 @@ export function issueStop(
   return command;
 }
 
+export const PATROL_KIND = "patrol";
+export const GUARD_KIND = "guard";
+export const SET_STANCE_KIND = "setStance";
+
+export function issuePatrol(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+  waypoints: readonly { x: number; y: number }[],
+): SimCommand {
+  const entityIds = canonicalIds(ids, "patrol");
+  if (waypoints.length < 2) {
+    throw new Error("patrol requires at least 2 waypoints");
+  }
+  const command: SimCommand = {
+    kind: PATROL_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds, waypoints },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export function issueGuard(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+  targetId: number,
+): SimCommand {
+  const entityIds = canonicalIds(ids, "guard");
+  if (!Number.isInteger(targetId) || targetId < 1) {
+    throw new Error("guard targetId must be a positive integer");
+  }
+  const command: SimCommand = {
+    kind: GUARD_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds, targetId },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export function issueSetStance(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+  stance: string,
+): SimCommand {
+  const entityIds = canonicalIds(ids, "setStance");
+  const command: SimCommand = {
+    kind: SET_STANCE_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds, stance },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 /** Shared id canonicalization for the issuers above. */
 function canonicalIds(ids: readonly number[], label: string): number[] {
   const out: number[] = [];

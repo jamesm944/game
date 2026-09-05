@@ -894,6 +894,87 @@ export function createMovementSystem(
         continue;
       }
 
+      if (current.kind === "guard") {
+        const targetPosRow = world.rowsByComponentId
+          .get(comps.positionId)
+          ?.get(current.targetEid);
+        if (!targetPosRow) {
+          dequeueCurrentActivity(unit.queue);
+          unit.queueDirty = true;
+          unit.speed = 0;
+          unit.velRow[V_SPEED] = 0;
+          continue;
+        }
+        const tx = targetPosRow[0]!;
+        const ty = targetPosRow[1]!;
+        const gdx = tx - unit.x;
+        const gdy = ty - unit.y;
+        const gdist = Math.sqrt(gdx * gdx + gdy * gdy);
+        // Acceptance criteria: follow target at <= 1.5 tile distance
+        if (gdist <= 1.5) {
+          unit.speed = 0;
+          unit.velRow[V_SPEED] = 0;
+          continue;
+        }
+
+        unit.tickStartX = unit.x;
+        unit.tickStartY = unit.y;
+        const baseSpeed =
+          unit.tagRow[0]! * injuryImpairmentOf(world, comps, unit.eid).speedMult;
+        const turnRate = unit.tagRow[1]!;
+
+        const desiredDirX = gdx / gdist;
+        const desiredDirY = gdy / gdist;
+        unit.desiredDirX = desiredDirX;
+        unit.desiredDirY = desiredDirY;
+        const targetX = tx - desiredDirX * 1.0;
+        const targetY = ty - desiredDirY * 1.0;
+        const dx = targetX - unit.x;
+        const dy = targetY - unit.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        world.rowsByComponentId
+          .get(comps.moveTargetId)
+          ?.set(unit.eid, [targetX, targetY]);
+
+        const desiredHeading = detAtan2(dy, dx);
+        const delta = angleDelta(unit.heading, desiredHeading);
+        const maxTurnStep = turnRate * dt;
+        const turnStep = Math.max(-maxTurnStep, Math.min(maxTurnStep, delta));
+        unit.heading = wrapAngle(unit.heading + turnStep);
+
+        const align = detCos(Math.min(Math.abs(delta), HALF_PI));
+        const cruise = baseSpeed * (TURN_SLOW_MIN + (1 - TURN_SLOW_MIN) * align);
+        const targetSpeed = cruise;
+        if (targetSpeed > unit.speed) {
+          unit.speed = Math.min(
+            targetSpeed,
+            unit.speed + ACCEL_TILES_PER_S2 * dt,
+          );
+        } else {
+          unit.speed = Math.max(
+            targetSpeed,
+            unit.speed - BRAKE_DECEL_TILES_PER_S2 * dt,
+          );
+        }
+
+        if (dist > 0 && unit.speed > 0) {
+          const dirX = dx / dist;
+          const dirY = dy / dist;
+          const stepLength = Math.min(unit.speed * dt, dist);
+          tryMove(
+            unit,
+            unit.x + dirX * stepLength,
+            unit.y + dirY * stepLength,
+            passability,
+            size,
+          );
+        }
+        unit.velRow[V_HEADING] = unit.heading;
+        unit.velRow[V_SPEED] = unit.speed;
+        continue;
+      }
+
       if (unit.velRow[V_PROPAGATION_PARKED] !== 0) {
         // Propagated-Parked keeps its movement activity but halts cleanly.
         unit.speed = 0;
@@ -908,7 +989,7 @@ export function createMovementSystem(
         continue;
       }
 
-      const move = current; // movement head (move | attackMove)
+      const move = current; // movement head (move | attackMove | patrol)
       const waypoints = move.waypoints;
       // M3-T4: leg/vital wounds drag the cruise speed (multiplier
       // exactly 1 for rowless units — legacy arithmetic untouched).
@@ -917,21 +998,56 @@ export function createMovementSystem(
       const turnRate = unit.tagRow[1]!;
 
       // Consume reached intermediate waypoints.
-      for (;;) {
-        const nextX = waypoints[move.cursor]!;
-        const nextY = waypoints[move.cursor + 1]!;
-        const ndx = nextX - unit.x;
-        const ndy = nextY - unit.y;
-        const ndist = Math.sqrt(ndx * ndx + ndy * ndy);
-        if (
-          move.cursor + 2 < waypoints.length &&
-          ndist <= WAYPOINT_REACH_RADIUS
-        ) {
-          move.cursor += 2;
-          unit.queueDirty = true;
-          continue;
+      if (move.kind === "patrol") {
+        if (move.direction === 1) {
+          for (;;) {
+            const nextX = waypoints[move.cursor]!;
+            const nextY = waypoints[move.cursor + 1]!;
+            const ndx = nextX - unit.x;
+            const ndy = nextY - unit.y;
+            const ndist = Math.sqrt(ndx * ndx + ndy * ndy);
+            if (
+              move.cursor + 2 < waypoints.length &&
+              ndist <= WAYPOINT_REACH_RADIUS
+            ) {
+              move.cursor += 2;
+              unit.queueDirty = true;
+              continue;
+            }
+            break;
+          }
+        } else {
+          for (;;) {
+            const nextX = waypoints[move.cursor]!;
+            const nextY = waypoints[move.cursor + 1]!;
+            const ndx = nextX - unit.x;
+            const ndy = nextY - unit.y;
+            const ndist = Math.sqrt(ndx * ndx + ndy * ndy);
+            if (move.cursor > 0 && ndist <= WAYPOINT_REACH_RADIUS) {
+              move.cursor -= 2;
+              unit.queueDirty = true;
+              continue;
+            }
+            break;
+          }
         }
-        break;
+      } else {
+        for (;;) {
+          const nextX = waypoints[move.cursor]!;
+          const nextY = waypoints[move.cursor + 1]!;
+          const ndx = nextX - unit.x;
+          const ndy = nextY - unit.y;
+          const ndist = Math.sqrt(ndx * ndx + ndy * ndy);
+          if (
+            move.cursor + 2 < waypoints.length &&
+            ndist <= WAYPOINT_REACH_RADIUS
+          ) {
+            move.cursor += 2;
+            unit.queueDirty = true;
+            continue;
+          }
+          break;
+        }
       }
 
       // Snapshot for net-progress measurement in the FSM pass: a unit
@@ -946,19 +1062,44 @@ export function createMovementSystem(
       const dx = targetX - unit.x;
       const dy = targetY - unit.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const isFinalLeg = move.cursor + 2 >= waypoints.length;
+      const isFinalLeg =
+        move.kind === "patrol"
+          ? false
+          : move.cursor + 2 >= waypoints.length;
       unit.inApproachZone = isFinalLeg && dist <= APPROACH_RADIUS;
       if (dist > 1e-12) {
         unit.desiredDirX = dx / dist;
         unit.desiredDirY = dy / dist;
       }
 
-      if (isFinalLeg && dist <= FINAL_ARRIVAL_RADIUS) {
-        dequeueCurrentActivity(unit.queue);
-        unit.queueDirty = true;
-        unit.speed = 0;
-        unit.velRow[V_SPEED] = 0;
-        continue;
+      if (move.kind === "patrol") {
+        const isEnd =
+          (move.direction === 1 && move.cursor + 2 >= waypoints.length) ||
+          (move.direction === -1 && move.cursor <= 0);
+        if (isEnd && dist <= WAYPOINT_REACH_RADIUS) {
+          if (move.direction === 1) {
+            move.direction = -1;
+            move.cursor = Math.max(0, waypoints.length - 4);
+          } else {
+            move.direction = 1;
+            move.cursor = Math.min(waypoints.length - 2, 2);
+          }
+          unit.queueDirty = true;
+          const nextTargetX = waypoints[move.cursor]!;
+          const nextTargetY = waypoints[move.cursor + 1]!;
+          world.rowsByComponentId
+            .get(comps.moveTargetId)
+            ?.set(unit.eid, [nextTargetX, nextTargetY]);
+          continue;
+        }
+      } else {
+        if (isFinalLeg && dist <= FINAL_ARRIVAL_RADIUS) {
+          dequeueCurrentActivity(unit.queue);
+          unit.queueDirty = true;
+          unit.speed = 0;
+          unit.velRow[V_SPEED] = 0;
+          continue;
+        }
       }
 
       // Segment validity raycast against LIVE passability (ADR-0003):
