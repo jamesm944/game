@@ -12,34 +12,141 @@ canvas {
   touch-action: none;
 }
 
-/* Topbar — seed · tick · fps + live stockpile readout (M1-T8/T9). */
+/* Topbar — AoE2 Definitive Edition styled top header (V13, #92). */
 #topbar {
   position: fixed;
-  left: 12px;
-  top: 10px;
-  padding: 6px 10px;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-sizing: border-box;
   font:
     12px/1.4 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.72);
-  border-radius: 6px;
-  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(26 31 44 / 0.94) 0%,
+    rgb(14 18 26 / 0.92) 100%
+  );
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid rgb(240 217 160 / 0.25);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.5);
   user-select: none;
+  z-index: 20;
+  pointer-events: auto;
 }
 
-#topbar-resources {
-  margin-top: 2px;
-  color: #f0d9a0;
+.topbar-resources {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  overflow-x: auto;
 }
 
-/* Current-age badge (M2-T4): roman rank + age name beside the status. */
-#topbar-age {
-  margin-left: 10px;
-  padding: 1px 7px;
-  color: #f0d9a0;
-  border: 1px solid rgb(240 217 160 / 0.4);
+.topbar-res-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgb(0 0 0 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-weight: 600;
+  transition: background 0.15s ease;
+}
+
+.topbar-res-pill:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.topbar-res-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-res-value {
+  color: #f1f5f9;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 0 12px;
+}
+
+/* Prominent Centered Age Badge */
+.topbar-age-badge {
+  padding: 4px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   border-radius: 999px;
+  border: 1.5px solid #475569;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #cbd5e1;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.4);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.topbar-difficulty {
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #94a3b8;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 4px;
+}
+
+.topbar-dev-toggle {
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8fa3c7;
+  background: rgb(0 0 0 / 0.4);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topbar-dev-toggle:hover {
+  color: #f8fafc;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.topbar-dev-overlay {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  padding: 6px 12px;
+  background: rgb(16 20 28 / 0.95);
+  border: 1px solid rgb(255 255 255 / 0.15);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.6);
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  z-index: 25;
 }
 
 /* Polite rejection toast (M2-T4): bottom-center, fades in and out. */

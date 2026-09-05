@@ -8,9 +8,12 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+  ageBadgeStyle,
   formatAgeBadge,
   formatDifficultyBadge,
   formatStockpileLine,
+  parseStockpileLine,
+  resourceIconSvg,
 } from "../src/ui/hud";
 import { RESOURCE_NAMES } from "../src/sim/components/economy";
 
@@ -66,3 +69,38 @@ describe("AI difficulty badge (M4-T6, §2.8 disclosure)", () => {
     );
   });
 });
+
+describe("resource topbar icons & parsing (V13, #92)", () => {
+  it("provides distinct SVG icons for all 7 resources and pop", () => {
+    const slugs = ["food", "wood", "gold", "stone", "iron", "coal", "clay", "pop"];
+    const svgs = new Set<string>();
+    for (const slug of slugs) {
+      const svg = resourceIconSvg(slug);
+      expect(svg).toContain("<svg");
+      expect(svgs.has(svg)).toBe(false);
+      svgs.add(svg);
+    }
+  });
+
+  it("parses stockpile + pop lines accurately", () => {
+    const parsed = parseStockpileLine("food 200 · wood 600 · gold 100 · pop 13/20");
+    expect(parsed).toEqual([
+      { name: "food", value: "200" },
+      { name: "wood", value: "600" },
+      { name: "gold", value: "100" },
+      { name: "pop", value: "13/20" },
+    ]);
+  });
+
+  it("assigns distinct colors for every age rank", () => {
+    const dark = ageBadgeStyle(1);
+    const feudal = ageBadgeStyle(2);
+    const castle = ageBadgeStyle(3);
+    const imperial = ageBadgeStyle(4);
+
+    expect(dark.borderColor).not.toBe(feudal.borderColor);
+    expect(feudal.borderColor).not.toBe(castle.borderColor);
+    expect(castle.borderColor).not.toBe(imperial.borderColor);
+  });
+});
+
