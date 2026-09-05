@@ -316,6 +316,7 @@ export function createTopbar(seed: number): TopbarHandle {
     updateAge(rank: number | undefined): void {
       const nextAge = formatAgeBadge(rank);
       if (nextAge === lastAge) return;
+      const isInitial = lastAge === "";
       lastAge = nextAge;
       ageBadge.textContent = nextAge;
       ageBadge.dataset.ageRank = String(rank ?? 1);
@@ -324,6 +325,12 @@ export function createTopbar(seed: number): TopbarHandle {
       ageBadge.style.background = style.background;
       ageBadge.style.borderColor = style.borderColor;
       ageBadge.style.color = style.color;
+
+      if (!isInitial && rank !== undefined) {
+        ageBadge.classList.remove("age-up-pop");
+        void ageBadge.offsetWidth;
+        ageBadge.classList.add("age-up-pop");
+      }
     },
     updateDifficulty(id: AiDifficultyId): void {
       const nextDifficulty = formatDifficultyBadge(id);

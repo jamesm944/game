@@ -23,6 +23,8 @@ export interface AudioIntent {
   worldX?: number;
   /** higher survives culling first */
   priority?: number;
+  /** optional playback rate / pitch override (1.0 default) */
+  pitch?: number;
 }
 
 /** Clips allowed to coalesce when spammed in the same frame. */

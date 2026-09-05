@@ -97,6 +97,28 @@ canvas {
   background: linear-gradient(135deg, #1e293b, #0f172a);
   color: #cbd5e1;
   box-shadow: 0 2px 10px rgb(0 0 0 / 0.4);
+  transform-origin: center center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@keyframes age-badge-pop {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35);
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.9), 0 0 45px rgba(255, 215, 0, 0.6);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.topbar-age-badge.age-up-pop {
+  animation: age-badge-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .topbar-right {
@@ -1591,3 +1613,95 @@ canvas {
   margin-top: 10px;
   color: #8fa3c7;
 }
+
+/* Screen flash overlay on age-up (V13, #98) */
+#screen-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-color: #ffffff;
+  opacity: 0;
+}
+
+#screen-flash.flash-active {
+  animation: screen-flash-fade 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes screen-flash-fade {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Age-up toast notification banner (V13, #98) */
+#age-up-banner {
+  position: fixed;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  z-index: 9000;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+#age-up-banner.banner-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.age-up-card {
+  background: linear-gradient(180deg, rgba(16, 22, 34, 0.96) 0%, rgba(10, 14, 22, 0.98) 100%);
+  border: 2px solid #d4af37;
+  border-radius: 12px;
+  padding: 20px 48px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 32px rgba(212, 175, 55, 0.45);
+  min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(12px);
+}
+
+.age-up-icon-wrap {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+}
+
+.age-up-header {
+  font-family: 'Cinzel', serif, Georgia, 'Times New Roman', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #f1c40f;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.age-up-title {
+  font-family: 'Cinzel', serif, Georgia, 'Times New Roman', serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 0 16px rgba(212, 175, 55, 0.7);
+  margin: 2px 0;
+}
+
+.age-up-subtitle {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  color: #cbd5e1;
+  letter-spacing: 0.5px;
+}
+

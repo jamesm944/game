@@ -55,7 +55,7 @@ export class VoicePool {
     for (const [clip, list] of byClip) {
       const playable = COALESCABLE.has(clip as never)
         ? coalesceSameFrame(list)
-        : list.map((intent) => ({ intent, pitch: 1 }));
+        : list.map((intent) => ({ intent, pitch: intent.pitch ?? 1 }));
       for (const { intent, pitch } of playable)
         this.playOne(clip as never, intent, pitch, ctx, buses);
     }
