@@ -65,8 +65,13 @@ export function writeFogPlaneIntoTexture(
   const plane = state.planes[player];
   if (!plane) throw new Error(`unknown fog player: ${String(player)}`);
   const data = texture.image.data as Uint8Array;
-  data.set(plane.explored, 0);
-  data.set(plane.visible, state.size * state.size);
+  const explored = plane.explored;
+  const visible = plane.visible;
+  const len = state.size * state.size;
+  for (let i = 0; i < len; i++) {
+    data[i * 2] = explored[i]!;
+    data[i * 2 + 1] = visible[i]!;
+  }
   texture.needsUpdate = true;
 }
 

@@ -442,8 +442,13 @@ sun.shadow.camera.top = world.layers.size * 0.6;
 sun.shadow.camera.bottom = -world.layers.size * 0.6;
 sun.shadow.mapSize.width = 2048;
 sun.shadow.mapSize.height = 2048;
-sun.shadow.bias = -0.0005;
+sun.shadow.bias = 0.0005;
 scene.add(sun);
+if (typeof window !== "undefined" && window.__game) {
+  window.__game.scene = scene;
+  window.__game.renderer = renderer;
+  window.__game.sun = sun;
+}
 
 // M3-T6 day/night lighting (render-only): the mirror sample's tint
 // scales the fixed rig every frame — background color and both light
@@ -471,12 +476,11 @@ let startCamX = world.layers.size / 2;
 let startCamY = world.layers.size / 2;
 if (startBuiltRows && startPosRows) {
   for (const [eid, r] of startBuiltRows.entries()) {
-    if (r[0] === PLAYER_ONE && r[1] === 1) {
-      // Player 1 TC
+    if (r[0] === PLAYER_ONE && buildingIdOfCode(r[1]!) === "town-center") {
       const p = startPosRows.get(eid);
       if (p && p[0] !== undefined && p[1] !== undefined) {
-        startCamX = p[0] + 1.5;
-        startCamY = p[1] + 1.5;
+        startCamX = p[0];
+        startCamY = p[1];
         break;
       }
     }
@@ -1403,6 +1407,9 @@ const victoryScreen = createVictoryScreen({
     window.location.reload();
   },
 });
+if (typeof window !== "undefined" && window.__game) {
+  window.__game.victoryScreen = victoryScreen;
+}
 
 const surrenderControl = createSurrenderControl(() => {
   if (matchDecidedShown) return;

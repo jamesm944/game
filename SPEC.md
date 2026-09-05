@@ -417,6 +417,25 @@ Shipped-scope checklist (M5-T6 sign-off):
 - [x] README quickstart: npm install → dev server → first villager, saves/replays/settings pointers, controls table
 - [ ] Manual browser pass (GPU frame time/triangles, LOD band feel, audio mix by ear, itch.io upload) — checklist in `docs/m5-manual.md`; recorded draw-call audit already inside caps
 
+### Wayfinder Map 2 — AoE2 look & feel (V1–V12) ✅ (shipped, sign-off issue #83)
+
+Complete visual and content overhaul to eliminate prototype feel and achieve full AoE2 aesthetic fidelity: real 3D building models across all ages, 8-direction baked sprite atlases for full military rosters, day/night lighting with dawn boot, fortifications, market & trade, full combat feedback, audio SFX, and ambient environmental shaders.
+
+Shipped-scope checklist (V12 / #83 sign-off):
+
+- [x] CC0 3D asset acquisition, inventory, and licensing mapped across Quaternius & KayKit packs (V1 / #70)
+- [x] 8-direction unit sprite rendering pipeline with multi-page atlas UV fix and zero invisible units (V2 / #73)
+- [x] 3D instanced GLTF building models replacing all prototype boxes across 37 variants and 4 ages with timber scaffolding (V3 / #74)
+- [x] Lighting overhaul: 7:00 AM dawn boot, directional sun shadows, readable midnight navy lighting (V4 / #75)
+- [x] Fortifications: palisade/stone walls, directional gates, watchtowers, and Castle (V5 / #76)
+- [x] Victory-act architectural landmarks: Wonder, Grand Academy, Grand Monument (V6 / #77)
+- [x] Natural world enhancements: procedural tree models and dynamic water shimmer (V7 / #78)
+- [x] Full military lines: Barracks (Militia→Longswordsman), Archery Range (Archer→Arbalest), Stable (Scout→Paladin) + 13 branch techs (V8 / #79)
+- [x] Market economy: Market building, trade cart routing, gold payout scaling, commodity exchange (V9 / #80)
+- [x] Audio SFX pack & combat hit/death feedback: hit flash, death collapse, corpse linger & fade (V10 / #81)
+- [x] Polish & juice: animated selection rings, rally pennant flags, chimney smoke particles, wind tree sway, UI transitions (V11 / #82)
+- [x] Canonical 5-scene screenshot suite (dawn village, field battle, night settlement, fog frontier, victory overlay) committed to `docs/screenshots/`, M1–M4 budget gates green, Wayfinder Map 2 (#69) destination reached (V12 / #83)
+
 ---
 
 ## 9. Open Risks & Mitigations

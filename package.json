@@ -13,7 +13,8 @@
     "golden:record": "vitest run -t 'golden' --update",
     "replay:to-fixture": "tsx tools/replay-to-fixture.ts",
     "bake:villager": "tsx tools/atlas-bake/index.ts --units villager",
-    "bake:units": "tsx tools/atlas-bake/index.ts --all"
+    "bake:units": "tsx tools/atlas-bake/index.ts --all",
+    "screenshots:capture": "node tools/capture-canonical-screenshots.cjs"
   },
   "dependencies": {
     "bitecs": "^0.4.0",
