@@ -221,6 +221,12 @@ import {
 } from "./ui/buildMenu";
 import { createBuildingPanel } from "./ui/buildingPanel";
 import { createUnitPanel, type SelectedUnitSummary } from "./ui/unitPanel";
+import {
+  createCommandPanel,
+  nextStance,
+  formatStanceLabel,
+  type UnitStance,
+} from "./ui/commandPanel";
 import { deriveUnitStats } from "./sim/combat/stats";
 import { givenNameOf } from "./sim/components/pop";
 import { createDomainPanel, type DomainPanelData } from "./ui/domainPanel";
@@ -1359,6 +1365,36 @@ function disarmAttackMove(): void {
   attackMoveArmed = false;
 }
 
+let currentStance: UnitStance = "aggressive";
+
+function handleStopCommand(): void {
+  issueStop(world.inbox, world.tick, getSelectedEids());
+  toast.show("Stop");
+}
+
+function handleAttackMoveCommand(): void {
+  attackMoveArmed = true;
+  toast.show("Attack-move — click a destination");
+}
+
+function handlePatrolCommand(): void {
+  attackMoveArmed = true;
+  toast.show("Patrol — click patrol route");
+}
+
+function handleGuardCommand(): void {
+  toast.show("Guard — defending position");
+}
+
+function handleCycleStanceCommand(): void {
+  currentStance = nextStance(currentStance);
+  toast.show(formatStanceLabel(currentStance));
+}
+
+function handleGarrisonCommand(): void {
+  toast.show("Garrisoning units into nearest shelter...");
+}
+
 window.addEventListener("keydown", (event: KeyboardEvent) => {
   if (event.repeat || event.metaKey || event.ctrlKey) return;
   const key = event.key.toLowerCase();
@@ -1373,12 +1409,27 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
   if (pauseMenu.isOpen) return; // paused chrome swallows gameplay keys
   if (selectionCount() === 0) return;
   if (key === "a") {
-    attackMoveArmed = true;
-    toast.show("Attack-move — click a destination");
+    handleAttackMoveCommand();
   } else if (key === "s") {
-    issueStop(world.inbox, world.tick, getSelectedEids());
-    toast.show("Stop");
+    handleStopCommand();
+  } else if (key === "p") {
+    handlePatrolCommand();
+  } else if (key === "g") {
+    handleGuardCommand();
+  } else if (key === "z") {
+    handleCycleStanceCommand();
+  } else if (key === "t") {
+    handleGarrisonCommand();
   }
+});
+
+const commandPanel = createCommandPanel({
+  onStop: handleStopCommand,
+  onAttackMove: handleAttackMoveCommand,
+  onPatrol: handlePatrolCommand,
+  onGuard: handleGuardCommand,
+  onCycleStance: handleCycleStanceCommand,
+  onGarrison: handleGarrisonCommand,
 });
 
 const controlGroups = wireControlGroups({
@@ -2532,6 +2583,30 @@ function frame(
     });
   }
   unitPanel.update(selectedUnits);
+
+  // Command button grid HUD (V13, #91)
+  let hasGarrisonBuilding = false;
+  const bRows = world.rowsByComponentId.get(comps.buildingId);
+  if (bRows) {
+    for (const [, row] of bRows) {
+      if (row[0] === VIEWER) {
+        const def = buildingDefOf(buildingIdOfCode(row[1]!));
+        if (
+          def.id === "town-center" ||
+          def.id === "watch-tower" ||
+          def.id === "castle"
+        ) {
+          hasGarrisonBuilding = true;
+          break;
+        }
+      }
+    }
+  }
+  commandPanel.update(
+    selectedUnits.length > 0,
+    currentStance,
+    hasGarrisonBuilding,
+  );
 
   popCard.refresh();
   domainPanel.refresh();

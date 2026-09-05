@@ -724,6 +724,105 @@ canvas {
   color: #fff;
 }
 
+/* Command button grid — bottom-centre HUD (V13, #91). */
+#command-panel {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%) translateY(16px);
+  padding: 6px 8px;
+  background: rgb(16 20 28 / 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.5);
+  user-select: none;
+  z-index: 15;
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease-out;
+  opacity: 0;
+  pointer-events: auto;
+}
+
+#command-panel.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.command-grid {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.command-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 48px;
+  padding: 4px;
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 6px;
+  color: #cfd6e4;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.command-btn:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.15);
+  border-color: rgb(240 217 160 / 0.4);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.command-btn:active:not(:disabled) {
+  transform: translateY(1px);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.command-btn:disabled,
+.command-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: rgb(255 255 255 / 0.05);
+}
+
+.command-btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.command-btn-hotkey {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #f0d9a0;
+  opacity: 0.8;
+}
+
+.command-btn-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 48px;
+}
+
 /* Domain strategy sliders (M4-T1, SPEC §2.7). */
 #domain-panel {
   position: fixed;
