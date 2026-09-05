@@ -110,6 +110,34 @@ describe("createSkirmishWorld", () => {
       }
     }
   });
+
+  it("resolves aiStrategy default, custom, and random deterministically", () => {
+    const defaultSession = createSkirmishWorld(1001, {
+      createTransport: SYNC_TRANSPORT,
+    });
+    expect(defaultSession.aiStrategy).toBe("fast-castle-knights");
+
+    const customSession = createSkirmishWorld(1001, {
+      createTransport: SYNC_TRANSPORT,
+      aiStrategy: "archers-push",
+    });
+    expect(customSession.aiStrategy).toBe("archers-push");
+
+    const randomSessionA = createSkirmishWorld(1001, {
+      createTransport: SYNC_TRANSPORT,
+      aiStrategy: "random",
+    });
+    const randomSessionB = createSkirmishWorld(1001, {
+      createTransport: SYNC_TRANSPORT,
+      aiStrategy: "random",
+    });
+    expect(randomSessionA.aiStrategy).toBe(randomSessionB.aiStrategy);
+    expect([
+      "fast-castle-knights",
+      "scouts-rush",
+      "archers-push",
+    ]).toContain(randomSessionA.aiStrategy);
+  });
 });
 
 describe("restart seed handoff", () => {

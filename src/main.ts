@@ -254,11 +254,14 @@ import { createToastHost } from "./ui/toast";
 import { sanitizeSlotName, createPauseMenu } from "./ui/pauseMenu";
 import {
   consumeDifficulty,
+  consumeStrategy,
   createSettingsPanel,
   formatAutosaveInterval,
   persistVolume,
+  readStoredStrategy,
   readStoredVolumes,
   stashDifficulty,
+  stashStrategy,
   type BusVolumeName,
 } from "./ui/settings";
 import { createDevStatsHud, type DevStatsHandle } from "./ui/devstats";
@@ -297,6 +300,7 @@ const bootSeed = consumeNextSeed(window.localStorage) ?? DEV_SEED;
  * the session default ("normal") applies.
  */
 const chosenDifficulty = consumeDifficulty(window.localStorage);
+const chosenStrategy = consumeStrategy(window.localStorage);
 /**
  * Mirror/overlay sample capacity: sized past the dev start population
  * so M2-T6 trained armies render without re-allocating the frame loop's
@@ -335,6 +339,7 @@ if (pendingLoad !== undefined) {
     const restored = await restoreSkirmishSession(pendingLoad, {
       createTransport: () => createWorkerTransport(createPathWorkerFactory()),
       aiDifficulty: chosenDifficulty,
+      aiStrategy: chosenStrategy,
     });
     session = restored;
     console.info(
@@ -351,6 +356,7 @@ if (pendingLoad !== undefined) {
     session = createSkirmishWorld(bootSeed, {
       createTransport: () => createWorkerTransport(createPathWorkerFactory()),
       aiDifficulty: chosenDifficulty,
+      aiStrategy: chosenStrategy,
       spawnRelics: true,
     });
   }
@@ -359,6 +365,7 @@ if (pendingLoad !== undefined) {
     createTransport: () => createWorkerTransport(createPathWorkerFactory()),
     replay: recorder,
     aiDifficulty: chosenDifficulty,
+    aiStrategy: chosenStrategy,
     spawnRelics: true,
   });
 }
@@ -926,6 +933,7 @@ const settingsPanel = createSettingsPanel({
   volumes: readStoredVolumes(window.localStorage),
   autosaveLabel: formatAutosaveInterval(AUTOSAVE_INTERVAL_TICKS),
   difficulty: session.aiDifficulty,
+  strategy: readStoredStrategy(window.localStorage),
   onSetVolume: (name: BusVolumeName, value: number) => {
     const buses = audioBusesHolder.current;
     if (buses) setBusVolume(buses, name, value);
@@ -934,6 +942,13 @@ const settingsPanel = createSettingsPanel({
   onSetDifficulty: (id) => {
     stashDifficulty(window.localStorage, id);
     toast.show(`AI ${id} — applies to the next match`);
+  },
+  onSetStrategy: (strategy) => {
+    stashStrategy(window.localStorage, strategy);
+    toast.show(`AI strategy: ${strategy} — applies to the next match`);
+  },
+  onPreviewSound: (clip) => {
+    audioScheduler.push({ clip, priority: 2 });
   },
 });
 void settingsPanel;

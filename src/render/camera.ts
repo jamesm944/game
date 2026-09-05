@@ -126,6 +126,17 @@ export class RtsCamera {
     this.#applyTransform();
   }
 
+  /** Set view height (zoom) directly, clamped to [MIN_VIEW_HEIGHT, MAX_VIEW_HEIGHT]. */
+  setViewHeight(height: number): void {
+    this.#viewHeight = MathUtils.clamp(
+      height,
+      MIN_VIEW_HEIGHT,
+      MAX_VIEW_HEIGHT,
+    );
+    this.#applyFrustum();
+    this.#applyTransform();
+  }
+
   /** Advance panning for one rendered frame. */
   update(dtSeconds: number): void {
     let dx = 0;

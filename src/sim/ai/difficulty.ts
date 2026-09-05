@@ -23,7 +23,7 @@
  * import from sim code, UI and tests alike.
  */
 
-export type AiDifficultyId = "easy" | "normal" | "hard";
+export type AiDifficultyId = "easy" | "normal" | "hard" | "extreme";
 
 export interface AiDifficultyConfig {
   readonly id: AiDifficultyId;
@@ -58,6 +58,7 @@ export const AI_DIFFICULTIES: Readonly<
   easy: defineDifficulty("easy", 90, 60, 1),
   normal: defineDifficulty("normal", AI_BASE_DECISION_INTERVAL_TICKS, 20, 1),
   hard: defineDifficulty("hard", 15, 0, 1.25),
+  extreme: defineDifficulty("extreme", 10, 0, 1.4),
 };
 
 /** Resolve an id (or undefined → normal) to its full config. */

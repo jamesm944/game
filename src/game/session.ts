@@ -119,6 +119,10 @@ import {
   createPlannerTelemetry,
   type PlannerTelemetry,
 } from "../sim/ai/planner";
+import {
+  STRATEGY_IDS,
+  type StrategyId,
+} from "../sim/ai/buildOrder";
 import { aiDifficultyOf, type AiDifficultyId } from "../sim/ai/difficulty";
 import { scatterResourceNodes } from "../sim/mapgen/resources";
 
@@ -156,6 +160,12 @@ export interface SkirmishWorldOptions {
    */
   readonly aiDifficulty?: AiDifficultyId | undefined;
   /**
+   * AI build-order opening strategy (M2-T9 / Polish pass).
+   * Defaults to "fast-castle-knights". "random" selects deterministically from
+   * available strategies using the match seed.
+   */
+  readonly aiStrategy?: StrategyId | "random" | undefined;
+  /**
    * Replay recording (M5-T3, SPEC §2.12): when provided, the bootstrap
    * attaches it BEFORE any command is submitted so AI opening drafts
    * classify as sim-internal. Callers then beginPlay()/stepWorld()
@@ -181,6 +191,8 @@ export interface SkirmishWorld {
   readonly aiTelemetry: PlannerTelemetry;
   /** Resolved difficulty preset id (defaults "normal"). */
   readonly aiDifficulty: AiDifficultyId;
+  /** Resolved AI opening strategy. */
+  readonly aiStrategy: StrategyId;
   /**
    * Persistent closure state the digest never sees (SPEC §2.12): the
    * save path serializes these; restore re-injects them before any
@@ -224,6 +236,7 @@ function wireSkirmishSystems(
   lifecycleConfig: LifecycleConfig,
   difficulty: ReturnType<typeof aiDifficultyOf>,
   persistent: SkirmishPersistentStates,
+  strategy: StrategyId = "fast-castle-knights",
 ): { aiKnowledge: AiKnowledge; aiTelemetry: PlannerTelemetry } {
   // M4-T2: the companies ledger observes every output credit event, so
   // its observer wires into gather + production BEFORE they register;
@@ -375,7 +388,7 @@ function wireSkirmishSystems(
     world,
     createAiPlannerSystem({
       knowledge: aiKnowledge,
-      strategy: "fast-castle-knights",
+      strategy,
       telemetry: aiTelemetry,
       difficulty: difficulty.id,
       memory: persistent.aiMemory,
@@ -397,6 +410,10 @@ export function createSkirmishWorld(
     options.lifecycleConfig ?? DEFAULT_LIFECYCLE_CONFIG,
   );
   const difficulty = aiDifficultyOf(options.aiDifficulty);
+  const chosenStrategy: StrategyId =
+    options.aiStrategy === "random"
+      ? STRATEGY_IDS[Math.abs(seed) % STRATEGY_IDS.length]!
+      : (options.aiStrategy ?? "fast-castle-knights");
   const scheduler = new PathScheduler(options.createTransport());
   const size = options.size ?? 120;
   const fog = createFogVisibility(size, 2);
@@ -425,6 +442,7 @@ export function createSkirmishWorld(
     lifecycleConfig,
     difficulty,
     persistent,
+    chosenStrategy,
   );
 
   // ---- Human start: ledger + age ladder + central TC + villagers ------
@@ -536,6 +554,7 @@ export function createSkirmishWorld(
     aiKnowledge: roster.aiKnowledge,
     aiTelemetry: roster.aiTelemetry,
     aiDifficulty: difficulty.id,
+    aiStrategy: chosenStrategy,
     aiMemory: persistent.aiMemory,
     militaryMemory: persistent.militaryMemory,
     companiesPersistent: persistent.companies,
@@ -901,6 +920,10 @@ export async function restoreSkirmishSession(
   // Roster FIRST (systems run only during step()), then byte-copy the
   // core state in before any of it can execute.
   const persistent = createSkirmishPersistentStates();
+  const chosenStrategy: StrategyId =
+    options.aiStrategy === "random"
+      ? STRATEGY_IDS[Math.abs(meta.seed) % STRATEGY_IDS.length]!
+      : (options.aiStrategy ?? "fast-castle-knights");
   const roster = wireSkirmishSystems(
     world,
     comps,
@@ -911,6 +934,7 @@ export async function restoreSkirmishSession(
     ),
     aiDifficultyOf(options.aiDifficulty),
     persistent,
+    chosenStrategy,
   );
 
   world.tick = meta.tick;
@@ -969,6 +993,7 @@ export async function restoreSkirmishSession(
     aiKnowledge: roster.aiKnowledge,
     aiTelemetry: roster.aiTelemetry,
     aiDifficulty: aiDifficultyOf(options.aiDifficulty).id,
+    aiStrategy: chosenStrategy,
     aiMemory: persistent.aiMemory,
     militaryMemory: persistent.militaryMemory,
     companiesPersistent: persistent.companies,

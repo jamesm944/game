@@ -110,6 +110,7 @@ export interface BuildMenuDeps {
   ageUnlocked?(defId: string): boolean;
   /** Called whenever the armed selection CHANGES (null = disarmed). */
   onArm(defId: string | null): void;
+  onClick?(): void;
 }
 
 export interface BuildMenuHandle {
@@ -151,6 +152,7 @@ export function wireBuildMenu(deps: BuildMenuDeps): BuildMenuHandle {
     size.textContent = `${String(def.footprint.width)}×${String(def.footprint.height)}`;
     button.append(name, cost, size);
     button.addEventListener("click", () => {
+      deps.onClick?.();
       armed = armed === defId ? null : defId;
       deps.onArm(armed);
       paint();

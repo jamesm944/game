@@ -24,6 +24,7 @@
  */
 
 import { AI_DIFFICULTIES, type AiDifficultyId } from "../sim/ai/difficulty";
+import { STRATEGY_IDS, type StrategyId } from "../sim/ai/buildOrder";
 // The volume store's key + defaults live with the mix graph they
 // belong to; re-exported here so UI consumers (and headless tests,
 // which may not touch audio/*) share one source without drift.
@@ -146,6 +147,40 @@ export function consumeDifficulty(
   return raw in AI_DIFFICULTIES ? (raw as AiDifficultyId) : undefined;
 }
 
+// ---- AI strategy selection & persistence --------------------------------------
+
+export const STRATEGY_STORAGE_KEY = "ageofwind.strategy";
+export type AiStrategyOption = StrategyId | "random";
+
+export function stashStrategy(
+  storage: SettingsStorage,
+  strategy: AiStrategyOption,
+): void {
+  storage.setItem(STRATEGY_STORAGE_KEY, strategy);
+}
+
+export function readStoredStrategy(
+  storage: SettingsStorage,
+): AiStrategyOption {
+  const raw = storage.getItem(STRATEGY_STORAGE_KEY);
+  if (raw === "random") return "random";
+  return raw && (STRATEGY_IDS as readonly string[]).includes(raw)
+    ? (raw as StrategyId)
+    : "fast-castle-knights";
+}
+
+export function consumeStrategy(
+  storage: SettingsStorage,
+): AiStrategyOption | undefined {
+  const raw = storage.getItem(STRATEGY_STORAGE_KEY);
+  storage.removeItem(STRATEGY_STORAGE_KEY);
+  if (raw === null) return undefined;
+  if (raw === "random") return "random";
+  return (STRATEGY_IDS as readonly string[]).includes(raw)
+    ? (raw as StrategyId)
+    : undefined;
+}
+
 // ---- Autosave cadence display -------------------------------------------------
 
 /**
@@ -176,6 +211,12 @@ export interface SettingsPanelDeps {
   readonly difficulty: AiDifficultyId;
   /** Stash a difficulty for the next session bootstrap. */
   onSetDifficulty(id: AiDifficultyId): void;
+  /** The current or stashed AI opening strategy. */
+  readonly strategy?: AiStrategyOption | undefined;
+  /** Stash an opening strategy for the next match. */
+  onSetStrategy?(strategy: AiStrategyOption): void;
+  /** Optional audio preview trigger on volume adjustments. */
+  onPreviewSound?(clip: "ui.click" | "act.chop" | "ui.order"): void;
   /** Preformatted autosave cadence line. */
   readonly autosaveLabel: string;
 }
@@ -227,6 +268,9 @@ export function createSettingsPanel(deps: SettingsPanelDeps): SettingsHandle {
       const value = Number(slider.value);
       valueEl.textContent = formatVolumePct(value);
       deps.onSetVolume(name, value);
+      if (name === "ui") deps.onPreviewSound?.("ui.click");
+      else if (name === "sfx") deps.onPreviewSound?.("act.chop");
+      else if (name === "master") deps.onPreviewSound?.("ui.order");
     });
     sliderRows.set(name, valueEl);
     row.append(label, slider, valueEl);
@@ -255,6 +299,37 @@ export function createSettingsPanel(deps: SettingsPanelDeps): SettingsHandle {
   difficultyNote.textContent = "applies to the next match";
   difficultyRow.append(select, difficultyNote);
   panel.append(difficultyHeading, difficultyRow);
+
+  // Strategy selector: applies to the next session bootstrap.
+  const strategyHeading = document.createElement("h4");
+  strategyHeading.textContent = "AI opening strategy";
+  const strategyRow = document.createElement("label");
+  strategyRow.className = "settings-difficulty-row";
+  const strategySelect = document.createElement("select");
+  strategySelect.id = "settings-strategy";
+
+  const strategyOptions: Array<{ id: AiStrategyOption; label: string }> = [
+    { id: "fast-castle-knights", label: "Fast Castle → Knights (Default)" },
+    { id: "scouts-rush", label: "Scouts Rush (Aggressive)" },
+    { id: "archers-push", label: "Archers Push (Ranged Mass)" },
+    { id: "random", label: "Random (Seed-based)" },
+  ];
+
+  for (const opt of strategyOptions) {
+    const option = document.createElement("option");
+    option.value = opt.id;
+    option.textContent = opt.label;
+    strategySelect.appendChild(option);
+  }
+  strategySelect.value = deps.strategy ?? "fast-castle-knights";
+  strategySelect.addEventListener("change", () => {
+    deps.onSetStrategy?.(strategySelect.value as AiStrategyOption);
+  });
+  const strategyNote = document.createElement("span");
+  strategyNote.className = "settings-note";
+  strategyNote.textContent = "applies to the next match";
+  strategyRow.append(strategySelect, strategyNote);
+  panel.append(strategyHeading, strategyRow);
 
   // Autosave cadence display (read-only).
   const autosaveRow = document.createElement("div");

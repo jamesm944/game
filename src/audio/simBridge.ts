@@ -12,6 +12,11 @@ import {
 import type { SimComponents } from "../sim/components";
 import type { World } from "../sim/core/world";
 import type { AudioIntent } from "./intents";
+import {
+  RESOURCE_WOOD,
+  RESOURCE_GOLD,
+  RESOURCE_CLAY,
+} from "../sim/components/economy";
 
 const COMBAT_EVENT_DEATH_KINDS = new Set([1, 2, 3]);
 
@@ -45,6 +50,54 @@ export function collectAudioIntents(
   } catch {
     /* ledger entity absent in minimal worlds */
   }
+
+  // Sample ambient villager work activity for the viewer player
+  try {
+    const ownerRows = comps.ownerId
+      ? world.rowsByComponentId.get(comps.ownerId)
+      : undefined;
+    const assignedNodeRows = comps.assignedNodeId
+      ? world.rowsByComponentId.get(comps.assignedNodeId)
+      : undefined;
+    const resourceNodeRows = comps.resourceNodeId
+      ? world.rowsByComponentId.get(comps.resourceNodeId)
+      : undefined;
+    const assignedSiteRows = comps.assignedSiteId
+      ? world.rowsByComponentId.get(comps.assignedSiteId)
+      : undefined;
+
+    if (assignedNodeRows && resourceNodeRows) {
+      for (const [eid, row] of assignedNodeRows.entries()) {
+        if (ownerRows?.get(eid)?.[0] !== playerId) continue;
+        // Stagger strikes every ~30 ticks per worker
+        if ((world.tick + eid * 7) % 30 !== 0) continue;
+        const nodeEid = row[0];
+        if (nodeEid === undefined || nodeEid < 0) continue;
+        const resCode = resourceNodeRows.get(nodeEid)?.[0];
+        const worldX = worldXOf(world, comps, eid);
+        const position = worldX !== undefined ? { worldX } : {};
+        if (resCode === RESOURCE_WOOD) {
+          intents.push({ clip: "act.chop", ...position, priority: 1 });
+        } else if (resCode !== undefined && resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY) {
+          intents.push({ clip: "act.mine", ...position, priority: 1 });
+        }
+      }
+    }
+
+    if (assignedSiteRows) {
+      for (const [eid] of assignedSiteRows.entries()) {
+        if (ownerRows?.get(eid)?.[0] !== playerId) continue;
+        // Stagger construction strikes every ~35 ticks per builder
+        if ((world.tick + eid * 11) % 35 !== 0) continue;
+        const worldX = worldXOf(world, comps, eid);
+        const position = worldX !== undefined ? { worldX } : {};
+        intents.push({ clip: "act.build", ...position, priority: 1 });
+      }
+    }
+  } catch {
+    /* components absent in minimal test worlds */
+  }
+
   return intents;
 }
 

@@ -123,6 +123,7 @@ export function createBuildingPanel(deps: {
   getData(): BuildingPanelData | undefined;
   currentTick(): number;
   inbox: CommandInbox;
+  onClick?: () => void;
 }): { refresh(): void } {
   const panel = document.createElement("div");
   panel.id = "building-panel";
@@ -150,6 +151,7 @@ export function createBuildingPanel(deps: {
   trainButton.className = "panel-train";
   trainButton.textContent = "Train Villager (50 food)";
   trainButton.addEventListener("click", () => {
+    deps.onClick?.();
     issueTrainVillager(deps.inbox, deps.currentTick());
   });
 
@@ -203,6 +205,7 @@ export function createBuildingPanel(deps: {
               btn.textContent = u.label;
               btn.disabled = !(data.canTrain ?? false);
               btn.addEventListener("click", () => {
+                deps.onClick?.();
                 if (data.buildingEid && u.unitId !== "villager") {
                   issueTrainUnit(
                     deps.inbox,
@@ -238,6 +241,7 @@ export function createBuildingPanel(deps: {
             button.className = "panel-appoint-candidate";
             button.textContent = candidate.label;
             button.addEventListener("click", () => {
+              deps.onClick?.();
               issueAppointForeman(
                 deps.inbox,
                 deps.currentTick(),
@@ -280,6 +284,7 @@ export function createBuildingPanel(deps: {
             sellBtn.style.flex = "1";
             sellBtn.textContent = `Sell 100 ${c.label} (+70g)`;
             sellBtn.addEventListener("click", () => {
+              deps.onClick?.();
               issueMarketExchange(
                 deps.inbox,
                 deps.currentTick(),
@@ -296,6 +301,7 @@ export function createBuildingPanel(deps: {
             buyBtn.style.flex = "1";
             buyBtn.textContent = `Buy 100 ${c.label} (-130g)`;
             buyBtn.addEventListener("click", () => {
+              deps.onClick?.();
               issueMarketExchange(
                 deps.inbox,
                 deps.currentTick(),

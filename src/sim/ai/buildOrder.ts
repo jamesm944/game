@@ -34,7 +34,12 @@ import { buildingDefOf, techDefOf, unitDefOf } from "../../data/definitions";
 import type { AiKnowledge } from "./knowledge";
 import type { ResourceBudget, SpotReservation } from "./knowledge";
 
-export type StrategyId = "fast-castle-knights" | "scouts-rush" | "archers-push";
+export const STRATEGY_IDS = [
+  "fast-castle-knights",
+  "scouts-rush",
+  "archers-push",
+] as const;
+export type StrategyId = (typeof STRATEGY_IDS)[number];
 
 /** Gatherable slug → minimum held amount ("resources ≥ X"). */
 export type ResourceGate = Readonly<Record<string, number>>;
