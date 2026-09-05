@@ -17,7 +17,7 @@
  */
 
 import type { SimComponents } from "./components";
-import { combatDefOf, getCombatRow } from "./components/combat";
+import { combatDefOf } from "./components/combat";
 import { getBuildingRow, getBuildingSiteRow } from "./components/buildings";
 import {
   RESOURCE_WOOD,
@@ -63,11 +63,11 @@ export interface SimSnapshotFrame {
   /** Health 0..1 per rank, capacity ≥ count (M2-T6 overlays). */
   readonly hpFractions: Float32Array;
   /** Unit def code (0 = villager, or combatDef code). */
-  readonly defCodes?: Uint8Array;
+  readonly defCodes?: Uint8Array | undefined;
   /** Activity code (idle, walk, chop, farm, mine, build, carry-wood, carry-food, carry-ore, attack, death). */
-  readonly activityCodes?: Uint8Array;
+  readonly activityCodes?: Uint8Array | undefined;
   /** Owner player id (0 = human, 1 = AI). */
-  readonly ownerIds?: Uint8Array;
+  readonly ownerIds?: Uint8Array | undefined;
 }
 
 export interface CaptureSnapshotOptions {
@@ -192,34 +192,6 @@ export function captureSimSnapshot(
 ): SimSnapshotFrame {
   // Live units ⊆ entities, so sizing to entityCount up front means no
   // growth can trigger inside the capture loop.
-  const entityCount = world.entities.length;
-  const needed = Math.max(entityCount, 1);
-  let eids = growI32(options.reusable?.eids ?? new Int32Array(0), needed);
-  let positions = growF32(
-    options.reusable?.positions ?? new Float32Array(0),
-    entityCount * 2,
-  );
-  let headings = growF32(
-    options.reusable?.headings ?? new Float32Array(0),
-    needed,
-  );
-  let hpFractions = growF32(
-    options.reusable?.hpFractions ?? new Float32Array(0),
-    needed,
-  );
-  let defCodes = growU8(
-    options.reusable?.defCodes ?? new Uint8Array(0),
-    needed,
-  );
-  let activityCodes = growU8(
-    options.reusable?.activityCodes ?? new Uint8Array(0),
-    needed,
-  );
-  let ownerIds = growU8(
-    options.reusable?.ownerIds ?? new Uint8Array(0),
-    needed,
-  );
-
   const positionRows = world.rowsByComponentId.get(comps.positionId);
   const velocityRows = world.rowsByComponentId.get(comps.velocityId);
   const ownerRows = (comps as OwnerComponents).ownerId
@@ -241,59 +213,120 @@ export function captureSimSnapshot(
     ? world.rowsByComponentId.get(comps.assignedSiteId)
     : undefined;
 
-  const combatRows = (comps as any).combatId
-    ? world.rowsByComponentId.get((comps as any).combatId)
+  const combatRows = comps.combatId
+    ? world.rowsByComponentId.get(comps.combatId)
     : undefined;
+  const hasCombat = !!combatRows && combatRows.size > 0;
+  const hasOwner = !!ownerRows && ownerRows.size > 0;
   const hasActivityComps = !!(
-    actQueueRows ||
-    invRows ||
-    assignedNodeRows ||
-    resourceNodeRows ||
-    assignedSiteRows
+    (actQueueRows && actQueueRows.size > 0) ||
+    (invRows && invRows.size > 0) ||
+    (assignedNodeRows && assignedNodeRows.size > 0) ||
+    (resourceNodeRows && resourceNodeRows.size > 0) ||
+    (assignedSiteRows && assignedSiteRows.size > 0)
   );
 
+  const entityCount = world.entities.length;
+  const needed = Math.max(entityCount, 1);
+  const reusable = options.reusable;
+  let eids = reusable ? growI32(reusable.eids, needed) : new Int32Array(needed);
+  let positions = reusable
+    ? growF32(reusable.positions, entityCount * 2)
+    : new Float32Array(entityCount * 2);
+  let headings = reusable
+    ? growF32(reusable.headings, needed)
+    : new Float32Array(needed);
+  let hpFractions = reusable
+    ? growF32(reusable.hpFractions, needed)
+    : new Float32Array(needed);
+  let defCodes =
+    hasCombat || reusable?.defCodes
+      ? reusable?.defCodes
+        ? growU8(reusable.defCodes, needed)
+        : new Uint8Array(needed)
+      : undefined;
+  let activityCodes =
+    hasActivityComps || reusable?.activityCodes
+      ? reusable?.activityCodes
+        ? growU8(reusable.activityCodes, needed)
+        : new Uint8Array(needed)
+      : undefined;
+  let ownerIds =
+    hasOwner || reusable?.ownerIds
+      ? reusable?.ownerIds
+        ? growU8(reusable.ownerIds, needed)
+        : new Uint8Array(needed)
+      : undefined;
+
   // maxHp per def code, memoized per capture (codes are dense u8s).
-  const maxHpByDefCode = new Map<number, number>();
+  const maxHpByDefCode = hasCombat ? new Map<number, number>() : null;
 
   let count = 0;
-  // world.entities ascends by construction (spawn order); a linear walk
-  // keeps the mirror's index order stable frame-to-frame.
-  for (let i = 0; i < entityCount; i++) {
-    const eid = world.entities[i]!;
-    const posRow = positionRows?.get(eid);
-    const velRow = velocityRows?.get(eid);
-    if (!posRow || !velRow) continue; // not a movable unit
-    eids[count] = eid;
-    positions[count * 2] = posRow[0]!;
-    positions[count * 2 + 1] = posRow[1]!;
-    headings[count] = velRow[0]!; // Velocity row layout: headingRad first
+  const entities = world.entities;
 
-    const combatRow = combatRows?.get(eid);
-    let fraction = 1;
-    if (combatRow) {
-      const defCode = combatRow[0]!;
-      let maxHp = maxHpByDefCode.get(defCode);
-      if (maxHp === undefined) {
-        maxHp = combatDefOf(world, comps, eid)!.hp;
-        maxHpByDefCode.set(defCode, maxHp);
-      }
-      fraction = Math.min(1, Math.max(0, combatRow[2]! / maxHp));
+  if (!hasCombat && !defCodes && !activityCodes && !ownerIds) {
+    let pIdx = 0;
+    for (let i = 0; i < entityCount; i++) {
+      const eid = entities[i]!;
+      const posRow = positionRows?.get(eid);
+      if (!posRow) continue;
+      const velRow = velocityRows?.get(eid);
+      if (!velRow) continue;
+      eids[count] = eid;
+      positions[pIdx++] = posRow[0]!;
+      positions[pIdx++] = posRow[1]!;
+      headings[count] = velRow[0]!;
+      count++;
     }
-    hpFractions[count] = fraction;
-    defCodes[count] = combatRow ? combatRow[0]! : VILLAGER_DEF_CODE;
-    activityCodes[count] = hasActivityComps
-      ? unitActivityOf(
-          eid,
-          fraction <= 0,
-          actQueueRows,
-          invRows,
-          assignedNodeRows,
-          resourceNodeRows,
-          assignedSiteRows,
-        )
-      : ACTIVITY_IDLE;
-    ownerIds[count] = ownerRows?.get(eid)?.[0] ?? 0;
-    count++;
+    hpFractions.fill(1, 0, count);
+  } else {
+    // world.entities ascends by construction (spawn order); a linear walk
+    // keeps the mirror's index order stable frame-to-frame.
+    for (let i = 0; i < entityCount; i++) {
+      const eid = entities[i]!;
+      const posRow = positionRows?.get(eid);
+      if (!posRow) continue;
+      const velRow = velocityRows?.get(eid);
+      if (!velRow) continue; // not a movable unit
+      eids[count] = eid;
+      positions[count * 2] = posRow[0]!;
+      positions[count * 2 + 1] = posRow[1]!;
+      headings[count] = velRow[0]!; // Velocity row layout: headingRad first
+
+      let fraction = 1;
+      let defCode = VILLAGER_DEF_CODE;
+      if (hasCombat) {
+        const combatRow = combatRows!.get(eid);
+        if (combatRow) {
+          defCode = combatRow[0]!;
+          let maxHp = maxHpByDefCode!.get(defCode);
+          if (maxHp === undefined) {
+            maxHp = combatDefOf(world, comps, eid)!.hp;
+            maxHpByDefCode!.set(defCode, maxHp);
+          }
+          fraction = Math.min(1, Math.max(0, combatRow[2]! / maxHp));
+        }
+      }
+      hpFractions[count] = fraction;
+      if (defCodes) defCodes[count] = defCode;
+      if (activityCodes) {
+        activityCodes[count] = hasActivityComps
+          ? unitActivityOf(
+              eid,
+              fraction <= 0,
+              actQueueRows,
+              invRows,
+              assignedNodeRows,
+              resourceNodeRows,
+              assignedSiteRows,
+            )
+          : ACTIVITY_IDLE;
+      }
+      if (ownerIds) {
+        ownerIds[count] = hasOwner ? (ownerRows!.get(eid)?.[0] ?? 0) : 0;
+      }
+      count++;
+    }
   }
 
   return {

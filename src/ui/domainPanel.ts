@@ -65,7 +65,12 @@ export function createDomainPanel(deps: {
       if (!data || data.domains.length === 0) {
         if (lastKey !== "") {
           lastKey = "";
-          panel.style.display = "none";
+          panel.classList.remove("visible");
+          setTimeout(() => {
+            if (!panel.classList.contains("visible")) {
+              panel.style.display = "none";
+            }
+          }, 300);
         }
         return;
       }
@@ -73,6 +78,8 @@ export function createDomainPanel(deps: {
       if (key !== lastKey) {
         lastKey = key;
         panel.style.display = "block";
+        void panel.offsetWidth;
+        panel.classList.add("visible");
         while (panel.firstChild) panel.firstChild.remove();
         panel.append(titleEl, bodyEl);
         bodyEl.textContent = "";

@@ -2,11 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   buildingDefOf,
   techCodeOf,
-  techDefOf,
   unitCodeOf,
   unitDefOf,
   UNIT_DEFINITIONS,
-  UNIT_DEF_CODES,
 } from "../src/data/definitions";
 import { deriveUnitStats, strikeDamage } from "../src/sim/combat/stats";
 
@@ -31,7 +29,10 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
     ];
 
     for (const id of expectedUnits) {
-      expect(UNIT_DEFINITIONS.has(id), `unit ${id} must exist in definitions`).toBe(true);
+      expect(
+        UNIT_DEFINITIONS.has(id),
+        `unit ${id} must exist in definitions`,
+      ).toBe(true);
       const code = unitCodeOf(id);
       expect(code, `unit ${id} must have positive def code`).toBeGreaterThan(0);
     }
@@ -39,7 +40,8 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
 
   it("production buildings contain the full military training lines", () => {
     const barracks = buildingDefOf("barracks");
-    const barracksUnits = barracks.trainQueue?.trainable.map((t) => t.unitId) ?? [];
+    const barracksUnits =
+      barracks.trainQueue?.trainable.map((t) => t.unitId) ?? [];
     expect(barracksUnits).toEqual([
       "militia",
       "man-at-arms",
@@ -106,19 +108,23 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
 
     const forgingCode = techCodeOf("forging");
     const statsForging = deriveUnitStats(militia, {
-      researchedTechCodes: [forgingCode],
+      researchedTechCodes: new Set([forgingCode]),
     });
     expect(statsForging.attack).toBe(5);
 
     const ironCastingCode = techCodeOf("iron-casting");
     const statsIron = deriveUnitStats(militia, {
-      researchedTechCodes: [forgingCode, ironCastingCode],
+      researchedTechCodes: new Set([forgingCode, ironCastingCode]),
     });
     expect(statsIron.attack).toBe(6);
 
     const blastFurnaceCode = techCodeOf("blast-furnace");
     const statsBlast = deriveUnitStats(militia, {
-      researchedTechCodes: [forgingCode, ironCastingCode, blastFurnaceCode],
+      researchedTechCodes: new Set([
+        forgingCode,
+        ironCastingCode,
+        blastFurnaceCode,
+      ]),
     });
     expect(statsBlast.attack).toBe(8); // 4 + 1 + 1 + 2 = 8
   });
@@ -134,19 +140,19 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
     const bracer = techCodeOf("bracer");
 
     const stats1 = deriveUnitStats(archer, {
-      researchedTechCodes: [fletching],
+      researchedTechCodes: new Set([fletching]),
     });
     expect(stats1.attack).toBe(5);
     expect(stats1.range).toBe(5);
 
     const stats2 = deriveUnitStats(archer, {
-      researchedTechCodes: [fletching, bodkin],
+      researchedTechCodes: new Set([fletching, bodkin]),
     });
     expect(stats2.attack).toBe(6);
     expect(stats2.range).toBe(6);
 
     const stats3 = deriveUnitStats(archer, {
-      researchedTechCodes: [fletching, bodkin, bracer],
+      researchedTechCodes: new Set([fletching, bodkin, bracer]),
     });
     expect(stats3.attack).toBe(7);
     expect(stats3.range).toBe(7);
@@ -162,7 +168,7 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
     expect(baseStats.armorByClass.infantry).toBe(0);
 
     const statsArmor = deriveUnitStats(militia, {
-      researchedTechCodes: [scaleMail, chainMail, plateMail],
+      researchedTechCodes: new Set([scaleMail, chainMail, plateMail]),
     });
     // scale-mail (+1 melee, +1 pierce), chain-mail (+1, +1), plate-mail (+1, +2) = 7
     expect(statsArmor.armorByClass.infantry).toBe(7);
@@ -173,7 +179,7 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
     const plateBarding = techCodeOf("plate-barding");
 
     const statsBarding = deriveUnitStats(knight, {
-      researchedTechCodes: [scaleBarding, chainBarding, plateBarding],
+      researchedTechCodes: new Set([scaleBarding, chainBarding, plateBarding]),
     });
     expect(statsBarding.armorByClass.cavalry).toBe(7);
   });
@@ -185,13 +191,13 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
 
     const husbandry = techCodeOf("husbandry");
     const statsHusbandry = deriveUnitStats(knight, {
-      researchedTechCodes: [husbandry],
+      researchedTechCodes: new Set([husbandry]),
     });
     expect(statsHusbandry.speed).toBeCloseTo(1.35 * 1.1);
 
     const bloodlines = techCodeOf("bloodlines");
     const statsBlood = deriveUnitStats(knight, {
-      researchedTechCodes: [bloodlines],
+      researchedTechCodes: new Set([bloodlines]),
     });
     expect(statsBlood.attack).toBe(baseStats.attack + 1);
   });

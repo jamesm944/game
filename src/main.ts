@@ -33,6 +33,13 @@
  */
 
 import "./style.css";
+
+declare global {
+  interface Window {
+    __game?: Record<string, unknown>;
+  }
+}
+
 import {
   Color,
   DirectionalLight,
@@ -67,6 +74,9 @@ import {
   SELECTION_RING_CAPACITY,
   createSelectionRings,
 } from "./render/selectionRings";
+import { createRallyFlagLayer } from "./render/rallyFlag";
+import { createChimneySmokeLayer } from "./render/chimneySmoke";
+import { createAgeUpBanner } from "./ui/ageUpBanner";
 import {
   getAssignedSite,
   getBuildingRow,
@@ -98,7 +108,12 @@ import { TICK_DT_MS, step, type World } from "./sim/core/world";
 import type { SimComponents } from "./sim/components";
 import { canEnqueueTraining } from "./sim/systems/training";
 import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
-import { canAfford, validatePlacement, stampFinishedBuilding, traceWallRun } from "./sim/systems/placement";
+import {
+  canAfford,
+  validatePlacement,
+  stampFinishedBuilding,
+  traceWallRun,
+} from "./sim/systems/placement";
 import { WORK_MILLI_SCALE } from "./sim/systems/construction";
 import {
   captureBuildingSnapshot,
@@ -169,15 +184,8 @@ import {
   createResourceModelsLayer,
   type ResourceModelsLayer,
 } from "./render/resourceModels";
-import {
-  captureRelicSnapshot,
-  type RelicSnapshotFrame,
-} from "./sim/mirror";
-import {
-  relicsOf,
-  RELIC_GROUND,
-  RELIC_CARRIED,
-} from "./sim/components/relic";
+import { captureRelicSnapshot, type RelicSnapshotFrame } from "./sim/mirror";
+import { relicsOf, RELIC_GROUND, RELIC_CARRIED } from "./sim/components/relic";
 import {
   copyFogTexture,
   createFogShaderUniforms,
@@ -298,9 +306,6 @@ const RENDER_CAPACITY = 512;
 /** SPEC §7 loop safety: clamp + max-steps-per-frame cap. */
 const FRAME_CLAMP_MS = 250;
 const MAX_STEPS_PER_FRAME = 5;
-/** Billboard world size: ~1.5 tiles tall so units read at map zoom. */
-const SPRITE_WORLD_WIDTH = 0.95;
-const SPRITE_WORLD_HEIGHT = 1.5;
 
 // ---- World (the shared skirmish bootstrap — identical to tests) -------------
 //
@@ -361,7 +366,7 @@ recorder?.beginPlay();
 const { world, comps, fog } = session;
 
 if (typeof window !== "undefined") {
-  (window as any).__game = {
+  window.__game = {
     world,
     comps,
     session,
@@ -373,8 +378,20 @@ if (typeof window !== "undefined") {
     setPlayerAge: (rank: number) => {
       setPlayerAgeRank(world, comps, PLAYER_ONE, rank);
     },
-    stampFinishedBuilding: (defId: string, x: number, y: number, options?: { playerId?: number }) => {
-      return stampFinishedBuilding(world, comps, defId as any, x, y, options ?? { playerId: PLAYER_ONE });
+    stampFinishedBuilding: (
+      defId: string,
+      x: number,
+      y: number,
+      options?: { playerId?: number },
+    ) => {
+      return stampFinishedBuilding(
+        world,
+        comps,
+        defId,
+        x,
+        y,
+        options ?? { playerId: PLAYER_ONE },
+      );
     },
     unitCodeOf,
     unitDefOf,
@@ -409,7 +426,11 @@ scene.background = new Color(0x10141c);
 const hemisphereLight = new HemisphereLight(0xcfd8e8, 0x3a4436, 1.05);
 scene.add(hemisphereLight);
 const sun = new DirectionalLight(0xfff2d9, 1.35);
-sun.position.set(world.layers.size * 0.5 + 40, 75, world.layers.size * 0.5 + 25);
+sun.position.set(
+  world.layers.size * 0.5 + 40,
+  75,
+  world.layers.size * 0.5 + 25,
+);
 sun.target.position.set(world.layers.size * 0.5, 0, world.layers.size * 0.5);
 scene.add(sun.target);
 sun.castShadow = true;
@@ -450,7 +471,8 @@ let startCamX = world.layers.size / 2;
 let startCamY = world.layers.size / 2;
 if (startBuiltRows && startPosRows) {
   for (const [eid, r] of startBuiltRows.entries()) {
-    if (r[0] === PLAYER_ONE && r[1] === 1) { // Player 1 TC
+    if (r[0] === PLAYER_ONE && r[1] === 1) {
+      // Player 1 TC
       const p = startPosRows.get(eid);
       if (p && p[0] !== undefined && p[1] !== undefined) {
         startCamX = p[0] + 1.5;
@@ -461,8 +483,8 @@ if (startBuiltRows && startPosRows) {
   }
 }
 cameraRig.setCenter(startCamX, startCamY);
-if (typeof window !== "undefined" && (window as any).__game) {
-  (window as any).__game.cameraRig = cameraRig;
+if (typeof window !== "undefined" && window.__game) {
+  window.__game.cameraRig = cameraRig;
 }
 
 // ---- Audio (M5-T1): gesture-gated context, buses, voice pool, scheduler -----
@@ -553,19 +575,54 @@ const UNIT_SPECS: Record<
 > = {
   villager: { png: villagerPng, json: villagerJson, width: 0.95, height: 1.5 },
   militia: { png: militiaPng, json: militiaJson, width: 0.95, height: 1.5 },
-  "man-at-arms": { png: manAtArmsPng, json: manAtArmsJson, width: 0.95, height: 1.5 },
-  longswordsman: { png: manAtArmsPng, json: manAtArmsJson, width: 1.0, height: 1.55 },
-  "two-handed-swordsman": { png: manAtArmsPng, json: manAtArmsJson, width: 1.05, height: 1.6 },
-  "scout-cavalry": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.3, height: 1.7 },
-  "light-cavalry": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.35, height: 1.75 },
+  "man-at-arms": {
+    png: manAtArmsPng,
+    json: manAtArmsJson,
+    width: 0.95,
+    height: 1.5,
+  },
+  longswordsman: {
+    png: manAtArmsPng,
+    json: manAtArmsJson,
+    width: 1.0,
+    height: 1.55,
+  },
+  "two-handed-swordsman": {
+    png: manAtArmsPng,
+    json: manAtArmsJson,
+    width: 1.05,
+    height: 1.6,
+  },
+  "scout-cavalry": {
+    png: scoutCavalryPng,
+    json: scoutCavalryJson,
+    width: 1.3,
+    height: 1.7,
+  },
+  "light-cavalry": {
+    png: scoutCavalryPng,
+    json: scoutCavalryJson,
+    width: 1.35,
+    height: 1.75,
+  },
   knight: { png: knightPng, json: knightJson, width: 1.3, height: 1.7 },
   cavalier: { png: knightPng, json: knightJson, width: 1.35, height: 1.75 },
   paladin: { png: knightPng, json: knightJson, width: 1.4, height: 1.8 },
   archer: { png: archerPng, json: archerJson, width: 0.95, height: 1.5 },
   arbalest: { png: archerPng, json: archerJson, width: 1.0, height: 1.55 },
-  skirmisher: { png: skirmisherPng, json: skirmisherJson, width: 0.95, height: 1.5 },
+  skirmisher: {
+    png: skirmisherPng,
+    json: skirmisherJson,
+    width: 0.95,
+    height: 1.5,
+  },
   monk: { png: monkPng, json: monkJson, width: 0.95, height: 1.5 },
-  "trade-cart": { png: scoutCavalryPng, json: scoutCavalryJson, width: 1.3, height: 1.6 },
+  "trade-cart": {
+    png: scoutCavalryPng,
+    json: scoutCavalryJson,
+    width: 1.3,
+    height: 1.6,
+  },
 };
 
 const ACTIVITY_NAMES: readonly string[] = [
@@ -599,7 +656,10 @@ interface RenderCorpse {
 const activeCorpses: RenderCorpse[] = [];
 const hitFlashTimers = new Map<number, number>();
 const lastUnitHp = new Map<number, number>();
-const lastUnitInfo = new Map<number, { x: number; y: number; heading: number; defCode: number; ownerId: number }>();
+const lastUnitInfo = new Map<
+  number,
+  { x: number; y: number; heading: number; defCode: number; ownerId: number }
+>();
 
 for (let i = 0; i < 32; i++) {
   layerScratches.push({
@@ -615,7 +675,9 @@ for (let i = 0; i < 32; i++) {
 
 async function loadUnitLayers(): Promise<Array<UnitSpriteLayer | undefined>> {
   const loader = new TextureLoader();
-  const layersByCode: Array<UnitSpriteLayer | undefined> = new Array(32).fill(undefined);
+  const layersByCode: Array<UnitSpriteLayer | undefined> = new Array(32).fill(
+    undefined,
+  );
 
   for (const [id, spec] of Object.entries(UNIT_SPECS)) {
     const code = unitCodeOf(id);
@@ -632,7 +694,8 @@ async function loadUnitLayers(): Promise<Array<UnitSpriteLayer | undefined>> {
 
     const def = UNIT_DEFINITIONS.get(id);
     const anims = def?.activityAnims ?? {};
-    const defaultIdle = layer.atlas.actions.find((a) => a.name === "idle")?.slot ?? 0;
+    const defaultIdle =
+      layer.atlas.actions.find((a) => a.name === "idle")?.slot ?? 0;
     const deathAction = layer.atlas.actions.find((a) => a.name === "death");
     deathSlotsByCode[code] = deathAction ? deathAction.slot : defaultIdle;
 
@@ -716,6 +779,47 @@ wireSelectionInput({
 // Green ring feedback pool + orders log; the marker spawns synchronously
 // inside the right-click handler → visible the same rendered frame.
 const moveMarkers = createRingMarkerPool({ scene, layers: world.layers });
+const rallyFlagLayer = createRallyFlagLayer(scene, world.layers);
+const chimneySmokeLayer = createChimneySmokeLayer(scene);
+const ageUpBanner = createAgeUpBanner();
+let lastPlayerAgeRank = currentAgeRankOf(world, comps, PLAYER_ONE);
+let chimneySinceUpdateMs = 1000; // trigger immediate populate
+
+function collectChimneyCoords(): { x: number; y: number; height: number }[] {
+  const coords: { x: number; y: number; height: number }[] = [];
+  const bRows = world.rowsByComponentId.get(comps.buildingId);
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  if (!bRows || !posRows) return coords;
+
+  for (const [eid, bRow] of bRows) {
+    if (getBuildingSiteRow(world, comps, eid)) continue;
+    const def = buildingDefOf(buildingIdOfCode(bRow[1]!));
+    const pos = posRows.get(eid);
+    if (!pos) continue;
+
+    if (
+      def.id.startsWith("house") ||
+      def.id.startsWith("tc") ||
+      def.id === "town-center" ||
+      def.id === "blacksmith" ||
+      def.id === "forge" ||
+      def.id === "smithy"
+    ) {
+      const h =
+        def.id.startsWith("tc") || def.id === "town-center"
+          ? 3.2
+          : def.id === "blacksmith" || def.id === "forge"
+            ? 2.5
+            : 1.8;
+      coords.push({
+        x: pos[0]! + def.footprint.width * 0.5 - 0.2,
+        y: pos[1]! + def.footprint.height * 0.5 - 0.2,
+        height: h,
+      });
+    }
+  }
+  return coords;
+}
 
 /** Resource-node entity under a world point, for contextual gather orders. */
 const nodeAt = (x: number, y: number): number | undefined => {
@@ -1204,6 +1308,18 @@ wireOrderInput({
     return def.id === "trade-cart";
   },
   isCarryingRelic: (unitEid) => isUnitCarryingRelic(unitEid),
+  isProductionBuilding: (eid) => {
+    const row = getBuildingRow(world, comps, eid);
+    if (!row || row[0] !== VIEWER) return false;
+    const def = buildingDefOf(buildingIdOfCode(row[1]!));
+    return def.trainQueue !== undefined;
+  },
+  setRallyPoint: (bEid, rx, ry) => {
+    const pos = world.rowsByComponentId.get(comps.positionId)?.get(bEid);
+    const bx = pos ? pos[0]! : rx;
+    const by = pos ? pos[1]! : ry;
+    rallyFlagLayer.setRally(bEid, bx, by, rx, ry);
+  },
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -1875,7 +1991,16 @@ function frame(
   const mapCenter = world.layers.size * 0.5;
   sun.position.set(
     mapCenter + Math.cos(sunAngle) * 60,
-    65 + Math.sin(Math.max(0.15, (currentMinute > 300 && currentMinute < 1260 ? (currentMinute - 300) / 960 : 0.5) * Math.PI)) * 22,
+    65 +
+      Math.sin(
+        Math.max(
+          0.15,
+          (currentMinute > 300 && currentMinute < 1260
+            ? (currentMinute - 300) / 960
+            : 0.5) * Math.PI,
+        ),
+      ) *
+        22,
     mapCenter + Math.sin(sunAngle) * 40,
   );
   sun.target.position.set(mapCenter, 0, mapCenter);
@@ -1898,12 +2023,20 @@ function frame(
 
   // Raised night floor so terrain and units are crisp, readable navy
   sun.intensity = BASE_SUN_INTENSITY * (0.42 + 0.58 * lum);
-  hemisphereLight.intensity = BASE_HEMI_INTENSITY * (0.50 + 0.50 * lum);
-  hemisphereLight.color.setRGB(0.68 + 0.32 * tint[0]!, 0.74 + 0.26 * tint[1]!, 0.85 + 0.15 * tint[2]!);
-  hemisphereLight.groundColor.setRGB(0.24 + 0.25 * tint[0]!, 0.26 + 0.22 * tint[1]!, 0.28 + 0.20 * tint[2]!);
+  hemisphereLight.intensity = BASE_HEMI_INTENSITY * (0.5 + 0.5 * lum);
+  hemisphereLight.color.setRGB(
+    0.68 + 0.32 * tint[0]!,
+    0.74 + 0.26 * tint[1]!,
+    0.85 + 0.15 * tint[2]!,
+  );
+  hemisphereLight.groundColor.setRGB(
+    0.24 + 0.25 * tint[0]!,
+    0.26 + 0.22 * tint[1]!,
+    0.28 + 0.2 * tint[2]!,
+  );
 
   // Advance terrain animated shaders (water shimmer)
-  (terrain as any).uTime.value = now * 0.001;
+  terrain.uTime.value = now * 0.001;
 
   for (let c = 0; c < layerScratches.length; c++) {
     layerScratches[c]!.count = 0;
@@ -2008,7 +2141,11 @@ function frame(
     const bucket = layerScratches[corpse.defCode];
     if (!bucket || bucket.count >= RENDER_CAPACITY) continue;
 
-    const seen = fog.isVisible(Math.floor(corpse.x), Math.floor(corpse.y), VIEWER);
+    const seen = fog.isVisible(
+      Math.floor(corpse.x),
+      Math.floor(corpse.y),
+      VIEWER,
+    );
     if (!seen) continue;
 
     const idx = bucket.count;
@@ -2025,7 +2162,11 @@ function frame(
     bucket.tints[o3 + 1] = corpse.tint[1] * fade;
     bucket.tints[o3 + 2] = corpse.tint[2] * fade;
 
-    bucket.groundHeights[idx] = terrainHeightAt(world.layers, corpse.x, corpse.y);
+    bucket.groundHeights[idx] = terrainHeightAt(
+      world.layers,
+      corpse.x,
+      corpse.y,
+    );
     bucket.count++;
   }
 
@@ -2162,7 +2303,7 @@ function frame(
     const nodeRows = world.rowsByComponentId.get(comps.resourceNodeId);
     const posRows = world.rowsByComponentId.get(comps.positionId);
     if (nodeRows && posRows) {
-      resourceModelsLayer.write(nodeRows as any, posRows as any, world.layers, {
+      resourceModelsLayer.write(nodeRows, posRows, world.layers, {
         fog: {
           isVisible: (x, y) => fog.isVisible(x, y, VIEWER),
           isExplored: (x, y) => fog.isExplored(x, y, VIEWER),
@@ -2174,12 +2315,23 @@ function frame(
   // Update farm furrows on terrain
   const buildingRows = world.rowsByComponentId.get(comps.buildingId);
   const posRows = world.rowsByComponentId.get(comps.positionId);
-  const farmTiles: Array<{ x: number; y: number; width: number; height: number }> = [];
+  const farmTiles: Array<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }> = [];
   if (buildingRows && posRows) {
     for (const [eid, bRow] of buildingRows) {
       if (bRow[1] === 5) {
         const p = posRows.get(eid);
-        if (p) farmTiles.push({ x: Math.floor(p[0]!), y: Math.floor(p[1]!), width: 3, height: 3 });
+        if (p)
+          farmTiles.push({
+            x: Math.floor(p[0]!),
+            y: Math.floor(p[1]!),
+            width: 3,
+            height: 3,
+          });
       }
     }
   }
@@ -2220,9 +2372,25 @@ function frame(
         sampleOut.positions[rank * 2 + 1]!;
       ringScratchCount += 1;
     }
-    selectionRings.write(ringScratch, ringScratchCount);
+    selectionRings.write(ringScratch, ringScratchCount, now / 1000);
   } else {
-    selectionRings.write(ringScratch, 0);
+    selectionRings.write(ringScratch, 0, now / 1000);
+  }
+
+  // Rally flags for production buildings (V11)
+  const selectedEids = getSelectedEids();
+  const selectedBuildingEid =
+    selectedEids.length === 1 && getBuildingRow(world, comps, selectedEids[0]!)
+      ? selectedEids[0]
+      : undefined;
+  rallyFlagLayer.update(selectedBuildingEid, now / 1000);
+
+  // Chimney smoke particles (V11)
+  chimneySmokeLayer.setTime(now / 1000);
+  chimneySinceUpdateMs += frameMs;
+  if (chimneySinceUpdateMs >= 1000) {
+    chimneySinceUpdateMs = 0;
+    chimneySmokeLayer.updateChimneys(collectChimneyCoords(), world.layers);
   }
 
   // Health bars — the second overlay draw call (SPEC §7). Damaged or
@@ -2274,7 +2442,12 @@ function frame(
     // seven-slug zero line — formatStockpileLine fills missing codes.
     `${formatStockpileLine(stockRow ?? [])} · ${popLine}`,
   );
-  topbar.updateAge(currentAgeRankOf(world, comps, PLAYER_ONE));
+  const playerAge = currentAgeRankOf(world, comps, PLAYER_ONE);
+  if (playerAge > lastPlayerAgeRank) {
+    lastPlayerAgeRank = playerAge;
+    ageUpBanner.show(playerAge);
+  }
+  topbar.updateAge(playerAge);
   // M4-T6: disclose the AI difficulty knobs — decision interval,
   // reaction latency and hard's documented income multiplier.
   topbar.updateDifficulty(session.aiDifficulty);
@@ -2319,7 +2492,10 @@ Promise.all([
     requestAnimationFrame((now) => frame(now, unitLayers));
   })
   .catch((error: unknown) => {
-    console.error("unit atlases, buildings, relics or resources failed to load", error);
+    console.error(
+      "unit atlases, buildings, relics or resources failed to load",
+      error,
+    );
     document.body.textContent =
       "Failed to load unit atlases or models — check assets.";
   });

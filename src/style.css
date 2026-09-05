@@ -95,6 +95,9 @@ canvas {
   border-radius: 6px;
   pointer-events: none;
   user-select: none;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out;
 }
 
 #orders-panel h3 {
@@ -136,6 +139,16 @@ canvas {
 .order-kind-relic {
   background: #f5c842;
   color: #2b1d00;
+}
+
+.order-kind-trade {
+  background: #2ecc71;
+  color: #10141c;
+}
+
+.order-kind-rally {
+  background: #f1c40f;
+  color: #10141c;
 }
 
 /* Control group chips — bottom-center. */
@@ -301,6 +314,16 @@ canvas {
   background: rgb(16 20 28 / 0.72);
   border-radius: 6px;
   user-select: none;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out;
+  transform: translateY(16px);
+  opacity: 0;
+}
+
+#building-panel.visible {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 #building-panel h3 {
@@ -397,6 +420,16 @@ canvas {
   background: rgb(16 20 28 / 0.72);
   border-radius: 6px;
   user-select: none;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out;
+  transform: translateX(16px);
+  opacity: 0;
+}
+
+#domain-panel.visible {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 #domain-panel h3 {
@@ -447,6 +480,16 @@ canvas {
   background: rgb(16 20 28 / 0.72);
   border-radius: 6px;
   user-select: none;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out;
+  transform: translateX(16px);
+  opacity: 0;
+}
+
+#company-panel.visible {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 #company-panel h3 {
@@ -587,6 +630,16 @@ canvas {
   background: rgb(16 20 28 / 0.72);
   border-radius: 6px;
   user-select: none;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out;
+  transform: translateY(16px);
+  opacity: 0;
+}
+
+#pop-card.visible {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .pop-card-title {

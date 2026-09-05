@@ -19,8 +19,16 @@ import { buildingDefOf } from "../src/data/definitions";
 import { createWorld, type World } from "../src/sim/core/world";
 import { defineSimComponents } from "../src/sim/components";
 import { findPath } from "../src/sim/path/astar";
-import { PathScheduler, createSynchronousPathTransport } from "../src/sim/path/scheduler";
-import { IMPASSABLE, PASSABLE, TERRAIN_GRASS, buildLayers } from "../src/sim/world/layers";
+import {
+  PathScheduler,
+  createSynchronousPathTransport,
+} from "../src/sim/path/scheduler";
+import {
+  IMPASSABLE,
+  PASSABLE,
+  TERRAIN_GRASS,
+  buildLayers,
+} from "../src/sim/world/layers";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
 
 installSimPurityShims();
@@ -97,7 +105,9 @@ describe("V6: Walls & gates", () => {
       const comps = defineSimComponents(world);
 
       // Stamp a palisade gate for Player 0 at (10, 10) -> width 2, height 1
-      stampFinishedBuilding(world, comps, "palisade-gate", 10, 10, { playerId: 0 });
+      stampFinishedBuilding(world, comps, "palisade-gate", 10, 10, {
+        playerId: 0,
+      });
 
       const size = world.layers.size;
       // In raw derivedPassability, the gate tiles are impassable (0)
@@ -129,8 +139,12 @@ describe("V6: Walls & gates", () => {
       expect(path0!.cost).toBeLessThanOrEqual(4000);
 
       // If we wall off adjacent tiles (9, 10) and (12, 10) with palisade walls:
-      stampFinishedBuilding(world, comps, "palisade-wall", 9, 10, { playerId: 0 });
-      stampFinishedBuilding(world, comps, "palisade-wall", 12, 10, { playerId: 0 });
+      stampFinishedBuilding(world, comps, "palisade-wall", 9, 10, {
+        playerId: 0,
+      });
+      stampFinishedBuilding(world, comps, "palisade-wall", 12, 10, {
+        playerId: 0,
+      });
 
       // Enemy cannot cross the gate tile (10, 10)
       const path1 = findPath({

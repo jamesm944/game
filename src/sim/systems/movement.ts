@@ -419,7 +419,9 @@ function nearestPassableTile(
  */
 export function issueGroupRoute(
   world: World,
-  comps: MovementComponents & Partial<OwnerComponents> & Partial<BuildingComponents>,
+  comps: MovementComponents &
+    Partial<OwnerComponents> &
+    Partial<BuildingComponents>,
   diagnostics: MovementDiagnostics | undefined,
   paths: PathScheduler,
   order: GroupRouteOrder,

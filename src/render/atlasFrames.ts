@@ -334,7 +334,11 @@ export function writeSpriteAttributes(
       outOrigins[o3] = inPositions[i * 2]!;
       outOrigins[o3 + 1] = heights[i]!;
       outOrigins[o3 + 2] = inPositions[i * 2 + 1]!;
-      outDirections[i] = directionIndexFor(inHeadings[i]!, camAzimuthRad, yawCount);
+      outDirections[i] = directionIndexFor(
+        inHeadings[i]!,
+        camAzimuthRad,
+        yawCount,
+      );
       outActions[i] = actions[i]!;
       outTints[o3] = tints[o3]!;
       outTints[o3 + 1] = tints[o3 + 1]!;
@@ -346,7 +350,11 @@ export function writeSpriteAttributes(
       outOrigins[o3] = inPositions[i * 2]!;
       outOrigins[o3 + 1] = heights[i]!;
       outOrigins[o3 + 2] = inPositions[i * 2 + 1]!;
-      outDirections[i] = directionIndexFor(inHeadings[i]!, camAzimuthRad, yawCount);
+      outDirections[i] = directionIndexFor(
+        inHeadings[i]!,
+        camAzimuthRad,
+        yawCount,
+      );
       outActions[i] = actions[i]!;
       outTints[o3] = tintR;
       outTints[o3 + 1] = tintG;
@@ -358,7 +366,11 @@ export function writeSpriteAttributes(
       outOrigins[o3] = inPositions[i * 2]!;
       outOrigins[o3 + 1] = heights[i]!;
       outOrigins[o3 + 2] = inPositions[i * 2 + 1]!;
-      outDirections[i] = directionIndexFor(inHeadings[i]!, camAzimuthRad, yawCount);
+      outDirections[i] = directionIndexFor(
+        inHeadings[i]!,
+        camAzimuthRad,
+        yawCount,
+      );
       if (outActions) outActions[i] = defaultSlot;
       outTints[o3] = tintR;
       outTints[o3 + 1] = tintG;
@@ -508,7 +520,10 @@ export function parseAtlasIndex(json: unknown): ParsedAtlasIndex {
   for (let i = 0; i < actions.length; i++) {
     const curr = actions[i]!;
     const yawCount = source.yawCount as number;
-    if (curr.baseFrame < 0 || curr.baseFrame + curr.frameCount * yawCount > totalFrames) {
+    if (
+      curr.baseFrame < 0 ||
+      curr.baseFrame + curr.frameCount * yawCount > totalFrames
+    ) {
       throw new Error(
         `action "${curr.name}" frame range [${curr.baseFrame}, ${curr.baseFrame + curr.frameCount * yawCount}) exceeds totalFrames ${totalFrames}`,
       );

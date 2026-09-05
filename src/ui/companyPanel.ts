@@ -303,7 +303,12 @@ export function createCompanyPanel(deps: {
       if (!hasContent || !data) {
         if (lastKey !== "") {
           lastKey = "";
-          panel.style.display = "none";
+          panel.classList.remove("visible");
+          setTimeout(() => {
+            if (!panel.classList.contains("visible")) {
+              panel.style.display = "none";
+            }
+          }, 300);
         }
         return;
       }
@@ -311,6 +316,8 @@ export function createCompanyPanel(deps: {
       if (key === lastKey) return;
       lastKey = key;
       panel.style.display = "block";
+      void panel.offsetWidth;
+      panel.classList.add("visible");
       while (panel.firstChild) panel.firstChild.remove();
       panel.append(titleEl, bodyEl);
       bodyEl.textContent = "";

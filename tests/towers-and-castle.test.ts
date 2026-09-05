@@ -13,7 +13,7 @@
 import { describe, expect, it } from "vitest";
 import { buildingDefOf } from "../src/data/definitions";
 import { modelKeyFor } from "../src/render/buildingModels";
-import { createWorld, step } from "../src/sim/core/world";
+import { createWorld } from "../src/sim/core/world";
 import {
   defineSimComponents,
   getCombatRow,
@@ -21,7 +21,6 @@ import {
   readCombatEvents,
   COMBAT_EVENT_SHOT,
   COMBAT_EVENT_DAMAGE,
-  COMBAT_EVENT_UNIT_DEATH,
 } from "../src/sim/components";
 import { setPlayerAgeRank } from "../src/sim/components/age";
 import { createCombatSystem } from "../src/sim/systems/combat";
@@ -93,7 +92,14 @@ describe("V7: Tower line & Castle", () => {
       const combat = createCombatSystem(comps);
 
       // Player 0 builds a watch-tower at (10, 10)
-      const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, { playerId: 0 });
+      const towerEid = stampFinishedBuilding(
+        world,
+        comps,
+        "watch-tower",
+        10,
+        10,
+        { playerId: 0 },
+      );
 
       // Player 1 has a militiaman at (14, 10) -> distance 4 tiles (within range 8)
       const militiaEid = spawnCombatUnit(world, comps, "militia", 14, 10, 1);
@@ -102,7 +108,9 @@ describe("V7: Tower line & Castle", () => {
 
       // Step world until tower's firing tick
       const reloadTicks = 60;
-      const firingTick = Math.ceil(world.tick / reloadTicks) * reloadTicks + ((reloadTicks - (towerEid % reloadTicks)) % reloadTicks);
+      const firingTick =
+        Math.ceil(world.tick / reloadTicks) * reloadTicks +
+        ((reloadTicks - (towerEid % reloadTicks)) % reloadTicks);
 
       while (world.tick < firingTick) {
         world.tick += 1;
@@ -116,15 +124,25 @@ describe("V7: Tower line & Castle", () => {
       // Verify shot and damage combat events were logged
       const p0Events = readCombatEvents(world, comps, 0);
       const p1Events = readCombatEvents(world, comps, 1);
-      expect(p0Events.some((e) => e.kind === COMBAT_EVENT_SHOT && e.attackerEid === towerEid)).toBe(true);
-      expect(p1Events.some((e) => e.kind === COMBAT_EVENT_DAMAGE && e.attackerEid === towerEid)).toBe(true);
+      expect(
+        p0Events.some(
+          (e) => e.kind === COMBAT_EVENT_SHOT && e.attackerEid === towerEid,
+        ),
+      ).toBe(true);
+      expect(
+        p1Events.some(
+          (e) => e.kind === COMBAT_EVENT_DAMAGE && e.attackerEid === towerEid,
+        ),
+      ).toBe(true);
     });
 
     it("tower does not attack friendly units", () => {
       const { world, comps } = createTestWorld();
       const combat = createCombatSystem(comps);
 
-      const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, { playerId: 0 });
+      stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
+        playerId: 0,
+      });
 
       // Friendly Player 0 militiaman at (12, 10)
       const friendlyEid = spawnCombatUnit(world, comps, "militia", 12, 10, 0);
@@ -144,7 +162,9 @@ describe("V7: Tower line & Castle", () => {
       const { world, comps } = createTestWorld();
       const combat = createCombatSystem(comps);
 
-      const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, { playerId: 0 });
+      stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
+        playerId: 0,
+      });
 
       // Enemy Player 1 militiaman at (25, 10) -> distance 15 tiles (well outside range 8)
       const enemyEid = spawnCombatUnit(world, comps, "militia", 25, 10, 1);
@@ -163,7 +183,14 @@ describe("V7: Tower line & Castle", () => {
       const { world, comps } = createTestWorld();
       const combat = createCombatSystem(comps);
 
-      const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, { playerId: 0 });
+      const towerEid = stampFinishedBuilding(
+        world,
+        comps,
+        "watch-tower",
+        10,
+        10,
+        { playerId: 0 },
+      );
       const reloadTicks = 60;
 
       // 1. Feudal Age (rank 2): 5 attack
@@ -206,7 +233,9 @@ describe("V7: Tower line & Castle", () => {
       const combat = createCombatSystem(comps);
 
       // Castle at (10, 10) with 4x4 footprint
-      const castleEid = stampFinishedBuilding(world, comps, "castle", 10, 10, { playerId: 0 });
+      const castleEid = stampFinishedBuilding(world, comps, "castle", 10, 10, {
+        playerId: 0,
+      });
       const reloadTicks = 60;
 
       // Enemy archer (hp 30) at (14, 10)

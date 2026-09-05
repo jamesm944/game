@@ -161,7 +161,12 @@ export function createBuildingPanel(deps: {
       if (!data) {
         if (lastKey !== "") {
           lastKey = "";
-          panel.style.display = "none";
+          panel.classList.remove("visible");
+          setTimeout(() => {
+            if (!panel.classList.contains("visible")) {
+              panel.style.display = "none";
+            }
+          }, 300);
         }
         return;
       }
@@ -173,6 +178,8 @@ export function createBuildingPanel(deps: {
       if (structuralChange) {
         lastKey = key;
         panel.style.display = "block";
+        void panel.offsetWidth;
+        panel.classList.add("visible");
         while (panel.firstChild) panel.firstChild.remove();
         panel.append(
           titleEl,
@@ -252,7 +259,10 @@ export function createBuildingPanel(deps: {
           heading.textContent = "Commodity Exchange";
           exchangeWrap.appendChild(heading);
 
-          const commodities: Array<{ res: "wood" | "food" | "stone"; label: string }> = [
+          const commodities: Array<{
+            res: "wood" | "food" | "stone";
+            label: string;
+          }> = [
             { res: "wood", label: "Wood" },
             { res: "food", label: "Food" },
             { res: "stone", label: "Stone" },
@@ -270,7 +280,14 @@ export function createBuildingPanel(deps: {
             sellBtn.style.flex = "1";
             sellBtn.textContent = `Sell 100 ${c.label} (+70g)`;
             sellBtn.addEventListener("click", () => {
-              issueMarketExchange(deps.inbox, deps.currentTick(), 0, "sell", c.res, 100);
+              issueMarketExchange(
+                deps.inbox,
+                deps.currentTick(),
+                0,
+                "sell",
+                c.res,
+                100,
+              );
             });
 
             const buyBtn = document.createElement("button");
@@ -279,7 +296,14 @@ export function createBuildingPanel(deps: {
             buyBtn.style.flex = "1";
             buyBtn.textContent = `Buy 100 ${c.label} (-130g)`;
             buyBtn.addEventListener("click", () => {
-              issueMarketExchange(deps.inbox, deps.currentTick(), 0, "buy", c.res, 100);
+              issueMarketExchange(
+                deps.inbox,
+                deps.currentTick(),
+                0,
+                "buy",
+                c.res,
+                100,
+              );
             });
 
             row.append(sellBtn, buyBtn);

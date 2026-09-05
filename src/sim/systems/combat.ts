@@ -1030,7 +1030,10 @@ export function createCombatSystem(
       if (!targetCombatant || !targetRow) continue;
 
       const defenderStats = statsOf(targetCombatant);
-      const armor = effectiveArmorOf(defenderStats, targetCombatant.def.armorClasses);
+      const armor = effectiveArmorOf(
+        defenderStats,
+        targetCombatant.def.armorClasses,
+      );
       const damage = Math.max(1, Math.floor(attack - armor));
       targetRow[2] = Math.max(0, targetRow[2]! - damage);
       diagnostics.strikes += 1;

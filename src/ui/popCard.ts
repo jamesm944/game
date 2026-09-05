@@ -125,7 +125,12 @@ export function createPopCard(deps: { getData(): PopCardData | undefined }): {
       if (!data) {
         if (lastKey !== "") {
           lastKey = "";
-          card.style.display = "none";
+          card.classList.remove("visible");
+          setTimeout(() => {
+            if (!card.classList.contains("visible")) {
+              card.style.display = "none";
+            }
+          }, 300);
         }
         return;
       }
@@ -137,6 +142,8 @@ export function createPopCard(deps: { getData(): PopCardData | undefined }): {
       if (structuralChange) {
         lastKey = key;
         card.style.display = "block";
+        void card.offsetWidth;
+        card.classList.add("visible");
         while (card.firstChild) card.firstChild.remove();
         titleEl.textContent = formatPopCardTitle(data);
         traitsEl.replaceChildren(

@@ -221,7 +221,28 @@ function canonicalIds(ids: readonly number[], label: string): number[] {
 
 // ---- Order log (capped, newest-first) ---------------------------------------
 
-export type OrderKind = "move" | "gather" | "build" | "relic" | "trade";
+export type OrderKind =
+  | "move"
+  | "gather"
+  | "build"
+  | "stop"
+  | "attack"
+  | "attackMove"
+  | "relic"
+  | "trade"
+  | "rally";
+
+const KIND_TAGS: Record<OrderKind, string> = {
+  move: "MOV",
+  gather: "GTH",
+  build: "BLD",
+  stop: "STP",
+  attack: "ATK",
+  attackMove: "A-M",
+  relic: "RLC",
+  trade: "TRD",
+  rally: "RLY",
+};
 
 export interface OrderLogEntry {
   readonly seq: number;
@@ -321,6 +342,12 @@ export interface OrderInputDeps {
    * Query if a selected unit is a trade cart.
    */
   isTradeCart?(unitEid: number): boolean;
+  /** Query if a selected unit is carrying a relic. */
+  isCarryingRelic?(unitEid: number): boolean;
+  /** Query if a selected entity is a production building with a train queue. */
+  isProductionBuilding?(eid: number): boolean;
+  /** Set rally point for a production building. */
+  setRallyPoint?(buildingEid: number, rallyX: number, rallyY: number): void;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
@@ -403,18 +430,11 @@ export function wireOrderInput(deps: OrderInputDeps): void {
               ? "order-kind order-kind-relic"
               : entry.kind === "trade"
                 ? "order-kind order-kind-trade"
-                : "order-kind";
+                : entry.kind === "rally"
+                  ? "order-kind order-kind-rally"
+                  : "order-kind";
       kind.className = kindClass;
-      kind.textContent =
-        entry.kind === "gather"
-          ? "GTH"
-          : entry.kind === "build"
-            ? "BLD"
-            : entry.kind === "relic"
-              ? "REL"
-              : entry.kind === "trade"
-                ? "TRD"
-                : "MOV";
+      kind.textContent = KIND_TAGS[entry.kind] ?? "MOV";
       const text = document.createElement("span");
       text.textContent = entry.label;
       item.append(kind, text);
@@ -429,6 +449,21 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     const selection = deps.selection();
 
     // Contextual dispatch:
+    // 0. Production building -> set rally point
+    if (
+      deps.selectionCount() === 1 &&
+      deps.isProductionBuilding?.(selection[0]!)
+    ) {
+      const bEid = selection[0]!;
+      deps.setRallyPoint?.(bEid, ground.x, ground.y);
+      deps.onMoveOrdered(ground.x, ground.y);
+      log.push(deps.currentTick() + 1, {
+        kind: "rally",
+        label: `tick ${String(deps.currentTick() + 1)} · Rally Point → (${Math.round(ground.x)}, ${Math.round(ground.y)})`,
+      });
+      renderList();
+      return;
+    }
     // 1. Relic collection: if grounded relic is clicked
     const relicId = deps.relicAt?.(ground.x, ground.y);
     if (relicId !== undefined && selection.length > 0) {

@@ -167,7 +167,7 @@ export function createUnitSpriteLayer(
     options.action ??
     (atlas.actions.some((a) => a.name === "idle")
       ? "idle"
-      : atlas.actions[0]?.name ?? "idle");
+      : (atlas.actions[0]?.name ?? "idle"));
   const { slot: defaultSlot } = atlasActionSlot(atlas, defaultAction);
 
   const quad = new PlaneGeometry(1, 1);
@@ -223,7 +223,14 @@ export function createUnitSpriteLayer(
   return {
     mesh,
     atlas,
-    writeInstances(samples, heights, camAzimuthRad, tintR = 1, tintG = 1, tintB = 1) {
+    writeInstances(
+      samples,
+      heights,
+      camAzimuthRad,
+      tintR = 1,
+      tintG = 1,
+      tintB = 1,
+    ) {
       const count = writeSpriteAttributes(
         arrays,
         samples,

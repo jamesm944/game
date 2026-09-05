@@ -15,7 +15,7 @@
  *    - Cart travels back to origin Market and deposits gold into player's stockpile
  */
 
-import { buildingDefOf, buildingIdOfCode, unitDefOf, unitIdOfCode } from "../../data/definitions";
+import { buildingDefOf, buildingIdOfCode } from "../../data/definitions";
 import {
   RESOURCE_FOOD,
   RESOURCE_WOOD,
@@ -65,7 +65,9 @@ export function playerHasFinishedMarket(
     if (row[0] === playerId) {
       const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
       if (bDef.id === "market") {
-        const siteRow = world.rowsByComponentId.get(comps.buildingSiteId)?.get(eid);
+        const siteRow = world.rowsByComponentId
+          .get(comps.buildingSiteId)
+          ?.get(eid);
         if (!siteRow) {
           return true;
         }
@@ -89,7 +91,10 @@ export function executeMarketExchange(
 
   const stockpile = stockpileRowOf(world, comps.stockpileId, playerId);
   if (!stockpile) {
-    return { success: false, error: `Stockpile not found for player ${playerId}` };
+    return {
+      success: false,
+      error: `Stockpile not found for player ${playerId}`,
+    };
   }
 
   let resCode = RESOURCE_FOOD;
@@ -131,7 +136,10 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
   const { comps } = options;
   const activeRoutes = new Map<number, ActiveTradeRoute>();
 
-  return function marketSystem(world: World, commands: readonly SimCommand[]): void {
+  return function marketSystem(
+    world: World,
+    commands: readonly SimCommand[],
+  ): void {
     const posRows = world.rowsByComponentId.get(comps.positionId);
     const moveTargetRows = world.rowsByComponentId.get(comps.moveTargetId);
     const ownerRows = world.rowsByComponentId.get(comps.ownerId);
@@ -148,7 +156,9 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
         if (
           typeof data.playerId === "number" &&
           (data.action === "buy" || data.action === "sell") &&
-          (data.resource === "wood" || data.resource === "food" || data.resource === "stone")
+          (data.resource === "wood" ||
+            data.resource === "food" ||
+            data.resource === "stone")
         ) {
           executeMarketExchange(
             world,
@@ -169,7 +179,9 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
         ) {
           let ownerId = ownerRows?.get(data.unitEid)?.[0];
           if (ownerId === undefined) {
-            ownerId = world.rowsByComponentId.get(comps.combatId)?.get(data.unitEid)?.[1];
+            ownerId = world.rowsByComponentId
+              .get(comps.combatId)
+              ?.get(data.unitEid)?.[1];
           }
           if (ownerId === undefined) ownerId = 0;
 
@@ -184,11 +196,15 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
               if (bRow[0] === ownerId && bEid !== data.targetMarketEid) {
                 const bDef = buildingDefOf(buildingIdOfCode(bRow[1]!));
                 if (bDef.id === "market") {
-                  const siteRow = world.rowsByComponentId.get(comps.buildingSiteId)?.get(bEid);
+                  const siteRow = world.rowsByComponentId
+                    .get(comps.buildingSiteId)
+                    ?.get(bEid);
                   if (!siteRow) {
                     const mPos = posRows.get(bEid);
                     if (mPos) {
-                      const dSq = (mPos[0]! - cartPos[0]!) ** 2 + (mPos[1]! - cartPos[1]!) ** 2;
+                      const dSq =
+                        (mPos[0]! - cartPos[0]!) ** 2 +
+                        (mPos[1]! - cartPos[1]!) ** 2;
                       if (dSq < bestOriginDistSq) {
                         bestOriginDistSq = dSq;
                         bestOriginEid = bEid;
@@ -237,21 +253,30 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
       const originCenterY = originPos[1]!;
 
       if (route.state === "to_target") {
-        const distSq = (cartPos[0]! - targetCenterX) ** 2 + (cartPos[1]! - targetCenterY) ** 2;
+        const distSq =
+          (cartPos[0]! - targetCenterX) ** 2 +
+          (cartPos[1]! - targetCenterY) ** 2;
         if (distSq <= 3.5 * 3.5) {
           // Arrived at target market -> load gold cargo based on distance
-          const marketDist = Math.hypot(originCenterX - targetCenterX, originCenterY - targetCenterY);
+          const marketDist = Math.hypot(
+            originCenterX - targetCenterX,
+            originCenterY - targetCenterY,
+          );
           route.carriedGold = Math.max(5, Math.floor(marketDist * 0.5));
           route.state = "to_origin";
           moveTargetRows.set(unitEid, [originCenterX, originCenterY]);
         }
       } else if (route.state === "to_origin") {
-        const distSq = (cartPos[0]! - originCenterX) ** 2 + (cartPos[1]! - originCenterY) ** 2;
+        const distSq =
+          (cartPos[0]! - originCenterX) ** 2 +
+          (cartPos[1]! - originCenterY) ** 2;
         if (distSq <= 3.5 * 3.5) {
           // Arrived home -> deposit gold
           let ownerId = ownerRows?.get(unitEid)?.[0];
           if (ownerId === undefined) {
-            ownerId = world.rowsByComponentId.get(comps.combatId)?.get(unitEid)?.[1];
+            ownerId = world.rowsByComponentId
+              .get(comps.combatId)
+              ?.get(unitEid)?.[1];
           }
           if (ownerId === undefined) ownerId = 0;
           const stockpile = stockpileRowOf(world, comps.stockpileId, ownerId);

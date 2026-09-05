@@ -1,14 +1,14 @@
 /**
- * Selection rings — M1-T8 (SPEC §2.13).
+ * Selection rings — M1-T8 (SPEC §2.13) / V11 (#82).
  *
- * One InstancedMesh of thin white ground rings under every selected
- * unit (the prototype's selection ellipse, ported to the instanced
- * renderer). Positions come from the SAME interpolated mirror sample
- * the unit billboards use, so rings track units smoothly. A single
- * extra draw call, capacity-capped.
+ * One InstancedMesh of segmented, pulsing, rotating white ground brackets
+ * under every selected unit. Positions come from the SAME interpolated mirror
+ * sample the unit billboards use, so rings track units smoothly.
+ * Single extra draw call, capacity-capped.
  */
 
 import {
+  BufferGeometry,
   DynamicDrawUsage,
   InstancedMesh,
   Matrix4,
@@ -16,6 +16,7 @@ import {
   RingGeometry,
   type Scene,
 } from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { WorldLayers } from "../sim/world/layers";
 import { terrainHeightAt } from "./terrain";
 
@@ -26,19 +27,31 @@ export interface SelectionRingsLayer {
    * Write ring instances for the first `count` entries of the packed
    * x,y arrays (sim coordinates, interpolated like the mirror sample).
    */
-  write(positions: Float32Array, count: number): void;
+  write(positions: Float32Array, count: number, timeSec?: number): void;
+}
+
+function createSegmentedRingGeometry(): BufferGeometry {
+  const parts: BufferGeometry[] = [];
+  const arc = (Math.PI * 2) / 4;
+  const segmentLen = arc * 0.7;
+  for (let b = 0; b < 4; b++) {
+    const thetaStart = b * arc;
+    const geom = new RingGeometry(0.34, 0.44, 8, 1, thetaStart, segmentLen);
+    geom.rotateX(-Math.PI / 2);
+    parts.push(geom);
+  }
+  return mergeGeometries(parts, false);
 }
 
 export function createSelectionRings(
   scene: Scene,
   layers: WorldLayers,
 ): SelectionRingsLayer {
-  const geometry = new RingGeometry(0.34, 0.44, 28);
-  geometry.rotateX(-Math.PI / 2); // lie flat; instance matrices stay pure translates
+  const geometry = createSegmentedRingGeometry();
   const material = new MeshBasicMaterial({
     color: 0xffffff,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.9,
     depthWrite: false,
   });
   const mesh = new InstancedMesh(geometry, material, SELECTION_RING_CAPACITY);
@@ -49,18 +62,27 @@ export function createSelectionRings(
   scene.add(mesh);
 
   const scratchMatrix = new Matrix4();
+  const translationMatrix = new Matrix4();
+  const rotationMatrix = new Matrix4();
+  const scaleMatrix = new Matrix4();
 
   return {
-    write(positions: Float32Array, count: number): void {
+    write(positions: Float32Array, count: number, timeSec = 0): void {
       const visible = Math.min(count, SELECTION_RING_CAPACITY);
+      const pulse = 1.0 + 0.06 * Math.sin(timeSec * 5.0);
+      scaleMatrix.makeScale(pulse, 1, pulse);
+      rotationMatrix.makeRotationY(timeSec * 1.5);
+
       for (let i = 0; i < visible; i++) {
         const x = positions[i * 2]!;
         const y = positions[i * 2 + 1]!;
-        scratchMatrix.makeTranslation(
+        translationMatrix.makeTranslation(
           x,
           terrainHeightAt(layers, x, y) + 0.05,
           y,
         );
+        scratchMatrix.multiplyMatrices(translationMatrix, rotationMatrix);
+        scratchMatrix.multiply(scaleMatrix);
         mesh.setMatrixAt(i, scratchMatrix);
       }
       mesh.count = visible;

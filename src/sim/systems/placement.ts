@@ -35,7 +35,11 @@ import {
 import type { SimComponents } from "../components";
 import { getResourceNodeRow } from "../components/economy";
 import { appendGateRejection, GATE_HANDLER_PLACE } from "../components/age";
-import { buildingCodeOf, buildingDefOf, buildingIdOfCode } from "../../data/definitions";
+import {
+  buildingCodeOf,
+  buildingDefOf,
+  buildingIdOfCode,
+} from "../../data/definitions";
 import { canAffordCosts, payCosts } from "./costs";
 import { isDefAgeUnlocked } from "./age";
 import { IMPASSABLE, PASSABLE, isWaterTerrain } from "../world/layers";
@@ -317,14 +321,19 @@ export function traceWallRun(
  */
 export function passabilityForPlayer(
   world: World,
-  comps: { buildingId: number; buildingSiteId?: number | undefined; positionId?: number | undefined },
+  comps: {
+    buildingId: number;
+    buildingSiteId?: number | undefined;
+    positionId?: number | undefined;
+  },
   playerId: number,
 ): Uint8Array {
   const size = world.layers.size;
   const buildingRows = world.rowsByComponentId.get(comps.buildingId);
-  const siteRows = comps.buildingSiteId !== undefined
-    ? world.rowsByComponentId.get(comps.buildingSiteId)
-    : undefined;
+  const siteRows =
+    comps.buildingSiteId !== undefined
+      ? world.rowsByComponentId.get(comps.buildingSiteId)
+      : undefined;
 
   const friendlyGateTiles: Array<{ x: number; y: number }> = [];
 
@@ -352,9 +361,10 @@ export function passabilityForPlayer(
       const defCode = row[1]!;
       const def = buildingDefOf(buildingIdOfCode(defCode));
       if (!def.isGate) continue;
-      const posRow = comps.positionId !== undefined
-        ? world.rowsByComponentId.get(comps.positionId)?.get(eid)
-        : undefined;
+      const posRow =
+        comps.positionId !== undefined
+          ? world.rowsByComponentId.get(comps.positionId)?.get(eid)
+          : undefined;
       if (!posRow) continue;
       const originX = Math.round(posRow[0]! - def.footprint.width / 2);
       const originY = Math.round(posRow[1]! - def.footprint.height / 2);

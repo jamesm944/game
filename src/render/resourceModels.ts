@@ -20,7 +20,10 @@ import {
   Object3D,
   Vector3,
 } from "three";
-import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import {
+  GLTFLoader,
+  type GLTF,
+} from "three/examples/jsm/loaders/GLTFLoader.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { WorldLayers } from "../sim/world/layers";
 import { terrainHeightAt } from "./terrain";
@@ -46,7 +49,10 @@ const MAX_INSTANCES_PER_KIND = 1024;
 const scratchObj = new Object3D();
 const scratchColor = new Color();
 
-function normalizeGeometry(geometry: BufferGeometry, targetSize = 1.0): BufferGeometry {
+function normalizeGeometry(
+  geometry: BufferGeometry,
+  targetSize = 1.0,
+): BufferGeometry {
   geometry.computeBoundingBox();
   const box = geometry.boundingBox ?? new Box3();
   const size = new Vector3();
@@ -109,8 +115,8 @@ export interface ResourceModelsLayer {
   readonly group: Group;
   readonly uTime: { value: number };
   write(
-    nodes: ReadonlyMap<number, readonly [number, number, number]>,
-    positions: ReadonlyMap<number, readonly [number, number]>,
+    nodes: ReadonlyMap<number, readonly number[]>,
+    positions: ReadonlyMap<number, readonly number[]>,
     layers: WorldLayers,
     options?: { fog?: ResourceFogView | undefined },
   ): void;
@@ -162,14 +168,45 @@ export async function createResourceModelsLayer(): Promise<ResourceModelsLayer> 
   const rockMaterial = new MeshLambertMaterial({ vertexColors: true });
   const goldMaterial = new MeshLambertMaterial({ vertexColors: true });
 
-  const meshTree1 = new InstancedMesh(geomTree1, treeMaterial, MAX_INSTANCES_PER_KIND);
-  const meshTree2 = new InstancedMesh(geomTree2, treeMaterial, MAX_INSTANCES_PER_KIND);
-  const meshPine = new InstancedMesh(geomPine, treeMaterial, MAX_INSTANCES_PER_KIND);
-  const meshRock1 = new InstancedMesh(geomRock1, rockMaterial, MAX_INSTANCES_PER_KIND);
-  const meshRock2 = new InstancedMesh(geomRock2, rockMaterial, MAX_INSTANCES_PER_KIND);
-  const meshGold = new InstancedMesh(geomGold, goldMaterial, MAX_INSTANCES_PER_KIND);
+  const meshTree1 = new InstancedMesh(
+    geomTree1,
+    treeMaterial,
+    MAX_INSTANCES_PER_KIND,
+  );
+  const meshTree2 = new InstancedMesh(
+    geomTree2,
+    treeMaterial,
+    MAX_INSTANCES_PER_KIND,
+  );
+  const meshPine = new InstancedMesh(
+    geomPine,
+    treeMaterial,
+    MAX_INSTANCES_PER_KIND,
+  );
+  const meshRock1 = new InstancedMesh(
+    geomRock1,
+    rockMaterial,
+    MAX_INSTANCES_PER_KIND,
+  );
+  const meshRock2 = new InstancedMesh(
+    geomRock2,
+    rockMaterial,
+    MAX_INSTANCES_PER_KIND,
+  );
+  const meshGold = new InstancedMesh(
+    geomGold,
+    goldMaterial,
+    MAX_INSTANCES_PER_KIND,
+  );
 
-  const meshes = [meshTree1, meshTree2, meshPine, meshRock1, meshRock2, meshGold];
+  const meshes = [
+    meshTree1,
+    meshTree2,
+    meshPine,
+    meshRock1,
+    meshRock2,
+    meshGold,
+  ];
   for (const m of meshes) {
     m.castShadow = true;
     m.receiveShadow = true;
@@ -237,11 +274,11 @@ export async function createResourceModelsLayer(): Promise<ResourceModelsLayer> 
 
       // 2. Resource nodes (wood, food bushes, gold, stone, iron, coal, clay)
       for (const [eid, node] of nodes) {
-        const remaining = node[1];
+        const remaining = node[1] ?? 0;
         if (remaining <= 0) continue; // Depleted node
 
         const pos = positions.get(eid);
-        if (!pos) continue;
+        if (!pos || pos[0] === undefined || pos[1] === undefined) continue;
         const x = pos[0];
         const y = pos[1];
         const tx = Math.floor(x);
@@ -253,7 +290,7 @@ export async function createResourceModelsLayer(): Promise<ResourceModelsLayer> 
         const visible = options?.fog ? options.fog.isVisible(tx, ty) : true;
         const groundY = terrainHeightAt(layers, x, y);
 
-        const resCode = node[0];
+        const resCode = node[0] ?? 0;
         const hash = (eid * 2654435761) >>> 0;
         const rotationY = (hash % 628) / 100;
         const scaleJitter = 0.9 + ((hash >> 8) % 25) * 0.01;
@@ -286,7 +323,11 @@ export async function createResourceModelsLayer(): Promise<ResourceModelsLayer> 
           }
         } else if (resCode === RESOURCE_FOOD) {
           // Berry bush: compact shrub
-          scratchObj.scale.set(0.45 * scaleJitter, 0.4 * scaleJitter, 0.45 * scaleJitter);
+          scratchObj.scale.set(
+            0.45 * scaleJitter,
+            0.4 * scaleJitter,
+            0.45 * scaleJitter,
+          );
           scratchObj.updateMatrix();
           if (countTree1 < MAX_INSTANCES_PER_KIND) {
             meshTree1.setMatrixAt(countTree1, scratchObj.matrix);

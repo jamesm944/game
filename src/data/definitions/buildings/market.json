@@ -15,8 +15,6 @@
   "populationCap": 0,
   "trainQueue": {
     "capacity": 5,
-    "trainable": [
-      { "unitId": "trade-cart" }
-    ]
+    "trainable": [{ "unitId": "trade-cart" }]
   }
 }

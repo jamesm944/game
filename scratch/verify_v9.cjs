@@ -1,15 +1,21 @@
-const { chromium } = require('playwright');
-const path = require('path');
+const { chromium } = require("playwright");
+const path = require("path");
 
 async function main() {
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  const page = await browser.newPage({
+    viewport: { width: 1920, height: 1080 },
+  });
 
-  console.log('Navigating to game...');
-  await page.goto('http://localhost:5173/');
+  console.log("Navigating to game...");
+  await page.goto("http://localhost:5173/");
 
-  await page.waitForFunction(() => typeof window.__game !== 'undefined' && typeof window.__game.cameraRig !== 'undefined');
-  console.log('Game ready.');
+  await page.waitForFunction(
+    () =>
+      typeof window.__game !== "undefined" &&
+      typeof window.__game.cameraRig !== "undefined",
+  );
+  console.log("Game ready.");
 
   await page.waitForTimeout(1500);
 
@@ -24,7 +30,8 @@ async function main() {
     const buildings = world.rowsByComponentId.get(comps.buildingId);
     if (buildings) {
       for (const row of buildings.values()) {
-        if (row[0] === 0) { // player 0
+        if (row[0] === 0) {
+          // player 0
           tcOriginX = row[2];
           tcOriginY = row[3];
           break;
@@ -42,7 +49,11 @@ async function main() {
       for (let dx = -r; dx <= r; dx++) {
         for (let dy = -r; dy <= r; dy++) {
           if (Math.abs(dx) !== r && Math.abs(dy) !== r) continue;
-          const check = game.validatePlacement('market', tcOriginX + dx, tcOriginY + dy);
+          const check = game.validatePlacement(
+            "market",
+            tcOriginX + dx,
+            tcOriginY + dy,
+          );
           if (check && check.ok) {
             marketX = tcOriginX + dx;
             marketY = tcOriginY + dy;
@@ -56,13 +67,20 @@ async function main() {
 
     let marketEid = 0;
     if (marketX !== 0) {
-      marketEid = game.stampFinishedBuilding('market', marketX, marketY);
+      marketEid = game.stampFinishedBuilding("market", marketX, marketY);
     }
 
     // Spawn a trade cart near market
     let cartEid = 0;
     if (marketEid !== 0) {
-      cartEid = game.spawnCombatUnit(world, comps, 'trade-cart', marketX + 5, marketY + 2, 0);
+      cartEid = game.spawnCombatUnit(
+        world,
+        comps,
+        "trade-cart",
+        marketX + 5,
+        marketY + 2,
+        0,
+      );
     }
 
     // Select the market to trigger building panel
@@ -81,10 +99,11 @@ async function main() {
     return { marketX, marketY, marketEid, cartEid };
   });
 
-  console.log('Setup completed:', setupResult);
+  console.log("Setup completed:", setupResult);
   await page.waitForTimeout(1500);
 
-  const outDir = '/Users/jamesmoss/.gemini/antigravity-ide/brain/602ff85a-58b6-4509-8496-60aac9fcf58c';
+  const outDir =
+    "/Users/jamesmoss/.gemini/antigravity-ide/brain/602ff85a-58b6-4509-8496-60aac9fcf58c";
 
   // 1. Zoom in moderately to show Market and Trade Cart in village
   await page.mouse.move(960, 540);
@@ -92,14 +111,16 @@ async function main() {
   await page.waitForTimeout(1000);
 
   // 1. Overview with Market HUD, Trade Cart, and building panel
-  await page.screenshot({ path: path.join(outDir, 'market_and_trade_overview.png') });
-  console.log('Saved market_and_trade_overview.png');
+  await page.screenshot({
+    path: path.join(outDir, "market_and_trade_overview.png"),
+  });
+  console.log("Saved market_and_trade_overview.png");
 
   // 2. Zoom in close on Market 3D model
   await page.mouse.wheel(0, -2500);
   await page.waitForTimeout(800);
-  await page.screenshot({ path: path.join(outDir, 'market_closeup_3d.png') });
-  console.log('Saved market_closeup_3d.png');
+  await page.screenshot({ path: path.join(outDir, "market_closeup_3d.png") });
+  console.log("Saved market_closeup_3d.png");
 
   // 3. Trade cart closeup
   if (setupResult.cartEid !== 0) {
@@ -108,8 +129,10 @@ async function main() {
       game.cameraRig.setCenter(res.marketX + 5, res.marketY + 2);
     }, setupResult);
     await page.waitForTimeout(800);
-    await page.screenshot({ path: path.join(outDir, 'trade_cart_closeup.png') });
-    console.log('Saved trade_cart_closeup.png');
+    await page.screenshot({
+      path: path.join(outDir, "trade_cart_closeup.png"),
+    });
+    console.log("Saved trade_cart_closeup.png");
   }
 
   // Check FPS and draw calls
@@ -117,13 +140,13 @@ async function main() {
     const dev = window.__game?.getDevStats?.();
     return dev || { fps: 60, drawCalls: 20 };
   });
-  console.log('Performance stats:', perf);
+  console.log("Performance stats:", perf);
 
   await browser.close();
-  console.log('Verification script completed successfully.');
+  console.log("Verification script completed successfully.");
 }
 
-main().catch(err => {
-  console.error('Error during verification:', err);
+main().catch((err) => {
+  console.error("Error during verification:", err);
   process.exit(1);
 });

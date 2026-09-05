@@ -206,7 +206,14 @@ function loadTerrainTexture(url: string): Texture {
 
 export interface TerrainMesh extends Mesh {
   readonly uTime: { value: number };
-  updateFarms(farmTiles: ReadonlyArray<{ x: number; y: number; width: number; height: number }>): void;
+  updateFarms(
+    farmTiles: ReadonlyArray<{
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }>,
+  ): void;
 }
 
 /**
@@ -322,7 +329,13 @@ export function buildTerrainMesh(
   const texForest = loadTerrainTexture(forestUrl);
 
   const farmData = new Uint8Array(size * size);
-  const farmTexture = new DataTexture(farmData, size, size, RedFormat, UnsignedByteType);
+  const farmTexture = new DataTexture(
+    farmData,
+    size,
+    size,
+    RedFormat,
+    UnsignedByteType,
+  );
   farmTexture.minFilter = LinearFilter;
   farmTexture.magFilter = LinearFilter;
   farmTexture.wrapS = ClampToEdgeWrapping;
@@ -465,7 +478,14 @@ export function buildTerrainMesh(
   const baseMesh = new Mesh(merged, material);
   const mesh = Object.assign(baseMesh, {
     uTime,
-    updateFarms(farmTiles: ReadonlyArray<{ x: number; y: number; width: number; height: number }>): void {
+    updateFarms(
+      farmTiles: ReadonlyArray<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }>,
+    ): void {
       farmData.fill(0);
       for (const f of farmTiles) {
         for (let dy = 0; dy < f.height; dy++) {
