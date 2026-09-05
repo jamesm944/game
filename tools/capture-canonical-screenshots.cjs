@@ -34,15 +34,30 @@ async function main() {
   console.log("Setting up Scene 1: Dawn Village...");
   await page.evaluate(() => {
     const game = window.__game;
-    const { world, comps, cameraRig, stampFinishedBuilding, spawnUnit, session } = game;
+    const {
+      world,
+      comps,
+      cameraRig,
+      stampFinishedBuilding,
+      spawnUnit,
+      session,
+    } = game;
 
     // Helper to reveal fog on demand for scenes
     function revealFog(cx, cy, radius, exploredOnly = false) {
       const fog = session.fog;
       const size = fog.state.size;
       const plane = fog.state.planes[0];
-      for (let y = Math.max(0, cy - radius); y <= Math.min(size - 1, cy + radius); y++) {
-        for (let x = Math.max(0, cx - radius); x <= Math.min(size - 1, cx + radius); x++) {
+      for (
+        let y = Math.max(0, cy - radius);
+        y <= Math.min(size - 1, cy + radius);
+        y++
+      ) {
+        for (
+          let x = Math.max(0, cx - radius);
+          x <= Math.min(size - 1, cx + radius);
+          x++
+        ) {
           const dist = Math.hypot(x - cx, y - cy);
           if (dist <= radius) {
             const idx = y * size + x;
