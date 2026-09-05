@@ -220,8 +220,8 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
             if (shade === MINIMAP_SHADE_BRIGHT) continue;
             ctx.fillStyle =
               shade === MINIMAP_SHADE_UNEXPLORED
-                ? "#000000"
-                : "rgba(0, 0, 0, 0.45)";
+                ? "#0e1218"
+                : "rgba(16, 22, 32, 0.50)";
             ctx.fillRect(
               tx * pxPerTile,
               ty * pxPerTile,

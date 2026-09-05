@@ -544,16 +544,28 @@ export function buildTerrainMesh(
       // Preserve subtle ambient variation and lighting
       diffuseColor.rgb = texColor * vColor.rgb * 1.30;
 
-      // Fog of war dimming
+      // Fog of war smooth penumbra & deep charcoal shroud (V13, #94)
       if (uFogMapSize > 0.0) {
-        vec4 fogCurrTexel = texture2D(uFogCurr, vFogUv);
-        vec4 fogPrevTexel = texture2D(uFogPrev, vFogUv);
-        float fogExplored = mix(fogPrevTexel.r, fogCurrTexel.r, uBlend);
-        float fogVisible = mix(fogPrevTexel.g, fogCurrTexel.g, uBlend);
-        float isExplored = step(0.0005, fogExplored);
-        float isVisible = clamp(fogVisible * 255.0, 0.0, 1.0);
-        float fogBrightness = mix(0.55, 1.0, isVisible) * isExplored;
-        diffuseColor.rgb *= fogBrightness;
+        vec2 d = vec2(1.5 / uFogMapSize);
+        vec2 cUv = vFogUv;
+
+        vec4 s0 = mix(texture2D(uFogPrev, cUv), texture2D(uFogCurr, cUv), uBlend);
+        vec4 s1 = mix(texture2D(uFogPrev, cUv + vec2(d.x, d.y)), texture2D(uFogCurr, cUv + vec2(d.x, d.y)), uBlend);
+        vec4 s2 = mix(texture2D(uFogPrev, cUv + vec2(-d.x, d.y)), texture2D(uFogCurr, cUv + vec2(-d.x, d.y)), uBlend);
+        vec4 s3 = mix(texture2D(uFogPrev, cUv + vec2(d.x, -d.y)), texture2D(uFogCurr, cUv + vec2(d.x, -d.y)), uBlend);
+        vec4 s4 = mix(texture2D(uFogPrev, cUv + vec2(-d.x, -d.y)), texture2D(uFogCurr, cUv + vec2(-d.x, -d.y)), uBlend);
+
+        vec2 smoothFog = (s0.rg * 2.0 + s1.rg + s2.rg + s3.rg + s4.rg) / 6.0;
+        float rawExplored = smoothFog.r * 255.0;
+        float rawVisible = smoothFog.g * 255.0;
+
+        float exploredFactor = smoothstep(0.05, 0.95, rawExplored);
+        float visibleFactor = smoothstep(0.05, 0.95, rawVisible);
+
+        float exploredBrightness = mix(0.52, 1.0, visibleFactor);
+        vec3 exploredTerrain = diffuseColor.rgb * exploredBrightness;
+        vec3 deepCharcoal = vec3(0.04, 0.05, 0.07);
+        diffuseColor.rgb = mix(deepCharcoal, exploredTerrain, exploredFactor);
       }`,
     );
   };
