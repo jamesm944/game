@@ -200,6 +200,7 @@ import {
 } from "./render/mirror";
 import { buildTerrainMesh, terrainHeightAt } from "./render/terrain";
 import { createUnitSpriteLayer } from "./render/unitSprites";
+import { playerTintOf } from "./render/playerColors";
 import {
   PLAYBACK_QUANTUM_FPS,
   playbackRateForZoom,
@@ -2091,14 +2092,14 @@ function frame(
     if (!liveEidsThisFrame.has(eid)) {
       const lastHp = lastUnitHp.get(eid) ?? 0;
       if (lastHp <= 0.25 || lastHp === 0) {
-        const isViewer = info.ownerId === VIEWER;
+        const corpseTint = playerTintOf(info.ownerId);
         activeCorpses.push({
           x: info.x,
           y: info.y,
           heading: info.heading,
           defCode: info.defCode,
           deathSlot: deathSlotsByCode[info.defCode] ?? 0,
-          tint: isViewer ? [1.0, 1.0, 1.0] : [1.25, 0.65, 0.65],
+          tint: [corpseTint[0], corpseTint[1], corpseTint[2]],
           startSec: spriteTimeSec,
           expireSec: spriteTimeSec + 5.0, // 5s = 150 ticks
         });
@@ -2139,14 +2140,11 @@ function frame(
       bucket.tints[o3] = 3.5;
       bucket.tints[o3 + 1] = 3.5;
       bucket.tints[o3 + 2] = 3.5;
-    } else if (ownerId === VIEWER) {
-      bucket.tints[o3] = 1.0;
-      bucket.tints[o3 + 1] = 1.0;
-      bucket.tints[o3 + 2] = 1.0;
     } else {
-      bucket.tints[o3] = 1.25;
-      bucket.tints[o3 + 1] = 0.65;
-      bucket.tints[o3 + 2] = 0.65;
+      const tint = playerTintOf(ownerId);
+      bucket.tints[o3] = tint[0];
+      bucket.tints[o3 + 1] = tint[1];
+      bucket.tints[o3 + 2] = tint[2];
     }
 
     bucket.groundHeights[idx] = terrainHeightAt(world.layers, x, y);
