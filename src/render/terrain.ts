@@ -22,6 +22,7 @@ import {
   MeshLambertMaterial,
   PlaneGeometry,
   RedFormat,
+  RGBAFormat,
   RepeatWrapping,
   Texture,
   TextureLoader,
@@ -30,6 +31,10 @@ import {
 import {
   TERRAIN_DEEP_WATER,
   TERRAIN_WATER,
+  TERRAIN_SHORE,
+  TERRAIN_GRASS,
+  TERRAIN_DIRT,
+  TERRAIN_FOREST_FLOOR,
   type WorldLayers,
 } from "../sim/world/layers";
 import type { FogShaderUniforms } from "./fogTexture";
@@ -127,7 +132,7 @@ function pushWall(
   dx: number,
   dy: number,
   ownY: number,
-  color: Color,
+  _color?: Color,
 ): void {
   const neighborIndex = neighbor(layers, tx, ty, dx, dy);
   const neighborY =
@@ -136,7 +141,8 @@ function pushWall(
       : tileTopY(layers, neighborIndex);
   if (ownY <= neighborY) return;
 
-  const darkened = color.clone().multiplyScalar(0.72);
+  const brightness = 0.94 + hash01(tx * 31 + ty * 17) * 0.12;
+  const rockTint = new Color(0.88, 0.85, 0.82).multiplyScalar(brightness);
   const x0 = tx;
   const z0 = ty;
   const ROCK_WALL_TYPE = 6;
@@ -151,7 +157,7 @@ function pushWall(
         [x0 + 1, ownY, z0],
       ],
       [1, 0, 0],
-      darkened,
+      rockTint,
       ROCK_WALL_TYPE,
     );
   } else if (dx === -1) {
@@ -164,7 +170,7 @@ function pushWall(
         [x0, ownY, z0 + 1],
       ],
       [-1, 0, 0],
-      darkened,
+      rockTint,
       ROCK_WALL_TYPE,
     );
   } else if (dy === 1) {
@@ -177,7 +183,7 @@ function pushWall(
         [x0 + 1, ownY, z0 + 1],
       ],
       [0, 0, 1],
-      darkened,
+      rockTint,
       ROCK_WALL_TYPE,
     );
   } else {
@@ -190,13 +196,19 @@ function pushWall(
         [x0, ownY, z0],
       ],
       [0, 0, -1],
-      darkened,
+      rockTint,
       ROCK_WALL_TYPE,
     );
   }
 }
 
 function loadTerrainTexture(url: string): Texture {
+  if (typeof document === "undefined") {
+    const tex = new Texture();
+    tex.wrapS = RepeatWrapping;
+    tex.wrapT = RepeatWrapping;
+    return tex;
+  }
   const loader = new TextureLoader();
   const tex = loader.load(url);
   tex.wrapS = RepeatWrapping;
@@ -214,6 +226,53 @@ export interface TerrainMesh extends Mesh {
       height: number;
     }>,
   ): void;
+}
+
+/**
+ * Create a GPU splatmap texture (size × size, RGBA) encoding terrain weights:
+ * R = Shore (Sand)
+ * G = Grass
+ * B = Dirt
+ * A = Forest Floor
+ * Bilinear filtering produces smooth, seamless transitions across tile boundaries.
+ */
+export function createSplatTexture(layers: WorldLayers): DataTexture {
+  const size = layers.size;
+  const splatData = new Uint8Array(size * size * 4);
+  for (let ty = 0; ty < size; ty++) {
+    for (let tx = 0; tx < size; tx++) {
+      const idx = ty * size + tx;
+      const t = layers.terrainType[idx]!;
+      const offset = idx * 4;
+      switch (t) {
+        case TERRAIN_SHORE:
+          splatData[offset] = 255;
+          break;
+        case TERRAIN_GRASS:
+          splatData[offset + 1] = 255;
+          break;
+        case TERRAIN_DIRT:
+          splatData[offset + 2] = 255;
+          break;
+        case TERRAIN_FOREST_FLOOR:
+          splatData[offset + 3] = 255;
+          break;
+      }
+    }
+  }
+  const tex = new DataTexture(
+    splatData,
+    size,
+    size,
+    RGBAFormat,
+    UnsignedByteType,
+  );
+  tex.minFilter = LinearFilter;
+  tex.magFilter = LinearFilter;
+  tex.wrapS = ClampToEdgeWrapping;
+  tex.wrapT = ClampToEdgeWrapping;
+  tex.needsUpdate = true;
+  return tex;
 }
 
 /**
@@ -262,9 +321,8 @@ export function buildTerrainMesh(
       topTerrainTypes[base + v] = tType;
     }
 
-    const brightness = 0.92 + hash01(tileIndex) * 0.14;
-    scratchColor.setHex(TERRAIN_HEX[tType]!);
-    scratchColor.multiplyScalar(brightness);
+    const brightness = 0.94 + hash01(tileIndex) * 0.12;
+    scratchColor.setRGB(brightness, brightness, brightness);
     for (let v = 0; v < 3; v++) {
       const o = (base + v) * 3;
       topColors[o] = scratchColor.r;
@@ -285,7 +343,6 @@ export function buildTerrainMesh(
     for (let tx = 0; tx < size; tx++) {
       const idx = ty * size + tx;
       const y = tileTopY(layers, idx);
-      wallColor.setHex(TERRAIN_HEX[layers.terrainType[idx]!]!);
       pushWall(walls, layers, tx, ty, 1, 0, y, wallColor);
       pushWall(walls, layers, tx, ty, -1, 0, y, wallColor);
       pushWall(walls, layers, tx, ty, 0, 1, y, wallColor);
@@ -327,6 +384,7 @@ export function buildTerrainMesh(
   const texDirt = loadTerrainTexture(dirtUrl);
   const texRock = loadTerrainTexture(rockUrl);
   const texForest = loadTerrainTexture(forestUrl);
+  const splatTexture = createSplatTexture(layers);
 
   const farmData = new Uint8Array(size * size);
   const farmTexture = new DataTexture(
@@ -351,6 +409,7 @@ export function buildTerrainMesh(
     shader.uniforms.uTexDirt = { value: texDirt };
     shader.uniforms.uTexRock = { value: texRock };
     shader.uniforms.uTexForest = { value: texForest };
+    shader.uniforms.uSplatMap = { value: splatTexture };
     shader.uniforms.uFarmMask = { value: farmTexture };
     shader.uniforms.uTime = uTime;
     shader.uniforms.uFogMapSize = { value: size };
@@ -370,6 +429,7 @@ export function buildTerrainMesh(
       varying vec3 vWorldPos;
       varying vec2 vFogUv;
       uniform float uFogMapSize;
+      uniform float uTime;
       void main() {`,
     );
 
@@ -378,9 +438,14 @@ export function buildTerrainMesh(
       /* glsl */ `
       #include <begin_vertex>
       vTerrainType = aTerrainType;
-      vWorldPos = position;
-      vWorldUv = position.xz;
-      vFogUv = position.xz / uFogMapSize;`,
+      if (aTerrainType < 1.5) {
+        float waveTime = uTime * 2.0;
+        float waveDisp = sin(position.x * 2.2 + waveTime) * cos(position.z * 2.2 + waveTime * 0.8) * 0.035;
+        transformed.y += waveDisp;
+      }
+      vWorldPos = transformed;
+      vWorldUv = transformed.xz;
+      vFogUv = transformed.xz / uFogMapSize;`,
     );
 
     shader.fragmentShader = shader.fragmentShader.replace(
@@ -390,6 +455,7 @@ export function buildTerrainMesh(
       uniform sampler2D uTexDirt;
       uniform sampler2D uTexRock;
       uniform sampler2D uTexForest;
+      uniform sampler2D uSplatMap;
       uniform sampler2D uFarmMask;
       uniform sampler2D uFogCurr;
       uniform sampler2D uFogPrev;
@@ -411,7 +477,7 @@ export function buildTerrainMesh(
       // Seamless world-aligned UVs
       vec2 uvGrass = vWorldUv * 0.22;
       vec2 uvDirt = vWorldUv * 0.22;
-      vec2 uvRock = vWorldPos.xz * 0.22 + vec2(vWorldPos.y * 0.45, 0.0);
+      vec2 uvRock = vec2(vWorldPos.x + vWorldPos.z, vWorldPos.y * 2.2) * 0.25;
       vec2 uvForest = vWorldUv * 0.22;
 
       vec4 colGrass = texture2D(uTexGrass, uvGrass);
@@ -419,47 +485,64 @@ export function buildTerrainMesh(
       vec4 colRock = texture2D(uTexRock, uvRock);
       vec4 colForest = texture2D(uTexForest, uvForest);
 
-      vec3 texColor = colGrass.rgb;
+      // Domain-warped splatmap sampling for natural, organic transitions
+      vec2 splatUv = vWorldPos.xz / uFogMapSize;
+      vec2 warp = vec2(
+        sin(vWorldUv.y * 3.2 + vWorldUv.x * 1.5),
+        cos(vWorldUv.x * 3.2 + vWorldUv.y * 1.5)
+      ) * (0.35 / uFogMapSize);
+      vec4 splat = texture2D(uSplatMap, clamp(splatUv + warp, 0.0, 1.0));
+
+      float landWeight = splat.r + splat.g + splat.b + splat.a;
+      vec4 w = landWeight > 0.001 ? splat / landWeight : vec4(0.0, 1.0, 0.0, 0.0);
+
+      // Calibrated biome colors
+      vec3 colSand = mix(colDirt.rgb, vec3(0.92, 0.84, 0.64), 0.58);
+      vec3 colLushGrass = mix(colGrass.rgb, colForest.rgb, 0.22);
+      vec3 colEarthyDirt = colDirt.rgb;
+      vec3 colDenseForest = colForest.rgb * 0.95;
+
+      vec3 landColor = colSand * w.r + colLushGrass * w.g + colEarthyDirt * w.b + colDenseForest * w.a;
+
+      vec3 texColor = landColor;
 
       if (vTerrainType > 5.5) {
-        // Rock cliff / terrace skirts
-        texColor = colRock.rgb * 0.85;
-      } else if (vTerrainType > 4.5) {
-        // Forest floor
-        texColor = colForest.rgb * 0.92;
-      } else if (vTerrainType > 3.5) {
-        // Dirt / paths
-        texColor = colDirt.rgb;
-      } else if (vTerrainType > 2.5) {
-        // Grass: blend with leafy grass for natural micro-variation
-        float variation = sin(vWorldUv.x * 0.45) * cos(vWorldUv.y * 0.45);
-        texColor = mix(colGrass.rgb, colForest.rgb, clamp(variation * 0.45 + 0.25, 0.0, 0.45));
-      } else if (vTerrainType > 1.5) {
-        // Shore
-        texColor = mix(colDirt.rgb, vec3(0.82, 0.72, 0.52), 0.5);
-      } else {
-        // Water (animated caustics, wave shimmer & sun sparkle)
-        float wave1 = sin(vWorldUv.x * 3.5 + uTime * 2.2);
-        float wave2 = cos(vWorldUv.y * 3.5 + uTime * 1.8);
-        float wave3 = sin((vWorldUv.x + vWorldUv.y) * 6.0 - uTime * 2.8) * 0.4;
-        float shimmer = (wave1 + wave2 + wave3) * 0.45;
-        vec3 deepWater = vec3(0.07, 0.18, 0.32);
-        vec3 shallowWater = vec3(0.16, 0.38, 0.56);
-        vec3 waterBase = vTerrainType < 0.5 ? deepWater : shallowWater;
-        float sparkle = pow(max(0.0, shimmer), 3.0) * 0.4;
-        texColor = waterBase + vec3(sparkle * 0.35, sparkle * 0.7, sparkle * 0.95);
+        // Rock cliff / terrace skirts: vertical rock strata without black dashes
+        vec3 rockFace = mix(colRock.rgb * 1.08, colDirt.rgb, 0.22);
+        texColor = rockFace;
+      } else if (vTerrainType < 1.5) {
+        // Water with procedural dual-scrolling normal waves, depth gradient & sparkle
+        vec2 waveUv1 = vWorldUv * 1.5 + vec2(uTime * 0.05, uTime * 0.03);
+        vec2 waveUv2 = vWorldUv * 2.2 - vec2(uTime * 0.04, -uTime * 0.06);
+        float n1 = sin(waveUv1.x * 5.0 + waveUv1.y * 3.5);
+        float n2 = cos(waveUv2.x * 6.5 - waveUv2.y * 5.0);
+        float waveRipple = (n1 + n2) * 0.5;
+
+        float causticTime = uTime * 1.6;
+        float caustics = sin((vWorldUv.x + vWorldUv.y) * 7.0 + causticTime) * 0.5 + 0.5;
+
+        vec3 deepWater = vec3(0.08, 0.22, 0.38);
+        vec3 shallowWater = vec3(0.14, 0.40, 0.54);
+        vec3 waterBase = mix(deepWater, shallowWater, clamp(vTerrainType, 0.0, 1.0));
+
+        vec3 sunDir = normalize(vec3(0.5, 1.4, 0.7));
+        vec3 waveNormal = normalize(vec3(n1 * 0.12, 1.0, n2 * 0.12));
+        float specular = pow(max(0.0, dot(reflect(-sunDir, waveNormal), vec3(0.0, 1.0, 0.0))), 24.0);
+
+        vec3 waterColor = waterBase + vec3(0.02, 0.05, 0.08) * waveRipple + vec3(0.03, 0.06, 0.08) * caustics;
+        texColor = waterColor + vec3(0.85, 0.95, 1.0) * (specular * 0.5);
       }
 
       // Farm furrow pattern
       float farmFlag = texture2D(uFarmMask, vFogUv).r;
-      if (farmFlag > 0.5 && vTerrainType > 1.5) {
+      if (farmFlag > 0.5 && vTerrainType > 1.5 && vTerrainType < 5.5) {
         float furrow = sin(vWorldUv.x * 14.0) * 0.16;
         vec3 soil = vec3(0.40, 0.28, 0.18) + furrow;
         texColor = mix(texColor, soil, 0.75);
       }
 
-      // Preserve vertex color jitter and palette calibration
-      diffuseColor.rgb = texColor * vColor.rgb * 1.38;
+      // Preserve subtle ambient variation and lighting
+      diffuseColor.rgb = texColor * vColor.rgb * 1.30;
 
       // Fog of war dimming
       if (uFogMapSize > 0.0) {
