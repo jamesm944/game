@@ -1570,6 +1570,43 @@ const minimap = createMinimap({
   },
   groundPointAt: groundAt,
   setCenter: (x, y) => cameraRig.setCenter(x, y),
+  getCameraCenter: () => cameraRig.center,
+  getResourceNodes: () => {
+    const nodes = world.rowsByComponentId.get(comps.resourceNodeId);
+    const pos = world.rowsByComponentId.get(comps.positionId);
+    if (!nodes || !pos) return [];
+    const res: { x: number; y: number; resourceCode: number }[] = [];
+    for (const [eid, row] of nodes) {
+      if ((row[1] ?? 0) <= 0) continue;
+      const p = pos.get(eid);
+      if (!p) continue;
+      res.push({ x: p[0]!, y: p[1]!, resourceCode: row[0] ?? 0 });
+    }
+    return res;
+  },
+  getBuildings: () => {
+    if (!buildingFrame || buildingFrame.count === 0) return [];
+    const b: {
+      eid: number;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      ownerId: number;
+    }[] = [];
+    for (let i = 0; i < buildingFrame.count; i++) {
+      b.push({
+        eid: buildingFrame.eids[i]!,
+        x: buildingFrame.origins[i * 2]!,
+        y: buildingFrame.origins[i * 2 + 1]!,
+        width: buildingFrame.sizes[i * 2]!,
+        height: buildingFrame.sizes[i * 2 + 1]!,
+        ownerId: buildingFrame.ownerIds[i]!,
+      });
+    }
+    return b;
+  },
+  isOwnBuilding: (ownerId) => ownerId === VIEWER,
 });
 
 const topbar = createTopbar(world.seed);
@@ -2680,13 +2717,15 @@ function frame(
 
   moveMarkers.update(frameMs / 1000);
 
+  cameraRig.update(frameMs / 1000);
+
   minimapSinceRedrawMs += frameMs;
   if (minimapSinceRedrawMs >= MINIMAP_REDRAW_MS) {
     minimapSinceRedrawMs = 0;
     minimap.redraw();
+  } else {
+    minimap.updateViewport();
   }
-
-  cameraRig.update(frameMs / 1000);
   updateFps(now);
   // Resource topbar polls the live Stockpile rows each frame — the same
   // rows golden digests hash, so chrome and sim cannot disagree. The

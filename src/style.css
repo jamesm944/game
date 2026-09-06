@@ -340,9 +340,18 @@ canvas {
   position: fixed;
   right: 12px;
   bottom: 12px;
-  border: 1px solid rgb(255 255 255 / 0.25);
-  border-radius: 6px;
+  border: 2px solid rgba(212, 163, 89, 0.45);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(0, 0, 0, 0.5);
+  background: #0e1218;
   cursor: crosshair;
+  z-index: 10;
+  touch-action: none;
+  transition: border-color 0.2s ease;
+}
+
+#minimap:hover {
+  border-color: rgba(212, 163, 89, 0.75);
 }
 
 /* Build menu — bottom-left grid (M1-T10, §2.13). */

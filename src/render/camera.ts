@@ -56,6 +56,11 @@ export class RtsCamera {
     return this.#viewHeight;
   }
 
+  /** Current camera look target in world coordinates. */
+  get center(): { x: number; y: number } {
+    return { x: this.#targetX, y: this.#targetZ };
+  }
+
   /**
    * Horizontal camera azimuth (M1-T7): atan2 of the eye offset from
    * the look target in (x, z) — the value billboard direction picking

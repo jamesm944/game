@@ -136,7 +136,11 @@ import {
   writeActivityQueue,
   type SimComponents,
 } from "../components";
-import { MELEE_RANGE, type UnitDefinition } from "../../data/schema";
+import {
+  DEFAULT_RELOAD_TICKS,
+  MELEE_RANGE,
+  type UnitDefinition,
+} from "../../data/schema";
 import {
   deriveUnitStats,
   effectiveArmorOf,
@@ -489,12 +493,39 @@ export function createCombatSystem(
         ["ranged", skillLevelOf(world, comps, eid, "ranged") ?? 0],
       ]);
     };
+    const equipmentRows = comps.equipmentId
+      ? world.rowsByComponentId.get(comps.equipmentId)
+      : undefined;
+    const bodyRows = comps.bodyId
+      ? world.rowsByComponentId.get(comps.bodyId)
+      : undefined;
+    const identityRows = comps.identityId
+      ? world.rowsByComponentId.get(comps.identityId)
+      : undefined;
+    const baseStatsByDefCode = new Map<number, DerivedStats>();
+
     const statsOf = (combatant: Combatant): DerivedStats => {
       let codes = techCodesByOwner.get(combatant.owner);
       if (codes === undefined) {
         codes = new Set(researchedCodesLenient(world, comps, combatant.owner));
         techCodesByOwner.set(combatant.owner, codes);
       }
+      const eqRow = equipmentRows?.get(combatant.eid);
+      const hasEquip = eqRow ? (eqRow[0]! > 0 || eqRow[1]! > 0) : false;
+      const hasSkills = hasSkillsRow(world, comps, combatant.eid);
+      const bodyRow = bodyRows?.get(combatant.eid);
+      const hasInjuries = bodyRow ? bodyRow[0] !== 0 : false;
+
+      if (codes.size === 0 && !hasEquip && !hasSkills && !hasInjuries) {
+        const defCode = combatant.row[0]!;
+        let base = baseStatsByDefCode.get(defCode);
+        if (!base) {
+          base = deriveUnitStats(combatant.def, {});
+          baseStatsByDefCode.set(defCode, base);
+        }
+        return base;
+      }
+
       const equipment = equipmentCountsOf(world, comps, combatant.eid);
       const skills = skillLevelsOf(combatant.eid);
       // M3-T4: open wounds re-price a fighter mid-duel (an arm hits
@@ -992,7 +1023,7 @@ export function createCombatSystem(
       // M3-T5: children cannot fight (SPEC §2.3). A child ordered into
       // battle marches but never lands a blow — no damage, no wounds,
       // no practice, no retaliation credit.
-      if (isChildOf(world, comps, attacker.eid)) return;
+      if (identityRows && identityRows.has(attacker.eid) && isChildOf(world, comps, attacker.eid)) return;
       const targetRow = getCombatRow(world, comps, targetEid);
       const targetPos = positions.get(targetEid);
       const targetDef = combatantByEid.get(targetEid)?.def;
@@ -1062,7 +1093,7 @@ export function createCombatSystem(
      */
     const strikeStructure = (attacker: Combatant, targetEid: number): void => {
       // M3-T5: children cannot fight — raiding included.
-      if (isChildOf(world, comps, attacker.eid)) return;
+      if (identityRows && identityRows.has(attacker.eid) && isChildOf(world, comps, attacker.eid)) return;
       const structure = structures.get(targetEid);
       const targetPos = positions.get(targetEid);
       if (!structure || !targetPos) return; // destroyed this tick
@@ -1148,13 +1179,22 @@ export function createCombatSystem(
       if (targetEid === 0) continue;
       const targetBody = positions.get(targetEid);
       if (!targetBody) continue;
-      const stats = statsOf(combatant);
+      let techSet = techCodesByOwner.get(combatant.owner);
+      if (techSet === undefined) {
+        techSet = new Set(researchedCodesLenient(world, comps, combatant.owner));
+        techCodesByOwner.set(combatant.owner, techSet);
+      }
+      const hasTechs = techSet.size > 0;
+      const effectiveRange = hasTechs
+        ? statsOf(combatant).range
+        : (combatant.def.range ?? MELEE_RANGE);
+
       combatant.row[4] = Math.max(0, combatant.row[4]! - 1);
 
       const dx = targetBody.x - combatant.posRow[0]!;
       const dy = targetBody.y - combatant.posRow[1]!;
       const distSq = dx * dx + dy * dy;
-      const reach = reachOf(combatant, targetBody, stats.range);
+      const reach = reachOf(combatant, targetBody, effectiveRange);
       const minRange = combatant.def.minRange;
       if (distSq <= reach * reach) {
         if (minRange !== undefined && distSq < minRange * minRange) {
@@ -1166,7 +1206,9 @@ export function createCombatSystem(
           } else {
             strike(combatant, targetEid);
           }
-          combatant.row[4] = stats.reloadTicks;
+          combatant.row[4] = hasTechs
+            ? statsOf(combatant).reloadTicks
+            : (combatant.def.reloadTicks ?? DEFAULT_RELOAD_TICKS);
         }
         continue;
       }
