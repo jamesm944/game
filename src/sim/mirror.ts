@@ -17,6 +17,7 @@
  */
 
 import type { SimComponents } from "./components";
+import type { FaithComponents } from "./components/faith";
 import { combatDefOf } from "./components/combat";
 import { getBuildingRow, getBuildingSiteRow } from "./components/buildings";
 import {
@@ -68,6 +69,21 @@ export interface SimSnapshotFrame {
   readonly activityCodes?: Uint8Array | undefined;
   /** Owner player id (0 = human, 1 = AI). */
   readonly ownerIds?: Uint8Array | undefined;
+  /** Active monk conversions in progress this frame (V14 Issue #101). */
+  readonly conversions?: readonly ActiveConversion[] | undefined;
+}
+
+export interface ActiveConversion {
+  readonly monkEid: number;
+  readonly monkX: number;
+  readonly monkY: number;
+  readonly targetEid: number;
+  readonly targetX: number;
+  readonly targetY: number;
+  /** 0..1 fraction of castTicks elapsed */
+  readonly progress: number;
+  /** Faith value of the monk (0..100) */
+  readonly faith: number;
 }
 
 export interface CaptureSnapshotOptions {
@@ -329,6 +345,11 @@ export function captureSimSnapshot(
     }
   }
 
+  const conversions =
+    (comps as Partial<FaithComponents>).faithId !== undefined
+      ? captureActiveConversions(world, comps)
+      : undefined;
+
   return {
     tick: world.tick,
     count,
@@ -339,7 +360,58 @@ export function captureSimSnapshot(
     defCodes,
     activityCodes,
     ownerIds,
+    conversions,
   };
+}
+
+/**
+ * Capture all active monk conversions this frame.
+ */
+export function captureActiveConversions(
+  world: World,
+  comps: SimComponents,
+): readonly ActiveConversion[] {
+  const faithId = (comps as Partial<FaithComponents>).faithId;
+  if (!faithId || !world.rowsByComponentId.has(faithId)) {
+    return [];
+  }
+  const faithRows = world.rowsByComponentId.get(faithId);
+  if (!faithRows || faithRows.size === 0) return [];
+
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  if (!posRows) return [];
+
+  const combatRows = comps.combatId ? world.rowsByComponentId.get(comps.combatId) : undefined;
+  const result: ActiveConversion[] = [];
+
+  for (const [monkEid, fRow] of faithRows) {
+    const targetEid = fRow[1]!;
+    const progressTicks = fRow[2]!;
+    if (targetEid === 0 || progressTicks <= 0) continue;
+
+    const monkPos = posRows.get(monkEid);
+    const targetPos = posRows.get(targetEid);
+    if (!monkPos || !targetPos) continue;
+
+    let castTicks = 25;
+    if (combatRows) {
+      const cDef = combatDefOf(world, comps, monkEid);
+      if (cDef?.castTicks) castTicks = cDef.castTicks;
+    }
+
+    result.push({
+      monkEid,
+      monkX: monkPos[0]!,
+      monkY: monkPos[1]!,
+      targetEid,
+      targetX: targetPos[0]!,
+      targetY: targetPos[1]!,
+      progress: Math.min(1, progressTicks / castTicks),
+      faith: fRow[0]!,
+    });
+  }
+
+  return result;
 }
 
 /**

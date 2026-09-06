@@ -82,7 +82,16 @@ import {
   type ActivityQueue,
   garrisonActivity,
   packActivity,
+  convertActivity,
 } from "../activities";
+import {
+  clearConversion,
+  getConversionProgress,
+  getFaith,
+  setConversion,
+  setFaith,
+  type FaithComponents,
+} from "../components/faith";
 import {
   attachStance,
   codeToStance,
@@ -172,6 +181,7 @@ export const GARRISON_COMMAND_KIND = "garrison";
 export const UNGARRISON_COMMAND_KIND = "ungarrison";
 export const PACK_COMMAND_KIND = "pack";
 export const UNPACK_COMMAND_KIND = "unpack";
+export const CONVERT_COMMAND_KIND = "convert";
 
 /**
  * An approach leg re-aims once the target strays this far from the
@@ -218,6 +228,8 @@ export interface CombatDiagnostics {
   packCommands: number;
   /** unpack commands applied. */
   unpackCommands: number;
+  /** convert commands applied. */
+  convertCommands: number;
   /** Strikes landed (ranged shots included). */
   strikes: number;
   /** Units killed. */
@@ -247,6 +259,7 @@ export function createCombatDiagnostics(): CombatDiagnostics {
     ungarrisonCommands: 0,
     packCommands: 0,
     unpackCommands: 0,
+    convertCommands: 0,
     strikes: 0,
     kills: 0,
     buildingsDestroyed: 0,
@@ -355,6 +368,8 @@ export function createCombatSystem(
         applyPackCommand(world, comps, diagnostics, command);
       } else if (command.kind === UNPACK_COMMAND_KIND) {
         applyUnpackCommand(world, comps, diagnostics, command);
+      } else if (command.kind === CONVERT_COMMAND_KIND) {
+        applyConvertCommand(world, comps, diagnostics, command);
       }
     }
 
@@ -408,6 +423,24 @@ export function createCombatSystem(
     const combatantByEid = new Map<number, Combatant>();
     for (const combatant of combatants) {
       combatantByEid.set(combatant.eid, combatant);
+    }
+
+    // ---- 2a) Faith regeneration (V14 Issue #101): idle monks regenerate faith
+    // (+faithRegenPerTick up to maxFaith) when not actively converting.
+    if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+      const faithRows = world.rowsByComponentId.get((comps as FaithComponents).faithId);
+      if (faithRows) {
+        for (const [eid, fRow] of faithRows) {
+          if (!alive.has(eid)) continue;
+          const def = combatantByEid.get(eid)?.def;
+          const maxFaith = def?.maxFaith ?? 100;
+          const regen = def?.faithRegenPerTick ?? 1;
+          // Regenerate only when not actively converting
+          if (fRow[1] === 0 && fRow[0]! < maxFaith) {
+            fRow[0] = Math.min(maxFaith, fRow[0]! + regen);
+          }
+        }
+      }
     }
 
     // ---- 2b) Collect attackable structures ascending eid (M2-T7):
@@ -600,10 +633,10 @@ export function createCombatSystem(
       const head = combatant.queue[0];
       const target = combatant.row[3]!;
       if (head === undefined) return false;
-      if (head.kind === "attack") return head.targetEid === target;
+      if (head.kind === "attack" || head.kind === "convert") return head.targetEid === target;
       if (head.kind === "move" || head.kind === "attackMove" || head.kind === "patrol") {
         const second = combatant.queue[1];
-        return second !== undefined && second.kind === "attack"
+        return second !== undefined && (second.kind === "attack" || second.kind === "convert")
           ? second.targetEid === target
           : false;
       }
@@ -646,11 +679,11 @@ export function createCombatSystem(
       const first = peekActivity(combatant.queue);
       if (first?.kind === "move") {
         const second = combatant.queue[1];
-        if (second?.kind === "attack") {
+        if (second?.kind === "attack" || second?.kind === "convert") {
           dequeueCurrentActivity(combatant.queue);
           dequeueCurrentActivity(combatant.queue);
         }
-      } else if (first?.kind === "attack") {
+      } else if (first?.kind === "attack" || first?.kind === "convert") {
         dequeueCurrentActivity(combatant.queue);
         const next = peekActivity(combatant.queue);
         if (next?.kind === "move") {
@@ -658,6 +691,9 @@ export function createCombatSystem(
         }
       }
       combatant.row[3] = 0;
+      if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+        clearConversion(world, comps as FaithComponents, combatant.eid);
+      }
       restoreMarchTarget(combatant);
       combatant.dirty = true;
     };
@@ -778,12 +814,15 @@ export function createCombatSystem(
           const activity = combatant.queue[i];
           if (
             activity === undefined ||
-            activity.kind !== "attack" ||
+            (activity.kind !== "attack" && activity.kind !== "convert") ||
             activity.targetEid !== deadEid
           ) {
             continue;
           }
           combatant.queue.splice(i, 1);
+          if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+            clearConversion(world, comps as FaithComponents, combatant.eid);
+          }
           const prev = combatant.queue[i - 1];
           if (prev !== undefined && prev.kind === "move") {
             // The orphaned approach leg dies with its head; both slots
@@ -1179,6 +1218,147 @@ export function createCombatSystem(
       if (targetEid === 0) continue;
       const targetBody = positions.get(targetEid);
       if (!targetBody) continue;
+
+      const headAct = peekActivity(combatant.queue);
+      const isConvert =
+        headAct?.kind === "convert" ||
+        ((headAct?.kind === "move" || headAct?.kind === "attackMove" || headAct?.kind === "patrol") &&
+          combatant.queue[1]?.kind === "convert");
+
+      if (isConvert) {
+        // Monks cannot convert structures or dead entities
+        if (structures.has(targetEid) || !alive.has(targetEid)) {
+          dropEngagement(combatant);
+          continue;
+        }
+
+        const convertRange = combatant.def.convertRange ?? combatant.def.sightRadius ?? 8.0;
+        const reach = reachOf(combatant, targetBody, convertRange);
+        const sightRadius = combatant.def.sightRadius ?? 8.0;
+        const sightReach = reachOf(combatant, targetBody, sightRadius);
+
+        const dx = targetBody.x - combatant.posRow[0]!;
+        const dy = targetBody.y - combatant.posRow[1]!;
+        const distSq = dx * dx + dy * dy;
+
+        // Interruption: target left sight radius (> sightReach)
+        if (distSq > sightReach * sightReach) {
+          dropEngagement(combatant);
+          continue;
+        }
+
+        // Out of convert reach: approach target
+        if (distSq > reach * reach) {
+          if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+            const prog = getConversionProgress(world, comps as FaithComponents, combatant.eid);
+            if (prog > 0) {
+              clearConversion(world, comps as FaithComponents, combatant.eid);
+            }
+          }
+          if (combatant.def.speed === 0) continue;
+          const standPoint = passableApproachPoint(
+            standPointOf(combatant, targetBody, reach),
+          );
+          if (headAct === undefined || headAct.kind === "convert") {
+            combatant.queue.unshift(moveActivity([standPoint.x, standPoint.y]));
+            world.rowsByComponentId
+              .get(comps.moveTargetId)
+              ?.set(combatant.eid, [standPoint.x, standPoint.y]);
+            resetSteeringBookkeeping(combatant.velRow);
+            combatant.dirty = true;
+            continue;
+          }
+          if (headAct.kind === "move" || headAct.kind === "attackMove" || headAct.kind === "patrol") {
+            const second = combatant.queue[1];
+            if (second === undefined || second.kind !== "convert") continue;
+            const tailX = headAct.waypoints[headAct.waypoints.length - 2]!;
+            const tailY = headAct.waypoints[headAct.waypoints.length - 1]!;
+            const driftX = tailX - standPoint.x;
+            const driftY = tailY - standPoint.y;
+            if (
+              driftX * driftX + driftY * driftY >
+              APPROACH_REFRESH_DISTANCE * APPROACH_REFRESH_DISTANCE
+            ) {
+              headAct.waypoints = [standPoint.x, standPoint.y];
+              headAct.cursor = 0;
+              world.rowsByComponentId
+                .get(comps.moveTargetId)
+                ?.set(combatant.eid, [standPoint.x, standPoint.y]);
+              combatant.dirty = true;
+            }
+          }
+          continue;
+        }
+
+        // In convert reach:
+        if (headAct?.kind === "move") {
+          dequeueCurrentActivity(combatant.queue);
+          combatant.dirty = true;
+        }
+
+        // Must have full faith (default 100) to cast
+        const faith = (comps as Partial<FaithComponents>).faithId !== undefined
+          ? getFaith(world, comps as FaithComponents, combatant.eid)
+          : 100;
+        const maxFaith = combatant.def.maxFaith ?? 100;
+        if (faith < maxFaith) {
+          if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+            clearConversion(world, comps as FaithComponents, combatant.eid);
+          }
+          continue;
+        }
+
+        // Interruption: Monk took damage this tick
+        if (damageThisTick.has(combatant.eid)) {
+          dropEngagement(combatant);
+          continue;
+        }
+
+        // Advance cast progress
+        const currentProgress = (comps as Partial<FaithComponents>).faithId !== undefined
+          ? getConversionProgress(world, comps as FaithComponents, combatant.eid)
+          : 0;
+        const nextProgress = currentProgress + 1;
+        const castTicks = combatant.def.castTicks ?? 25;
+
+        if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+          setConversion(world, comps as FaithComponents, combatant.eid, targetEid, nextProgress);
+        }
+
+        if (nextProgress >= castTicks) {
+          // Conversion complete!
+          const targetCombatant = combatantByEid.get(targetEid);
+          if (targetCombatant) {
+            targetCombatant.row[1] = combatant.owner;
+            if (comps.ownerId !== undefined) {
+              if (combatant.owner === 0) {
+                world.rowsByComponentId.get(comps.ownerId)?.delete(targetEid);
+              } else {
+                world.rowsByComponentId.get(comps.ownerId)?.set(targetEid, [combatant.owner]);
+              }
+            }
+            cancelActivities(targetCombatant.queue);
+            targetCombatant.row[3] = 0;
+            targetCombatant.dirty = true;
+
+            // Disengage allies that were targeting targetEid
+            for (const ally of combatants) {
+              if (ally.owner === combatant.owner && ally.row[3] === targetEid) {
+                dropEngagement(ally);
+              }
+            }
+
+            if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+              setFaith(world, comps as FaithComponents, combatant.eid, 0);
+              clearConversion(world, comps as FaithComponents, combatant.eid);
+            }
+            dropEngagement(combatant);
+            world.visibility.markDirty("spawned", targetEid);
+          }
+        }
+        continue;
+      }
+
       let techSet = techCodesByOwner.get(combatant.owner);
       if (techSet === undefined) {
         techSet = new Set(researchedCodesLenient(world, comps, combatant.owner));
@@ -1380,6 +1560,27 @@ export function createCombatSystem(
       const wounds = applyStrikeInjuries(world, comps, targetEid, damage);
       if (targetRow[2]! <= 0 || wounds.fatal) {
         kill(targetEid, buildingEid, damage);
+      }
+    }
+
+    // ---- 6c) Interruption check (V14 Issue #101): any monk damaged this tick
+    // (whether by higher-eid combatants or defensive structures) drops conversion immediately.
+    const faithMap = (comps as Partial<FaithComponents>).faithId !== undefined
+      ? world.rowsByComponentId.get((comps as FaithComponents).faithId)
+      : undefined;
+    if (faithMap && faithMap.size > 0 && damageThisTick.size > 0) {
+      for (const eid of damageThisTick.keys()) {
+        if (!faithMap.has(eid)) continue;
+        const combatant = combatantByEid.get(eid);
+        if (!combatant || !alive.has(eid)) continue;
+        const headAct = peekActivity(combatant.queue);
+        const isConvert =
+          headAct?.kind === "convert" ||
+          ((headAct?.kind === "move" || headAct?.kind === "attackMove" || headAct?.kind === "patrol") &&
+            combatant.queue[1]?.kind === "convert");
+        if (isConvert) {
+          dropEngagement(combatant);
+        }
       }
     }
 
@@ -1620,6 +1821,9 @@ function applyStopCommand(
     writeActivityQueue(world, comps, eid, queue);
     const combatRow = getCombatRow(world, comps, eid);
     if (combatRow) combatRow[3] = 0;
+    if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+      clearConversion(world, comps as FaithComponents, eid);
+    }
     const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
     if (velRow) {
       velRow[1] = 0; // Velocity layout: cruise speed second
@@ -1881,5 +2085,67 @@ function applyUnpackCommand(
     if (velRow) resetSteeringBookkeeping(velRow);
   }
   diagnostics.unpackCommands += 1;
+}
+
+function applyConvertCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as unknown as Record<string, unknown>;
+  const rawTarget = data.targetId ?? data.targetEid;
+  if (typeof rawTarget !== "number" || rawTarget < 1) {
+    throw new Error("convert requires a positive numeric targetId");
+  }
+  const targetEid = rawTarget;
+  const targetRow = getCombatRow(world, comps, targetEid);
+  if (!targetRow) {
+    throw new Error(`convert targets entity ${String(targetEid)}, which has no Combat row`);
+  }
+
+  const rawIds = data.monkEid ?? data.ids ?? data.attackerIds ?? data.entityIds;
+  const monkIds: number[] = [];
+  if (typeof rawIds === "number") {
+    monkIds.push(rawIds);
+  } else if (Array.isArray(rawIds)) {
+    for (const id of rawIds) {
+      if (typeof id === "number" && id >= 1) monkIds.push(id);
+    }
+  }
+
+  if (monkIds.length === 0) {
+    for (const eid of world.entities) {
+      const def = combatDefOf(world, comps, eid);
+      if (def?.id === "monk" || def?.armorClasses?.includes("monk")) {
+        monkIds.push(eid);
+      }
+    }
+  }
+
+  if (monkIds.length === 0) {
+    throw new Error("convert command requires at least one monk entity");
+  }
+
+  for (const eid of monkIds) {
+    if (eid === targetEid) {
+      throw new Error(`convert monk ${String(eid)} cannot target itself`);
+    }
+    const row = getCombatRow(world, comps, eid);
+    if (!row) continue;
+    clearAssignedNode(world, comps, eid);
+    clearAssignedSite(world, comps, eid);
+    const queue = readActivityQueue(world, comps, eid);
+    cancelActivities(queue);
+    queue.push(convertActivity(targetEid));
+    writeActivityQueue(world, comps, eid, queue);
+    row[3] = targetEid;
+    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+    if (velRow) resetSteeringBookkeeping(velRow);
+    if ((comps as Partial<FaithComponents>).faithId !== undefined) {
+      clearConversion(world, comps as FaithComponents, eid);
+    }
+  }
+  diagnostics.convertCommands += 1;
 }
 

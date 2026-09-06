@@ -31,6 +31,10 @@ export interface SelectedUnitSummary {
   readonly isMilitary: boolean;
   readonly morphTargetId?: string | undefined;
   readonly siegeState?: "mobile" | "packed" | "unpacked" | undefined;
+  readonly faith?: number | undefined;
+  readonly maxFaith?: number | undefined;
+  readonly castProgress?: number | undefined;
+  readonly castTicks?: number | undefined;
 }
 
 export interface UnitPanelDeps {
@@ -249,6 +253,19 @@ export function createUnitPanel(deps: UnitPanelDeps = {}): UnitPanelHandle {
             <span class="unit-stat" title="Speed">🏃 ${unit.speed.toFixed(1)}</span>
           </div>
           ${
+            unit.maxFaith !== undefined && unit.maxFaith > 0
+              ? `<div class="unit-faith-box" style="margin-top: 6px;">
+                  <div class="unit-faith-bar" style="height: 5px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden;">
+                    <div class="unit-faith-fill" style="width: ${Math.round(((unit.faith ?? 0) / unit.maxFaith) * 100)}%; height: 100%; background-color: #38bdf8;"></div>
+                  </div>
+                  <span class="unit-faith-text" style="font-size: 11px; color: #93c5fd; display: flex; justify-content: space-between; margin-top: 2px;">
+                    <span>Faith: ${Math.round(unit.faith ?? 0)} / ${unit.maxFaith}</span>
+                    ${(unit.castProgress ?? 0) > 0 ? `<span style="color: #f59e0b; font-weight: 600;">Converting (${unit.castProgress}/${unit.castTicks ?? 25})</span>` : ""}
+                  </span>
+                </div>`
+              : ""
+          }
+          ${
             unit.morphTargetId
               ? `<div class="unit-action-row" style="margin-top: 6px;">
                   <button type="button" class="unit-pack-btn" style="padding: 3px 8px; font-size: 11px; background: #3b82f6; border: 1px solid #60a5fa; border-radius: 4px; color: #fff; cursor: pointer;">
@@ -377,7 +394,12 @@ export function createUnitPanel(deps: UnitPanelDeps = {}): UnitPanelHandle {
       panel.classList.add("visible");
 
       // Check if we can fast-path or need full rebuild
-      const hpKey = units.map((u) => Math.ceil(u.hp)).join(",");
+      const hpKey = units
+        .map(
+          (u) =>
+            `${Math.ceil(u.hp)}_${Math.round(u.faith ?? 0)}_${u.castProgress ?? 0}_${u.siegeState ?? ""}`,
+        )
+        .join(",");
       const firstEid = units[0] ? units[0].eid : -1;
       const count = units.length;
 

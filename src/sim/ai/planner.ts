@@ -47,6 +47,8 @@ import {
   createMilitaryMemory,
   planCounterTraining,
   planDefenseRally,
+  planMonkConversionSingle,
+  planMonkConversions,
   planOffensive,
   type MilitaryMemory,
 } from "./militaryManager";
@@ -236,16 +238,18 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     const buildDraft = planBuildOrder(k, strategy, budget, reserved, memory);
     if (buildDraft !== undefined) drafts.push(buildDraft);
     planCounterTraining(k, budget, militaryMemory, drafts);
+    planMonkConversions(k, drafts);
     return drafts;
   };
 
   /**
    * Incremental path between passes: cheap military probes — defense
-   * rally first (protecting the economy beats everything), then the
-   * one-shot scored offensive.
+   * rally first (protecting the economy beats everything), then monk
+   * conversions of high-value targets, then the one-shot scored offensive.
    */
   const incrementalCheck = (): CommandDraft | undefined =>
     planDefenseRally(k, militaryMemory, reactionDelayTicks) ??
+    planMonkConversionSingle(k) ??
     planOffensive(k, strategy, memory);
 
   return (world, _commands) => {

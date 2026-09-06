@@ -210,6 +210,8 @@ import {
   playbackRateForZoom,
 } from "./render/atlasFrames";
 import { createHealthBars } from "./render/healthBars";
+import { createCastBars, CAST_BAR_CAPACITY, CAST_BAR_LIFT } from "./render/castBars";
+import { createConversionRings, CONVERSION_RING_CAPACITY } from "./render/conversionRings";
 import {
   HEALTH_BAR_CAPACITY,
   packHealthBarAttributes,
@@ -1451,6 +1453,33 @@ wireOrderInput({
     const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
     return (bDef.garrisonCapacity ?? 0) > 0 ? eid : undefined;
   },
+  isMonk: (unitEid) => {
+    const combatRow = world.rowsByComponentId.get(comps.combatId)?.get(unitEid);
+    if (!combatRow) return false;
+    const def = unitDefOf(unitIdOfCode(combatRow[0]!));
+    return def.id === "monk" || (def.armorClasses?.includes("monk") ?? false);
+  },
+  enemyAt: (x, y) => {
+    const posRows = world.rowsByComponentId.get(comps.positionId);
+    const combatRows = world.rowsByComponentId.get(comps.combatId);
+    if (!posRows || !combatRows) return undefined;
+    let bestEid: number | undefined;
+    let bestDistSq = 1.0;
+    for (const [eid, cRow] of combatRows) {
+      if (cRow[1] === VIEWER) continue;
+      if (cRow[2]! <= 0) continue;
+      const p = posRows.get(eid);
+      if (!p) continue;
+      const dx = p[0]! - x;
+      const dy = p[1]! - y;
+      const dSq = dx * dx + dy * dy;
+      if (dSq < bestDistSq) {
+        bestDistSq = dSq;
+        bestEid = eid;
+      }
+    }
+    return bestEid;
+  },
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -2147,6 +2176,14 @@ const healthBarArrays: HealthBarAttributeArrays = {
   fractions: new Float32Array(HEALTH_BAR_CAPACITY),
 };
 
+// Conversion cast bars & mystic rings (V14 Issue #101)
+const castBars = createCastBars(scene);
+const castBarOrigins = new Float32Array(CAST_BAR_CAPACITY * 3);
+const castBarProgress = new Float32Array(CAST_BAR_CAPACITY);
+
+const conversionRings = createConversionRings(scene, world.layers);
+const conversionRingPositions = new Float32Array(CONVERSION_RING_CAPACITY * 2);
+
 let fpsFrames = 0;
 let fpsWindowStart = performance.now();
 let fpsText = "—";
@@ -2715,6 +2752,28 @@ function frame(
     barCount,
   );
 
+  // Conversion visual feedback (V14 Issue #101)
+  const conversions = staging?.conversions;
+  if (conversions && conversions.length > 0) {
+    const cCount = Math.min(conversions.length, CAST_BAR_CAPACITY);
+    for (let i = 0; i < cCount; i++) {
+      const conv = conversions[i]!;
+      castBarOrigins[i * 3] = conv.monkX;
+      castBarOrigins[i * 3 + 1] =
+        terrainHeightAt(world.layers, conv.monkX, conv.monkY) + CAST_BAR_LIFT;
+      castBarOrigins[i * 3 + 2] = conv.monkY;
+      castBarProgress[i] = conv.progress;
+
+      conversionRingPositions[i * 2] = conv.targetX;
+      conversionRingPositions[i * 2 + 1] = conv.targetY;
+    }
+    castBars.write(castBarOrigins, castBarProgress, cCount);
+    conversionRings.write(conversionRingPositions, cCount, now / 1000);
+  } else {
+    castBars.write(castBarOrigins, castBarProgress, 0);
+    conversionRings.write(conversionRingPositions, 0, now / 1000);
+  }
+
   moveMarkers.update(frameMs / 1000);
 
   cameraRig.update(frameMs / 1000);
@@ -2774,6 +2833,15 @@ function frame(
       const a = stats.armorByClass[tag as keyof typeof stats.armorByClass];
       if (typeof a === "number" && a > armor) armor = a;
     }
+    let faith: number | undefined;
+    let castProgress: number | undefined;
+    if (comps.faithId !== undefined) {
+      const faithRow = world.rowsByComponentId.get(comps.faithId)?.get(eid);
+      if (faithRow) {
+        faith = faithRow[0];
+        castProgress = faithRow[2];
+      }
+    }
     selectedUnits.push({
       eid,
       unitId,
@@ -2789,6 +2857,10 @@ function frame(
       isMilitary: unitId !== "villager" && unitId !== "trade-cart",
       morphTargetId: def.morphTargetId,
       siegeState: def.siegeState,
+      faith,
+      maxFaith: def.maxFaith,
+      castProgress,
+      castTicks: def.castTicks,
     });
   }
   unitPanel.update(selectedUnits);

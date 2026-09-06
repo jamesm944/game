@@ -352,3 +352,84 @@ export function planCounterTraining(
     return;
   }
 }
+
+/**
+ * Identify whether an enemy unit definition represents a high-value conversion target (knights, siege).
+ */
+export function isHighValueConversionTarget(defId: string): boolean {
+  if (
+    defId.includes("knight") ||
+    defId.includes("cavalier") ||
+    defId.includes("paladin") ||
+    defId.includes("ram") ||
+    defId.includes("mangonel") ||
+    defId.includes("onager") ||
+    defId.includes("scorpion") ||
+    defId.includes("trebuchet") ||
+    defId.includes("elephant")
+  ) {
+    return true;
+  }
+  try {
+    const def = unitDefOf(defId);
+    if (def.armorClasses?.includes("cavalry") || def.armorClasses?.includes("siege")) {
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
+/**
+ * Plan monk conversions for idle monks against visible high-value enemy targets (V14 Issue #101).
+ */
+export function planMonkConversions(
+  k: AiKnowledge,
+  out: CommandDraft[],
+): void {
+  const ownMonks = k.armyUnits().filter((u) => u.defId === "monk");
+  if (ownMonks.length === 0) return;
+
+  const enemies = k.visibleEnemies();
+  if (enemies.length === 0) return;
+
+  const highValueEnemies = enemies.filter((e) => isHighValueConversionTarget(e.defId));
+  const candidateTargets = highValueEnemies.length > 0 ? highValueEnemies : enemies;
+
+  for (const monk of ownMonks) {
+    let bestTarget: (typeof enemies)[number] | undefined;
+    let bestDistSq = 144; // 12 tiles squared max range
+    for (const enemy of candidateTargets) {
+      const dx = enemy.tileX - monk.tileX;
+      const dy = enemy.tileY - monk.tileY;
+      const dSq = dx * dx + dy * dy;
+      if (dSq < bestDistSq) {
+        bestDistSq = dSq;
+        bestTarget = enemy;
+      }
+    }
+
+    if (bestTarget !== undefined) {
+      out.push({
+        kind: "convert",
+        data: {
+          targetId: bestTarget.eid,
+          monkEid: monk.eid,
+        },
+      });
+    }
+  }
+}
+
+/**
+ * Incremental check for monk conversions: returns the first high-value conversion order available.
+ */
+export function planMonkConversionSingle(
+  k: AiKnowledge,
+): CommandDraft | undefined {
+  const drafts: CommandDraft[] = [];
+  planMonkConversions(k, drafts);
+  return drafts[0];
+}
+

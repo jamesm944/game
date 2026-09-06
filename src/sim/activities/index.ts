@@ -175,6 +175,14 @@ export interface PackActivity {
   targetUnitId: string;
 }
 
+/**
+ * Convert an enemy unit to the monk's player ownership (V14, Issue #101).
+ */
+export interface ConvertActivity {
+  readonly kind: "convert";
+  targetEid: number;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
@@ -188,7 +196,8 @@ export type Activity =
   | PatrolActivity
   | GuardActivity
   | GarrisonActivity
-  | PackActivity;
+  | PackActivity
+  | ConvertActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -204,6 +213,7 @@ export const ACTIVITY_KIND_PATROL = 10;
 export const ACTIVITY_KIND_GUARD = 11;
 export const ACTIVITY_KIND_GARRISON = 12;
 export const ACTIVITY_KIND_PACK = 13;
+export const ACTIVITY_KIND_CONVERT = 14;
 
 /** Stable leisure-venue codes carried inside Leisure payloads. */
 export const LEISURE_VENUE_TAVERN = 1;
@@ -422,6 +432,16 @@ export function packActivity(
   return { kind: "pack", remainingTicks, targetUnitId };
 }
 
+/** Build a Convert activity targeting enemy unit targetEid (V14, Issue #101). */
+export function convertActivity(targetEid: number): ConvertActivity {
+  if (!Number.isInteger(targetEid) || targetEid < 1) {
+    throw new Error(
+      `convert target entity id must be a positive integer, got ${String(targetEid)}`,
+    );
+  }
+  return { kind: "convert", targetEid };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -482,6 +502,8 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
         activity.remainingTicks,
         unitCodeOf(activity.targetUnitId),
       );
+    } else if (activity.kind === "convert") {
+      row.push(ACTIVITY_KIND_CONVERT, 1, activity.targetEid);
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
       row.push(
@@ -731,6 +753,19 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         remainingTicks,
         targetUnitId: unitIdOfCode(targetCode),
       });
+    } else if (kind === ACTIVITY_KIND_CONVERT) {
+      if (payloadLength !== 1) {
+        throw new Error(
+          `convert activity ${String(i)} must carry exactly one value`,
+        );
+      }
+      const targetEid = payload[0]!;
+      if (!Number.isInteger(targetEid) || targetEid < 1) {
+        throw new Error(
+          `convert activity ${String(i)} has malformed target entity id`,
+        );
+      }
+      queue.push({ kind: "convert", targetEid });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

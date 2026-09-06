@@ -280,6 +280,11 @@ canvas {
   color: #10141c;
 }
 
+.order-kind-convert {
+  background: #2be4ff;
+  color: #032530;
+}
+
 /* Control group chips — bottom-center. */
 #group-bar {
   position: fixed;

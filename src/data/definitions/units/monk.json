@@ -22,5 +22,9 @@
     "walk": "walk",
     "death": "death"
   },
-  "equipmentSlots": []
+  "equipmentSlots": [],
+  "maxFaith": 100,
+  "faithRegenPerTick": 1,
+  "castTicks": 25,
+  "convertRange": 8
 }

@@ -96,6 +96,7 @@ import {
   EQUIPMENT,
   type EquipmentComponents,
 } from "./equipment";
+import { FAITH, FAITH_ARITY, type FaithComponents } from "./faith";
 import {
   type BrainCooldownComponents,
   JOB_COOLDOWN,
@@ -311,6 +312,8 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M4-T3: ExpansionLog registers alphabetically between Equipment
   // (which EQUIPMENT_COMPONENT_ARITIES lists last) and Foreman.
   [EXPANSION_LOG, EXPANSION_LOG_ARITY],
+  // V14 (Issue #101): Faith registers alphabetically between ExpansionLog and Foreman.
+  [FAITH, FAITH_ARITY],
   // M4-T1: Foreman registers alphabetically between Equipment
   // (which EQUIPMENT_COMPONENT_ARITIES lists last) and GateRejected.
   [FOREMAN, FOREMAN_ARITY],
@@ -375,6 +378,7 @@ export interface SimComponents
     CompanyComponents,
     CultureLedgerComponents,
     EquipmentComponents,
+    FaithComponents,
     HouseholdComponents,
     KnowledgeLedgerComponents,
     ManagementComponents,
@@ -433,6 +437,8 @@ export function defineSimComponents(world: World): SimComponents {
     // M4-T3: ExpansionLog registers between Equipment and Foreman
     // ("Eq" < "Ex" < "Fo"). Lazily attached on the first entry.
     expansionLogId: defineComponent(world, EXPANSION_LOG),
+    // V14 (Issue #101): Faith registers between ExpansionLog and Foreman.
+    faithId: defineComponent(world, FAITH),
     // M4-T1: Foreman registers alphabetically between Equipment and
     // GateRejected.
     foremanId: defineComponent(world, FOREMAN),
@@ -793,3 +799,4 @@ export * from "./relic";
 export * from "./skills";
 export * from "./stance";
 export * from "./garrison";
+export * from "./faith";

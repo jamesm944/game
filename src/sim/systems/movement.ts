@@ -893,7 +893,8 @@ export function createMovementSystem(
         current.kind === "eat" ||
         current.kind === "sleep" ||
         current.kind === "leisure" ||
-        current.kind === "pack"
+        current.kind === "pack" ||
+        current.kind === "convert"
       ) {
         if (current?.kind === "wait") {
           current.ticks -= 1;

@@ -29,6 +29,8 @@ export const BUILD_KIND = "build";
 export const ATTACK_MOVE_KIND = "attackMove";
 /** Stop command kind (M2-T6, SPEC §2.13 key S). */
 export const STOP_KIND = "stop";
+/** Monk conversion command kind (V14 Issue #101). */
+export const CONVERT_KIND = "convert";
 
 /**
  * Validate, canonicalize (dedupe + ascending sort), and submit one
@@ -365,7 +367,8 @@ export type OrderKind =
   | "garrison"
   | "ungarrison"
   | "pack"
-  | "unpack";
+  | "unpack"
+  | "convert";
 
 const KIND_TAGS: Record<OrderKind, string> = {
   move: "MOV",
@@ -381,6 +384,7 @@ const KIND_TAGS: Record<OrderKind, string> = {
   ungarrison: "UNG",
   pack: "PCK",
   unpack: "UPK",
+  convert: "CVT",
 };
 
 export interface OrderLogEntry {
@@ -491,6 +495,10 @@ export interface OrderInputDeps {
    * Allied garrison target building entity under a world point, or undefined.
    */
   garrisonAt?(x: number, y: number): number | undefined;
+  /** Enemy unit or building entity under a world point, or undefined. */
+  enemyAt?(x: number, y: number): number | undefined;
+  /** Query if a selected unit is a monk. */
+  isMonk?(unitEid: number): boolean;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
@@ -544,6 +552,35 @@ export function issueDepositRelic(
   return command;
 }
 
+export function issueConvert(
+  inbox: CommandInbox,
+  currentTick: number,
+  monkIds: readonly number[],
+  targetId: number,
+): SimCommand {
+  if (typeof targetId !== "number" || !Number.isInteger(targetId) || targetId < 1) {
+    throw new Error(`convert target id must be a positive integer, got ${String(targetId)}`);
+  }
+  const ids: number[] = [];
+  for (const id of monkIds) {
+    if (typeof id !== "number" || !Number.isInteger(id) || id < 1) {
+      throw new Error(`convert entity id must be a positive integer, got ${String(id)}`);
+    }
+    if (!ids.includes(id)) ids.push(id);
+  }
+  if (ids.length === 0) {
+    throw new Error("convert requires at least one monk entity");
+  }
+  ids.sort((a, b) => a - b);
+  const command: SimCommand = {
+    kind: CONVERT_KIND,
+    targetTick: currentTick + 1,
+    data: { ids, attackerIds: ids, monkEid: ids[0], targetId },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 const ORDERS_PANEL_LIMIT = 20;
 
 export function wireOrderInput(deps: OrderInputDeps): void {
@@ -577,7 +614,9 @@ export function wireOrderInput(deps: OrderInputDeps): void {
                   ? "order-kind order-kind-rally"
                   : entry.kind === "garrison"
                     ? "order-kind order-kind-garrison"
-                    : "order-kind";
+                    : entry.kind === "convert"
+                      ? "order-kind order-kind-convert"
+                      : "order-kind";
       kind.className = kindClass;
       kind.textContent = KIND_TAGS[entry.kind] ?? "MOV";
       const text = document.createElement("span");
@@ -594,7 +633,28 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     const selection = deps.selection();
 
     // Contextual dispatch:
-    // 0. Production building -> set rally point
+    // 0a. Enemy unit clicked with monk selected -> convert
+    const enemyEid = deps.enemyAt?.(ground.x, ground.y);
+    if (enemyEid !== undefined && selection.length > 0) {
+      const monks = selection.filter((eid) => deps.isMonk?.(eid));
+      if (monks.length > 0) {
+        const command = issueConvert(
+          deps.inbox,
+          deps.currentTick(),
+          monks,
+          enemyEid,
+        );
+        deps.onMoveOrdered(ground.x, ground.y);
+        log.push(command.targetTick, {
+          kind: "convert",
+          label: `tick ${String(command.targetTick)} · Convert enemy #${String(enemyEid)}`,
+        });
+        renderList();
+        return;
+      }
+    }
+
+    // 0b. Production building -> set rally point
     if (
       deps.selectionCount() === 1 &&
       deps.isProductionBuilding?.(selection[0]!)

@@ -41,6 +41,7 @@ import { attachPopNeeds, type NeedsComponents } from "./needs";
 import { attachLessons, type LessonComponents } from "./lessons";
 import { attachPopSkills, type SkillComponents } from "./skills";
 import { attachPopMorale, type MoraleComponents } from "./morale";
+import { attachFaith, type FaithComponents } from "./faith";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
 
 export const COMBAT = "Combat" as const;
@@ -195,6 +196,12 @@ export function spawnCombatUnit(
     // M3-T9: routing state; steady at spawn, broken into flight by
     // systems/morale.ts when shocks push morale past the break point.
     attachPopMorale(world, comps as MoraleComponents, eid);
+  }
+  if (
+    (def.armorClasses?.includes("monk") || def.id === "monk" || def.maxFaith !== undefined) &&
+    typeof (comps as Partial<FaithComponents>).faithId === "number"
+  ) {
+    attachFaith(world, comps as unknown as FaithComponents, eid, def.maxFaith ?? 100);
   }
   // Fog dirty mark (SPEC §2.9): the unit's sight circle (from its
   // definition's sightRadius) stamps at the next tick-boundary flush.

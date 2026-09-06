@@ -148,6 +148,14 @@ export const unitSchema = z.object({
   toolProp: z.string().optional(),
   /** Asset-manifest id of the visible carried cargo while returning. */
   cargoProp: z.string().optional(),
+  /** Maximum faith capacity for conversion (V14 #101). */
+  maxFaith: z.number().nonnegative().optional(),
+  /** Faith regenerated per tick (V14 #101). */
+  faithRegenPerTick: z.number().nonnegative().optional(),
+  /** Cast time in ticks required to complete conversion (V14 #101). */
+  castTicks: z.number().int().positive().optional(),
+  /** Conversion range in tiles (defaults to sightRadius or 8). */
+  convertRange: z.number().positive().optional(),
 });
 
 export type UnitDefinition = z.infer<typeof unitSchema>;
