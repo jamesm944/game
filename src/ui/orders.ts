@@ -259,6 +259,46 @@ export function issueSetStance(
   return command;
 }
 
+export const GARRISON_KIND = "garrison";
+export const UNGARRISON_KIND = "ungarrison";
+
+export function issueGarrison(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+  targetBuildingId: number,
+): SimCommand {
+  const entityIds = canonicalIds(ids, "garrison");
+  if (!Number.isInteger(targetBuildingId) || targetBuildingId < 1) {
+    throw new Error("garrison targetBuildingId must be a positive integer");
+  }
+  const command: SimCommand = {
+    kind: GARRISON_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds, targetBuildingId },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export function issueUngarrison(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEid: number,
+  exitPoint?: { x: number; y: number },
+): SimCommand {
+  if (!Number.isInteger(buildingEid) || buildingEid < 1) {
+    throw new Error("ungarrison buildingEid must be a positive integer");
+  }
+  const command: SimCommand = {
+    kind: UNGARRISON_KIND,
+    targetTick: currentTick + 1,
+    data: { buildingEid, ...(exitPoint ? { exitPoint } : {}) },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 /** Shared id canonicalization for the issuers above. */
 function canonicalIds(ids: readonly number[], label: string): number[] {
   const out: number[] = [];
@@ -288,7 +328,9 @@ export type OrderKind =
   | "attackMove"
   | "relic"
   | "trade"
-  | "rally";
+  | "rally"
+  | "garrison"
+  | "ungarrison";
 
 const KIND_TAGS: Record<OrderKind, string> = {
   move: "MOV",
@@ -300,6 +342,8 @@ const KIND_TAGS: Record<OrderKind, string> = {
   relic: "RLC",
   trade: "TRD",
   rally: "RLY",
+  garrison: "GAR",
+  ungarrison: "UNG",
 };
 
 export interface OrderLogEntry {
@@ -406,6 +450,10 @@ export interface OrderInputDeps {
   isProductionBuilding?(eid: number): boolean;
   /** Set rally point for a production building. */
   setRallyPoint?(buildingEid: number, rallyX: number, rallyY: number): void;
+  /**
+   * Allied garrison target building entity under a world point, or undefined.
+   */
+  garrisonAt?(x: number, y: number): number | undefined;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
@@ -490,7 +538,9 @@ export function wireOrderInput(deps: OrderInputDeps): void {
                 ? "order-kind order-kind-trade"
                 : entry.kind === "rally"
                   ? "order-kind order-kind-rally"
-                  : "order-kind";
+                  : entry.kind === "garrison"
+                    ? "order-kind order-kind-garrison"
+                    : "order-kind";
       kind.className = kindClass;
       kind.textContent = KIND_TAGS[entry.kind] ?? "MOV";
       const text = document.createElement("span");
@@ -618,6 +668,24 @@ export function wireOrderInput(deps: OrderInputDeps): void {
         label:
           `tick ${String(command.targetTick)} · ` +
           formatBuildLabel(selection.length, siteId),
+      });
+      renderList();
+      return;
+    }
+
+    // 5. Garrison -> enter tower, castle or town center
+    const garrisonTargetId = deps.garrisonAt?.(ground.x, ground.y);
+    if (garrisonTargetId !== undefined && selection.length > 0) {
+      const command = issueGarrison(
+        deps.inbox,
+        deps.currentTick(),
+        selection,
+        garrisonTargetId,
+      );
+      deps.onMoveOrdered(ground.x, ground.y);
+      log.push(command.targetTick, {
+        kind: "garrison",
+        label: `tick ${String(command.targetTick)} · Garrison ${selection.length} units → #${String(garrisonTargetId)}`,
       });
       renderList();
       return;

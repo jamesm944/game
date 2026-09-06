@@ -53,6 +53,11 @@ import type { SimCommand } from "../core/inbox";
 import { type BodyComponents, injuryImpairmentOf } from "../components/body";
 import { type OwnerComponents, ownerOfUnit } from "../components/owner";
 import { type BuildingComponents } from "../components/buildings";
+import { type GarrisonComponents, addGarrisonedUnit, readGarrison } from "../components/garrison";
+import { buildingDefOf, buildingIdOfCode, unitDefOf, unitIdOfCode } from "../../data/definitions";
+import { despawnEntity } from "../core/world";
+import type { CombatComponents } from "../components/combat";
+import type { StanceComponents } from "../components/stance";
 import { passabilityForPlayer } from "./placement";
 import { hasLineOfSight } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
@@ -221,6 +226,7 @@ interface UnitState {
   accumulatedSepY: number;
   queue: Activity[];
   queueDirty: boolean;
+  despawned?: boolean;
 }
 
 /** Movement heads the steering layer drives (attackMove rides along). */
@@ -598,7 +604,10 @@ export function createMovementSystem(
   comps: MovementComponents &
     Partial<Pick<BodyComponents, "bodyId">> &
     Partial<OwnerComponents> &
-    Partial<BuildingComponents>,
+    Partial<BuildingComponents> &
+    Partial<GarrisonComponents> &
+    Partial<CombatComponents> &
+    Partial<StanceComponents>,
   paths: PathScheduler,
   diagnostics: MovementDiagnostics = createMovementDiagnostics(),
 ): SimSystem {
@@ -975,6 +984,137 @@ export function createMovementSystem(
         continue;
       }
 
+      if (current.kind === "garrison") {
+        const targetBuildingEid = current.targetBuildingId;
+        const bPosRow = world.rowsByComponentId.get(comps.positionId)?.get(targetBuildingEid);
+        const bRow = comps.buildingId !== undefined
+          ? world.rowsByComponentId.get(comps.buildingId)?.get(targetBuildingEid)
+          : undefined;
+
+        if (!bPosRow || !bRow) {
+          dequeueCurrentActivity(unit.queue);
+          unit.queueDirty = true;
+          unit.speed = 0;
+          unit.velRow[V_SPEED] = 0;
+          continue;
+        }
+
+        const bDefCode = bRow[1]!;
+        const bDef = buildingDefOf(buildingIdOfCode(bDefCode));
+        const originX = bRow[2]!;
+        const originY = bRow[3]!;
+        const rw = bDef.footprint.width;
+        const rh = bDef.footprint.height;
+
+        // Calculate distance from unit to building footprint rectangle
+        const closestX = Math.max(originX, Math.min(unit.x, originX + rw));
+        const closestY = Math.max(originY, Math.min(unit.y, originY + rh));
+        const cdx = unit.x - closestX;
+        const cdy = unit.y - closestY;
+        const distToEdge = Math.sqrt(cdx * cdx + cdy * cdy);
+
+        const bOwner = bRow[0]!;
+        const uOwner = comps.ownerId !== undefined
+          ? ownerOfUnit(world, { ownerId: comps.ownerId }, unit.eid)
+          : 0;
+
+        const capacity = bDef.garrisonCapacity ?? 0;
+        const currentGarrison = comps.garrisonId !== undefined
+          ? readGarrison(world, { garrisonId: comps.garrisonId }, targetBuildingEid)
+          : [];
+
+        // If hostile or at capacity, cannot enter -> cancel order
+        if (bOwner !== uOwner || capacity <= 0 || currentGarrison.length >= capacity) {
+          dequeueCurrentActivity(unit.queue);
+          unit.queueDirty = true;
+          unit.speed = 0;
+          unit.velRow[V_SPEED] = 0;
+          continue;
+        }
+
+        // Check if close enough to enter (within 1.2 tiles of edge)
+        if (distToEdge <= 1.2) {
+          const combatRow = comps.combatId !== undefined
+            ? world.rowsByComponentId.get(comps.combatId)?.get(unit.eid)
+            : undefined;
+          const unitCode = combatRow ? combatRow[0]! : 0;
+          const uDef = unitDefOf(unitIdOfCode(unitCode));
+          const hp = combatRow ? combatRow[2]! : uDef.hp;
+          const maxHp = uDef.hp;
+          const stanceCode = comps.stanceId !== undefined
+            ? (world.rowsByComponentId.get(comps.stanceId)?.get(unit.eid)?.[0] ?? 0)
+            : 0;
+
+          if (comps.garrisonId !== undefined) {
+            addGarrisonedUnit(world, { garrisonId: comps.garrisonId }, targetBuildingEid, {
+              unitCode,
+              owner: uOwner,
+              hp,
+              maxHp,
+              stanceCode,
+            });
+          }
+
+          unit.despawned = true;
+          unit.speed = 0;
+          unit.velRow[V_SPEED] = 0;
+          unit.queueDirty = false;
+          despawnEntity(world, unit.eid);
+          continue;
+        }
+
+        // Steer towards building center
+        const bx = bPosRow[0]!;
+        const by = bPosRow[1]!;
+        const tdx = bx - unit.x;
+        const tdy = by - unit.y;
+        const tdist = Math.sqrt(tdx * tdx + tdy * tdy);
+
+        unit.tickStartX = unit.x;
+        unit.tickStartY = unit.y;
+        const baseSpeed =
+          unit.tagRow[0]! * injuryImpairmentOf(world, comps, unit.eid).speedMult;
+        const turnRate = unit.tagRow[1]!;
+
+        const desiredDirX = tdist > 0 ? tdx / tdist : 0;
+        const desiredDirY = tdist > 0 ? tdy / tdist : 0;
+        unit.desiredDirX = desiredDirX;
+        unit.desiredDirY = desiredDirY;
+
+        world.rowsByComponentId
+          .get(comps.moveTargetId)
+          ?.set(unit.eid, [bx, by]);
+
+        const desiredHeading = detAtan2(tdy, tdx);
+        const delta = angleDelta(unit.heading, desiredHeading);
+        const maxTurnStep = turnRate * dt;
+        const turnStep = Math.max(-maxTurnStep, Math.min(maxTurnStep, delta));
+        unit.heading = wrapAngle(unit.heading + turnStep);
+
+        const align = detCos(Math.min(Math.abs(delta), HALF_PI));
+        const cruise = baseSpeed * (TURN_SLOW_MIN + (1 - TURN_SLOW_MIN) * align);
+        const targetSpeed = cruise;
+        if (targetSpeed > unit.speed) {
+          unit.speed = Math.min(targetSpeed, unit.speed + ACCEL_TILES_PER_S2 * dt);
+        } else {
+          unit.speed = Math.max(targetSpeed, unit.speed - BRAKE_DECEL_TILES_PER_S2 * dt);
+        }
+
+        if (tdist > 0 && unit.speed > 0) {
+          const stepLength = Math.min(unit.speed * dt, tdist);
+          tryMove(
+            unit,
+            unit.x + desiredDirX * stepLength,
+            unit.y + desiredDirY * stepLength,
+            passability,
+            size,
+          );
+        }
+        unit.velRow[V_HEADING] = unit.heading;
+        unit.velRow[V_SPEED] = unit.speed;
+        continue;
+      }
+
       if (unit.velRow[V_PROPAGATION_PARKED] !== 0) {
         // Propagated-Parked keeps its movement activity but halts cleanly.
         unit.speed = 0;
@@ -1186,11 +1326,13 @@ export function createMovementSystem(
     // pair handled once: i < j).
     for (let i = 0; i < units.length; i++) {
       const unitA = units[i]!;
+      if (unitA.despawned) continue;
       gatherNeighbors(unitA);
       for (const otherEid of neighborScratch) {
         const j = indexByEid.get(otherEid)!;
         if (j <= i) continue;
         const unitB = units[j]!;
+        if (unitB.despawned) continue;
         let dx = unitB.x - unitA.x;
         let dy = unitB.y - unitA.y;
         let d2 = dx * dx + dy * dy;
@@ -1307,6 +1449,7 @@ export function createMovementSystem(
 
     // 5) FSM resolution: Moving / Stalled / Parked (+ propagation).
     for (const unit of units) {
+      if (unit.despawned) continue;
       const ticksLeft = unit.velRow[V_AVOID_TICKS_LEFT]!;
       if (ticksLeft > 0) unit.velRow[V_AVOID_TICKS_LEFT] = ticksLeft - 1;
 
@@ -1387,6 +1530,7 @@ export function createMovementSystem(
     // this tick re-stamps its sight circle at the tick-boundary flush
     // (the flush un-stamps the previously stamped circle first).
     for (const unit of units) {
+      if (unit.despawned) continue;
       if (
         Math.floor(unit.x) !== Math.floor(unit.tickStartX) ||
         Math.floor(unit.y) !== Math.floor(unit.tickStartY)

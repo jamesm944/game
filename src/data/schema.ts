@@ -244,6 +244,12 @@ export const buildingSchema = z.object({
   range: z.number().positive().optional(),
   /** Ticks between defensive strikes. */
   reloadTicks: z.number().int().positive().optional(),
+  /** Maximum garrisoned units (Issue #96). */
+  garrisonCapacity: z.number().int().nonnegative().optional(),
+  /** Bonus attack power per garrisoned unit, keyed by unit id or "default" (Issue #96). */
+  garrisonAttackBonus: z.union([z.record(z.string(), z.number()), z.number()]).optional(),
+  /** HP healed per tick for garrisoned units (Issue #96). */
+  garrisonHealRate: z.number().nonnegative().optional(),
   /**
    * §2.11 victory-path role (M4-T4): generator yields on Schools and
    * Monuments, sustain gate + hold timer on the Grand Academy/Grand

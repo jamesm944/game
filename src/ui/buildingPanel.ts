@@ -56,6 +56,10 @@ export interface BuildingPanelData {
     readonly unitId: string;
     readonly label: string;
   }[];
+  /** Garrison status if building can hold units (V13 #96). */
+  readonly garrison?:
+    | { readonly count: number; readonly capacity: number }
+    | undefined;
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
@@ -63,6 +67,19 @@ export const TRAIN_UNIT_KIND = "trainUnit";
 /** M4-T1 appointment command kind — validated by systems/management.ts. */
 export const APPOINT_FOREMAN_KIND = "appointForeman";
 export const MARKET_EXCHANGE_KIND = "marketExchange";
+export const UNGARRISON_COMMAND_KIND = "ungarrison";
+
+export function issueUngarrison(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEid: number,
+): void {
+  inbox.submit({
+    kind: UNGARRISON_COMMAND_KIND,
+    targetTick: currentTick + 1,
+    data: { buildingEid },
+  });
+}
 
 export function issueMarketExchange(
   inbox: CommandInbox,
@@ -146,6 +163,23 @@ export function createBuildingPanel(deps: {
   foremanEl.className = "panel-foreman";
   const appointWrap = document.createElement("div");
   appointWrap.className = "panel-appoint";
+  const garrisonWrap = document.createElement("div");
+  garrisonWrap.className = "panel-garrison-wrap";
+  garrisonWrap.style.marginTop = "8px";
+  const garrisonEl = document.createElement("div");
+  garrisonEl.className = "panel-foreman";
+  const ungarrisonBtn = document.createElement("button");
+  ungarrisonBtn.type = "button";
+  ungarrisonBtn.className = "panel-train";
+  ungarrisonBtn.textContent = "Ungarrison";
+  ungarrisonBtn.addEventListener("click", () => {
+    deps.onClick?.();
+    const d = deps.getData();
+    if (d?.buildingEid !== undefined) {
+      issueUngarrison(deps.inbox, deps.currentTick(), d.buildingEid);
+    }
+  });
+  garrisonWrap.append(garrisonEl, ungarrisonBtn);
   const trainButton = document.createElement("button");
   trainButton.type = "button";
   trainButton.className = "panel-train";
@@ -196,6 +230,9 @@ export function createBuildingPanel(deps: {
         metaEl.textContent = "";
         queueEl.textContent = "";
         foremanEl.textContent = "";
+        if (data.garrison !== undefined) {
+          panel.appendChild(garrisonWrap);
+        }
         if (data.queue !== undefined) {
           if (data.trainableUnits && data.trainableUnits.length > 0) {
             for (const u of data.trainableUnits) {
@@ -367,6 +404,17 @@ export function createBuildingPanel(deps: {
       const foremanText = data.foreman ?? "";
       if (foremanEl.textContent !== foremanText) {
         foremanEl.textContent = foremanText;
+      }
+
+      if (data.garrison !== undefined) {
+        garrisonWrap.style.display = "block";
+        const garrisonText = `Garrison: ${String(data.garrison.count)} / ${String(data.garrison.capacity)}`;
+        if (garrisonEl.textContent !== garrisonText) {
+          garrisonEl.textContent = garrisonText;
+        }
+        ungarrisonBtn.disabled = data.garrison.count === 0;
+      } else {
+        garrisonWrap.style.display = "none";
       }
     },
   };

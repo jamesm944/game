@@ -156,6 +156,14 @@ export interface GuardActivity {
   targetEid: number;
 }
 
+/**
+ * Garrison: walk to targetBuildingId and enter it (V13, Issue #96).
+ */
+export interface GarrisonActivity {
+  readonly kind: "garrison";
+  targetBuildingId: number;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
@@ -167,7 +175,8 @@ export type Activity =
   | SleepActivity
   | LeisureActivity
   | PatrolActivity
-  | GuardActivity;
+  | GuardActivity
+  | GarrisonActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -181,6 +190,7 @@ export const ACTIVITY_KIND_SLEEP = 8;
 export const ACTIVITY_KIND_LEISURE = 9;
 export const ACTIVITY_KIND_PATROL = 10;
 export const ACTIVITY_KIND_GUARD = 11;
+export const ACTIVITY_KIND_GARRISON = 12;
 
 /** Stable leisure-venue codes carried inside Leisure payloads. */
 export const LEISURE_VENUE_TAVERN = 1;
@@ -371,6 +381,16 @@ export function guardActivity(targetEid: number): GuardActivity {
   return { kind: "guard", targetEid };
 }
 
+/** Build a Garrison activity targeting targetBuildingId. */
+export function garrisonActivity(targetBuildingId: number): GarrisonActivity {
+  if (!Number.isInteger(targetBuildingId) || targetBuildingId < 1) {
+    throw new Error(
+      `garrison target building entity id must be a positive integer, got ${String(targetBuildingId)}`,
+    );
+  }
+  return { kind: "garrison", targetBuildingId };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -422,6 +442,8 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
       );
     } else if (activity.kind === "guard") {
       row.push(ACTIVITY_KIND_GUARD, 1, activity.targetEid);
+    } else if (activity.kind === "garrison") {
+      row.push(ACTIVITY_KIND_GARRISON, 1, activity.targetBuildingId);
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
       row.push(
@@ -635,6 +657,19 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "guard", targetEid });
+    } else if (kind === ACTIVITY_KIND_GARRISON) {
+      if (payloadLength !== 1) {
+        throw new Error(
+          `garrison activity ${String(i)} must carry exactly one value`,
+        );
+      }
+      const targetBuildingId = payload[0]!;
+      if (!Number.isInteger(targetBuildingId) || targetBuildingId < 1) {
+        throw new Error(
+          `garrison activity ${String(i)} has malformed target building entity id`,
+        );
+      }
+      queue.push({ kind: "garrison", targetBuildingId });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

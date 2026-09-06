@@ -80,8 +80,11 @@ import {
   patrolActivity,
   peekActivity,
   type ActivityQueue,
+  garrisonActivity,
 } from "../activities";
 import {
+  attachStance,
+  codeToStance,
   getStance,
   parseStance,
   setStance,
@@ -95,6 +98,7 @@ import {
   COMBAT_EVENT_SHOT,
   COMBAT_EVENT_UNIT_DEATH,
   getCombatRow,
+  spawnCombatUnit,
   type CombatComponents,
 } from "../components/combat";
 import {
@@ -105,10 +109,16 @@ import {
   getBuildingSiteRow,
   spawnRubble,
 } from "../components/buildings";
+import {
+  clearGarrison,
+  getGarrisonCount,
+  readGarrison,
+  writeGarrison,
+} from "../components/garrison";
 import { injuryImpairmentOf } from "../components/body";
 import { isRoutingOf } from "../components/morale";
 import { ageRankOf } from "../components/age";
-import { buildingDefOf, buildingIdOfCode } from "../../data/definitions";
+import { buildingDefOf, buildingIdOfCode, unitDefOf, unitIdOfCode } from "../../data/definitions";
 import { dropCarriedRelicsOf, dropStoredRelicsOf } from "../components/relic";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
@@ -153,6 +163,8 @@ export const STOP_COMMAND_KIND = "stop";
 export const PATROL_COMMAND_KIND = "patrol";
 export const GUARD_COMMAND_KIND = "guard";
 export const SET_STANCE_COMMAND_KIND = "setStance";
+export const GARRISON_COMMAND_KIND = "garrison";
+export const UNGARRISON_COMMAND_KIND = "ungarrison";
 
 /**
  * An approach leg re-aims once the target strays this far from the
@@ -191,6 +203,10 @@ export interface CombatDiagnostics {
   guardCommands: number;
   /** setStance commands applied. */
   setStanceCommands: number;
+  /** garrison commands applied. */
+  garrisonCommands: number;
+  /** ungarrison commands applied. */
+  ungarrisonCommands: number;
   /** Strikes landed (ranged shots included). */
   strikes: number;
   /** Units killed. */
@@ -216,6 +232,8 @@ export function createCombatDiagnostics(): CombatDiagnostics {
     patrolCommands: 0,
     guardCommands: 0,
     setStanceCommands: 0,
+    garrisonCommands: 0,
+    ungarrisonCommands: 0,
     strikes: 0,
     kills: 0,
     buildingsDestroyed: 0,
@@ -316,6 +334,10 @@ export function createCombatSystem(
         applyGuardCommand(world, comps, diagnostics, command);
       } else if (command.kind === SET_STANCE_COMMAND_KIND) {
         applySetStanceCommand(world, comps, diagnostics, command);
+      } else if (command.kind === GARRISON_COMMAND_KIND) {
+        applyGarrisonCommand(world, comps, diagnostics, command);
+      } else if (command.kind === UNGARRISON_COMMAND_KIND) {
+        applyUngarrisonCommand(world, comps, diagnostics, command);
       }
     }
 
@@ -364,7 +386,6 @@ export function createCombatSystem(
       positions.set(eid, { x: posRow[0]!, y: posRow[1]!, radius });
       alive.add(eid);
     }
-    if (combatants.length === 0) return;
     const combatantByEid = new Map<number, Combatant>();
     for (const combatant of combatants) {
       combatantByEid.set(combatant.eid, combatant);
@@ -387,12 +408,13 @@ export function createCombatSystem(
     }
 
     const structures = new Map<number, StructureTarget>();
-    for (const eid of world.entities) {
-      const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
-      if (!posRow) continue;
-      const siteRow = getBuildingSiteRow(world, comps, eid);
-      const buildingRow = getBuildingRow(world, comps, eid);
-      if (siteRow !== undefined) {
+    const siteRows = comps.buildingSiteId !== undefined
+      ? world.rowsByComponentId.get(comps.buildingSiteId)
+      : undefined;
+    if (siteRows) {
+      for (const [eid, siteRow] of siteRows) {
+        const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!posRow) continue;
         positions.set(eid, {
           x: posRow[0]!,
           y: posRow[1]!,
@@ -401,13 +423,21 @@ export function createCombatSystem(
         alive.add(eid);
         structures.set(eid, {
           eid,
-          row: siteRow as number[],
+          row: siteRow,
           kind: "site",
           owner: siteRow[0]!,
           defCode: siteRow[1]!,
           hpIndex: 3,
         });
-      } else if (buildingRow !== undefined) {
+      }
+    }
+    const buildingRows = comps.buildingId !== undefined
+      ? world.rowsByComponentId.get(comps.buildingId)
+      : undefined;
+    if (buildingRows) {
+      for (const [eid, buildingRow] of buildingRows) {
+        const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!posRow) continue;
         positions.set(eid, {
           x: posRow[0]!,
           y: posRow[1]!,
@@ -416,7 +446,7 @@ export function createCombatSystem(
         alive.add(eid);
         structures.set(eid, {
           eid,
-          row: buildingRow as number[],
+          row: buildingRow,
           kind: "finished",
           owner: buildingRow[0]!,
           defCode: buildingRow[1]!,
@@ -424,6 +454,7 @@ export function createCombatSystem(
         });
       }
     }
+    if (combatants.length === 0 && structures.size === 0) return;
 
     // ---- 3) Per-tick stat derivation memo. Keys are defCode×owner×
     // equipment×own-skill-levels — identical inputs collapse to one
@@ -835,6 +866,32 @@ export function createCombatSystem(
       // stored relics at the footprint center BEFORE the despawn wipes
       // the holder's rows — capture-on-destruction.
       dropStoredRelicsOf(world, comps, victimEid);
+
+      // V13 (Issue #96): Eject any garrisoned units before the building despawns
+      if (comps.garrisonId !== undefined) {
+        const trapped = clearGarrison(world, comps, victimEid);
+        if (trapped.length > 0) {
+          for (const u of trapped) {
+            const defId = unitIdOfCode(u.unitCode);
+            const newEid = spawnCombatUnit(
+              world,
+              comps,
+              defId,
+              originX + 0.5,
+              originY + 0.5,
+              u.owner,
+            );
+            const cRow = getCombatRow(world, comps, newEid);
+            if (cRow) {
+              cRow[2] = Math.max(1, Math.floor(u.hp * 0.5));
+            }
+            if (comps.stanceId !== undefined) {
+              attachStance(world, comps, newEid, codeToStance(u.stanceCode));
+            }
+          }
+        }
+      }
+
       despawnEntity(world, victimEid);
       alive.delete(victimEid);
       structures.delete(victimEid);
@@ -1037,15 +1094,57 @@ export function createCombatSystem(
       }
     }
 
-    // ---- 6b) Defensive structure strikes (Watch Towers & Castles):
-    // Finished buildings with attack > 0 acquire the nearest enemy unit
-    // in range and fire on reloadTicks cadence.
+    // ---- 6b) Defensive structure strikes (Watch Towers, Castles, Town Centers):
+    // Finished buildings with attack > 0 (or garrisoned units) acquire the nearest
+    // enemy unit in range and fire on reloadTicks cadence.
     for (const [buildingEid, structure] of structures) {
       if (structure.kind !== "finished") continue;
       const bDef = buildingDefOf(buildingIdOfCode(structure.defCode));
-      if (!bDef.attack || bDef.attack <= 0 || !bDef.range || bDef.range <= 0) {
-        continue;
+      if (!bDef.attack && !bDef.garrisonCapacity) continue;
+
+      const garrisonCount = comps.garrisonId !== undefined
+        ? getGarrisonCount(world, comps, buildingEid)
+        : 0;
+      const garrisonUnits = garrisonCount > 0 && comps.garrisonId !== undefined
+        ? readGarrison(world, comps, buildingEid)
+        : [];
+
+      // Garrison heal over time
+      const healRate = bDef.garrisonHealRate ?? 0.05;
+      if (healRate > 0 && garrisonUnits.length > 0) {
+        let healed = false;
+        for (const gu of garrisonUnits) {
+          if (gu.hp < gu.maxHp) {
+            gu.hp = Math.min(gu.maxHp, gu.hp + healRate);
+            healed = true;
+          }
+        }
+        if (healed && comps.garrisonId !== undefined) {
+          writeGarrison(world, comps, buildingEid, garrisonUnits);
+        }
       }
+
+      // Calculate garrison attack bonus
+      let garrisonBonus = 0;
+      if (garrisonUnits.length > 0 && bDef.garrisonAttackBonus !== undefined) {
+        for (const gu of garrisonUnits) {
+          const uDefId = unitIdOfCode(gu.unitCode);
+          if (typeof bDef.garrisonAttackBonus === "number") {
+            garrisonBonus += bDef.garrisonAttackBonus;
+          } else {
+            garrisonBonus +=
+              bDef.garrisonAttackBonus[uDefId] ??
+              bDef.garrisonAttackBonus["default"] ??
+              1;
+          }
+        }
+      }
+
+      const baseAttack = bDef.attack ?? 0;
+      let attack = baseAttack + garrisonBonus;
+      const range = bDef.range ?? (bDef.id === "town-center" ? 6 : 8);
+      if (attack <= 0 || range <= 0) continue;
+
       const reloadTicks = bDef.reloadTicks ?? 60;
       if ((world.tick + buildingEid) % reloadTicks !== 0) continue;
 
@@ -1053,15 +1152,14 @@ export function createCombatSystem(
       if (!towerPos) continue;
 
       // Determine attack stat (scale watch-tower with age: Feudal=5, Castle=7, Imperial=8)
-      let attack = bDef.attack;
       if (bDef.id === "watch-tower") {
         const rank = ageRankOf(world, comps, structure.owner) ?? 2;
-        if (rank === 3) attack = 7;
-        else if (rank >= 4) attack = 8;
+        if (rank === 3) attack += 2;
+        else if (rank >= 4) attack += 3;
       }
 
       // Find nearest alive enemy combatant within range
-      let bestDistSq = bDef.range * bDef.range;
+      let bestDistSq = range * range;
       let targetEid = 0;
       for (const combatant of combatants) {
         if (!alive.has(combatant.eid)) continue;
@@ -1468,3 +1566,86 @@ function applySetStanceCommand(
   }
   diagnostics.setStanceCommands += 1;
 }
+
+function applyGarrisonCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const rawBuildingId = data.targetBuildingId ?? data.buildingEid ?? data.targetId;
+  if (typeof rawBuildingId !== "number" || rawBuildingId < 1) return;
+  const targetBuildingId = rawBuildingId;
+
+  const rawIds = data.ids ?? data.entityIds;
+  if (!rawIds || !Array.isArray(rawIds)) return;
+
+  for (const eid of rawIds) {
+    if (typeof eid === "number" && eid > 0) {
+      writeActivityQueue(world, comps, eid, [garrisonActivity(targetBuildingId)]);
+      const combatRow = getCombatRow(world, comps, eid);
+      if (combatRow) combatRow[3] = 0;
+    }
+  }
+  diagnostics.garrisonCommands += 1;
+}
+
+function applyUngarrisonCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const rawBuildingId = data.buildingEid ?? data.targetBuildingId ?? data.targetId;
+  if (typeof rawBuildingId !== "number" || rawBuildingId < 1) return;
+  const buildingEid = rawBuildingId;
+
+  if (comps.garrisonId === undefined) return;
+  const units = clearGarrison(world, comps, buildingEid);
+  if (units.length === 0) return;
+
+  const bRow = comps.buildingId
+    ? world.rowsByComponentId.get(comps.buildingId)?.get(buildingEid)
+    : undefined;
+  const bPos = world.rowsByComponentId.get(comps.positionId)?.get(buildingEid);
+
+  let exitX = bPos ? bPos[0]! : 10.5;
+  let exitY = bPos ? bPos[1]! : 10.5;
+
+  if (data.exitPoint && typeof data.exitPoint === "object") {
+    const pt = data.exitPoint as { x?: number; y?: number };
+    if (typeof pt.x === "number" && typeof pt.y === "number") {
+      exitX = pt.x;
+      exitY = pt.y;
+    }
+  } else if (bRow) {
+    const def = buildingDefOf(buildingIdOfCode(bRow[1]!));
+    const originX = bRow[2]!;
+    const originY = bRow[3]!;
+    exitX = originX + def.footprint.width / 2;
+    exitY = originY + def.footprint.height + 0.5;
+  }
+
+  for (const u of units) {
+    const defId = unitIdOfCode(u.unitCode);
+    const newEid = spawnCombatUnit(
+      world,
+      comps,
+      defId,
+      exitX,
+      exitY,
+      u.owner,
+    );
+    const cRow = getCombatRow(world, comps, newEid);
+    if (cRow) {
+      cRow[2] = u.hp;
+    }
+    if (comps.stanceId !== undefined) {
+      attachStance(world, comps, newEid, codeToStance(u.stanceCode));
+    }
+  }
+  diagnostics.ungarrisonCommands += 1;
+}
+

@@ -15,5 +15,8 @@
   "dropoffFilters": [],
   "acceptsRoles": [],
   "sightRadius": 10,
-  "populationCap": 0
+  "populationCap": 0,
+  "garrisonCapacity": 5,
+  "garrisonAttackBonus": { "villager": 1, "archer": 2, "default": 1 },
+  "garrisonHealRate": 0.05
 }

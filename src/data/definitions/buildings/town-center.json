@@ -13,5 +13,11 @@
   "acceptsRoles": [],
   "sightRadius": 8,
   "populationCap": 5,
-  "trainQueue": { "capacity": 15, "trainable": [{ "unitId": "villager" }] }
+  "trainQueue": { "capacity": 15, "trainable": [{ "unitId": "villager" }] },
+  "attack": 0,
+  "range": 6,
+  "reloadTicks": 60,
+  "garrisonCapacity": 15,
+  "garrisonAttackBonus": { "villager": 1, "archer": 2, "default": 1 },
+  "garrisonHealRate": 0.05
 }

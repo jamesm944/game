@@ -301,6 +301,7 @@ import {
   createVictoryScreen,
 } from "./ui/victoryScreen";
 import { buildingRectOf, siteRectOf } from "./sim/components/buildings";
+import { getGarrisonCount } from "./sim/components/garrison";
 
 /** Fixed development seed — reproducible map for the render skeleton. */
 const DEV_SEED = 20260822;
@@ -1399,6 +1400,14 @@ wireOrderInput({
     const by = pos ? pos[1]! : ry;
     rallyFlagLayer.setRally(bEid, bx, by, rx, ry);
   },
+  garrisonAt: (x, y) => {
+    const eid = buildingAt(x, y);
+    if (eid === undefined) return undefined;
+    const row = getBuildingRow(world, comps, eid);
+    if (!row || row[0] !== VIEWER) return undefined;
+    const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
+    return (bDef.garrisonCapacity ?? 0) > 0 ? eid : undefined;
+  },
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -1674,7 +1683,23 @@ const buildingPanel = createBuildingPanel({
           })),
       };
     }
-    if (!def.trainQueue) return { title: def.name };
+    const garrisonCap = def.garrisonCapacity ?? 0;
+    const garrison =
+      garrisonCap > 0 && comps.garrisonId !== undefined
+        ? { count: getGarrisonCount(world, comps, eid), capacity: garrisonCap }
+        : undefined;
+
+    if (!def.trainQueue) {
+      return {
+        title: def.name,
+        buildingEid: eid,
+        pop: {
+          current: populationOf(world, comps),
+          cap: populationCapOf(world, comps),
+        },
+        garrison,
+      };
+    }
     const trainableUnits = def.trainQueue.trainable.map((t) => {
       const uDef = unitDefOf(t.unitId);
       const costStr = Object.entries(uDef.costs)
@@ -1700,6 +1725,7 @@ const buildingPanel = createBuildingPanel({
       canTrain: canEnqueueTraining(world, comps, eid),
       trainableUnits,
       isMarket: def.id === "market",
+      garrison,
     };
   },
 });
