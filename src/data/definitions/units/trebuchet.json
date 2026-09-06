@@ -1,0 +1,37 @@
+{
+  "id": "trebuchet",
+  "name": "Trebuchet",
+  "kind": "unit",
+  "costs": {
+    "wood": 200,
+    "gold": 200
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 1500,
+  "hp": 150,
+  "speed": 0,
+  "carryCapacity": 0,
+  "attack": 200,
+  "range": 16.0,
+  "minRange": 4.0,
+  "reloadTicks": 300,
+  "armorClasses": ["siege"],
+  "attackBonuses": [
+    {
+      "armorClass": "building",
+      "mult": 2.5
+    }
+  ],
+  "sightRadius": 16,
+  "siegeState": "unpacked",
+  "morphTargetId": "trebuchet-packed",
+  "packTimeTicks": 90,
+  "equipmentSlots": [],
+  "activityAnims": {
+    "attack": "attack",
+    "idle": "idle",
+    "walk": "idle",
+    "death": "death"
+  }
+}

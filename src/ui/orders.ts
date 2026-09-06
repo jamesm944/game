@@ -299,6 +299,39 @@ export function issueUngarrison(
   return command;
 }
 
+export const PACK_KIND = "pack";
+export const UNPACK_KIND = "unpack";
+
+export function issuePack(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+): SimCommand {
+  const entityIds = canonicalIds(ids, "pack");
+  const command: SimCommand = {
+    kind: PACK_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export function issueUnpack(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+): SimCommand {
+  const entityIds = canonicalIds(ids, "unpack");
+  const command: SimCommand = {
+    kind: UNPACK_KIND,
+    targetTick: currentTick + 1,
+    data: { ids: entityIds },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 /** Shared id canonicalization for the issuers above. */
 function canonicalIds(ids: readonly number[], label: string): number[] {
   const out: number[] = [];
@@ -330,7 +363,9 @@ export type OrderKind =
   | "trade"
   | "rally"
   | "garrison"
-  | "ungarrison";
+  | "ungarrison"
+  | "pack"
+  | "unpack";
 
 const KIND_TAGS: Record<OrderKind, string> = {
   move: "MOV",
@@ -344,6 +379,8 @@ const KIND_TAGS: Record<OrderKind, string> = {
   rally: "RLY",
   garrison: "GAR",
   ungarrison: "UNG",
+  pack: "PCK",
+  unpack: "UPK",
 };
 
 export interface OrderLogEntry {

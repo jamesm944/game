@@ -1,0 +1,36 @@
+{
+  "id": "mangonel",
+  "name": "Mangonel",
+  "kind": "unit",
+  "costs": {
+    "wood": 160,
+    "gold": 135
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 1200,
+  "hp": 50,
+  "speed": 0.6,
+  "carryCapacity": 0,
+  "attack": 40,
+  "range": 7.0,
+  "minRange": 2.0,
+  "reloadTicks": 180,
+  "aoeRadius": 1.5,
+  "armorClasses": ["siege"],
+  "attackBonuses": [
+    {
+      "armorClass": "building",
+      "mult": 1.5
+    }
+  ],
+  "sightRadius": 9,
+  "siegeState": "mobile",
+  "equipmentSlots": [],
+  "activityAnims": {
+    "attack": "attack",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  }
+}

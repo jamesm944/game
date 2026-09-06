@@ -17,6 +17,8 @@
  * length, payload… per activity).
  */
 
+import { unitCodeOf, unitIdOfCode } from "../../data/definitions";
+
 /** Flat waypoint pairs [x0,y0,x1,y1,…] in float tile coordinates. */
 export interface MoveActivity {
   readonly kind: "move";
@@ -164,6 +166,15 @@ export interface GarrisonActivity {
   targetBuildingId: number;
 }
 
+/**
+ * Pack or unpack a siege weapon (e.g. Trebuchet) over packTimeTicks (V13, Issue #97).
+ */
+export interface PackActivity {
+  readonly kind: "pack";
+  remainingTicks: number;
+  targetUnitId: string;
+}
+
 export type Activity =
   | MoveActivity
   | WaitActivity
@@ -176,7 +187,8 @@ export type Activity =
   | LeisureActivity
   | PatrolActivity
   | GuardActivity
-  | GarrisonActivity;
+  | GarrisonActivity
+  | PackActivity;
 
 /** Numeric activity kind codes — stable, never renumber. */
 export const ACTIVITY_KIND_MOVE = 1;
@@ -191,6 +203,7 @@ export const ACTIVITY_KIND_LEISURE = 9;
 export const ACTIVITY_KIND_PATROL = 10;
 export const ACTIVITY_KIND_GUARD = 11;
 export const ACTIVITY_KIND_GARRISON = 12;
+export const ACTIVITY_KIND_PACK = 13;
 
 /** Stable leisure-venue codes carried inside Leisure payloads. */
 export const LEISURE_VENUE_TAVERN = 1;
@@ -391,6 +404,24 @@ export function garrisonActivity(targetBuildingId: number): GarrisonActivity {
   return { kind: "garrison", targetBuildingId };
 }
 
+/** Build a Pack activity to morph into targetUnitId over remainingTicks. */
+export function packActivity(
+  remainingTicks: number,
+  targetUnitId: string,
+): PackActivity {
+  if (!Number.isInteger(remainingTicks) || remainingTicks < 0) {
+    throw new Error(
+      `pack remaining ticks must be a non-negative integer, got ${String(remainingTicks)}`,
+    );
+  }
+  if (!targetUnitId || typeof targetUnitId !== "string") {
+    throw new Error(
+      `pack targetUnitId must be a non-empty string, got ${String(targetUnitId)}`,
+    );
+  }
+  return { kind: "pack", remainingTicks, targetUnitId };
+}
+
 /** Serialize a queue to the digest-friendly numeric row format. */
 export function encodeActivities(queue: readonly Activity[]): number[] {
   const row: number[] = [queue.length];
@@ -444,6 +475,13 @@ export function encodeActivities(queue: readonly Activity[]): number[] {
       row.push(ACTIVITY_KIND_GUARD, 1, activity.targetEid);
     } else if (activity.kind === "garrison") {
       row.push(ACTIVITY_KIND_GARRISON, 1, activity.targetBuildingId);
+    } else if (activity.kind === "pack") {
+      row.push(
+        ACTIVITY_KIND_PACK,
+        2,
+        activity.remainingTicks,
+        unitCodeOf(activity.targetUnitId),
+      );
     } else {
       // attackMove shares the move payload shape (cursor + flat pairs).
       row.push(
@@ -670,6 +708,29 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
         );
       }
       queue.push({ kind: "garrison", targetBuildingId });
+    } else if (kind === ACTIVITY_KIND_PACK) {
+      if (payloadLength !== 2) {
+        throw new Error(
+          `pack activity ${String(i)} must carry exactly two values`,
+        );
+      }
+      const remainingTicks = payload[0]!;
+      const targetCode = payload[1]!;
+      if (!Number.isInteger(remainingTicks) || remainingTicks < 0) {
+        throw new Error(
+          `pack activity ${String(i)} has malformed remaining ticks`,
+        );
+      }
+      if (!Number.isInteger(targetCode) || targetCode < 1) {
+        throw new Error(
+          `pack activity ${String(i)} has malformed target unit code`,
+        );
+      }
+      queue.push({
+        kind: "pack",
+        remainingTicks,
+        targetUnitId: unitIdOfCode(targetCode),
+      });
     } else {
       throw new Error(`unknown activity kind code: ${String(kind)}`);
     }

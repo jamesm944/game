@@ -111,8 +111,8 @@ export const unitSchema = z.object({
   kind: z.literal("unit"),
   trainTime: z.number().int().positive(),
   hp: z.number().int().positive(),
-  /** Cruise speed in tiles per second. */
-  speed: z.number().positive(),
+  /** Cruise speed in tiles per second (0 for stationary unpacked siege engines). */
+  speed: z.number().nonnegative(),
   carryCapacity: z.number().int().nonnegative(),
   attack: z.number().int().nonnegative(),
   /**
@@ -128,6 +128,16 @@ export const unitSchema = z.object({
     .default([]),
   sightRadius: z.number().positive(),
   equipmentSlots: z.array(z.string()).default([]),
+  /** Area-of-effect splash radius in tiles (V13 #97). */
+  aoeRadius: z.number().positive().optional(),
+  /** Minimum engagement range in tiles (e.g. Mangonel, Trebuchet). */
+  minRange: z.number().positive().optional(),
+  /** Siege engine state (V13 #97). */
+  siegeState: z.enum(["mobile", "packed", "unpacked"]).optional(),
+  /** Unit ID to morph into when packing/unpacking completes. */
+  morphTargetId: z.string().optional(),
+  /** Duration in ticks to pack/unpack (defaults to 90 = 3s). */
+  packTimeTicks: z.number().int().positive().optional(),
   /**
    * Banished-style work presentation (SPEC §2.14): activity → baked
    * clip id, e.g. { "gather-wood": "chop", "idle": "idle" }. Optional

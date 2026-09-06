@@ -158,12 +158,18 @@ describe("damage counter table (SPEC §2.5)", () => {
   it("resolves buildings through the canonical building armor class", () => {
     // The defender-side contract: one class tag, documented zero armor.
     expect(BUILDING_ARMOR_CLASSES).toEqual(["building"]);
-    // No M2 content holds a siege→building multiplier yet — pin the
-    // zeros so the first ram/trebuchet flips this visibly.
+    // Siege units hold building multipliers in V13 (battering-ram 60x, mangonel 1.5x, trebuchet 2.5x)
     for (const attackerId of UNIT_IDS) {
-      expect(
-        bonusMultiplierOf(unitDefOf(attackerId), BUILDING_ARMOR_CLASSES),
-      ).toBe(1);
+      const mult = bonusMultiplierOf(unitDefOf(attackerId), BUILDING_ARMOR_CLASSES);
+      if (attackerId === "battering-ram") {
+        expect(mult).toBe(60);
+      } else if (attackerId === "mangonel") {
+        expect(mult).toBe(1.5);
+      } else if (attackerId === "trebuchet") {
+        expect(mult).toBe(2.5);
+      } else {
+        expect(mult).toBe(1);
+      }
     }
     // Same max(1, …) floor as unit strikes: villagers chip stone walls.
     const villager = unitDefOf("villager");

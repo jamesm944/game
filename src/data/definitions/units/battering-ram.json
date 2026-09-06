@@ -1,0 +1,34 @@
+{
+  "id": "battering-ram",
+  "name": "Battering Ram",
+  "kind": "unit",
+  "costs": {
+    "wood": 160,
+    "gold": 75
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 900,
+  "hp": 175,
+  "speed": 0.5,
+  "carryCapacity": 0,
+  "attack": 2,
+  "range": 0.5,
+  "reloadTicks": 150,
+  "armorClasses": ["siege"],
+  "attackBonuses": [
+    {
+      "armorClass": "building",
+      "mult": 60
+    }
+  ],
+  "sightRadius": 6,
+  "siegeState": "mobile",
+  "equipmentSlots": [],
+  "activityAnims": {
+    "attack": "attack",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  }
+}

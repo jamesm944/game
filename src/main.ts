@@ -218,6 +218,8 @@ import {
   issuePatrol,
   issueSetStance,
   issueStop,
+  issuePack,
+  issueUnpack,
 } from "./ui/orders";
 import { spawnCombatUnit } from "./sim/components/combat";
 import { RESOURCE_WOOD } from "./sim/components/economy";
@@ -651,6 +653,30 @@ const UNIT_SPECS: Record<
     json: scoutCavalryJson,
     width: 1.3,
     height: 1.6,
+  },
+  "battering-ram": {
+    png: scoutCavalryPng,
+    json: scoutCavalryJson,
+    width: 1.5,
+    height: 1.7,
+  },
+  mangonel: {
+    png: skirmisherPng,
+    json: skirmisherJson,
+    width: 1.4,
+    height: 1.6,
+  },
+  "trebuchet-packed": {
+    png: scoutCavalryPng,
+    json: scoutCavalryJson,
+    width: 1.4,
+    height: 1.7,
+  },
+  trebuchet: {
+    png: monkPng,
+    json: monkJson,
+    width: 1.6,
+    height: 2.0,
   },
 };
 
@@ -1745,6 +1771,12 @@ const unitPanel = createUnitPanel({
     }
     if (matching.length > 0) setSelection(matching);
   },
+  onPackUnit: (eid) => {
+    issuePack(world.inbox, world.tick, [eid]);
+  },
+  onUnpackUnit: (eid) => {
+    issueUnpack(world.inbox, world.tick, [eid]);
+  },
 });
 
 // Pop card (M3-T9): exactly one selected named Pop renders their
@@ -2671,6 +2703,8 @@ function frame(
       speed: stats.speed,
       ownerId,
       isMilitary: unitId !== "villager" && unitId !== "trade-cart",
+      morphTargetId: def.morphTargetId,
+      siegeState: def.siegeState,
     });
   }
   unitPanel.update(selectedUnits);

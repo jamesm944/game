@@ -48,6 +48,7 @@ export interface EntitySpatialHash {
     x: number,
     y: number,
     radius: number,
+    minRadius?: number,
   ): { eid: number; distSq: number } | undefined;
 }
 
@@ -117,9 +118,11 @@ export function createEntitySpatialHash(): EntitySpatialHash {
     x: number,
     y: number,
     radius: number,
+    minRadius = 0,
   ): { eid: number; distSq: number } | undefined => {
     if (!(radius >= 0)) return undefined;
     const radiusSq = radius * radius;
+    const minRadiusSq = minRadius > 0 ? minRadius * minRadius : 0;
     let bestEid: number | undefined;
     let bestDistSq = Infinity;
     for (
@@ -138,7 +141,7 @@ export function createEntitySpatialHash(): EntitySpatialHash {
           const dx = xs[index]! - x;
           const dy = ys[index]! - y;
           const distSq = dx * dx + dy * dy;
-          if (distSq > radiusSq) continue;
+          if (distSq > radiusSq || distSq < minRadiusSq) continue;
           const eid = eids[index]!;
           if (
             distSq < bestDistSq ||

@@ -317,8 +317,15 @@ export function planCounterTraining(
   }
   let bestId: string | undefined;
   let bestScore = 0; // strictly-positive gate lives HERE
+  const visibleBuildings = k.visibleEnemies().filter((e) => isBuildingDef(e.defId));
   for (const [unitId, def] of candidates) {
-    const score = counterScore(def, enemies);
+    let score = counterScore(def, enemies);
+    if (visibleBuildings.length > 0) {
+      const bBonus = bonusMultiplierOf(def, ["building"]);
+      if (bBonus > 1) {
+        score += visibleBuildings.length * Math.floor(bBonus);
+      }
+    }
     if (
       score > bestScore ||
       (score === bestScore &&

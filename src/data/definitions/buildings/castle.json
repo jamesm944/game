@@ -18,5 +18,13 @@
   "populationCap": 20,
   "garrisonCapacity": 20,
   "garrisonAttackBonus": { "villager": 1, "archer": 2, "default": 1 },
-  "garrisonHealRate": 0.05
+  "garrisonHealRate": 0.05,
+  "trainQueue": {
+    "capacity": 15,
+    "trainable": [
+      { "unitId": "battering-ram" },
+      { "unitId": "mangonel" },
+      { "unitId": "trebuchet-packed" }
+    ]
+  }
 }

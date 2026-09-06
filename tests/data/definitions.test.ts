@@ -33,7 +33,8 @@ import {
 
 describe("definition loader happy path", () => {
   it("loads every M2-T1 definition into typed registries", () => {
-    expect(UNIT_DEFINITIONS.size).toBe(15);
+    // V13 adds siege weapons: battering-ram, mangonel, trebuchet-packed, trebuchet (19).
+    expect(UNIT_DEFINITIONS.size).toBe(19);
     // M3-T5: the §2.3 school joins the building set (17). M3-T7 adds
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
     // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).

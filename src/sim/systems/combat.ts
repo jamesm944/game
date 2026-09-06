@@ -81,6 +81,7 @@ import {
   peekActivity,
   type ActivityQueue,
   garrisonActivity,
+  packActivity,
 } from "../activities";
 import {
   attachStance,
@@ -118,7 +119,7 @@ import {
 import { injuryImpairmentOf } from "../components/body";
 import { isRoutingOf } from "../components/morale";
 import { ageRankOf } from "../components/age";
-import { buildingDefOf, buildingIdOfCode, unitDefOf, unitIdOfCode } from "../../data/definitions";
+import { buildingDefOf, buildingIdOfCode, unitCodeOf, unitDefOf, unitIdOfCode } from "../../data/definitions";
 import { dropCarriedRelicsOf, dropStoredRelicsOf } from "../components/relic";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
@@ -165,6 +166,8 @@ export const GUARD_COMMAND_KIND = "guard";
 export const SET_STANCE_COMMAND_KIND = "setStance";
 export const GARRISON_COMMAND_KIND = "garrison";
 export const UNGARRISON_COMMAND_KIND = "ungarrison";
+export const PACK_COMMAND_KIND = "pack";
+export const UNPACK_COMMAND_KIND = "unpack";
 
 /**
  * An approach leg re-aims once the target strays this far from the
@@ -207,6 +210,10 @@ export interface CombatDiagnostics {
   garrisonCommands: number;
   /** ungarrison commands applied. */
   ungarrisonCommands: number;
+  /** pack commands applied. */
+  packCommands: number;
+  /** unpack commands applied. */
+  unpackCommands: number;
   /** Strikes landed (ranged shots included). */
   strikes: number;
   /** Units killed. */
@@ -234,6 +241,8 @@ export function createCombatDiagnostics(): CombatDiagnostics {
     setStanceCommands: 0,
     garrisonCommands: 0,
     ungarrisonCommands: 0,
+    packCommands: 0,
+    unpackCommands: 0,
     strikes: 0,
     kills: 0,
     buildingsDestroyed: 0,
@@ -338,6 +347,10 @@ export function createCombatSystem(
         applyGarrisonCommand(world, comps, diagnostics, command);
       } else if (command.kind === UNGARRISON_COMMAND_KIND) {
         applyUngarrisonCommand(world, comps, diagnostics, command);
+      } else if (command.kind === PACK_COMMAND_KIND) {
+        applyPackCommand(world, comps, diagnostics, command);
+      } else if (command.kind === UNPACK_COMMAND_KIND) {
+        applyUnpackCommand(world, comps, diagnostics, command);
       }
     }
 
@@ -349,7 +362,8 @@ export function createCombatSystem(
       readonly row: number[];
       readonly posRow: number[];
       readonly velRow: number[];
-      readonly def: UnitDefinition;
+      readonly tagRow: number[];
+      def: UnitDefinition;
       readonly owner: number;
       readonly radius: number;
       queue: ActivityQueue;
@@ -376,6 +390,7 @@ export function createCombatSystem(
         row,
         posRow,
         velRow,
+        tagRow,
         def,
         owner: row[1]!,
         radius,
@@ -519,11 +534,12 @@ export function createCombatSystem(
       self: Combatant,
       radius: number,
     ): Combatant | undefined => {
+      const minRange = self.def.minRange ?? 0;
       let best: Combatant | undefined;
       let bestDistSq = Number.POSITIVE_INFINITY;
       for (const [owner, hash] of hashByOwner) {
         if (owner === self.owner) continue;
-        const hit = hash.nearest(self.posRow[0]!, self.posRow[1]!, radius);
+        const hit = hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange);
         if (!hit) continue;
         if (
           hit.distSq < bestDistSq ||
@@ -898,6 +914,78 @@ export function createCombatSystem(
       diagnostics.buildingsDestroyed += 1;
     };
 
+    const applyAoEBlast = (
+      attacker: Combatant,
+      attackerStats: DerivedStats,
+      blastX: number,
+      blastY: number,
+      targetEid: number,
+    ): void => {
+      const aoeRadius = attacker.def.aoeRadius;
+      if (aoeRadius === undefined || aoeRadius <= 0) return;
+
+      // 1. Splash damage to nearby units (including friendly fire!)
+      for (const other of combatants) {
+        if (other.eid === targetEid || !alive.has(other.eid)) continue;
+        const odx = other.posRow[0]! - blastX;
+        const ody = other.posRow[1]! - blastY;
+        const maxDist = aoeRadius + other.radius;
+        if (odx * odx + ody * ody <= maxDist * maxDist) {
+          const otherRow = getCombatRow(world, comps, other.eid);
+          if (!otherRow) continue;
+          const otherStats = statsOf(other);
+          const splashDamage = strikeDamage(
+            attacker.def,
+            attackerStats,
+            other.def,
+            otherStats,
+          );
+          otherRow[2] = Math.max(0, otherRow[2]! - splashDamage);
+          appendCombatEvent(world, comps, other.owner, {
+            tick: world.tick,
+            kind: COMBAT_EVENT_DAMAGE,
+            attackerEid: attacker.eid,
+            victimEid: other.eid,
+            amount: splashDamage,
+          });
+          const wounds = applyStrikeInjuries(world, comps, other.eid, splashDamage);
+          if (attacker.owner !== other.owner && !damageThisTick.has(other.eid)) {
+            damageThisTick.set(other.eid, attacker.eid);
+          }
+          if (otherRow[2]! <= 0 || wounds.fatal) {
+            kill(other.eid, attacker.eid, splashDamage);
+          }
+        }
+      }
+
+      // 2. Splash damage to nearby structures
+      for (const [structEid, otherStruct] of structures) {
+        if (structEid === targetEid || !alive.has(structEid)) continue;
+        const sPos = positions.get(structEid);
+        if (!sPos) continue;
+        const sdx = sPos.x - blastX;
+        const sdy = sPos.y - blastY;
+        const maxDist = aoeRadius + sPos.radius;
+        if (sdx * sdx + sdy * sdy <= maxDist * maxDist) {
+          const structDamage = strikeDamageOnBuilding(attacker.def, attackerStats);
+          otherStruct.row[otherStruct.hpIndex] = Math.max(
+            0,
+            otherStruct.row[otherStruct.hpIndex]! - structDamage,
+          );
+          appendCombatEvent(world, comps, otherStruct.owner, {
+            tick: world.tick,
+            kind: COMBAT_EVENT_DAMAGE,
+            attackerEid: attacker.eid,
+            victimEid: structEid,
+            amount: structDamage,
+          });
+          if (otherStruct.row[otherStruct.hpIndex]! <= 0) {
+            destroyStructure(structEid, attacker.eid, structDamage);
+          }
+        }
+      }
+    };
+
     const strike = (attacker: Combatant, targetEid: number): void => {
       // M3-T5: children cannot fight (SPEC §2.3). A child ordered into
       // battle marches but never lands a blow — no damage, no wounds,
@@ -907,6 +995,8 @@ export function createCombatSystem(
       const targetPos = positions.get(targetEid);
       const targetDef = combatantByEid.get(targetEid)?.def;
       if (!targetRow || !targetPos || !targetDef) return; // died this tick
+      const blastX = targetPos.x;
+      const blastY = targetPos.y;
       const attackerStats = statsOf(attacker);
       const defenderStats = statsOf(combatantByEid.get(targetEid)!);
       const damage = strikeDamage(
@@ -958,6 +1048,7 @@ export function createCombatSystem(
       if (targetRow[2]! <= 0 || wounds.fatal) {
         kill(targetEid, attacker.eid, damage);
       }
+      applyAoEBlast(attacker, attackerStats, blastX, blastY, targetEid);
     };
 
     /**
@@ -973,6 +1064,8 @@ export function createCombatSystem(
       const structure = structures.get(targetEid);
       const targetPos = positions.get(targetEid);
       if (!structure || !targetPos) return; // destroyed this tick
+      const blastX = targetPos.x;
+      const blastY = targetPos.y;
       const attackerStats = statsOf(attacker);
       const damage = strikeDamageOnBuilding(attacker.def, attackerStats);
       structure.row[structure.hpIndex] = Math.max(
@@ -1000,6 +1093,7 @@ export function createCombatSystem(
       if (structure.row[structure.hpIndex]! <= 0) {
         destroyStructure(targetEid, attacker.eid, damage);
       }
+      applyAoEBlast(attacker, attackerStats, blastX, blastY, targetEid);
     };
 
     // ---- 5) Engagement validation: foreign orders disengage, stale
@@ -1014,6 +1108,30 @@ export function createCombatSystem(
       else if (!alive.has(combatant.row[3]!)) dropEngagement(combatant);
       else if (isRoutingOf(world, comps, combatant.eid)) {
         dropEngagement(combatant);
+      }
+    }
+
+    // Advance packing/unpacking activities
+    for (const combatant of combatants) {
+      if (!alive.has(combatant.eid)) continue;
+      const head = peekActivity(combatant.queue);
+      if (head?.kind === "pack") {
+        head.remainingTicks -= 1;
+        combatant.dirty = true;
+        if (combatant.row[3] !== 0) {
+          combatant.row[3] = 0;
+        }
+        if (head.remainingTicks <= 0) {
+          dequeueCurrentActivity(combatant.queue);
+          const newDefId = head.targetUnitId;
+          const newDefCode = unitCodeOf(newDefId);
+          combatant.row[0] = newDefCode;
+          const newDef = combatDefOf(world, comps, combatant.eid);
+          if (newDef) {
+            combatant.def = newDef;
+            combatant.tagRow[0] = newDef.speed;
+          }
+        }
       }
     }
 
@@ -1034,7 +1152,12 @@ export function createCombatSystem(
       const dy = targetBody.y - combatant.posRow[1]!;
       const distSq = dx * dx + dy * dy;
       const reach = reachOf(combatant, targetBody, stats.range);
+      const minRange = combatant.def.minRange ?? 0;
+      const insideMinRange = minRange > 0 && distSq < minRange * minRange;
       if (distSq <= reach * reach) {
+        if (insideMinRange) {
+          continue;
+        }
         if (combatant.row[4]! <= 0) {
           if (structures.has(targetEid)) {
             strikeStructure(combatant, targetEid);
@@ -1043,6 +1166,11 @@ export function createCombatSystem(
           }
           combatant.row[4] = stats.reloadTicks;
         }
+        continue;
+      }
+
+      // Immobile units (e.g. unpacked trebuchet) cannot chase targets
+      if (combatant.def.speed === 0) {
         continue;
       }
 
@@ -1219,6 +1347,10 @@ export function createCombatSystem(
       if (!alive.has(combatant.eid)) continue;
       if (combatant.row[3] !== 0) continue; // already engaged
       if (isRoutingOf(world, comps, combatant.eid)) continue;
+      if (combatant.def.attack <= 0) continue;
+
+      const head = peekActivity(combatant.queue);
+      if (head?.kind === "pack") continue;
 
       const stance = getStance(world, comps, combatant.eid);
       if (stance === "no-attack") continue;
@@ -1228,18 +1360,19 @@ export function createCombatSystem(
         const attackerPos = positions.get(attackerEid)!;
         const ddx = attackerPos.x - combatant.posRow[0]!;
         const ddy = attackerPos.y - combatant.posRow[1]!;
+        const minRange = combatant.def.minRange ?? 0;
+        const distSq = ddx * ddx + ddy * ddy;
         const maxRetaliate =
           stance === "stand-ground"
             ? (combatant.def.range ?? MELEE_RANGE) + combatant.radius + attackerPos.radius
             : combatant.def.sightRadius;
-        if (ddx * ddx + ddy * ddy <= maxRetaliate * maxRetaliate) {
+        if (distSq <= maxRetaliate * maxRetaliate && (minRange === 0 || distSq >= minRange * minRange)) {
           engage(combatant, attackerEid);
           diagnostics.retaliations += 1;
           continue;
         }
       }
 
-      const head = peekActivity(combatant.queue);
       const isGuard = head !== undefined && head.kind === "guard";
       const isPatrol = head !== undefined && head.kind === "patrol";
       const isAttackMove = head !== undefined && head.kind === "attackMove";
@@ -1647,5 +1780,57 @@ function applyUngarrisonCommand(
     }
   }
   diagnostics.ungarrisonCommands += 1;
+}
+
+function applyPackCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const rawIds = data.ids ?? data.entityIds;
+  if (!rawIds || !Array.isArray(rawIds)) return;
+  for (const eid of rawIds) {
+    if (typeof eid !== "number" || eid < 1) continue;
+    const def = combatDefOf(world, comps, eid);
+    if (!def || def.siegeState !== "unpacked" || !def.morphTargetId) continue;
+    const packTicks = def.packTimeTicks ?? 90;
+    const queue = readActivityQueue(world, comps, eid);
+    cancelActivities(queue);
+    queue.push(packActivity(packTicks, def.morphTargetId));
+    writeActivityQueue(world, comps, eid, queue);
+    const combatRow = getCombatRow(world, comps, eid);
+    if (combatRow) combatRow[3] = 0; // disengage
+    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+    if (velRow) resetSteeringBookkeeping(velRow);
+  }
+  diagnostics.packCommands += 1;
+}
+
+function applyUnpackCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: CombatDiagnostics,
+  command: SimCommand,
+): void {
+  const data = (command.data ?? command) as Record<string, unknown>;
+  const rawIds = data.ids ?? data.entityIds;
+  if (!rawIds || !Array.isArray(rawIds)) return;
+  for (const eid of rawIds) {
+    if (typeof eid !== "number" || eid < 1) continue;
+    const def = combatDefOf(world, comps, eid);
+    if (!def || def.siegeState !== "packed" || !def.morphTargetId) continue;
+    const packTicks = def.packTimeTicks ?? 90;
+    const queue = readActivityQueue(world, comps, eid);
+    cancelActivities(queue);
+    queue.push(packActivity(packTicks, def.morphTargetId));
+    writeActivityQueue(world, comps, eid, queue);
+    const combatRow = getCombatRow(world, comps, eid);
+    if (combatRow) combatRow[3] = 0; // disengage
+    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+    if (velRow) resetSteeringBookkeeping(velRow);
+  }
+  diagnostics.unpackCommands += 1;
 }
 

@@ -29,11 +29,15 @@ export interface SelectedUnitSummary {
   readonly speed: number;
   readonly ownerId: number;
   readonly isMilitary: boolean;
+  readonly morphTargetId?: string | undefined;
+  readonly siegeState?: "mobile" | "packed" | "unpacked" | undefined;
 }
 
 export interface UnitPanelDeps {
   readonly onFocusUnit?: (eid: number) => void;
   readonly onFilterByType?: (unitId: string) => void;
+  readonly onPackUnit?: (eid: number) => void;
+  readonly onUnpackUnit?: (eid: number) => void;
 }
 
 export interface UnitPanelHandle {
@@ -176,6 +180,25 @@ function getUnitIconSvg(unitId: string): string {
       <path d="M2 5h20"/>
     </svg>`;
   }
+  if (unitId.includes("ram")) {
+    return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="8" width="20" height="8" rx="2"/>
+      <path d="M6 16v4M18 16v4M2 12h20"/>
+    </svg>`;
+  }
+  if (unitId.includes("mangonel") || unitId.includes("catapult")) {
+    return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="7" cy="18" r="3"/>
+      <circle cx="17" cy="18" r="3"/>
+      <path d="M7 15l8-8M15 7h4v4"/>
+    </svg>`;
+  }
+  if (unitId.includes("trebuchet")) {
+    return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 20h16M12 20V8M6 8l12-4M18 4l2 6"/>
+      <circle cx="6" cy="8" r="2"/>
+    </svg>`;
+  }
   // Swordsman / Infantry default
   return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="14.5 17.5 3 6 6 3 17.5 14.5"/>
@@ -225,9 +248,32 @@ export function createUnitPanel(deps: UnitPanelDeps = {}): UnitPanelHandle {
             ${unit.range !== undefined && unit.range > 1 ? `<span class="unit-stat" title="Range">🏹 ${unit.range}</span>` : ""}
             <span class="unit-stat" title="Speed">🏃 ${unit.speed.toFixed(1)}</span>
           </div>
+          ${
+            unit.morphTargetId
+              ? `<div class="unit-action-row" style="margin-top: 6px;">
+                  <button type="button" class="unit-pack-btn" style="padding: 3px 8px; font-size: 11px; background: #3b82f6; border: 1px solid #60a5fa; border-radius: 4px; color: #fff; cursor: pointer;">
+                    ${unit.siegeState === "packed" ? "Unpack" : "Pack"}
+                  </button>
+                </div>`
+              : ""
+          }
         </div>
       </div>
     `;
+
+    if (unit.morphTargetId) {
+      const btn = panel.querySelector(".unit-pack-btn");
+      if (btn) {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (unit.siegeState === "packed") {
+            deps.onUnpackUnit?.(unit.eid);
+          } else {
+            deps.onPackUnit?.(unit.eid);
+          }
+        });
+      }
+    }
   }
 
   function renderMulti(units: readonly SelectedUnitSummary[]): void {
