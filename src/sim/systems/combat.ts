@@ -534,12 +534,14 @@ export function createCombatSystem(
       self: Combatant,
       radius: number,
     ): Combatant | undefined => {
-      const minRange = self.def.minRange ?? 0;
+      const minRange = self.def.minRange;
       let best: Combatant | undefined;
       let bestDistSq = Number.POSITIVE_INFINITY;
       for (const [owner, hash] of hashByOwner) {
         if (owner === self.owner) continue;
-        const hit = hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange);
+        const hit = minRange !== undefined
+          ? hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange)
+          : hash.nearest(self.posRow[0]!, self.posRow[1]!, radius);
         if (!hit) continue;
         if (
           hit.distSq < bestDistSq ||
@@ -1113,6 +1115,7 @@ export function createCombatSystem(
 
     // Advance packing/unpacking activities
     for (const combatant of combatants) {
+      if (combatant.def.siegeState === undefined) continue;
       if (!alive.has(combatant.eid)) continue;
       const head = peekActivity(combatant.queue);
       if (head?.kind === "pack") {
@@ -1152,10 +1155,9 @@ export function createCombatSystem(
       const dy = targetBody.y - combatant.posRow[1]!;
       const distSq = dx * dx + dy * dy;
       const reach = reachOf(combatant, targetBody, stats.range);
-      const minRange = combatant.def.minRange ?? 0;
-      const insideMinRange = minRange > 0 && distSq < minRange * minRange;
+      const minRange = combatant.def.minRange;
       if (distSq <= reach * reach) {
-        if (insideMinRange) {
+        if (minRange !== undefined && distSq < minRange * minRange) {
           continue;
         }
         if (combatant.row[4]! <= 0) {
@@ -1349,8 +1351,10 @@ export function createCombatSystem(
       if (isRoutingOf(world, comps, combatant.eid)) continue;
       if (combatant.def.attack <= 0) continue;
 
-      const head = peekActivity(combatant.queue);
-      if (head?.kind === "pack") continue;
+      if (combatant.def.siegeState !== undefined) {
+        const head = peekActivity(combatant.queue);
+        if (head?.kind === "pack") continue;
+      }
 
       const stance = getStance(world, comps, combatant.eid);
       if (stance === "no-attack") continue;
@@ -1372,6 +1376,9 @@ export function createCombatSystem(
           continue;
         }
       }
+
+      const head = peekActivity(combatant.queue);
+      if (head?.kind === "pack") continue;
 
       const isGuard = head !== undefined && head.kind === "guard";
       const isPatrol = head !== undefined && head.kind === "patrol";
