@@ -76,11 +76,13 @@ import {
 } from "./render/selectionRings";
 import { createRallyFlagLayer } from "./render/rallyFlag";
 import { createChimneySmokeLayer } from "./render/chimneySmoke";
-import { createAgeUpBanner } from "./ui/ageUpBanner";
+import { createAgeUpBanner, formatAgeToast } from "./ui/ageUpBanner";
+import { createToastManager } from "./ui/toasts";
 import {
   getAssignedSite,
   getBuildingRow,
   getBuildingSiteRow,
+  getPosition,
   populationCapOf,
   populationOf,
   readTrainQueue,
@@ -94,6 +96,8 @@ import {
   recipeDefOf,
   recipeIdOfCode,
   recipesForBuilding,
+  techDefOf,
+  techIdOfCode,
   unitDefOf,
   unitIdOfCode,
   unitCodeOf,
@@ -221,7 +225,12 @@ import {
   issuePack,
   issueUnpack,
 } from "./ui/orders";
-import { spawnCombatUnit } from "./sim/components/combat";
+import {
+  spawnCombatUnit,
+  readCombatEvents,
+  researchedTechCodesOf,
+  COMBAT_EVENT_DAMAGE,
+} from "./sim/components/combat";
 import { RESOURCE_WOOD } from "./sim/components/economy";
 import {
   issuePlaceBuilding,
@@ -837,7 +846,15 @@ const moveMarkers = createRingMarkerPool({ scene, layers: world.layers });
 const rallyFlagLayer = createRallyFlagLayer(scene, world.layers);
 const chimneySmokeLayer = createChimneySmokeLayer(scene);
 const ageUpBanner = createAgeUpBanner();
+const toastManager = createToastManager({
+  onJumpTo: (x, y) => {
+    cameraRig.setCenter(x, y);
+  },
+});
 let lastPlayerAgeRank = currentAgeRankOf(world, comps, PLAYER_ONE);
+const knownTechCodes = new Set<number>(
+  researchedTechCodesOf(world, comps, PLAYER_ONE),
+);
 let chimneySinceUpdateMs = 1000; // trigger immediate populate
 
 function collectChimneyCoords(): { x: number; y: number; height: number }[] {
@@ -2167,6 +2184,33 @@ function frame(
       audioScheduler.push(intent);
     }
     audioScheduler.ambient(minuteOfDay(world.tick), now);
+
+    // Event Toast Notifications (V14 / #104)
+    try {
+      for (const e of readCombatEvents(world, comps, PLAYER_ONE)) {
+        if (e.tick <= since) continue;
+        if (e.kind === COMBAT_EVENT_DAMAGE) {
+          const victimPos = getPosition(world, comps, e.victimEid);
+          if (victimPos) {
+            toastManager.notifyUnderAttack(victimPos.x, victimPos.y);
+          }
+        }
+      }
+    } catch {
+      /* minimal worlds */
+    }
+
+    const currentTechCodes = researchedTechCodesOf(world, comps, PLAYER_ONE);
+    for (const code of currentTechCodes) {
+      if (!knownTechCodes.has(code)) {
+        knownTechCodes.add(code);
+        const techId = techIdOfCode(code);
+        const tDef = techDefOf(techId);
+        if (tDef) {
+          toastManager.notifyResearchComplete(tDef.name);
+        }
+      }
+    }
   }
   audioScheduler.drain((batch) => voicePool.play(batch));
 
@@ -2660,6 +2704,7 @@ function frame(
   if (playerAge > lastPlayerAgeRank) {
     lastPlayerAgeRank = playerAge;
     ageUpBanner.show(playerAge);
+    toastManager.notifyAgeUp(formatAgeToast(playerAge));
   }
   topbar.updateAge(playerAge);
   // M4-T6: disclose the AI difficulty knobs — decision interval,
