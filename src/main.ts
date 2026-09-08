@@ -111,6 +111,7 @@ import {
 import { TICK_DT_MS, step, type World } from "./sim/core/world";
 import type { SimComponents } from "./sim/components";
 import { canEnqueueTraining } from "./sim/systems/training";
+import { activeTradeCartsCountForMarket } from "./sim/systems/market";
 import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
 import {
   canAfford,
@@ -1834,6 +1835,10 @@ const buildingPanel = createBuildingPanel({
       canTrain: canEnqueueTraining(world, comps, eid),
       trainableUnits,
       isMarket: def.id === "market",
+      activeTradeCarts:
+        def.id === "market"
+          ? activeTradeCartsCountForMarket(world, eid)
+          : undefined,
       garrison,
     };
   },

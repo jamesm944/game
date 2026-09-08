@@ -67,6 +67,9 @@ function knowledgeStub(
     knownGroundRelics: () => [],
     ownMonasteries: () => [],
     carriedRelicOf: () => undefined,
+    knownTargetMarkets: () => [],
+    tradeCarts: () => [],
+    isTradeCartActive: () => false,
     ...parts,
   } as AiKnowledge;
 }

@@ -51,6 +51,7 @@ import {
   RELIC_GROUND,
 } from "../components/relic";
 import { buildingDefsForVictoryPath } from "../../data/victoryRoles";
+import { getActiveTradeRoutes } from "../systems/market";
 import type { SimComponents } from "../components";
 import type { World } from "../core/world";
 
@@ -160,6 +161,13 @@ export interface AiKnowledge {
   ownMonasteries(): readonly { eid: number; tileX: number; tileY: number }[];
   /** The relic eid currently being carried by one of our monks, or undefined. */
   carriedRelicOf(unitEid: number): number | undefined;
+  // ---- Trade queries (SPEC §2.6 / Issue #103) ------------------------------
+  /** Known foreign finished markets (enemy or neutral, fog-gated via knownEntities). */
+  knownTargetMarkets(): readonly { eid: number; tileX: number; tileY: number }[];
+  /** Own trade carts currently on the map. */
+  tradeCarts(): readonly { eid: number; tileX: number; tileY: number }[];
+  /** Whether a trade cart is currently assigned to an active trade route. */
+  isTradeCartActive(cartEid: number): boolean;
   // ---- Command pre-flight mirrors (keep handlers throw-free) ---------------
   canAfford(costs: CostLedger): boolean;
   canPlace(defId: string, tileX: number, tileY: number): boolean;
@@ -493,6 +501,40 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
     carriedRelicOf(unitEid) {
       if (!comps.relicId) return undefined;
       return carriedRelicOfComp(world, comps as Parameters<typeof carriedRelicOfComp>[1], unitEid);
+    },
+
+    knownTargetMarkets() {
+      const out: { eid: number; tileX: number; tileY: number }[] = [];
+      for (const entity of knownEntities()) {
+        if (entity.owner === player) continue;
+        if (entity.defId !== "market") continue;
+        if (world.rowsByComponentId.get(comps.buildingSiteId)?.has(entity.eid)) continue;
+        out.push({
+          eid: entity.eid,
+          tileX: entity.tileX,
+          tileY: entity.tileY,
+        });
+      }
+      return out.sort((a, b) => a.eid - b.eid);
+    },
+
+    tradeCarts() {
+      const out: { eid: number; tileX: number; tileY: number }[] = [];
+      for (const entity of knownEntities()) {
+        if (entity.owner !== player) continue;
+        if (entity.defId !== "trade-cart") continue;
+        out.push({
+          eid: entity.eid,
+          tileX: entity.tileX,
+          tileY: entity.tileY,
+        });
+      }
+      return out.sort((a, b) => a.eid - b.eid);
+    },
+
+    isTradeCartActive(cartEid) {
+      const routes = getActiveTradeRoutes(world);
+      return routes.has(cartEid);
     },
 
     canAfford: (costs) => canAffordCosts(world, comps, player, costs),

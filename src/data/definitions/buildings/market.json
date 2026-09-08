@@ -16,5 +16,6 @@
   "trainQueue": {
     "capacity": 5,
     "trainable": [{ "unitId": "trade-cart" }]
-  }
+  },
+  "tradeRate": 0.5
 }

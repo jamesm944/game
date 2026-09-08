@@ -276,6 +276,10 @@ export const buildingSchema = z.object({
   victory: victoryRoleSchema.optional(),
   /** Asset refs per evolution stage (SPEC §3); stub until M2 art tickets. */
   ageStages: z.array(z.string()).optional(),
+  /** Trade route gold generation rate per tile of distance (Issue #103, defaults to 0.5). */
+  tradeRate: z.number().positive().optional(),
+  /** Brief wait ticks at foreign market during trading before heading home (Issue #103). */
+  tradeWaitTicks: z.number().int().nonnegative().optional(),
 });
 
 export type BuildingDefinition = z.infer<typeof buildingSchema>;

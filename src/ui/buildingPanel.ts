@@ -51,6 +51,8 @@ export interface BuildingPanelData {
   readonly candidates?: readonly BuildingPanelCandidate[] | undefined;
   /** True if selected building is a Market for commodity trading. */
   readonly isMarket?: boolean | undefined;
+  /** Number of active trade carts trading at or from this market (Issue #103). */
+  readonly activeTradeCarts?: number | undefined;
   /** Train action options if trainable (unitId, label). */
   readonly trainableUnits?: readonly {
     readonly unitId: string;
@@ -68,6 +70,10 @@ export const TRAIN_UNIT_KIND = "trainUnit";
 export const APPOINT_FOREMAN_KIND = "appointForeman";
 export const MARKET_EXCHANGE_KIND = "marketExchange";
 export const UNGARRISON_COMMAND_KIND = "ungarrison";
+
+export function formatMarketSummary(activeTradeCarts: number = 0): string {
+  return `Rates: Sell 100 for 70g · Buy 100 for 130g | Active Carts: ${String(activeTradeCarts)}`;
+}
 
 export function issueUngarrison(
   inbox: CommandInbox,
@@ -299,6 +305,14 @@ export function createBuildingPanel(deps: {
           heading.className = "panel-appoint-heading";
           heading.textContent = "Commodity Exchange";
           exchangeWrap.appendChild(heading);
+
+          const summary = document.createElement("div");
+          summary.className = "panel-market-summary";
+          summary.style.fontSize = "11px";
+          summary.style.color = "#a0aab8";
+          summary.style.marginBottom = "6px";
+          summary.textContent = formatMarketSummary(data.activeTradeCarts ?? 0);
+          exchangeWrap.appendChild(summary);
 
           const commodities: Array<{
             res: "wood" | "food" | "stone";

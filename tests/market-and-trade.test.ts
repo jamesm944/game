@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { buildingDefOf, unitDefOf } from "../src/data/definitions";
 import {
+  activeTradeCartsCountForMarket,
+  ASSIGN_TRADE_ROUTE_COMMAND_KIND,
   createMarketSystem,
   executeMarketExchange,
+  getActiveTradeRoutes,
   MARKET_EXCHANGE_COMMAND_KIND,
   playerHasFinishedMarket,
   TRADE_ROUTE_COMMAND_KIND,
 } from "../src/sim/systems/market";
+import { planTradeRoutes } from "../src/sim/ai/tradeManager";
+import { createResourceBudget, type AiKnowledge } from "../src/sim/ai/knowledge";
+import type { CommandDraft } from "../src/sim/ai/buildOrder";
 import {
   RESOURCE_FOOD,
   RESOURCE_GOLD,
@@ -289,5 +295,140 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
     const finalGold = stockpileRow[RESOURCE_GOLD + 1]!;
     expect(finalGold).toBeGreaterThan(initialGold);
     expect(finalGold - initialGold).toBe(10); // floor(20 * 0.5) = 10
+  });
+
+  it("supports assignTradeRoute command with { cartId, targetMarketId } syntax", () => {
+    const { world, comps } = createHarness();
+
+    stampFinishedBuilding(world, comps, "market", 10, 10, {
+      playerId: PLAYER_ONE,
+    });
+    const targetMarketEid = stampFinishedBuilding(
+      world,
+      comps,
+      "market",
+      30,
+      10,
+      { playerId: PLAYER_TWO },
+    );
+
+    const cartEid = spawnCombatUnit(
+      world,
+      comps,
+      "trade-cart",
+      15,
+      12,
+      PLAYER_ONE,
+    );
+
+    world.inbox.submit({
+      kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
+      targetTick: 1,
+      data: {
+        cartId: cartEid,
+        targetMarketId: targetMarketEid,
+      },
+    });
+
+    step(world);
+
+    const routes = getActiveTradeRoutes(world);
+    expect(routes.has(cartEid)).toBe(true);
+    expect(routes.get(cartEid)?.state).toBe("to_target");
+    expect(activeTradeCartsCountForMarket(world, targetMarketEid)).toBe(1);
+  });
+
+  it("handles trade wait ticks with loading state at target market", () => {
+    const terrainType = new Uint8Array(SIZE * SIZE).fill(TERRAIN_GRASS);
+    const world = createWorld(20260824, {
+      layers: buildLayers(terrainType, new Uint8Array(SIZE * SIZE)),
+      size: SIZE,
+    });
+    const comps = defineSimComponents(world);
+    registerSystem(world, createPlacementSystem(comps));
+    // Register market system with tradeWaitTicks = 2
+    registerSystem(world, createMarketSystem({ comps, tradeWaitTicks: 2 }));
+
+    createPlayerStockpile(world, comps, PLAYER_ONE, [100, 100, 100, 100, 0, 0, 0]);
+    createPlayerStockpile(world, comps, PLAYER_TWO, [100, 100, 100, 100, 0, 0, 0]);
+
+    const homeEid = stampFinishedBuilding(world, comps, "market", 10, 10, {
+      playerId: PLAYER_ONE,
+    });
+    const targetEid = stampFinishedBuilding(world, comps, "market", 30, 10, {
+      playerId: PLAYER_TWO,
+    });
+    const cartEid = spawnCombatUnit(world, comps, "trade-cart", 12, 12, PLAYER_ONE);
+
+    world.inbox.submit({
+      kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
+      targetTick: 1,
+      data: { cartId: cartEid, targetMarketId: targetEid },
+    });
+    step(world);
+
+    const routes = getActiveTradeRoutes(world);
+    expect(routes.get(cartEid)?.state).toBe("to_target");
+
+    // Move cart to target market
+    const posRows = world.rowsByComponentId.get(comps.positionId)!;
+    posRows.set(cartEid, [31, 12]);
+    step(world); // Cart reaches target market -> enters loading state
+    expect(routes.get(cartEid)?.state).toBe("loading");
+    expect(routes.get(cartEid)?.waitTicks).toBe(2);
+
+    step(world); // 1 tick passes
+    expect(routes.get(cartEid)?.state).toBe("loading");
+    expect(routes.get(cartEid)?.waitTicks).toBe(1);
+
+    step(world); // wait ticks expire -> transitions to to_origin
+    expect(routes.get(cartEid)?.state).toBe("to_origin");
+  });
+
+  it("AI opponent plans trade routes and trains trade carts when market exists", () => {
+    const drafts: CommandDraft[] = [];
+    const kMock = {
+      finishedBuildings: (defId?: string) => (defId === "market" ? [100] : []),
+      knownTargetMarkets: () => [{ eid: 200, tileX: 40, tileY: 40 }],
+      tradeCarts: () => [{ eid: 50, tileX: 12, tileY: 12 }],
+      isTradeCartActive: (eid: number) => false,
+      population: () => 5,
+      populationCap: () => 15,
+      canTrain: () => true,
+      canAfford: () => true,
+      resources: () => [500, 500, 500, 500, 0, 0, 0],
+    } as unknown as AiKnowledge;
+
+    const budget = createResourceBudget(kMock);
+    planTradeRoutes(kMock, drafts, budget);
+
+    expect(drafts).toHaveLength(2);
+    // Draft 1: assign idle trade cart to route
+    expect(drafts[0]).toEqual({
+      kind: "assignTradeRoute",
+      data: { cartId: 50, targetMarketId: 200 },
+    });
+    // Draft 2: train trade cart
+    expect(drafts[1]).toEqual({
+      kind: "trainUnit",
+      data: { siteEid: 100, unitId: "trade-cart", purpose: "trade" },
+    });
+  });
+
+  it("AI trade planning emits nothing when no own market exists", () => {
+    const drafts: CommandDraft[] = [];
+    const kMock = {
+      finishedBuildings: () => [],
+      knownTargetMarkets: () => [{ eid: 200, tileX: 40, tileY: 40 }],
+      tradeCarts: () => [{ eid: 50, tileX: 12, tileY: 12 }],
+      isTradeCartActive: () => false,
+      population: () => 5,
+      populationCap: () => 15,
+      resources: () => [500, 500, 500, 500, 0, 0, 0],
+    } as unknown as AiKnowledge;
+
+    const budget = createResourceBudget(kMock);
+    planTradeRoutes(kMock, drafts, budget);
+    expect(drafts).toHaveLength(0);
   });
 });

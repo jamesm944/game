@@ -56,6 +56,7 @@ import {
   planRelicDepositSingle,
   type MilitaryMemory,
 } from "./militaryManager";
+import { planTradeRoutes } from "./tradeManager";
 import { aiDifficultyOf, type AiDifficultyId } from "./difficulty";
 import type { SimSystem, World } from "../core/world";
 
@@ -245,6 +246,7 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     planRelicDeposit(k, drafts);
     planRelicCollection(k, drafts);
     planMonkConversions(k, drafts);
+    planTradeRoutes(k, drafts, budget);
     return drafts;
   };
 

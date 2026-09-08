@@ -28,17 +28,68 @@ import type { SimSystem, World } from "../core/world";
 
 export const MARKET_EXCHANGE_COMMAND_KIND = "marketExchange";
 export const TRADE_ROUTE_COMMAND_KIND = "tradeRoute";
+export const ASSIGN_TRADE_ROUTE_COMMAND_KIND = "assignTradeRoute";
 
-export interface MarketSystemOptions {
-  readonly comps: SimComponents;
-}
+export const DEFAULT_TRADE_WAIT_TICKS = 15;
+
+export type TradeRouteState = "to_target" | "loading" | "to_origin" | "unloading";
 
 export interface ActiveTradeRoute {
   unitEid: number;
   originMarketEid: number;
   targetMarketEid: number;
-  state: "to_target" | "to_origin";
+  state: TradeRouteState;
   carriedGold: number;
+  waitTicks: number;
+}
+
+export interface MarketSystemOptions {
+  readonly comps: SimComponents;
+  readonly tradeWaitTicks?: number;
+}
+
+const WORLD_ACTIVE_ROUTES = new WeakMap<World, Map<number, ActiveTradeRoute>>();
+
+export function getActiveTradeRoutes(world: World): Map<number, ActiveTradeRoute> {
+  let routes = WORLD_ACTIVE_ROUTES.get(world);
+  if (!routes) {
+    routes = new Map();
+    WORLD_ACTIVE_ROUTES.set(world, routes);
+  }
+  return routes;
+}
+
+export function activeTradeCartsCountForMarket(
+  world: World,
+  marketEid: number,
+): number {
+  const routes = getActiveTradeRoutes(world);
+  let count = 0;
+  for (const route of routes.values()) {
+    if (route.originMarketEid === marketEid || route.targetMarketEid === marketEid) {
+      count++;
+    }
+  }
+  return count;
+}
+
+export function activeTradeRoutesCountForPlayer(
+  world: World,
+  comps: SimComponents,
+  playerId: number,
+): number {
+  const routes = getActiveTradeRoutes(world);
+  let count = 0;
+  const ownerRows = world.rowsByComponentId.get(comps.ownerId);
+  for (const route of routes.values()) {
+    let owner = ownerRows?.get(route.unitEid)?.[0];
+    if (owner === undefined) {
+      owner = world.rowsByComponentId.get(comps.combatId)?.get(route.unitEid)?.[1];
+    }
+    if (owner === undefined) owner = 0;
+    if (owner === playerId) count++;
+  }
+  return count;
 }
 
 function stockpileRowOf(
@@ -133,8 +184,7 @@ export function executeMarketExchange(
 }
 
 export function createMarketSystem(options: MarketSystemOptions): SimSystem {
-  const { comps } = options;
-  const activeRoutes = new Map<number, ActiveTradeRoute>();
+  const { comps, tradeWaitTicks = 0 } = options;
 
   return function marketSystem(
     world: World,
@@ -143,6 +193,18 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
     const posRows = world.rowsByComponentId.get(comps.positionId);
     const moveTargetRows = world.rowsByComponentId.get(comps.moveTargetId);
     const ownerRows = world.rowsByComponentId.get(comps.ownerId);
+    const buildingRows = world.rowsByComponentId.get(comps.buildingId);
+    const activeRoutes = getActiveTradeRoutes(world);
+
+    // Helper to issue movement to target coordinates (A* pathfinding + direct target)
+    const dispatchMove = (unitEid: number, destX: number, destY: number): void => {
+      moveTargetRows?.set(unitEid, [destX, destY]);
+      world.inbox.submit({
+        kind: "groupMove",
+        targetTick: world.tick + 1,
+        data: { entityIds: [unitEid], x: destX, y: destY },
+      });
+    };
 
     // 1. Process Inbox Commands
     for (const cmd of commands) {
@@ -169,31 +231,42 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
             data.amount ?? 100,
           );
         }
-      } else if (cmd.kind === TRADE_ROUTE_COMMAND_KIND && cmd.data) {
-        const data = cmd.data as { unitEid?: number; targetMarketEid?: number };
+      } else if (
+        (cmd.kind === TRADE_ROUTE_COMMAND_KIND ||
+          cmd.kind === ASSIGN_TRADE_ROUTE_COMMAND_KIND) &&
+        cmd.data
+      ) {
+        const data = cmd.data as {
+          unitEid?: number;
+          cartId?: number;
+          targetMarketEid?: number;
+          targetMarketId?: number;
+        };
+        const unitEid = data.cartId ?? data.unitEid;
+        const targetMarketEid = data.targetMarketId ?? data.targetMarketEid;
+
         if (
-          typeof data.unitEid === "number" &&
-          typeof data.targetMarketEid === "number" &&
-          posRows?.has(data.unitEid) &&
-          posRows?.has(data.targetMarketEid)
+          typeof unitEid === "number" &&
+          typeof targetMarketEid === "number" &&
+          posRows?.has(unitEid) &&
+          posRows?.has(targetMarketEid)
         ) {
-          let ownerId = ownerRows?.get(data.unitEid)?.[0];
+          let ownerId = ownerRows?.get(unitEid)?.[0];
           if (ownerId === undefined) {
             ownerId = world.rowsByComponentId
               .get(comps.combatId)
-              ?.get(data.unitEid)?.[1];
+              ?.get(unitEid)?.[1];
           }
           if (ownerId === undefined) ownerId = 0;
 
           // Find closest finished own Market as origin
           let bestOriginEid: number | undefined;
           let bestOriginDistSq = Infinity;
-          const cartPos = posRows.get(data.unitEid)!;
+          const cartPos = posRows.get(unitEid)!;
 
-          const buildingRows = world.rowsByComponentId.get(comps.buildingId);
           if (buildingRows) {
             for (const [bEid, bRow] of buildingRows) {
-              if (bRow[0] === ownerId && bEid !== data.targetMarketEid) {
+              if (bRow[0] === ownerId && bEid !== targetMarketEid) {
                 const bDef = buildingDefOf(buildingIdOfCode(bRow[1]!));
                 if (bDef.id === "market") {
                   const siteRow = world.rowsByComponentId
@@ -217,17 +290,18 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
           }
 
           if (bestOriginEid !== undefined) {
-            activeRoutes.set(data.unitEid, {
-              unitEid: data.unitEid,
+            activeRoutes.set(unitEid, {
+              unitEid,
               originMarketEid: bestOriginEid,
-              targetMarketEid: data.targetMarketEid,
+              targetMarketEid,
               state: "to_target",
               carriedGold: 0,
+              waitTicks: 0,
             });
 
-            const targetPos = posRows.get(data.targetMarketEid);
-            if (targetPos && moveTargetRows) {
-              moveTargetRows.set(data.unitEid, [targetPos[0]!, targetPos[1]!]);
+            const targetPos = posRows.get(targetMarketEid);
+            if (targetPos) {
+              dispatchMove(unitEid, targetPos[0]!, targetPos[1]!);
             }
           }
         }
@@ -235,9 +309,22 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
     }
 
     // 2. Advance Active Trade Routes
-    if (activeRoutes.size === 0 || !posRows || !moveTargetRows) return;
+    if (activeRoutes.size === 0 || !posRows) return;
 
     for (const [unitEid, route] of activeRoutes) {
+      // Validate entity vitality
+      if (!world.entities.includes(unitEid)) {
+        activeRoutes.delete(unitEid);
+        continue;
+      }
+      if (
+        !world.entities.includes(route.originMarketEid) ||
+        !world.entities.includes(route.targetMarketEid)
+      ) {
+        activeRoutes.delete(unitEid);
+        continue;
+      }
+
       const cartPos = posRows.get(unitEid);
       const originPos = posRows.get(route.originMarketEid);
       const targetPos = posRows.get(route.targetMarketEid);
@@ -257,14 +344,32 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
           (cartPos[0]! - targetCenterX) ** 2 +
           (cartPos[1]! - targetCenterY) ** 2;
         if (distSq <= 3.5 * 3.5) {
-          // Arrived at target market -> load gold cargo based on distance
+          // Arrived at target market -> calculate gold cargo based on distance and rate
           const marketDist = Math.hypot(
             originCenterX - targetCenterX,
             originCenterY - targetCenterY,
           );
-          route.carriedGold = Math.max(5, Math.floor(marketDist * 0.5));
+          const targetRow = buildingRows?.get(route.targetMarketEid);
+          let tradeRate = 0.5;
+          if (targetRow) {
+            const bDef = buildingDefOf(buildingIdOfCode(targetRow[1]!));
+            if (bDef.tradeRate !== undefined) tradeRate = bDef.tradeRate;
+          }
+          route.carriedGold = Math.max(5, Math.floor(marketDist * tradeRate));
+
+          if (tradeWaitTicks > 0) {
+            route.state = "loading";
+            route.waitTicks = tradeWaitTicks;
+          } else {
+            route.state = "to_origin";
+            dispatchMove(unitEid, originCenterX, originCenterY);
+          }
+        }
+      } else if (route.state === "loading") {
+        route.waitTicks--;
+        if (route.waitTicks <= 0) {
           route.state = "to_origin";
-          moveTargetRows.set(unitEid, [originCenterX, originCenterY]);
+          dispatchMove(unitEid, originCenterX, originCenterY);
         }
       } else if (route.state === "to_origin") {
         const distSq =
@@ -284,8 +389,20 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
             stockpile[RESOURCE_GOLD + 1]! += route.carriedGold;
           }
           route.carriedGold = 0;
+
+          if (tradeWaitTicks > 0) {
+            route.state = "unloading";
+            route.waitTicks = tradeWaitTicks;
+          } else {
+            route.state = "to_target";
+            dispatchMove(unitEid, targetCenterX, targetCenterY);
+          }
+        }
+      } else if (route.state === "unloading") {
+        route.waitTicks--;
+        if (route.waitTicks <= 0) {
           route.state = "to_target";
-          moveTargetRows.set(unitEid, [targetCenterX, targetCenterY]);
+          dispatchMove(unitEid, targetCenterX, targetCenterY);
         }
       }
     }
