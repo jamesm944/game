@@ -23,10 +23,12 @@ import { stampFinishedBuilding } from "../src/sim/systems/placement";
 import { spawnCombatUnit } from "../src/sim/components/combat";
 import {
   createWorld,
+  despawnEntity,
   registerSystem,
   step,
   type World,
 } from "../src/sim/core/world";
+import { formatMarketSummary } from "../src/ui/buildingPanel";
 import { defineSimComponents, type SimComponents } from "../src/sim/components";
 import { createPlayerStockpile } from "../src/sim/core/stockpile";
 import { buildLayers, TERRAIN_GRASS } from "../src/sim/world/layers";
@@ -431,4 +433,101 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
     planTradeRoutes(kMock, drafts, budget);
     expect(drafts).toHaveLength(0);
   });
+
+  it("formatMarketSummary formats active carts and exchange rates accurately", () => {
+    expect(formatMarketSummary(0)).toBe(
+      "Rates: Sell 100 for 70g · Buy 100 for 130g | Active Carts: 0",
+    );
+    expect(formatMarketSummary(3)).toBe(
+      "Rates: Sell 100 for 70g · Buy 100 for 130g | Active Carts: 3",
+    );
+  });
+
+  it("executes full autonomous round trip: to_target -> loading -> to_origin -> unloading -> to_target", () => {
+    const terrainType = new Uint8Array(SIZE * SIZE).fill(TERRAIN_GRASS);
+    const world = createWorld(20260824, {
+      layers: buildLayers(terrainType, new Uint8Array(SIZE * SIZE)),
+      size: SIZE,
+    });
+    const comps = defineSimComponents(world);
+    registerSystem(world, createPlacementSystem(comps));
+    // 2-tick wait for test brevity
+    registerSystem(world, createMarketSystem({ comps, tradeWaitTicks: 2 }));
+
+    createPlayerStockpile(world, comps, PLAYER_ONE, [500, 500, 100, 500, 0, 0, 0]);
+    createPlayerStockpile(world, comps, PLAYER_TWO, [500, 500, 100, 500, 0, 0, 0]);
+
+    const homeEid = stampFinishedBuilding(world, comps, "market", 10, 10, {
+      playerId: PLAYER_ONE,
+    });
+    const targetEid = stampFinishedBuilding(world, comps, "market", 30, 10, {
+      playerId: PLAYER_TWO,
+    });
+    const cartEid = spawnCombatUnit(world, comps, "trade-cart", 12, 12, PLAYER_ONE);
+
+    world.inbox.submit({
+      kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
+      targetTick: 1,
+      data: { cartId: cartEid, targetMarketId: targetEid },
+    });
+    step(world);
+
+    const routes = getActiveTradeRoutes(world);
+    const posRows = world.rowsByComponentId.get(comps.positionId)!;
+    const stockpileRow = [
+      ...world.rowsByComponentId.get(comps.stockpileId)!.values(),
+    ].find((r) => r[0] === PLAYER_ONE)!;
+
+    // 1. Outbound trip
+    expect(routes.get(cartEid)?.state).toBe("to_target");
+    posRows.set(cartEid, [31, 12]);
+    step(world); // arrives at target
+    expect(routes.get(cartEid)?.state).toBe("loading");
+    expect(routes.get(cartEid)?.carriedGold).toBe(10);
+
+    step(world); // loading tick 1
+    step(world); // loading tick 2 -> departs to origin
+    expect(routes.get(cartEid)?.state).toBe("to_origin");
+
+    // 2. Return trip
+    posRows.set(cartEid, [12, 12]);
+    step(world); // arrives home -> deposits gold & enters unloading
+    expect(stockpileRow[RESOURCE_GOLD + 1]).toBe(110); // 100 + 10 = 110
+    expect(routes.get(cartEid)?.state).toBe("unloading");
+    expect(routes.get(cartEid)?.carriedGold).toBe(0);
+
+    step(world); // unloading tick 1
+    step(world); // unloading tick 2 -> repeats autonomously back to to_target!
+    expect(routes.get(cartEid)?.state).toBe("to_target");
+  });
+
+  it("cleans up trade route if cart or market is destroyed", () => {
+    const { world, comps } = createHarness();
+
+    const homeEid = stampFinishedBuilding(world, comps, "market", 10, 10, {
+      playerId: PLAYER_ONE,
+    });
+    const targetEid = stampFinishedBuilding(world, comps, "market", 30, 10, {
+      playerId: PLAYER_TWO,
+    });
+    const cartEid = spawnCombatUnit(world, comps, "trade-cart", 12, 12, PLAYER_ONE);
+
+    world.inbox.submit({
+      kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
+      targetTick: 1,
+      data: { cartId: cartEid, targetMarketId: targetEid },
+    });
+    step(world);
+
+    const routes = getActiveTradeRoutes(world);
+    expect(routes.has(cartEid)).toBe(true);
+
+    // Despawn target market
+    despawnEntity(world, targetEid);
+    step(world);
+
+    // Route cleanly removed
+    expect(routes.has(cartEid)).toBe(false);
+  });
 });
+
