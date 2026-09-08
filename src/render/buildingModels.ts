@@ -34,6 +34,11 @@ import type { BuildingSnapshotFrame } from "../sim/mirror";
 import type { WorldLayers } from "../sim/world/layers";
 import { terrainHeightAt } from "./terrain";
 import { buildingIdOfCode } from "../data/definitions";
+import {
+  createBuildingShadowMesh,
+  MAX_BUILDING_SHADOWS,
+  updateBuildingShadows,
+} from "./buildingShadows";
 
 // GLTF model asset URLs
 import tcDark from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/TownCenter_FirstAge_Level1.gltf";
@@ -343,6 +348,7 @@ export interface BuildingWriteOptions {
 
 export interface BuildingModelsLayer {
   readonly group: Group;
+  readonly shadowMesh: InstancedMesh;
   write(
     frame: BuildingSnapshotFrame,
     layers: WorldLayers,
@@ -396,11 +402,16 @@ export async function createBuildingModelsLayer(): Promise<BuildingModelsLayer> 
     meshes.set(key, mesh);
   }
 
+  // Preallocated instanced ground contact shadow mesh (Issue #99)
+  const shadowMesh = createBuildingShadowMesh(MAX_BUILDING_SHADOWS);
+  group.add(shadowMesh);
+
   // Preallocated bucket counts
   const bucketCounts = new Map<string, number>();
 
   return {
     group,
+    shadowMesh,
     write(frame, layers, options: BuildingWriteOptions = {}) {
       // Reset bucket counts
       for (const key of meshes.keys()) {
@@ -476,6 +487,9 @@ export async function createBuildingModelsLayer(): Promise<BuildingModelsLayer> 
           mesh.visible = false;
         }
       }
+
+      // Update building ground contact shadow decals (Issue #99)
+      updateBuildingShadows(shadowMesh, frame, layers, options.isGhost);
     },
   };
 }
