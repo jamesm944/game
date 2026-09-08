@@ -433,3 +433,141 @@ export function planMonkConversionSingle(
   return drafts[0];
 }
 
+// ---- 5) Relic collection — SPEC §2.11 Relic path (issue #102) --------------------
+
+/**
+ * Assign idle monks to pick up grounded visible relics (§2.11 Relic path).
+ *
+ * Priority rules (deterministic, replay-stable):
+ *   - Only monks with defId === "monk" qualify.
+ *   - One monk per grounded relic per pass (nearest monk → relic, ascending
+ *     eid on tie).
+ *   - A monk already carrying a relic is skipped here — handled by
+ *     planRelicDeposit.
+ *   - Fog-honest: relics come from knowledge.groundedRelics() which gates
+ *     them on explored/visible tiles.
+ *
+ * Emits `collectRelic` commands into `out` (does not return early after the
+ * first hit — every unattended relic gets a monk assignment in one pass).
+ */
+export function planRelicCollection(
+  k: AiKnowledge,
+  out: CommandDraft[],
+): void {
+  // Monks currently CARRYING a relic should deposit, not collect again.
+  const ownMonks = k.armyUnits().filter((u) => u.defId === "monk");
+  if (ownMonks.length === 0) return;
+
+  const carriersSet = new Set<number>(
+    ownMonks
+      .map((u) => ({ eid: u.eid, relic: k.carriedRelicOf(u.eid) }))
+      .filter((e) => e.relic !== undefined)
+      .map((e) => e.eid),
+  );
+
+  const idleMonks = ownMonks.filter((u) => !carriersSet.has(u.eid));
+  if (idleMonks.length === 0) return;
+
+  const grounded = k.knownGroundRelics();
+  if (grounded.length === 0) return;
+
+  // Build all candidate pairs and greedily match closest (monk, relic) pairs.
+  interface CandidatePair {
+    monkEid: number;
+    relicEid: number;
+    dsq: number;
+  }
+  const pairs: CandidatePair[] = [];
+  for (const monk of idleMonks) {
+    for (const relic of grounded) {
+      const dx = monk.tileX - relic.tileX;
+      const dy = monk.tileY - relic.tileY;
+      pairs.push({
+        monkEid: monk.eid,
+        relicEid: relic.eid,
+        dsq: dx * dx + dy * dy,
+      });
+    }
+  }
+
+  // Deterministic sort: shortest distance first, break ties with monkEid then relicEid.
+  pairs.sort(
+    (a, b) => a.dsq - b.dsq || a.monkEid - b.monkEid || a.relicEid - b.relicEid,
+  );
+
+  const claimedRelics = new Set<number>();
+  const claimedMonks = new Set<number>();
+
+  for (const pair of pairs) {
+    if (claimedRelics.has(pair.relicEid) || claimedMonks.has(pair.monkEid)) {
+      continue;
+    }
+    claimedRelics.add(pair.relicEid);
+    claimedMonks.add(pair.monkEid);
+    out.push({
+      kind: "collectRelic",
+      data: { unitEid: pair.monkEid, relicEid: pair.relicEid },
+    });
+  }
+}
+
+/**
+ * Emit `depositRelic` orders for monks who are CARRYING a relic.
+ *
+ * Each carrier targets the nearest own Monastery (ascending eid on tie).
+ * If the AI has no monastery yet, no commands are emitted.
+ */
+export function planRelicDeposit(
+  k: AiKnowledge,
+  out: CommandDraft[],
+): void {
+  // Find all own monks carrying a relic.
+  const ownMonks = k.armyUnits().filter((u) => u.defId === "monk");
+  const carriers = ownMonks
+    .map((u) => ({ monk: u, relicEid: k.carriedRelicOf(u.eid) }))
+    .filter((e): e is { monk: typeof e.monk; relicEid: number } =>
+      e.relicEid !== undefined,
+    );
+  if (carriers.length === 0) return;
+
+  const monasteries = k.ownMonasteries();
+  if (monasteries.length === 0) return;
+
+  for (const { monk } of carriers) {
+    let best = monasteries[0]!;
+    let bestDsq = distSq(monk, best);
+    for (let i = 1; i < monasteries.length; i++) {
+      const d = distSq(monk, monasteries[i]!);
+      if (d < bestDsq || (d === bestDsq && monasteries[i]!.eid < best.eid)) {
+        bestDsq = d;
+        best = monasteries[i]!;
+      }
+    }
+    out.push({
+      kind: "depositRelic",
+      data: { unitEid: monk.eid, monasteryEid: best.eid },
+    });
+  }
+}
+
+/**
+ * Incremental check for relic deposits: returns the first deposit order available.
+ */
+export function planRelicDepositSingle(
+  k: AiKnowledge,
+): CommandDraft | undefined {
+  const drafts: CommandDraft[] = [];
+  planRelicDeposit(k, drafts);
+  return drafts[0];
+}
+
+/**
+ * Incremental check for relic collection: returns the first collection order available.
+ */
+export function planRelicCollectionSingle(
+  k: AiKnowledge,
+): CommandDraft | undefined {
+  const drafts: CommandDraft[] = [];
+  planRelicCollection(k, drafts);
+  return drafts[0];
+}

@@ -399,7 +399,7 @@ describe("HUD progress lines (§2.13 chrome)", () => {
       metricNoun: "capacity",
     };
     expect(formatVictoryPathLine(base)).toBe(
-      "Knowledge · 0.0/min sustained · act missing",
+      "Knowledge · 0.0/min sustained · need Grand Academy",
     );
     expect(
       formatVictoryPathLine({
@@ -454,7 +454,7 @@ describe("HUD progress lines (§2.13 chrome)", () => {
         thresholdPerMin: undefined,
         metricNoun: "relics",
       }),
-    ).toBe("Relic · relics 1 · act missing");
+    ).toBe("Relic · relics 1 · collect relics");
     expect(
       formatVictoryPathLine({
         id: "economic",

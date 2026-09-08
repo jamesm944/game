@@ -12,9 +12,12 @@ import {
   planCounterTraining,
   planDefenseRally,
   planOffensive,
+  planRelicCollection,
+  planRelicDeposit,
   scoreOffensiveTarget,
   type MilitaryMemory,
 } from "../src/sim/ai/militaryManager";
+import type { CommandDraft } from "../src/sim/ai/buildOrder";
 import {
   createResourceBudget,
   type AiKnowledge,
@@ -23,21 +26,7 @@ import { AI_DIFFICULTIES } from "../src/sim/ai/difficulty";
 
 /** Minimal knowledge stub: only what each scenario needs. */
 function knowledgeStub(
-  parts: Partial<
-    Pick<
-      AiKnowledge,
-      | "visibleEnemies"
-      | "visibleEnemyVillagers"
-      | "armyUnits"
-      | "damagedOwnBuildings"
-      | "finishedBuildings"
-      | "ownBuildingOrigin"
-      | "resources"
-      | "trainableUnitIds"
-      | "canTrain"
-      | "tick"
-    >
-  >,
+  parts: Partial<AiKnowledge> = {},
 ): AiKnowledge {
   const never = (): never => {
     throw new Error("not needed in this scenario");
@@ -75,6 +64,9 @@ function knowledgeStub(
     canPlace: () => true,
     placementBlockReason: () => undefined,
     canTrain: () => true,
+    knownGroundRelics: () => [],
+    ownMonasteries: () => [],
+    carriedRelicOf: () => undefined,
     ...parts,
   } as AiKnowledge;
 }
@@ -279,5 +271,155 @@ describe("defense rally latency", () => {
     // Back at tick 11: the clock restarts, no instant rally.
     const back = threatenedKnowledge(11);
     expect(planDefenseRally(back, memory, delay)).toBeUndefined();
+  });
+});
+
+describe("relic collection planning (§2.11)", () => {
+  it("emits nothing when no grounded relics exist", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [{ eid: 50, defId: "monk", tileX: 10, tileY: 10 }],
+      knownGroundRelics: () => [],
+    });
+    const out: CommandDraft[] = [];
+    planRelicCollection(k, out);
+    expect(out).toHaveLength(0);
+  });
+
+  it("emits nothing when no monks exist", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [{ eid: 51, defId: "knight", tileX: 10, tileY: 10 }],
+      knownGroundRelics: () => [{ eid: 1, tileX: 12, tileY: 10 }],
+    });
+    const out: CommandDraft[] = [];
+    planRelicCollection(k, out);
+    expect(out).toHaveLength(0);
+  });
+
+  it("assigns idle monk to nearest grounded relic", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [{ eid: 50, defId: "monk", tileX: 10, tileY: 10 }],
+      knownGroundRelics: () => [
+        { eid: 2, tileX: 30, tileY: 30 },
+        { eid: 1, tileX: 12, tileY: 10 },
+      ],
+      carriedRelicOf: () => undefined,
+    });
+    const out: CommandDraft[] = [];
+    planRelicCollection(k, out);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toEqual({
+      kind: "collectRelic",
+      data: { unitEid: 50, relicEid: 1 },
+    });
+  });
+
+  it("skips monks already carrying a relic", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [
+        { eid: 50, defId: "monk", tileX: 10, tileY: 10 },
+        { eid: 51, defId: "monk", tileX: 15, tileY: 15 },
+      ],
+      knownGroundRelics: () => [{ eid: 1, tileX: 11, tileY: 10 }],
+      carriedRelicOf: (eid) => (eid === 50 ? 99 : undefined),
+    });
+    const out: CommandDraft[] = [];
+    planRelicCollection(k, out);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toEqual({
+      kind: "collectRelic",
+      data: { unitEid: 51, relicEid: 1 },
+    });
+  });
+
+  it("pairs multiple monks to multiple relics uniquely", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [
+        { eid: 50, defId: "monk", tileX: 2, tileY: 2 },
+        { eid: 51, defId: "monk", tileX: 20, tileY: 20 },
+      ],
+      knownGroundRelics: () => [
+        { eid: 1, tileX: 3, tileY: 2 },
+        { eid: 2, tileX: 21, tileY: 20 },
+      ],
+      carriedRelicOf: () => undefined,
+    });
+    const out: CommandDraft[] = [];
+    planRelicCollection(k, out);
+    expect(out).toHaveLength(2);
+    expect(out).toContainEqual({
+      kind: "collectRelic",
+      data: { unitEid: 50, relicEid: 1 },
+    });
+    expect(out).toContainEqual({
+      kind: "collectRelic",
+      data: { unitEid: 51, relicEid: 2 },
+    });
+  });
+});
+
+describe("relic deposit planning (§2.11)", () => {
+  it("emits nothing when no monks carry a relic", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [{ eid: 50, defId: "monk", tileX: 10, tileY: 10 }],
+      ownMonasteries: () => [{ eid: 100, tileX: 12, tileY: 12 }],
+      carriedRelicOf: () => undefined,
+    });
+    const out: CommandDraft[] = [];
+    planRelicDeposit(k, out);
+    expect(out).toHaveLength(0);
+  });
+
+  it("emits nothing when monk carries relic but no monastery exists", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [{ eid: 50, defId: "monk", tileX: 10, tileY: 10 }],
+      ownMonasteries: () => [],
+      carriedRelicOf: () => 1,
+    });
+    const out: CommandDraft[] = [];
+    planRelicDeposit(k, out);
+    expect(out).toHaveLength(0);
+  });
+
+  it("orders carrier monk to deposit in nearest monastery", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [{ eid: 50, defId: "monk", tileX: 10, tileY: 10 }],
+      ownMonasteries: () => [
+        { eid: 101, tileX: 30, tileY: 30 },
+        { eid: 100, tileX: 12, tileY: 10 },
+      ],
+      carriedRelicOf: (eid) => (eid === 50 ? 1 : undefined),
+    });
+    const out: CommandDraft[] = [];
+    planRelicDeposit(k, out);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toEqual({
+      kind: "depositRelic",
+      data: { unitEid: 50, monasteryEid: 100 },
+    });
+  });
+
+  it("handles multiple carrying monks each targeting their nearest monastery", () => {
+    const k = knowledgeStub({
+      armyUnits: () => [
+        { eid: 50, defId: "monk", tileX: 2, tileY: 2 },
+        { eid: 51, defId: "monk", tileX: 28, tileY: 28 },
+      ],
+      ownMonasteries: () => [
+        { eid: 100, tileX: 0, tileY: 0 },
+        { eid: 101, tileX: 30, tileY: 30 },
+      ],
+      carriedRelicOf: () => 1,
+    });
+    const out: CommandDraft[] = [];
+    planRelicDeposit(k, out);
+    expect(out).toHaveLength(2);
+    expect(out).toContainEqual({
+      kind: "depositRelic",
+      data: { unitEid: 50, monasteryEid: 100 },
+    });
+    expect(out).toContainEqual({
+      kind: "depositRelic",
+      data: { unitEid: 51, monasteryEid: 101 },
+    });
   });
 });

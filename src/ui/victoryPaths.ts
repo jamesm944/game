@@ -21,19 +21,32 @@ function formatPerMin(milli: number | undefined): string {
  * One legible status line per path, e.g.
  *   `Knowledge · 240.0/min sustained · need 40/min · holding 450/900t`
  *   `Knowledge · 12.0/min sustained · need 40/min · paused 120/900t`
- *   `Culture · act missing`
+ *   `Knowledge · 0.0/min sustained · need Grand Academy`
+ *   `Conquest · capacity 2 · in progress`
  *   `Conquest · capacity 2 · act ready`
  *   `Wonder · wonders 1 · holding 300/900t`   (hold-only paths)
- *   `Relic · relics 1 · act missing`
+ *   `Relic · relics 1/3 · collect relics`
  */
 export function formatVictoryPathLine(readout: VictoryPathReadout): string {
   const label = readout.id.charAt(0).toUpperCase() + readout.id.slice(1);
   if (!readout.actComplete) {
-    const metric =
-      readout.ratePerMinMilli !== undefined
-        ? `${formatPerMin(readout.ratePerMinMilli)}/min sustained`
-        : `${readout.metricNoun} ${String(readout.metric)}`;
-    return `${label} · ${metric} · act missing`;
+    // Conquest: timerless — "in progress" is more accurate than "act missing"
+    if (readout.timerTicks === undefined) {
+      return `${label} · ${readout.metricNoun} ${String(readout.metric)} · in progress`;
+    }
+    // Relic (hold-only, no rate): show current/threshold progress
+    if (readout.thresholdPerMin === undefined) {
+      return `${label} · ${readout.metricNoun} ${String(readout.metric)} · collect ${readout.metricNoun}`;
+    }
+    // Gated timed paths (Knowledge, Culture, Economic): show rate + goal hint
+    const rate = `${formatPerMin(readout.ratePerMinMilli)}/min sustained`;
+    const goal =
+      readout.id === "knowledge"
+        ? "need Grand Academy"
+        : readout.id === "culture"
+          ? "need Grand Monument"
+          : "act missing";
+    return `${label} · ${rate} · ${goal}`;
   }
   // Act complete from here: gated timed paths show the sustain race…
   if (
@@ -53,7 +66,7 @@ export function formatVictoryPathLine(readout: VictoryPathReadout): string {
     return `${label} · ${readout.metricNoun} ${String(readout.metric)} · holding ${String(readout.holdTicks)}/${String(readout.timerTicks)}t`;
   }
   // …and conquest (timerless) simply stands ready to win.
-  return `${label} · capacity ${String(readout.metric)} · act ready`;
+  return `${label} · ${readout.metricNoun} ${String(readout.metric)} · act ready`;
 }
 
 export interface VictoryPathsPanelHandle {

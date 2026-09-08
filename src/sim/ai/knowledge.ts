@@ -45,6 +45,12 @@ import {
 } from "../systems/placement";
 import type { KnowledgeView } from "../systems/fog";
 import { RESOURCE_SLUGS } from "../../data/schema";
+import {
+  carriedRelicOf as carriedRelicOfComp,
+  relicsOf,
+  RELIC_GROUND,
+} from "../components/relic";
+import { buildingDefsForVictoryPath } from "../../data/victoryRoles";
 import type { SimComponents } from "../components";
 import type { World } from "../core/world";
 
@@ -144,6 +150,16 @@ export interface AiKnowledge {
     tileX: number;
     tileY: number;
   }[];
+  // ---- Relic queries (fog-honest: ground relics are visible world fixtures) --
+  /**
+   * All grounded relics currently on the map — position-only, no fog
+   * gate (relics are neutral map fixtures visible to everyone, like nodes).
+   */
+  knownGroundRelics(): readonly { eid: number; tileX: number; tileY: number }[];
+  /** Own finished Monastery-role buildings. */
+  ownMonasteries(): readonly { eid: number; tileX: number; tileY: number }[];
+  /** The relic eid currently being carried by one of our monks, or undefined. */
+  carriedRelicOf(unitEid: number): number | undefined;
   // ---- Command pre-flight mirrors (keep handlers throw-free) ---------------
   canAfford(costs: CostLedger): boolean;
   canPlace(defId: string, tileX: number, tileY: number): boolean;
@@ -443,6 +459,40 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
         });
       }
       return out;
+    },
+
+    knownGroundRelics() {
+      // Relics are neutral map fixtures — no fog gate needed.
+      const out: { eid: number; tileX: number; tileY: number }[] = [];
+      if (!comps.relicId) return out;
+      for (const { eid, row } of relicsOf(world, comps as Parameters<typeof relicsOf>[1])) {
+        if (row.state !== RELIC_GROUND) continue;
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!pos) continue;
+        out.push({ eid, tileX: Math.floor(pos[0]!), tileY: Math.floor(pos[1]!) });
+      }
+      return out;
+    },
+
+    ownMonasteries() {
+      const monasteryDefIds = buildingDefsForVictoryPath("relic")
+        .filter((def) => def.victory?.holdTicks !== undefined)
+        .map((def) => def.id);
+      const out: { eid: number; tileX: number; tileY: number }[] = [];
+      for (const [eid, row] of world.rowsByComponentId.get(comps.buildingId) ?? new Map()) {
+        if (row[0] !== player) continue;
+        const defId = buildingIdOfCode(row[1]!);
+        if (!monasteryDefIds.includes(defId)) continue;
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!pos) continue;
+        out.push({ eid, tileX: Math.floor(pos[0]!), tileY: Math.floor(pos[1]!) });
+      }
+      return out.sort((a, b) => a.eid - b.eid);
+    },
+
+    carriedRelicOf(unitEid) {
+      if (!comps.relicId) return undefined;
+      return carriedRelicOfComp(world, comps as Parameters<typeof carriedRelicOfComp>[1], unitEid);
     },
 
     canAfford: (costs) => canAffordCosts(world, comps, player, costs),

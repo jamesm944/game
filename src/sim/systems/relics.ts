@@ -155,6 +155,7 @@ export function createRelicSystem(options: RelicSystemOptions): SimSystem {
       if (!command.data) continue;
       switch (command.kind) {
         case COLLECT_RELIC_COMMAND_KIND:
+        case "pickUpRelic": // alias — both spellings accepted
           applyCollect(world, command.data);
           break;
         case DEPOSIT_RELIC_COMMAND_KIND:

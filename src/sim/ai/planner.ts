@@ -50,6 +50,10 @@ import {
   planMonkConversionSingle,
   planMonkConversions,
   planOffensive,
+  planRelicCollection,
+  planRelicCollectionSingle,
+  planRelicDeposit,
+  planRelicDepositSingle,
   type MilitaryMemory,
 } from "./militaryManager";
 import { aiDifficultyOf, type AiDifficultyId } from "./difficulty";
@@ -238,19 +242,37 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     const buildDraft = planBuildOrder(k, strategy, budget, reserved, memory);
     if (buildDraft !== undefined) drafts.push(buildDraft);
     planCounterTraining(k, budget, militaryMemory, drafts);
+    planRelicDeposit(k, drafts);
+    planRelicCollection(k, drafts);
     planMonkConversions(k, drafts);
     return drafts;
   };
 
   /**
    * Incremental path between passes: cheap military probes — defense
-   * rally first (protecting the economy beats everything), then monk
-   * conversions of high-value targets, then the one-shot scored offensive.
+   * rally first (protecting the economy beats everything), then relic
+   * deposit/collection (§2.11 Relic path AI), then monk conversions of
+   * high-value targets, then the one-shot scored offensive.
    */
-  const incrementalCheck = (): CommandDraft | undefined =>
-    planDefenseRally(k, militaryMemory, reactionDelayTicks) ??
-    planMonkConversionSingle(k) ??
-    planOffensive(k, strategy, memory);
+  const incrementalCheck = (): CommandDraft | undefined => {
+    const defense = planDefenseRally(k, militaryMemory, reactionDelayTicks);
+    if (defense !== undefined) return defense;
+
+    // Fast path: if the AI has no monks, skip relic and conversion probes entirely.
+    const army = k.armyUnits();
+    if (army.some((u) => u.defId === "monk")) {
+      const deposit = planRelicDepositSingle(k);
+      if (deposit !== undefined) return deposit;
+
+      const collect = planRelicCollectionSingle(k);
+      if (collect !== undefined) return collect;
+
+      const conv = planMonkConversionSingle(k);
+      if (conv !== undefined) return conv;
+    }
+
+    return planOffensive(k, strategy, memory);
+  };
 
   return (world, _commands) => {
     void _commands;

@@ -429,8 +429,11 @@ export function relicsHeldOf(ctx: VictoryContext, playerId: number): number {
 
 /**
  * The §2.11 Relic completing act: at least one relic exists and THIS
- * player holds ALL of them inside their own finished monasteries. The
- * zero-relic vacuous truth is explicitly NOT an act — a monastery
+ * player holds enough relics inside their own finished monasteries.
+ * The winning threshold is min(3, total relics on the map) so that
+ * two-relic golden maps (m4t5b) still require both while standard
+ * skirmish maps (5 relics) require exactly 3 — matching AoE2 rules.
+ * A zero-relic vacuous truth is explicitly NOT an act — a monastery
  * alone must never win.
  */
 export function relicActCompleteOf(
@@ -439,7 +442,8 @@ export function relicActCompleteOf(
 ): boolean {
   const all = relicsOf(ctx.world, ctx.comps);
   if (all.length === 0) return false;
-  return relicsHeldOf(ctx, playerId) === all.length;
+  const threshold = Math.min(3, all.length);
+  return relicsHeldOf(ctx, playerId) >= threshold;
 }
 
 /**
