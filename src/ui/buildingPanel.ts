@@ -62,6 +62,12 @@ export interface BuildingPanelData {
   readonly garrison?:
     | { readonly count: number; readonly capacity: number }
     | undefined;
+  /** True if selected building is a Mill or Farm supporting auto-reseed toggle (V15 #105). */
+  readonly canAutoReseed?: boolean | undefined;
+  /** Current auto-reseed setting for player. */
+  readonly autoReseedEnabled?: boolean | undefined;
+  /** Remaining food on selected farm (if farm). */
+  readonly farmFoodRemaining?: number | undefined;
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
@@ -70,6 +76,27 @@ export const TRAIN_UNIT_KIND = "trainUnit";
 export const APPOINT_FOREMAN_KIND = "appointForeman";
 export const MARKET_EXCHANGE_KIND = "marketExchange";
 export const UNGARRISON_COMMAND_KIND = "ungarrison";
+export const SET_AUTO_RESEED_COMMAND_KIND = "setAutoReseed";
+
+export function issueSetAutoReseed(
+  inbox: CommandInbox,
+  currentTick: number,
+  playerId: number,
+  enabled: boolean,
+): void {
+  inbox.submit({
+    kind: SET_AUTO_RESEED_COMMAND_KIND,
+    targetTick: currentTick + 1,
+    data: { playerId, enabled },
+  });
+}
+
+export function formatFarmFoodStatus(
+  remaining: number,
+  baseCapacity: number = 175,
+): string {
+  return `Food remaining: ${String(remaining)} / ${String(baseCapacity)} · Reseed: 60 wood`;
+}
 
 export function formatMarketSummary(activeTradeCarts: number = 0): string {
   return `Rates: Sell 100 for 70g · Buy 100 for 130g | Active Carts: ${String(activeTradeCarts)}`;
@@ -195,6 +222,54 @@ export function createBuildingPanel(deps: {
     issueTrainVillager(deps.inbox, deps.currentTick());
   });
 
+  const reseedWrap = document.createElement("div");
+  reseedWrap.className = "panel-auto-reseed";
+  reseedWrap.style.marginTop = "8px";
+  reseedWrap.style.padding = "6px 8px";
+  reseedWrap.style.background = "rgba(15, 23, 42, 0.6)";
+  reseedWrap.style.borderRadius = "4px";
+  reseedWrap.style.border = "1px solid rgba(255, 255, 255, 0.1)";
+
+  const reseedHeader = document.createElement("div");
+  reseedHeader.style.display = "flex";
+  reseedHeader.style.justifyContent = "space-between";
+  reseedHeader.style.alignItems = "center";
+
+  const reseedLabelSpan = document.createElement("span");
+  reseedLabelSpan.textContent = "🌾 Auto-Reseed Farms";
+  reseedLabelSpan.style.fontSize = "12px";
+  reseedLabelSpan.style.fontWeight = "600";
+  reseedLabelSpan.style.color = "#f8fafc";
+
+  let currentAutoReseed = true;
+  const reseedToggleBtn = document.createElement("button");
+  reseedToggleBtn.type = "button";
+  reseedToggleBtn.className = "panel-toggle-btn";
+  reseedToggleBtn.style.padding = "3px 10px";
+  reseedToggleBtn.style.fontSize = "11px";
+  reseedToggleBtn.style.fontWeight = "bold";
+  reseedToggleBtn.style.borderRadius = "3px";
+  reseedToggleBtn.style.cursor = "pointer";
+  reseedToggleBtn.addEventListener("click", () => {
+    deps.onClick?.();
+    issueSetAutoReseed(
+      deps.inbox,
+      deps.currentTick(),
+      0,
+      !currentAutoReseed,
+    );
+  });
+
+  reseedHeader.append(reseedLabelSpan, reseedToggleBtn);
+  reseedWrap.appendChild(reseedHeader);
+
+  const farmFoodEl = document.createElement("div");
+  farmFoodEl.className = "panel-farm-food";
+  farmFoodEl.style.fontSize = "11px";
+  farmFoodEl.style.color = "#94a3b8";
+  farmFoodEl.style.marginTop = "4px";
+  reseedWrap.appendChild(farmFoodEl);
+
   let lastKey = "";
 
   return {
@@ -213,8 +288,9 @@ export function createBuildingPanel(deps: {
         return;
       }
       // The production line is volatile (countdowns/stock counts change
-      // every tick) — structural rebuilds key off everything else.
-      const { production, ...structural } = data;
+      // every tick) and farmFoodRemaining changes on harvests —
+      // structural rebuilds key off everything else.
+      const { production, farmFoodRemaining, ...structural } = data;
       const key = JSON.stringify(structural);
       const structuralChange = key !== lastKey;
       if (structuralChange) {
@@ -368,6 +444,10 @@ export function createBuildingPanel(deps: {
           }
           panel.appendChild(exchangeWrap);
         }
+
+        if (data.canAutoReseed) {
+          panel.appendChild(reseedWrap);
+        }
       }
 
       // Progress bar repaints every frame during construction.
@@ -429,6 +509,35 @@ export function createBuildingPanel(deps: {
         ungarrisonBtn.disabled = data.garrison.count === 0;
       } else {
         garrisonWrap.style.display = "none";
+      }
+
+      if (data.canAutoReseed) {
+        currentAutoReseed = data.autoReseedEnabled ?? true;
+        reseedToggleBtn.textContent = currentAutoReseed ? "ON" : "OFF";
+        reseedToggleBtn.className = currentAutoReseed
+          ? "panel-toggle-btn active"
+          : "panel-toggle-btn";
+        reseedToggleBtn.style.background = currentAutoReseed
+          ? "#15803d"
+          : "#475569";
+        reseedToggleBtn.style.color = "#fff";
+        reseedToggleBtn.style.border = currentAutoReseed
+          ? "1px solid #22c55e"
+          : "1px solid #64748b";
+        reseedToggleBtn.title = currentAutoReseed
+          ? "Auto-reseed is ON: Depleted farms will automatically debit 60 wood and restore food capacity"
+          : "Auto-reseed is OFF: Depleted farms will exhaust and workers will become idle";
+        reseedToggleBtn.setAttribute(
+          "aria-label",
+          `Auto-reseed farms: currently ${currentAutoReseed ? "ON" : "OFF"}`,
+        );
+
+        if (data.farmFoodRemaining !== undefined) {
+          farmFoodEl.style.display = "block";
+          farmFoodEl.textContent = formatFarmFoodStatus(data.farmFoodRemaining);
+        } else {
+          farmFoodEl.style.display = "none";
+        }
       }
     },
   };

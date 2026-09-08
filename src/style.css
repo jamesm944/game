@@ -1865,6 +1865,18 @@ canvas {
   color: #93c5fd;
 }
 
+.game-toast-farm-exhausted {
+  border-left: 4px solid #eab308;
+}
+
+.game-toast-farm-exhausted .game-toast-icon {
+  background: rgba(234, 179, 8, 0.15);
+}
+
+.game-toast-farm-exhausted .game-toast-title {
+  color: #fef08a;
+}
+
 @keyframes toast-slide-in {
   from {
     transform: translateX(-30px);

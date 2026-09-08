@@ -47,6 +47,7 @@ import {
   buildingIdOfCode,
 } from "../../data/definitions";
 import { RESOURCE_SLUGS } from "../../data/schema";
+import { RESOURCE_FOOD } from "./economy";
 import { acceptedResourceMask } from "../core/stockpile";
 import { ownerOfUnit, type OwnerComponents } from "./owner";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
@@ -217,7 +218,11 @@ export interface CompletedBuildingInfo {
  */
 export function completeBuilding(
   world: World,
-  comps: BuildingComponents & { dropoffId: number; positionId: number },
+  comps: BuildingComponents & {
+    dropoffId: number;
+    positionId: number;
+    resourceNodeId?: number | undefined;
+  },
   siteEid: number,
 ): CompletedBuildingInfo {
   const site = requireRow(world, comps.buildingSiteId, siteEid, BUILDING_SITE);
@@ -256,6 +261,13 @@ export function completeBuilding(
     requireRows(world, comps.dropoffId).set(siteEid, [
       playerId,
       acceptedResourceMask(codes),
+    ]);
+  }
+  if (def.id === "farm" && comps.resourceNodeId !== undefined) {
+    requireRows(world, comps.resourceNodeId).set(siteEid, [
+      RESOURCE_FOOD,
+      175,
+      def.workSlots ?? 1,
     ]);
   }
   return { eid: siteEid, playerId, defId: def.id };

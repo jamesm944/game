@@ -234,13 +234,21 @@ import {
   researchedTechCodesOf,
   COMBAT_EVENT_DAMAGE,
 } from "./sim/components/combat";
-import { RESOURCE_WOOD } from "./sim/components/economy";
+import {
+  RESOURCE_WOOD,
+  getResourceNodeRow,
+} from "./sim/components/economy";
+import {
+  isAutoReseedEnabled,
+  readFarmDepletedEvents,
+} from "./sim/systems/gather";
 import {
   issuePlaceBuilding,
   snapGhostOrigin,
   wireBuildMenu,
 } from "./ui/buildMenu";
 import { createBuildingPanel } from "./ui/buildingPanel";
+
 import { createUnitPanel, type SelectedUnitSummary } from "./ui/unitPanel";
 import {
   createCommandPanel,
@@ -907,6 +915,21 @@ const nodeAt = (x: number, y: number): number | undefined => {
   if (!nodeRows) return undefined;
   for (const [eid, row] of nodeRows) {
     if ((row[1] ?? 0) <= 0) continue; // depleted nodes are not targets
+    const buildingRow = world.rowsByComponentId.get(comps.buildingId)?.get(eid);
+    if (buildingRow) {
+      const def = buildingDefOf(buildingIdOfCode(buildingRow[1]!));
+      const ox = buildingRow[2]!;
+      const oy = buildingRow[3]!;
+      if (
+        tx >= ox &&
+        tx < ox + def.footprint.width &&
+        ty >= oy &&
+        ty < oy + def.footprint.height
+      ) {
+        return eid;
+      }
+      continue;
+    }
     const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
     if (!pos) continue;
     if (Math.floor(pos[0]!) === tx && Math.floor(pos[1]!) === ty) return eid;
@@ -1799,6 +1822,16 @@ const buildingPanel = createBuildingPanel({
         ? { count: getGarrisonCount(world, comps, eid), capacity: garrisonCap }
         : undefined;
 
+    const isMillOrFarm = def.id === "mill" || def.id === "farm";
+    const canAutoReseed = isMillOrFarm;
+    const autoReseedEnabled = isMillOrFarm
+      ? isAutoReseedEnabled(world, PLAYER_ONE)
+      : undefined;
+    const farmFoodRemaining =
+      def.id === "farm" && comps.resourceNodeId !== undefined
+        ? (world.rowsByComponentId.get(comps.resourceNodeId)?.get(eid)?.[1] ?? 0)
+        : undefined;
+
     if (!def.trainQueue) {
       return {
         title: def.name,
@@ -1808,6 +1841,9 @@ const buildingPanel = createBuildingPanel({
           cap: populationCapOf(world, comps),
         },
         garrison,
+        canAutoReseed,
+        autoReseedEnabled,
+        farmFoodRemaining,
       };
     }
     const trainableUnits = def.trainQueue.trainable.map((t) => {
@@ -1840,6 +1876,9 @@ const buildingPanel = createBuildingPanel({
           ? activeTradeCartsCountForMarket(world, eid)
           : undefined,
       garrison,
+      canAutoReseed,
+      autoReseedEnabled,
+      farmFoodRemaining,
     };
   },
 });
@@ -2289,6 +2328,25 @@ function frame(
           toastManager.notifyResearchComplete(tDef.name);
         }
       }
+    }
+
+    // Farm Depleted Toast Notifications (V15 / #105)
+    try {
+      for (const e of readFarmDepletedEvents(world, PLAYER_ONE)) {
+        if (e.tick <= since) continue;
+        const farmPos = getPosition(world, comps, e.farmEid);
+        const x = farmPos?.x ?? e.farmX;
+        const y = farmPos?.y ?? e.farmY;
+        toastManager.notifyFarmExhausted(
+          x,
+          y,
+          e.reason === "insufficient-wood"
+            ? "Insufficient wood (60) to reseed farm"
+            : "Auto-reseed disabled",
+        );
+      }
+    } catch {
+      /* minimal worlds */
     }
   }
   audioScheduler.drain((batch) => voicePool.play(batch));

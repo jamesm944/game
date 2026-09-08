@@ -52,6 +52,7 @@ import {
 } from "../components/relic";
 import { buildingDefsForVictoryPath } from "../../data/victoryRoles";
 import { getActiveTradeRoutes } from "../systems/market";
+import { isAutoReseedEnabled } from "../systems/gather";
 import type { SimComponents } from "../components";
 import type { World } from "../core/world";
 
@@ -83,6 +84,8 @@ export interface AiKnowledge {
   // ---- Self state (own rows only) ---------------------------------------
   /** Held amounts indexed by resource code. */
   resources(): readonly number[];
+  /** Whether auto-reseed farms is currently enabled for this player. */
+  autoReseedEnabled(): boolean;
   ageRank(): number;
   /** Tech advancing from the current rung, or undefined at the top. */
   nextAgeTechId(): string | undefined;
@@ -547,6 +550,8 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
 
     canTrain: (buildingEid, unitId) =>
       canEnqueueTraining(world, comps, buildingEid, player, unitId),
+
+    autoReseedEnabled: () => isAutoReseedEnabled(world, player),
   };
 }
 

@@ -70,6 +70,7 @@ import {
   ensureInventory,
   getCarryCapacity,
   getInventory,
+  RESOURCE_WOOD,
   setInventory,
   WORK_SLOTS_PER_NODE,
 } from "../components/economy";
@@ -81,7 +82,8 @@ import {
 } from "../core/stockpile";
 import { findPath } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
-import type { SimSystem } from "../core/world";
+import { despawnEntity, type SimSystem, type World } from "../core/world";
+import { buildingIdOfCode } from "../../data/definitions";
 import { RESOURCE_SLUGS } from "../../data/schema";
 import {
   awardPractice,
@@ -97,6 +99,117 @@ import { isChildOf } from "./lifecycle";
 
 /** Ticks of slot work per extracted resource unit (1 s at 30 Hz). */
 export const DEFAULT_GATHER_TICKS_PER_UNIT = 30;
+
+// ---- Auto-reseed farms (V15 / #105) -----------------------------------------
+
+export const SET_AUTO_RESEED_COMMAND_KIND = "setAutoReseed";
+export const BASE_FARM_FOOD = 175;
+export const FARM_RESEED_WOOD_COST = 60;
+
+export interface SetAutoReseedCommandData {
+  readonly [key: string]: unknown;
+  readonly playerId: number;
+  readonly enabled: boolean;
+}
+
+export interface FarmDepletedEvent {
+  readonly tick: number;
+  readonly playerId: number;
+  readonly farmEid: number;
+  readonly reason: "insufficient-wood" | "auto-reseed-disabled";
+  readonly farmX?: number | undefined;
+  readonly farmY?: number | undefined;
+}
+
+export function isAutoReseedEnabled(world: World, playerId: number): boolean {
+  const map = (world as unknown as { autoReseedFarms?: Map<number, boolean> })
+    .autoReseedFarms;
+  if (!map) return true;
+  return map.get(playerId) ?? true;
+}
+
+export function setAutoReseedEnabled(
+  world: World,
+  playerId: number,
+  enabled: boolean,
+): void {
+  let map = (world as unknown as { autoReseedFarms?: Map<number, boolean> })
+    .autoReseedFarms;
+  if (!map) {
+    map = new Map<number, boolean>();
+    (
+      world as unknown as { autoReseedFarms?: Map<number, boolean> }
+    ).autoReseedFarms = map;
+  }
+  map.set(playerId, enabled);
+}
+
+export function getFarmDepletedEvents(world: World): FarmDepletedEvent[] {
+  let events = (
+    world as unknown as { farmDepletedEvents?: FarmDepletedEvent[] }
+  ).farmDepletedEvents;
+  if (!events) {
+    events = [];
+    (
+      world as unknown as { farmDepletedEvents?: FarmDepletedEvent[] }
+    ).farmDepletedEvents = events;
+  }
+  return events;
+}
+
+export function recordFarmDepletedEvent(
+  world: World,
+  event: FarmDepletedEvent,
+): void {
+  const events = getFarmDepletedEvents(world);
+  if (!events.some((e) => e.farmEid === event.farmEid)) {
+    events.push(event);
+  }
+}
+
+export function readFarmDepletedEvents(
+  world: World,
+  playerId: number,
+): readonly FarmDepletedEvent[] {
+  const events = (
+    world as unknown as { farmDepletedEvents?: FarmDepletedEvent[] }
+  ).farmDepletedEvents;
+  if (!events) return [];
+  return events.filter((e) => e.playerId === playerId);
+}
+
+function stockpileWoodOf(
+  world: World,
+  stockpileId: number,
+  playerId: number,
+): number {
+  const rows = world.rowsByComponentId.get(stockpileId);
+  if (!rows) return 0;
+  for (const row of rows.values()) {
+    if (row[0] === playerId) return row[RESOURCE_WOOD + 1] ?? 0;
+  }
+  return 0;
+}
+
+function debitStockpileWood(
+  world: World,
+  stockpileId: number,
+  playerId: number,
+  amount: number,
+): boolean {
+  const rows = world.rowsByComponentId.get(stockpileId);
+  if (!rows) return false;
+  for (const row of rows.values()) {
+    if (row[0] === playerId) {
+      if ((row[RESOURCE_WOOD + 1] ?? 0) >= amount) {
+        row[RESOURCE_WOOD + 1]! -= amount;
+        return true;
+      }
+      return false;
+    }
+  }
+  return false;
+}
 
 /**
  * Output observers (M4-T2): invoked at every Deliver credit event with
@@ -192,6 +305,8 @@ export interface GatherDiagnostics {
    * — or idles holding cargo when none remains.
    */
   destroyedDropoffReroutes: number;
+  /** Farms automatically reseeded with 60 wood (V15 / #105). */
+  farmReseeds: number;
 }
 
 export function createGatherDiagnostics(): GatherDiagnostics {
@@ -204,6 +319,7 @@ export function createGatherDiagnostics(): GatherDiagnostics {
     rejectedByFilter: 0,
     blockedCarryTicks: 0,
     destroyedDropoffReroutes: 0,
+    farmReseeds: 0,
   };
 }
 
@@ -658,6 +774,43 @@ export function createGatherSystem(
           GATHER_XP_PER_UNIT,
         );
         head.elapsedTicks = 0;
+
+        // Auto-reseed farms (V15 / #105)
+        if (worker.nodeRow[1]! <= 0) {
+          const buildingRow = world.rowsByComponentId
+            .get(comps.buildingId)
+            ?.get(worker.nodeEid);
+          const isFarm =
+            buildingRow !== undefined &&
+            buildingIdOfCode(buildingRow[1]!) === "farm";
+          if (isFarm) {
+            const ownerId = buildingRow[0]!;
+            const autoReseed = isAutoReseedEnabled(world, ownerId);
+            const woodHeld = stockpileWoodOf(world, comps.stockpileId, ownerId);
+            if (autoReseed && woodHeld >= FARM_RESEED_WOOD_COST) {
+              debitStockpileWood(
+                world,
+                comps.stockpileId,
+                ownerId,
+                FARM_RESEED_WOOD_COST,
+              );
+              worker.nodeRow[1] = BASE_FARM_FOOD;
+              diagnostics.farmReseeds += 1;
+            } else {
+              const nodePos = world.rowsByComponentId
+                .get(comps.positionId)
+                ?.get(worker.nodeEid);
+              recordFarmDepletedEvent(world, {
+                tick: world.tick,
+                playerId: ownerId,
+                farmEid: worker.nodeEid,
+                reason: autoReseed ? "insufficient-wood" : "auto-reseed-disabled",
+                farmX: nodePos?.[0],
+                farmY: nodePos?.[1],
+              });
+            }
+          }
+        }
       }
       const amountNow = getInventory(world, comps, worker.eid)!.amount;
       return amountNow >= capacity || worker.nodeRow[1]! <= 0;
@@ -742,6 +895,40 @@ export function createGatherSystem(
 
       // Dry node with empty hands → assignment complete; release to idle.
       if (remaining <= 0 && inv.amount <= 0) {
+        const buildingRow = world.rowsByComponentId
+          .get(comps.buildingId)
+          ?.get(worker.nodeEid);
+        const isFarm =
+          buildingRow !== undefined &&
+          buildingIdOfCode(buildingRow[1]!) === "farm";
+        if (isFarm) {
+          const ownerId = buildingRow[0]!;
+          const autoReseed = isAutoReseedEnabled(world, ownerId);
+          const woodHeld = stockpileWoodOf(world, comps.stockpileId, ownerId);
+          if (autoReseed && woodHeld >= FARM_RESEED_WOOD_COST) {
+            debitStockpileWood(
+              world,
+              comps.stockpileId,
+              ownerId,
+              FARM_RESEED_WOOD_COST,
+            );
+            worker.nodeRow[1] = BASE_FARM_FOOD;
+            diagnostics.farmReseeds += 1;
+            return planNextLeg(worker, queue);
+          }
+          const nodePos = world.rowsByComponentId
+            .get(comps.positionId)
+            ?.get(worker.nodeEid);
+          recordFarmDepletedEvent(world, {
+            tick: world.tick,
+            playerId: ownerId,
+            farmEid: worker.nodeEid,
+            reason: autoReseed ? "insufficient-wood" : "auto-reseed-disabled",
+            farmX: nodePos?.[0],
+            farmY: nodePos?.[1],
+          });
+          despawnEntity(world, worker.nodeEid);
+        }
         releaseWorker(worker.eid);
         return true;
       }
@@ -822,6 +1009,19 @@ export function createGatherSystem(
     // The inbox is a SHARED stream: skip foreign kinds (movement owns
     // "groupMove"); this system dispatches only "gather".
     for (const command of commands) {
+      if (command.kind === SET_AUTO_RESEED_COMMAND_KIND) {
+        const data = command.data as unknown as
+          | SetAutoReseedCommandData
+          | undefined;
+        if (
+          data &&
+          typeof data.playerId === "number" &&
+          typeof data.enabled === "boolean"
+        ) {
+          setAutoReseedEnabled(world, data.playerId, data.enabled);
+        }
+        continue;
+      }
       if (command.kind !== "gather") continue;
       if (!command.data) throw new Error("gather requires command data");
       applyGatherCommand(command.data);

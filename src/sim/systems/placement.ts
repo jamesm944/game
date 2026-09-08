@@ -450,8 +450,11 @@ function applyPlaceCommand(
   // Block the footprint immediately and invalidate in-flight paths
   // (SPEC §2.2 invalidation rule). Units standing underneath are pushed
   // clear by steering; nobody is trapped because every perimeter tile
-  // was checked reachable-adjacent by validity above.
-  blockFootprintTiles(world, check.rect!);
+  // was checked reachable-adjacent by validity above. Farms stay passable
+  // so farmers and passing units can walk over them (AoE2-faithful).
+  if (parsed.defId !== "farm") {
+    blockFootprintTiles(world, check.rect!);
+  }
   diagnostics.commandsApplied += 1;
 }
 
@@ -486,18 +489,20 @@ export function stampFinishedBuilding(
       `stampFinishedBuilding rejected (${check.reason ?? "invalid"}): ${defId} @ (${String(tileX)}, ${String(tileY)})`,
     );
   }
-  const size = world.layers.size;
-  const passability = world.layers.derivedPassability;
-  for (const tile of footprintTiles(
-    check.rect.x,
-    check.rect.y,
-    check.rect.width,
-    check.rect.height,
-  )) {
-    passability[tile.y * size + tile.x] = IMPASSABLE;
+  if (defId !== "farm") {
+    const size = world.layers.size;
+    const passability = world.layers.derivedPassability;
+    for (const tile of footprintTiles(
+      check.rect.x,
+      check.rect.y,
+      check.rect.width,
+      check.rect.height,
+    )) {
+      passability[tile.y * size + tile.x] = IMPASSABLE;
+    }
+    const scheduler = world.pathScheduler;
+    scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
   }
-  const scheduler = world.pathScheduler;
-  scheduler?.setPassabilityVersion(scheduler.passabilityVersion + 1);
   const eid = spawnBuildingSite(
     world,
     comps,

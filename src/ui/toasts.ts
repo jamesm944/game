@@ -15,16 +15,17 @@ export type ToastKind =
   | "research-complete"
   | "age-up"
   | "unit-idle"
+  | "farm-exhausted"
   | "generic";
 
 export interface ToastOptions {
-  readonly id?: string;
+  readonly id?: string | undefined;
   readonly kind: ToastKind;
   readonly message: string;
-  readonly subtitle?: string;
-  readonly location?: { readonly x: number; readonly y: number };
-  readonly durationMs?: number;
-  readonly iconSvg?: string;
+  readonly subtitle?: string | undefined;
+  readonly location?: { readonly x: number; readonly y: number } | undefined;
+  readonly durationMs?: number | undefined;
+  readonly iconSvg?: string | undefined;
 }
 
 export interface ToastManagerOptions {
@@ -43,6 +44,7 @@ export interface ToastManager {
   notifyResearchComplete(techName: string): void;
   notifyAgeUp(ageName: string): void;
   notifyUnitIdle(x: number, y: number, unitName?: string): boolean;
+  notifyFarmExhausted(x?: number, y?: number, subtitle?: string): boolean;
   destroy(): void;
 }
 
@@ -103,6 +105,10 @@ export function getIconForKind(kind: ToastKind): string {
     case "unit-idle":
       return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 12h8l-8 8h8M14 4h6l-6 6h6"/>
+      </svg>`;
+    case "farm-exhausted":
+      return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
       </svg>`;
     case "generic":
     default:
@@ -288,6 +294,21 @@ export function createToastManager(
     return true;
   }
 
+  function notifyFarmExhausted(
+    x?: number,
+    y?: number,
+    subtitle?: string,
+  ): boolean {
+    show({
+      kind: "farm-exhausted",
+      message: "🌾 Farm exhausted",
+      subtitle: subtitle ?? "Insufficient wood to reseed farm",
+      location: x !== undefined && y !== undefined ? { x, y } : undefined,
+      durationMs: DEFAULT_DURATION_MS,
+    });
+    return true;
+  }
+
   function clear(): void {
     for (const id of Array.from(activeToasts.keys())) {
       dismiss(id);
@@ -310,6 +331,7 @@ export function createToastManager(
     notifyResearchComplete,
     notifyAgeUp,
     notifyUnitIdle,
+    notifyFarmExhausted,
     destroy,
   };
 }

@@ -31,11 +31,15 @@
 
 import { buildingDefOf, unitDefOf } from "../../data/definitions";
 import { WORK_SLOTS_PER_NODE } from "../components/economy";
+import {
+  FARM_RESEED_WOOD_COST,
+  SET_AUTO_RESEED_COMMAND_KIND,
+} from "../systems/gather";
 import type { CommandDraft } from "./buildOrder";
 import type { AiKnowledge, ResourceBudget, SpotReservation } from "./knowledge";
 
-/** Farmers + farm re-seeding arrive with a later ticket; see header. */
-export const FARM_RESEEDING_STUB = true;
+/** Farmers + farm re-seeding active (V15 / #105). */
+export const FARM_RESEEDING_STUB = false;
 
 /** Builders pulled onto each construction site. */
 export const BUILDERS_PER_SITE = 2;
@@ -64,8 +68,9 @@ type TileLookup = (eid: number) => { x: number; y: number } | undefined;
 
 /**
  * Plan one economy pass. Mutates nothing in the sim; appends command
- * drafts in fixed domain order (housing → saturation → construction →
- * gathering) so same-pass submission order stays deterministic.
+ * drafts in fixed domain order (auto-reseed → housing → saturation →
+ * construction → gathering) so same-pass submission order stays
+ * deterministic.
  */
 export function planEconomyCommands(
   k: AiKnowledge,
@@ -78,10 +83,31 @@ export function planEconomyCommands(
   out: CommandDraft[],
 ): void {
   const tileOf: TileLookup = (eid) => k.ownUnitTile(eid);
+  planAutoReseed(k, out);
   planHousing(k, budget, reserved, out);
   planTcSaturation(k, opts.villagerTarget, budget, out);
   planConstruction(k, tileOf, out);
   planGathering(k, opts.gatherWeights, out);
+}
+
+/**
+ * AI manages auto-reseed state based on its wood buffer:
+ * when wood >= 60, keeps auto-reseed ON so farming continues seamlessly;
+ * when wood < 60, switches auto-reseed OFF so it doesn't overdraw critical wood.
+ */
+export function planAutoReseed(k: AiKnowledge, out: CommandDraft[]): void {
+  const wood = k.resources()[WOOD] ?? 0;
+  const current = k.autoReseedEnabled();
+  const desired = wood >= FARM_RESEED_WOOD_COST;
+  if (current !== desired) {
+    out.push({
+      kind: SET_AUTO_RESEED_COMMAND_KIND,
+      data: {
+        playerId: k.player,
+        enabled: desired,
+      },
+    });
+  }
 }
 
 // ---- 1) Housing -----------------------------------------------------------------

@@ -290,4 +290,18 @@ describe("Toast Notification Manager with Mock DOM", () => {
     vi.advanceTimersByTime(500);
     expect(mockContainer.children.length).toBe(0);
   });
+
+  it("notifies farm exhausted with kind and location", () => {
+    toastManager = createToastManager({
+      container: mockContainer as unknown as HTMLElement,
+    });
+    const result = toastManager.notifyFarmExhausted(
+      15,
+      20,
+      "Insufficient wood to reseed farm",
+    );
+    expect(result).toBe(true);
+    expect(mockContainer.children.length).toBe(1);
+    expect(mockContainer.children[0]!.className).toContain("game-toast-farm-exhausted");
+  });
 });
