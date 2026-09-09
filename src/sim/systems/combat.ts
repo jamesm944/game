@@ -168,6 +168,12 @@ import { despawnEntity, type SimSystem, type World } from "../core/world";
 import { PASSABLE } from "../world/layers";
 import { issueGroupRoute, resetSteeringBookkeeping } from "./movement";
 import { isChildOf } from "./lifecycle";
+import {
+  applyElevationDamage,
+  elevationAt,
+  elevationRangeBonus,
+  elevationSightBonus,
+} from "../combat/elevation";
 import type { PathScheduler } from "../path/scheduler";
 
 /** Command kinds owned by this system. */
@@ -385,6 +391,8 @@ export function createCombatSystem(
       def: UnitDefinition;
       readonly owner: number;
       readonly radius: number;
+      /** Tile elevation (0–8), cached once per tick. */
+      readonly elev: number;
       queue: ActivityQueue;
       dirty: boolean;
     }
@@ -413,6 +421,7 @@ export function createCombatSystem(
         def,
         owner: row[1]!,
         radius,
+        elev: elevationAt(world.layers, posRow[0]!, posRow[1]!),
         queue: readActivityQueue(world, comps, eid),
         dirty: false,
       };
@@ -424,6 +433,8 @@ export function createCombatSystem(
     for (const combatant of combatants) {
       combatantByEid.set(combatant.eid, combatant);
     }
+    let maxElevation = 0;
+    for (const c of combatants) if (c.elev > maxElevation) maxElevation = c.elev;
 
     // ---- 2a) Faith regeneration (V14 Issue #101): idle monks regenerate faith
     // (+faithRegenPerTick up to maxFaith) when not actively converting.
@@ -1070,13 +1081,22 @@ export function createCombatSystem(
       const blastX = targetPos.x;
       const blastY = targetPos.y;
       const attackerStats = statsOf(attacker);
-      const defenderStats = statsOf(combatantByEid.get(targetEid)!);
-      const damage = strikeDamage(
+      const defenderCombatant = combatantByEid.get(targetEid)!;
+      const defenderStats = statsOf(defenderCombatant);
+      const baseDamage = strikeDamage(
         attacker.def,
         attackerStats,
         targetDef,
         defenderStats,
       );
+      // #107: high-ground bonus / low-ground penalty (±25%).
+      let damage = baseDamage;
+      if (maxElevation > 0) {
+        const targetElev = defenderCombatant.elev;
+        if (attacker.elev !== targetElev) {
+          damage = applyElevationDamage(baseDamage, attacker.elev, targetElev);
+        }
+      }
       targetRow[2] = Math.max(0, targetRow[2]! - damage);
       diagnostics.strikes += 1;
 
@@ -1139,7 +1159,14 @@ export function createCombatSystem(
       const blastX = targetPos.x;
       const blastY = targetPos.y;
       const attackerStats = statsOf(attacker);
-      const damage = strikeDamageOnBuilding(attacker.def, attackerStats);
+      const baseDamage = strikeDamageOnBuilding(attacker.def, attackerStats);
+      let damage = baseDamage;
+      if (maxElevation > 0) {
+        const targetElev = elevationAt(world.layers, targetPos.x, targetPos.y);
+        if (attacker.elev !== targetElev) {
+          damage = applyElevationDamage(baseDamage, attacker.elev, targetElev);
+        }
+      }
       structure.row[structure.hpIndex] = Math.max(
         0,
         structure.row[structure.hpIndex]! - damage,
@@ -1369,12 +1396,23 @@ export function createCombatSystem(
         ? statsOf(combatant).range
         : (combatant.def.range ?? MELEE_RANGE);
 
+      // #107: ranged units gain +1 range when shooting downhill.
+      const targetCombatant_ = combatantByEid.get(combatant.row[3]!);
+      const targetElev_ = targetCombatant_ !== undefined
+        ? targetCombatant_.elev
+        : combatant.elev;
+      const rangeBonus =
+        maxElevation > 0 && effectiveRange > MELEE_RANGE
+          ? elevationRangeBonus(combatant.elev, targetElev_)
+          : 0;
+      const effectiveRangeWithElev = effectiveRange + rangeBonus;
+
       combatant.row[4] = Math.max(0, combatant.row[4]! - 1);
 
       const dx = targetBody.x - combatant.posRow[0]!;
       const dy = targetBody.y - combatant.posRow[1]!;
       const distSq = dx * dx + dy * dy;
-      const reach = reachOf(combatant, targetBody, effectiveRange);
+      const reach = reachOf(combatant, targetBody, effectiveRangeWithElev);
       const minRange = combatant.def.minRange;
       if (distSq <= reach * reach) {
         if (minRange !== undefined && distSq < minRange * minRange) {
@@ -1511,17 +1549,22 @@ export function createCombatSystem(
       }
 
       // Find nearest alive enemy combatant within range
-      let bestDistSq = range * range;
+      // #107: watch towers / castles gain +1 range when shooting downhill.
+      const towerElev = elevationAt(world.layers, towerPos.x, towerPos.y);
+      let bestDistSq = (range + 1) * (range + 1);
       let targetEid = 0;
       for (const combatant of combatants) {
         if (!alive.has(combatant.eid)) continue;
         if (combatant.owner === structure.owner) continue;
-        const cPos = positions.get(combatant.eid);
-        if (!cPos) continue;
-        const dx = cPos.x - towerPos.x;
-        const dy = cPos.y - towerPos.y;
+        const dx = combatant.posRow[0]! - towerPos.x;
+        const dy = combatant.posRow[1]! - towerPos.y;
         const distSq = dx * dx + dy * dy;
-        if (distSq <= bestDistSq) {
+        const effectiveRng =
+          range +
+          (maxElevation > 0
+            ? elevationRangeBonus(towerElev, combatant.elev)
+            : 0);
+        if (distSq <= effectiveRng * effectiveRng && distSq <= bestDistSq) {
           bestDistSq = distSq;
           targetEid = combatant.eid;
         }
@@ -1538,7 +1581,11 @@ export function createCombatSystem(
         defenderStats,
         targetCombatant.def.armorClasses,
       );
-      const damage = Math.max(1, Math.floor(attack - armor));
+      const baseDmg = Math.max(1, Math.floor(attack - armor));
+      const damage =
+        maxElevation > 0
+          ? applyElevationDamage(baseDmg, towerElev, targetCombatant.elev)
+          : baseDmg;
       targetRow[2] = Math.max(0, targetRow[2]! - damage);
       diagnostics.strikes += 1;
 
@@ -1637,7 +1684,13 @@ export function createCombatSystem(
           continue;
         }
         // Also engage nearest enemy in sight
-        const enemy = nearestEnemy(combatant, combatant.def.sightRadius);
+        // #107: elevated units see farther (+1 sight when ≥2 levels above reference).
+        const baseSight = combatant.def.sightRadius ?? 8.0;
+        const effectiveSight =
+          maxElevation > 0
+            ? baseSight + elevationSightBonus(combatant.elev, 0)
+            : baseSight;
+        const enemy = nearestEnemy(combatant, effectiveSight);
         if (enemy !== undefined) {
           engage(combatant, enemy.eid);
           diagnostics.aggroAcquisitions += 1;

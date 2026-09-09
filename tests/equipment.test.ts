@@ -278,11 +278,11 @@ describe("pinned duel fixture: equipped beats default-fisted", () => {
       world,
       comps,
       "militia",
-      10.5,
+      10.3,
       10.5,
       PLAYER_ONE,
     );
-    const defender = spawnCombatUnit(world, comps, "militia", 11.1, 10.5, 1);
+    const defender = spawnCombatUnit(world, comps, "militia", 10.8, 10.5, 1);
     if (equipAttacker) {
       depositCommodityIntoStockpile(
         world,
