@@ -67,6 +67,8 @@ const KEY_TO_FILE: Record<string, string> = {
   gateDarkClosed: "WallTowers_DoorClosed_FirstAge.gltf",
   gateFeudalOpen: "WallTowers_Door_SecondAge.gltf",
   gateFeudalClosed: "WallTowers_DoorClosed_SecondAge.gltf",
+  dockDark: "Dock_FirstAge.gltf",
+  portFeudal: "Port_FirstAge_Level1.gltf",
 };
 
 describe("building models mapping", () => {

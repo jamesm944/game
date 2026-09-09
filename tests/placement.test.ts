@@ -10,7 +10,7 @@
  * losing the unit.
  */
 import { describe, expect, it } from "vitest";
-import { buildingCodeOf } from "../src/data/definitions";
+import { buildingCodeOf, buildingIdOfCode } from "../src/data/definitions";
 import {
   defineSimComponents,
   getBuildingSiteRow,
@@ -261,5 +261,112 @@ describe("placement system", () => {
       arrived = Math.abs(pos.x - 14) < 0.75 && Math.abs(pos.y - 2) < 0.75;
     }
     expect(arrived).toBe(true);
+  });
+
+  describe("hybrid shoreline dock placement (Issue #108 / N1)", () => {
+    // 16x16 world: Rows 0..7 are land (.), Rows 8..15 are water (#)
+    const SHORELINE_WORLD: readonly string[] = [
+      "................",
+      "................",
+      "................",
+      "................",
+      "................",
+      "................",
+      "................",
+      "................",
+      "################",
+      "################",
+      "################",
+      "################",
+      "################",
+      "################",
+      "################",
+      "################",
+    ];
+
+    it("rejects dock placement on pure inland (no water tiles)", () => {
+      const { world, comps } = harness(SHORELINE_WORLD);
+      const check = validatePlacement(world, comps, "dock", 4, 2);
+      expect(check.ok).toBe(false);
+      expect(check.reason).toBe("dock-needs-water");
+    });
+
+    it("rejects dock placement in open sea (no land tiles)", () => {
+      const { world, comps } = harness(SHORELINE_WORLD);
+      const check = validatePlacement(world, comps, "dock", 4, 11);
+      expect(check.ok).toBe(false);
+      expect(check.reason).toBe("dock-needs-land");
+    });
+
+    it("accepts dock placement straddling the shoreline with exterior water and land", () => {
+      const { world, comps } = harness(SHORELINE_WORLD);
+      // y=6: footprint spans y=6 (land), y=7 (land), y=8 (water)
+      // exterior land at y=5, exterior water at y=9
+      const check1 = validatePlacement(world, comps, "dock", 4, 6);
+      expect(check1.ok).toBe(true);
+      expect(check1.rect).toEqual({ x: 4, y: 6, width: 3, height: 3 });
+
+      // y=7: footprint spans y=7 (land), y=8 (water), y=9 (water)
+      // exterior land at y=6, exterior water at y=10
+      const check2 = validatePlacement(world, comps, "dock", 4, 7);
+      expect(check2.ok).toBe(true);
+      expect(check2.rect).toEqual({ x: 4, y: 7, width: 3, height: 3 });
+    });
+
+    it("rejects dock when interior has water but exterior lacks navigable water", () => {
+      // 1x1 puddle at (7, 7) inside all-land map
+      const puddleWorld = Array.from({ length: 16 }, (_, y) => {
+        if (y === 7) return ".......#........";
+        return "................";
+      });
+      const { world, comps } = harness(puddleWorld);
+      // Footprint 6..8: contains (7, 7) puddle, but border (y=5, y=9, x=5, x=9) has no water
+      const check = validatePlacement(world, comps, "dock", 6, 6);
+      expect(check.ok).toBe(false);
+      expect(check.reason).toBe("dock-needs-water");
+    });
+
+    it("rejects dock when interior has land but exterior lacks passable land", () => {
+      // 1x1 island at (7, 7) inside all-water map
+      const islandWorld = Array.from({ length: 16 }, (_, y) => {
+        if (y === 7) return "#######.########";
+        return "################";
+      });
+      const { world, comps } = harness(islandWorld);
+      // Footprint 6..8: contains (7, 7) island, but border has no land
+      const check = validatePlacement(world, comps, "dock", 6, 6);
+      expect(check.ok).toBe(false);
+      expect(check.reason).toBe("dock-needs-land");
+    });
+
+    it("escrows 150 wood at placement, spawns site, and blocks footprint tiles", () => {
+      const { world, comps } = harness(SHORELINE_WORLD);
+      const initialWood = stockpileAmountsOf(world, comps, PLAYER_ONE)[1]!; // 1000 wood
+      expect(initialWood).toBe(1000);
+
+      place(world, "dock", 4, 6);
+      step(world);
+
+      // 150 wood debited
+      const postWood = stockpileAmountsOf(world, comps, PLAYER_ONE)[1]!;
+      expect(postWood).toBe(850);
+
+      // Site spawned
+      const siteEid = world.entities.find((eid) =>
+        getBuildingSiteRow(world, comps, eid),
+      );
+      expect(siteEid).toBeDefined();
+      const siteRow = getBuildingSiteRow(world, comps, siteEid!)!;
+      expect(buildingIdOfCode(siteRow[1]!)).toBe("dock");
+
+      // Footprint blocked in passability
+      const pass = world.layers.derivedPassability;
+      const size = world.layers.size;
+      for (let dy = 0; dy < 3; dy++) {
+        for (let dx = 0; dx < 3; dx++) {
+          expect(pass[(6 + dy) * size + (4 + dx)]).toBe(0);
+        }
+      }
+    });
   });
 });

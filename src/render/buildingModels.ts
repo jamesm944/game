@@ -103,7 +103,12 @@ import gateDarkClosed from "../assets/models/quaternius-ultimate-fantasy-rts/glT
 import gateFeudalOpen from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/WallTowers_Door_SecondAge.gltf";
 import gateFeudalClosed from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/WallTowers_DoorClosed_SecondAge.gltf";
 
+import dockDark from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Dock_FirstAge.gltf";
+import portFeudal from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/Port_FirstAge_Level1.gltf";
+
 const MODEL_URLS: Record<string, string> = {
+  dockDark,
+  portFeudal,
   tcDark,
   tcFeudal,
   tcCastle,
@@ -336,6 +341,8 @@ export function modelKeyFor(defId: string, ageRank: number): string {
       return "gateFeudalOpen";
     case "castle":
       return "tcImperial";
+    case "dock":
+      return ageRank <= 1 ? "dockDark" : "portFeudal";
     default:
       return "storage1";
   }
