@@ -44,6 +44,8 @@ import {
 } from "../components/buildings";
 import { appendGateRejection, GATE_HANDLER_TRAIN } from "../components/age";
 import { spawnCombatUnit, spawnUnit } from "../components";
+import { ensureCarryCapacity } from "../components/economy";
+import { waterPassabilityWithBuildings } from "../world/navigability";
 import {
   buildingDefOf,
   buildingIdOfCode,
@@ -163,9 +165,10 @@ export function findSpawnTile(
   originY: number,
   width: number,
   height: number,
+  customPassability?: Uint8Array,
 ): { x: number; y: number } | undefined {
   const size = world.layers.size;
-  const passability = world.layers.derivedPassability;
+  const passability = customPassability ?? world.layers.derivedPassability;
   for (let ring = 1; ring <= SPAWN_RING_DEPTH; ring++) {
     const minX = originX - ring;
     const minY = originY - ring;
@@ -374,18 +377,25 @@ export function createTrainingSystem(
         const fp = footprintOfDefCode(buildingRow[1]!);
         const originX = rectPos[0]! - fp.width / 2;
         const originY = rectPos[1]! - fp.height / 2;
+        const unitId = unitIdOfCode(head.unitCode);
+        const unitDef = unitDefOf(unitId);
+        const isNaval = unitDef.armorClasses?.includes("ship");
+        const customPass = isNaval
+          ? waterPassabilityWithBuildings(world, comps)
+          : undefined;
         const tile = findSpawnTile(
           world,
           originX,
           originY,
           fp.width,
           fp.height,
+          customPass,
         );
         if (!tile) continue; // boxed in: retry next tick
         spawnTrainedUnit(
           world,
           comps,
-          unitIdOfCode(head.unitCode),
+          unitId,
           tile.x + 0.5,
           tile.y + 0.5,
           buildingRow[0]!,
@@ -426,8 +436,17 @@ function spawnTrainedUnit(
       body: true,
     });
   }
-  return spawnCombatUnit(world, comps, unitId, x, y, playerId, {
+  const eid = spawnCombatUnit(world, comps, unitId, x, y, playerId, {
     // M3-T4: trained soldiers carry the wound model too.
     body: true,
   });
+  const def = unitDefOf(unitId);
+  if (
+    def.carryCapacity !== undefined &&
+    def.carryCapacity > 0 &&
+    typeof comps.carryCapacityId === "number"
+  ) {
+    ensureCarryCapacity(world, comps, eid, def.carryCapacity);
+  }
+  return eid;
 }

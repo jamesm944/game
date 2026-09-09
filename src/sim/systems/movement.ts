@@ -53,12 +53,22 @@ import type { SimCommand } from "../core/inbox";
 import { type BodyComponents, injuryImpairmentOf } from "../components/body";
 import { type OwnerComponents, ownerOfUnit } from "../components/owner";
 import { type BuildingComponents } from "../components/buildings";
-import { type GarrisonComponents, addGarrisonedUnit, readGarrison } from "../components/garrison";
-import { buildingDefOf, buildingIdOfCode, unitDefOf, unitIdOfCode } from "../../data/definitions";
+import {
+  type GarrisonComponents,
+  addGarrisonedUnit,
+  readGarrison,
+} from "../components/garrison";
+import {
+  buildingDefOf,
+  buildingIdOfCode,
+  unitDefOf,
+  unitIdOfCode,
+} from "../../data/definitions";
 import { despawnEntity } from "../core/world";
-import type { CombatComponents } from "../components/combat";
+import { isNavalUnit, type CombatComponents } from "../components/combat";
 import type { StanceComponents } from "../components/stance";
 import { passabilityForPlayer } from "./placement";
+import { waterPassabilityWithBuildings } from "../world/navigability";
 import { hasLineOfSight } from "../path/astar";
 import type { PathScheduler } from "../path/scheduler";
 
@@ -226,6 +236,7 @@ interface UnitState {
   accumulatedSepY: number;
   queue: Activity[];
   queueDirty: boolean;
+  readonly passability: Uint8Array;
   despawned?: boolean;
 }
 
@@ -427,7 +438,8 @@ export function issueGroupRoute(
   world: World,
   comps: MovementComponents &
     Partial<OwnerComponents> &
-    Partial<BuildingComponents>,
+    Partial<BuildingComponents> &
+    Partial<CombatComponents>,
   diagnostics: MovementDiagnostics | undefined,
   paths: PathScheduler,
   order: GroupRouteOrder,
@@ -476,8 +488,10 @@ export function issueGroupRoute(
     comps.ownerId !== undefined
       ? ownerOfUnit(world, { ownerId: comps.ownerId }, leader.eid)
       : 0;
-  const passability =
-    comps.buildingId !== undefined
+  const isNaval = isNavalUnit(world, comps, leader.eid);
+  const passability = isNaval
+    ? waterPassabilityWithBuildings(world, comps)
+    : comps.buildingId !== undefined
       ? passabilityForPlayer(
           world,
           {
@@ -581,7 +595,10 @@ export function issueGroupRoute(
  */
 function handleGroupMove(
   world: World,
-  comps: MovementComponents,
+  comps: MovementComponents &
+    Partial<OwnerComponents> &
+    Partial<BuildingComponents> &
+    Partial<CombatComponents>,
   diagnostics: MovementDiagnostics,
   paths: PathScheduler,
   data: Readonly<Record<string, unknown>>,
@@ -617,7 +634,14 @@ export function createMovementSystem(
     const passability = world.layers.derivedPassability;
 
     const passCache = new Map<number, Uint8Array>();
+    let waterPassCache: Uint8Array | undefined;
     const getUnitPassability = (eid: number): Uint8Array => {
+      if (isNavalUnit(world, comps, eid)) {
+        if (!waterPassCache) {
+          waterPassCache = waterPassabilityWithBuildings(world, comps);
+        }
+        return waterPassCache;
+      }
       if (comps.buildingId === undefined || comps.ownerId === undefined) {
         return passability;
       }
@@ -683,6 +707,7 @@ export function createMovementSystem(
         accumulatedSepY: 0,
         queue: readActivityQueue(world, comps, eid),
         queueDirty: false,
+        passability: getUnitPassability(eid),
       });
     }
 
@@ -821,7 +846,14 @@ export function createMovementSystem(
       for (const side of [preferredSide, -preferredSide]) {
         const nx = unit.x + perpX * side;
         const ny = unit.y + perpY * side;
-        if (!tileIsPassable(passability, size, Math.floor(nx), Math.floor(ny)))
+        if (
+          !tileIsPassable(
+            unit.passability,
+            size,
+            Math.floor(nx),
+            Math.floor(ny),
+          )
+        )
           continue;
         let occupied = false;
         for (const other of units) {
@@ -931,7 +963,8 @@ export function createMovementSystem(
         unit.tickStartX = unit.x;
         unit.tickStartY = unit.y;
         const baseSpeed =
-          unit.tagRow[0]! * injuryImpairmentOf(world, comps, unit.eid).speedMult;
+          unit.tagRow[0]! *
+          injuryImpairmentOf(world, comps, unit.eid).speedMult;
         const turnRate = unit.tagRow[1]!;
 
         const desiredDirX = gdx / gdist;
@@ -955,7 +988,8 @@ export function createMovementSystem(
         unit.heading = wrapAngle(unit.heading + turnStep);
 
         const align = detCos(Math.min(Math.abs(delta), HALF_PI));
-        const cruise = baseSpeed * (TURN_SLOW_MIN + (1 - TURN_SLOW_MIN) * align);
+        const cruise =
+          baseSpeed * (TURN_SLOW_MIN + (1 - TURN_SLOW_MIN) * align);
         const targetSpeed = cruise;
         if (targetSpeed > unit.speed) {
           unit.speed = Math.min(
@@ -977,7 +1011,7 @@ export function createMovementSystem(
             unit,
             unit.x + dirX * stepLength,
             unit.y + dirY * stepLength,
-            passability,
+            unit.passability,
             size,
           );
         }
@@ -988,10 +1022,15 @@ export function createMovementSystem(
 
       if (current.kind === "garrison") {
         const targetBuildingEid = current.targetBuildingId;
-        const bPosRow = world.rowsByComponentId.get(comps.positionId)?.get(targetBuildingEid);
-        const bRow = comps.buildingId !== undefined
-          ? world.rowsByComponentId.get(comps.buildingId)?.get(targetBuildingEid)
-          : undefined;
+        const bPosRow = world.rowsByComponentId
+          .get(comps.positionId)
+          ?.get(targetBuildingEid);
+        const bRow =
+          comps.buildingId !== undefined
+            ? world.rowsByComponentId
+                .get(comps.buildingId)
+                ?.get(targetBuildingEid)
+            : undefined;
 
         if (!bPosRow || !bRow) {
           dequeueCurrentActivity(unit.queue);
@@ -1016,17 +1055,27 @@ export function createMovementSystem(
         const distToEdge = Math.sqrt(cdx * cdx + cdy * cdy);
 
         const bOwner = bRow[0]!;
-        const uOwner = comps.ownerId !== undefined
-          ? ownerOfUnit(world, { ownerId: comps.ownerId }, unit.eid)
-          : 0;
+        const uOwner =
+          comps.ownerId !== undefined
+            ? ownerOfUnit(world, { ownerId: comps.ownerId }, unit.eid)
+            : 0;
 
         const capacity = bDef.garrisonCapacity ?? 0;
-        const currentGarrison = comps.garrisonId !== undefined
-          ? readGarrison(world, { garrisonId: comps.garrisonId }, targetBuildingEid)
-          : [];
+        const currentGarrison =
+          comps.garrisonId !== undefined
+            ? readGarrison(
+                world,
+                { garrisonId: comps.garrisonId },
+                targetBuildingEid,
+              )
+            : [];
 
         // If hostile or at capacity, cannot enter -> cancel order
-        if (bOwner !== uOwner || capacity <= 0 || currentGarrison.length >= capacity) {
+        if (
+          bOwner !== uOwner ||
+          capacity <= 0 ||
+          currentGarrison.length >= capacity
+        ) {
           dequeueCurrentActivity(unit.queue);
           unit.queueDirty = true;
           unit.speed = 0;
@@ -1036,25 +1085,34 @@ export function createMovementSystem(
 
         // Check if close enough to enter (within 1.2 tiles of edge)
         if (distToEdge <= 1.2) {
-          const combatRow = comps.combatId !== undefined
-            ? world.rowsByComponentId.get(comps.combatId)?.get(unit.eid)
-            : undefined;
+          const combatRow =
+            comps.combatId !== undefined
+              ? world.rowsByComponentId.get(comps.combatId)?.get(unit.eid)
+              : undefined;
           const unitCode = combatRow ? combatRow[0]! : 0;
           const uDef = unitDefOf(unitIdOfCode(unitCode));
           const hp = combatRow ? combatRow[2]! : uDef.hp;
           const maxHp = uDef.hp;
-          const stanceCode = comps.stanceId !== undefined
-            ? (world.rowsByComponentId.get(comps.stanceId)?.get(unit.eid)?.[0] ?? 0)
-            : 0;
+          const stanceCode =
+            comps.stanceId !== undefined
+              ? (world.rowsByComponentId
+                  .get(comps.stanceId)
+                  ?.get(unit.eid)?.[0] ?? 0)
+              : 0;
 
           if (comps.garrisonId !== undefined) {
-            addGarrisonedUnit(world, { garrisonId: comps.garrisonId }, targetBuildingEid, {
-              unitCode,
-              owner: uOwner,
-              hp,
-              maxHp,
-              stanceCode,
-            });
+            addGarrisonedUnit(
+              world,
+              { garrisonId: comps.garrisonId },
+              targetBuildingEid,
+              {
+                unitCode,
+                owner: uOwner,
+                hp,
+                maxHp,
+                stanceCode,
+              },
+            );
           }
 
           unit.despawned = true;
@@ -1075,7 +1133,8 @@ export function createMovementSystem(
         unit.tickStartX = unit.x;
         unit.tickStartY = unit.y;
         const baseSpeed =
-          unit.tagRow[0]! * injuryImpairmentOf(world, comps, unit.eid).speedMult;
+          unit.tagRow[0]! *
+          injuryImpairmentOf(world, comps, unit.eid).speedMult;
         const turnRate = unit.tagRow[1]!;
 
         const desiredDirX = tdist > 0 ? tdx / tdist : 0;
@@ -1094,12 +1153,19 @@ export function createMovementSystem(
         unit.heading = wrapAngle(unit.heading + turnStep);
 
         const align = detCos(Math.min(Math.abs(delta), HALF_PI));
-        const cruise = baseSpeed * (TURN_SLOW_MIN + (1 - TURN_SLOW_MIN) * align);
+        const cruise =
+          baseSpeed * (TURN_SLOW_MIN + (1 - TURN_SLOW_MIN) * align);
         const targetSpeed = cruise;
         if (targetSpeed > unit.speed) {
-          unit.speed = Math.min(targetSpeed, unit.speed + ACCEL_TILES_PER_S2 * dt);
+          unit.speed = Math.min(
+            targetSpeed,
+            unit.speed + ACCEL_TILES_PER_S2 * dt,
+          );
         } else {
-          unit.speed = Math.max(targetSpeed, unit.speed - BRAKE_DECEL_TILES_PER_S2 * dt);
+          unit.speed = Math.max(
+            targetSpeed,
+            unit.speed - BRAKE_DECEL_TILES_PER_S2 * dt,
+          );
         }
 
         if (tdist > 0 && unit.speed > 0) {
@@ -1108,7 +1174,7 @@ export function createMovementSystem(
             unit,
             unit.x + desiredDirX * stepLength,
             unit.y + desiredDirY * stepLength,
-            passability,
+            unit.passability,
             size,
           );
         }
@@ -1205,9 +1271,7 @@ export function createMovementSystem(
       const dy = targetY - unit.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const isFinalLeg =
-        move.kind === "patrol"
-          ? false
-          : move.cursor + 2 >= waypoints.length;
+        move.kind === "patrol" ? false : move.cursor + 2 >= waypoints.length;
       unit.inApproachZone = isFinalLeg && dist <= APPROACH_RADIUS;
       if (dist > 1e-12) {
         unit.desiredDirX = dx / dist;
@@ -1249,7 +1313,7 @@ export function createMovementSystem(
       // holds position until the fresh route applies.
       if (
         !hasLineOfSight(
-          getUnitPassability(unit.eid),
+          unit.passability,
           size,
           Math.floor(unit.x),
           Math.floor(unit.y),
@@ -1316,7 +1380,7 @@ export function createMovementSystem(
           unit,
           unit.x + dirX * stepLength,
           unit.y + dirY * stepLength,
-          passability,
+          unit.passability,
           size,
         );
       }
@@ -1394,14 +1458,14 @@ export function createMovementSystem(
               unitA,
               unitA.x - ux * half,
               unitA.y - uy * half,
-              passability,
+              unitA.passability,
               size,
             );
             tryMove(
               unitB,
               unitB.x + ux * half,
               unitB.y + uy * half,
-              passability,
+              unitB.passability,
               size,
             );
             commitAvoidanceSide(unitA, -ux, -uy);
@@ -1411,7 +1475,7 @@ export function createMovementSystem(
               unitA,
               unitA.x - ux * overlap,
               unitA.y - uy * overlap,
-              passability,
+              unitA.passability,
               size,
             );
             commitAvoidanceSide(unitA, -ux, -uy);
@@ -1420,7 +1484,7 @@ export function createMovementSystem(
               unitB,
               unitB.x + ux * overlap,
               unitB.y + uy * overlap,
-              passability,
+              unitB.passability,
               size,
             );
             commitAvoidanceSide(unitB, ux, uy);
@@ -1444,7 +1508,7 @@ export function createMovementSystem(
         unit,
         unit.x + unit.accumulatedSepX * scale,
         unit.y + unit.accumulatedSepY * scale,
-        passability,
+        unit.passability,
         size,
       );
     }

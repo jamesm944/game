@@ -1,0 +1,19 @@
+{
+  "id": "fishing-boat",
+  "name": "Fishing Boat",
+  "kind": "unit",
+  "costs": {
+    "wood": 75
+  },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "trainTime": 600,
+  "hp": 60,
+  "speed": 1.26,
+  "carryCapacity": 15,
+  "attack": 0,
+  "armorClasses": ["ship", "civilian"],
+  "attackBonuses": [],
+  "sightRadius": 5,
+  "equipmentSlots": []
+}

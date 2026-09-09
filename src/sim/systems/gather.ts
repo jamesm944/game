@@ -96,6 +96,9 @@ import {
   resetSteeringBookkeeping,
 } from "./movement";
 import { isChildOf } from "./lifecycle";
+import { isNavalUnit } from "../components/combat";
+import { waterPassabilityWithBuildings } from "../world/navigability";
+import { isWaterTerrain } from "../world/layers";
 
 /** Ticks of slot work per extracted resource unit (1 s at 30 Hz). */
 export const DEFAULT_GATHER_TICKS_PER_UNIT = 30;
@@ -531,7 +534,14 @@ export function createGatherSystem(
       fromX: number,
       fromY: number,
       resourceCode: number,
+      workerEid?: number,
     ): DropOffInfo | undefined => {
+      const isNaval =
+        workerEid !== undefined && isNavalUnit(world, comps, workerEid);
+      const activePassability = isNaval
+        ? waterPassabilityWithBuildings(world, comps)
+        : passability;
+
       const version = paths?.passabilityVersion ?? 0;
       if (version !== costCache.version) {
         costCache.costs.clear();
@@ -539,8 +549,13 @@ export function createGatherSystem(
       }
       let startX = Math.floor(fromX);
       let startY = Math.floor(fromY);
-      if (!tileIsPassable(passability, size, startX, startY)) {
-        const near = nearestPassableTile(passability, size, startX, startY);
+      if (!tileIsPassable(activePassability, size, startX, startY)) {
+        const near = nearestPassableTile(
+          activePassability,
+          size,
+          startX,
+          startY,
+        );
         if (!near) return undefined;
         startX = near.x;
         startY = near.y;
@@ -555,17 +570,22 @@ export function createGatherSystem(
         if ((candidate.mask & acceptBit) === 0) continue; // rejects cargo
         let goalX = Math.floor(candidate.x);
         let goalY = Math.floor(candidate.y);
-        if (!tileIsPassable(passability, size, goalX, goalY)) {
-          const near = nearestPassableTile(passability, size, goalX, goalY);
+        if (!tileIsPassable(activePassability, size, goalX, goalY)) {
+          const near = nearestPassableTile(
+            activePassability,
+            size,
+            goalX,
+            goalY,
+          );
           if (!near) continue;
           goalX = near.x;
           goalY = near.y;
         }
         const key = rank * tileCount + fromTileIdx;
-        let cost = costCache.costs.get(key);
+        let cost = isNaval ? undefined : costCache.costs.get(key);
         if (cost === undefined) {
           const result = findPath({
-            passability,
+            passability: activePassability,
             width: size,
             startX,
             startY,
@@ -573,7 +593,7 @@ export function createGatherSystem(
             goalY,
           });
           cost = result ? result.cost : Number.POSITIVE_INFINITY;
-          costCache.costs.set(key, cost);
+          if (!isNaval) costCache.costs.set(key, cost);
         }
         if (cost < bestCost) {
           bestCost = cost;
@@ -622,6 +642,7 @@ export function createGatherSystem(
       fromX: number,
       fromY: number,
       drop: { x: number; y: number },
+      filterPassability?: Uint8Array,
     ): { x: number; y: number } => {
       let bestX = drop.x;
       let bestY = drop.y;
@@ -635,6 +656,17 @@ export function createGatherSystem(
           Math.max(drop.y + dy * DELIVER_DOOR_SCALE, 0.5),
           size - 0.5,
         );
+        if (
+          filterPassability &&
+          !tileIsPassable(
+            filterPassability,
+            size,
+            Math.floor(candidateX),
+            Math.floor(candidateY),
+          )
+        ) {
+          continue;
+        }
         const ddx = fromX - candidateX;
         const ddy = fromY - candidateY;
         const distanceSq = ddx * ddx + ddy * ddy;
@@ -643,6 +675,9 @@ export function createGatherSystem(
           bestX = candidateX;
           bestY = candidateY;
         }
+      }
+      if (bestDistanceSq === Number.POSITIVE_INFINITY && filterPassability) {
+        return deliverDoorOf(fromX, fromY, drop);
       }
       return { x: bestX, y: bestY };
     };
@@ -804,7 +839,9 @@ export function createGatherSystem(
                 tick: world.tick,
                 playerId: ownerId,
                 farmEid: worker.nodeEid,
-                reason: autoReseed ? "insufficient-wood" : "auto-reseed-disabled",
+                reason: autoReseed
+                  ? "insufficient-wood"
+                  : "auto-reseed-disabled",
                 farmX: nodePos?.[0],
                 farmY: nodePos?.[1],
               });
@@ -938,16 +975,26 @@ export function createGatherSystem(
       // personal perimeter door. No accepting candidate → idle here
       // holding the cargo; every such tick lands in diagnostics.
       if (remaining <= 0 || inv.amount >= capacity) {
+        const isNaval = isNavalUnit(world, comps, worker.eid);
         const target = cheapestDropOff(
           worker.posX,
           worker.posY,
           inv.resourceCode,
+          worker.eid,
         );
         if (!target) {
           diagnostics.blockedCarryTicks += 1;
           return false; // nothing known/accepting/reachable yet; retry
         }
-        const door = deliverDoorOf(worker.posX, worker.posY, target);
+        const filterPass = isNaval
+          ? waterPassabilityWithBuildings(world, comps)
+          : undefined;
+        const door = deliverDoorOf(
+          worker.posX,
+          worker.posY,
+          target,
+          filterPass,
+        );
         enqueueActivity(queue, moveActivity([door.x, door.y]));
         enqueueActivity(queue, deliverActivity(target.eid));
         setMoveTarget(world, comps, worker.eid, door.x, door.y);
@@ -1011,8 +1058,7 @@ export function createGatherSystem(
     for (const command of commands) {
       if (command.kind === SET_AUTO_RESEED_COMMAND_KIND) {
         const data = command.data as unknown as
-          | SetAutoReseedCommandData
-          | undefined;
+          SetAutoReseedCommandData | undefined;
         if (
           data &&
           typeof data.playerId === "number" &&
@@ -1070,11 +1116,19 @@ export function createGatherSystem(
         continue;
       }
       const limit = Math.min(Math.max(0, nodeRow[2]!), WORK_SLOTS_PER_NODE);
+      const nodeTileX = Math.floor(nodePos[0]!);
+      const nodeTileY = Math.floor(nodePos[1]!);
+      const isWaterNode = isWaterTerrain(
+        world.layers.terrainType[nodeTileY * size + nodeTileX]!,
+      );
+      const nodePassability = isWaterNode
+        ? waterPassabilityWithBuildings(world, comps)
+        : passability;
       const slots = workSlotPositionsFor(
-        passability,
+        nodePassability,
         size,
-        Math.floor(nodePos[0]!),
-        Math.floor(nodePos[1]!),
+        nodeTileX,
+        nodeTileY,
         limit,
       );
       const centerX = nodePos[0]!;
@@ -1093,8 +1147,30 @@ export function createGatherSystem(
           const offset = formationSlotOffset(
             OVERFLOW_RING_START_INDEX + overflowRank,
           );
-          holdingX = Math.min(Math.max(centerX + offset.dx, 0.5), size - 0.5);
-          holdingY = Math.min(Math.max(centerY + offset.dy, 0.5), size - 0.5);
+          let hx = Math.min(Math.max(centerX + offset.dx, 0.5), size - 0.5);
+          let hy = Math.min(Math.max(centerY + offset.dy, 0.5), size - 0.5);
+          if (
+            isWaterNode &&
+            !tileIsPassable(
+              nodePassability,
+              size,
+              Math.floor(hx),
+              Math.floor(hy),
+            )
+          ) {
+            const near = nearestPassableTile(
+              nodePassability,
+              size,
+              Math.floor(hx),
+              Math.floor(hy),
+            );
+            if (near) {
+              hx = near.x + 0.5;
+              hy = near.y + 0.5;
+            }
+          }
+          holdingX = hx;
+          holdingY = hy;
         }
         claimed.push({
           ...worker,
@@ -1194,7 +1270,16 @@ export function createGatherSystem(
             continue; // auto-repeat planning runs through planNextLeg
           }
           // Stale Deliver head without its Move pair: rebuild the walk.
-          const door = deliverDoorOf(worker.posX, worker.posY, drop);
+          const isNaval = isNavalUnit(world, comps, worker.eid);
+          const filterPass = isNaval
+            ? waterPassabilityWithBuildings(world, comps)
+            : undefined;
+          const door = deliverDoorOf(
+            worker.posX,
+            worker.posY,
+            drop,
+            filterPass,
+          );
           queue.length = 0;
           enqueueActivity(queue, moveActivity([door.x, door.y]));
           enqueueActivity(queue, head);

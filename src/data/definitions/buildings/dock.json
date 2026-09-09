@@ -12,5 +12,9 @@
   "dropoffFilters": ["food"],
   "acceptsRoles": [],
   "sightRadius": 6,
-  "populationCap": 0
+  "populationCap": 0,
+  "trainQueue": {
+    "capacity": 15,
+    "trainable": [{ "unitId": "fishing-boat" }]
+  }
 }

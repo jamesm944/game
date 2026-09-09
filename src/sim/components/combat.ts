@@ -198,10 +198,17 @@ export function spawnCombatUnit(
     attachPopMorale(world, comps as MoraleComponents, eid);
   }
   if (
-    (def.armorClasses?.includes("monk") || def.id === "monk" || def.maxFaith !== undefined) &&
+    (def.armorClasses?.includes("monk") ||
+      def.id === "monk" ||
+      def.maxFaith !== undefined) &&
     typeof (comps as Partial<FaithComponents>).faithId === "number"
   ) {
-    attachFaith(world, comps as unknown as FaithComponents, eid, def.maxFaith ?? 100);
+    attachFaith(
+      world,
+      comps as unknown as FaithComponents,
+      eid,
+      def.maxFaith ?? 100,
+    );
   }
   // Fog dirty mark (SPEC §2.9): the unit's sight circle (from its
   // definition's sightRadius) stamps at the next tick-boundary flush.
@@ -270,6 +277,22 @@ export function combatDefOf(
 const UNIT_CODE_ENTRIES: readonly (readonly [string, number])[] = [
   ...UNIT_DEF_CODES.entries(),
 ].sort((a, b) => a[1] - b[1]);
+
+/** True when the entity has a Combat row whose definition carries the "ship" armor class. */
+export function isNavalUnit(
+  world: World,
+  comps: Partial<CombatComponents>,
+  eid: number,
+): boolean {
+  if (comps.combatId === undefined) return false;
+  const def = combatDefOf(
+    world,
+    comps as Pick<CombatComponents, "combatId">,
+    eid,
+  );
+  if (!def) return false;
+  return def.armorClasses.includes("ship");
+}
 
 // ---- Per-player ledgers ---------------------------------------------------------
 

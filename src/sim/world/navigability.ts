@@ -10,11 +10,13 @@
  */
 
 import { isWaterTerrain, type WorldLayers } from "./layers";
+import type { World } from "../core/world";
+import { footprintOfDefCode } from "../components/buildings";
 
 /** Bitmask flags for tile navigability — SPEC / ADR-0005. */
-export const FLAG_WALKABLE_LAND    = 1; // 0b001
-export const FLAG_NAVIGABLE_WATER  = 2; // 0b010
-export const FLAG_SHORELINE        = 4; // 0b100
+export const FLAG_WALKABLE_LAND = 1; // 0b001
+export const FLAG_NAVIGABLE_WATER = 2; // 0b010
+export const FLAG_SHORELINE = 4; // 0b100
 
 /**
  * Returns true if world position (x, y) falls on navigable water.
@@ -65,7 +67,9 @@ export function isShorelineTile(
   if (tx < 0 || ty < 0 || tx >= layers.size || ty >= layers.size) {
     return false;
   }
-  const selfIsWater = isWaterTerrain(layers.terrainType[ty * layers.size + tx]!);
+  const selfIsWater = isWaterTerrain(
+    layers.terrainType[ty * layers.size + tx]!,
+  );
 
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
@@ -75,7 +79,9 @@ export function isShorelineTile(
       if (nx < 0 || ny < 0 || nx >= layers.size || ny >= layers.size) {
         continue;
       }
-      const neighborIsWater = isWaterTerrain(layers.terrainType[ny * layers.size + nx]!);
+      const neighborIsWater = isWaterTerrain(
+        layers.terrainType[ny * layers.size + nx]!,
+      );
       if (selfIsWater !== neighborIsWater) {
         return true;
       }
@@ -137,5 +143,65 @@ export function deriveWaterPassability(layers: WorldLayers): Uint8Array {
   for (let i = 0; i < tileCount; i++) {
     out[i] = isWaterTerrain(layers.terrainType[i]!) ? 1 : 0;
   }
+  return out;
+}
+
+/**
+ * Derives a water passability plane with building/site footprints blocked (0 = blocked, 1 = navigable water).
+ */
+export function waterPassabilityWithBuildings(
+  world: World,
+  comps: { buildingId?: number; buildingSiteId?: number; positionId?: number },
+): Uint8Array {
+  const size = world.layers.size;
+  const out = deriveWaterPassability(world.layers);
+  if (comps.positionId === undefined) return out;
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  if (!posRows) return out;
+
+  if (comps.buildingId !== undefined) {
+    const bRows = world.rowsByComponentId.get(comps.buildingId);
+    if (bRows) {
+      for (const [eid, bRow] of bRows) {
+        const pos = posRows.get(eid);
+        if (!pos) continue;
+        const fp = footprintOfDefCode(bRow[1]!);
+        const ox = Math.floor(pos[0]! - fp.width / 2);
+        const oy = Math.floor(pos[1]! - fp.height / 2);
+        for (let dy = 0; dy < fp.height; dy++) {
+          for (let dx = 0; dx < fp.width; dx++) {
+            const tx = ox + dx;
+            const ty = oy + dy;
+            if (tx >= 0 && tx < size && ty >= 0 && ty < size) {
+              out[ty * size + tx] = 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (comps.buildingSiteId !== undefined) {
+    const sRows = world.rowsByComponentId.get(comps.buildingSiteId);
+    if (sRows) {
+      for (const [eid, sRow] of sRows) {
+        const pos = posRows.get(eid);
+        if (!pos) continue;
+        const fp = footprintOfDefCode(sRow[1]!);
+        const ox = Math.floor(pos[0]! - fp.width / 2);
+        const oy = Math.floor(pos[1]! - fp.height / 2);
+        for (let dy = 0; dy < fp.height; dy++) {
+          for (let dx = 0; dx < fp.width; dx++) {
+            const tx = ox + dx;
+            const ty = oy + dy;
+            if (tx >= 0 && tx < size && ty >= 0 && ty < size) {
+              out[ty * size + tx] = 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
   return out;
 }
