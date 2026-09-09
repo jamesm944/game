@@ -286,7 +286,16 @@ import { popNameOf } from "./sim/components/pop";
 import { createPopCard } from "./ui/popCard";
 import { buildPopCard } from "./sim/popCard";
 import { wireControlGroups } from "./ui/controlGroups";
-import { createTopbar, formatStockpileLine } from "./ui/hud";
+import {
+  createTopbar,
+  formatStockpileLine,
+  type IdleWorkerBadgeCallbacks,
+} from "./ui/hud";
+import {
+  findIdleVillagers,
+  smartRedistributeIdleWorkers,
+  formatRedistributionMessage,
+} from "./sim/economy/idleWorkers";
 import { victoryPathReadouts } from "./sim/systems/victory";
 import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createToastHost } from "./ui/toast";
@@ -1577,6 +1586,23 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
     return;
   }
   if (pauseMenu.isOpen) return; // paused chrome swallows gameplay keys
+
+  // Idle worker management hotkeys (V15, #106) — available regardless of current selection
+  if (event.key === "." || event.key === ">" || key === "i") {
+    if (event.altKey) {
+      handleRedistributeIdleWorkersCommand();
+    } else if (event.shiftKey || event.key === ">") {
+      handleSelectAllIdleWorkersCommand();
+    } else {
+      handleCycleIdleWorkerCommand();
+    }
+    return;
+  }
+  if (key === "r") {
+    handleRedistributeIdleWorkersCommand();
+    return;
+  }
+
   if (selectionCount() === 0) return;
   if (key === "a") {
     handleAttackMoveCommand();
@@ -1662,7 +1688,59 @@ const minimap = createMinimap({
   isOwnBuilding: (ownerId) => ownerId === VIEWER,
 });
 
-const topbar = createTopbar(world.seed);
+// ---- Idle worker management (V15, #106) — cycle & redistribute -------
+//
+// I cycles camera to the next idle villager and selects it so the player
+// can manually re-task it. R smart-redistributes all idle workers at once
+// using age-appropriate resource weights. The topbar badge shows the live
+// idle count; clicking it cycles, the ⚡ button redistributes.
+
+let idleCycleIndex = 0;
+
+function handleCycleIdleWorkerCommand(): void {
+  const idleEids = findIdleVillagers(world, comps);
+  if (idleEids.length === 0) {
+    toast.show("No idle villagers");
+    return;
+  }
+  idleCycleIndex = idleCycleIndex % idleEids.length;
+  const eid = idleEids[idleCycleIndex]!;
+  const currentNum = idleCycleIndex + 1;
+  idleCycleIndex = (idleCycleIndex + 1) % idleEids.length;
+  setSelection([eid]);
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  const pos = posRows?.get(eid);
+  if (pos) cameraRig.setCenter(pos[0]!, pos[1]!);
+  toast.show(`Idle villager ${String(currentNum)}/${String(idleEids.length)}`);
+}
+
+function handleSelectAllIdleWorkersCommand(): void {
+  const idleEids = findIdleVillagers(world, comps);
+  if (idleEids.length === 0) {
+    toast.show("No idle villagers");
+    return;
+  }
+  setSelection(idleEids);
+  const posRows = world.rowsByComponentId.get(comps.positionId);
+  const pos = posRows?.get(idleEids[0]!);
+  if (pos) cameraRig.setCenter(pos[0]!, pos[1]!);
+  toast.show(
+    `Selected all ${String(idleEids.length)} idle villager${idleEids.length === 1 ? "" : "s"}`,
+  );
+}
+
+function handleRedistributeIdleWorkersCommand(): void {
+  const result = smartRedistributeIdleWorkers(world, comps);
+  toast.show(formatRedistributionMessage(result));
+}
+
+const idleCallbacks: IdleWorkerBadgeCallbacks = {
+  onCycle: handleCycleIdleWorkerCommand,
+  onSelectAll: handleSelectAllIdleWorkersCommand,
+  onRedistribute: handleRedistributeIdleWorkersCommand,
+};
+
+const topbar = createTopbar(world.seed, idleCallbacks);
 
 // Victory-path progress panel (M4-T4, §2.11): per-path sustained metric
 // vs threshold plus timer state, fed from the same digest-row derivation
@@ -2871,6 +2949,9 @@ function frame(
   // M4-T6: disclose the AI difficulty knobs — decision interval,
   // reaction latency and hard's documented income multiplier.
   topbar.updateDifficulty(session.aiDifficulty);
+  // #106: update idle worker badge every frame (cheap: just iterates
+  // entity list, no allocations when count is unchanged).
+  topbar.updateIdleWorkers(findIdleVillagers(world, comps).length);
   victoryPathsPanel.update(victoryPathReadouts(world, comps, VIEWER));
   controlGroups.refreshChips();
   buildMenu.refresh();

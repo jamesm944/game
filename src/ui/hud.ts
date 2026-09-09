@@ -18,12 +18,23 @@ import {
   type AiDifficultyId,
 } from "../sim/ai/difficulty";
 
+export interface IdleWorkerBadgeCallbacks {
+  /** Called when user clicks the idle badge to cycle to the next idle villager. */
+  onCycle(): void;
+  /** Called when user Shift+clicks the idle badge to select all idle villagers. */
+  onSelectAll?(): void;
+  /** Called when user clicks the redistribute button to smart-assign all idle workers. */
+  onRedistribute(): void;
+}
+
 export interface TopbarHandle {
   update(tick: number, fpsText: string, stockText?: string): void;
   /** Repaint the current-age badge (hidden until a rank exists). */
   updateAge(rank: number | undefined): void;
   /** Repaint the AI difficulty badge (discloses every active knob). */
   updateDifficulty(id: AiDifficultyId): void;
+  /** Repaint the idle worker badge. Pass 0 to hide it. */
+  updateIdleWorkers(count: number): void;
 }
 
 /** Roman rank numerals — AoE2-style age badge prefix. */
@@ -228,7 +239,10 @@ export function resourceIconSvg(name: string): string {
   }
 }
 
-export function createTopbar(seed: number): TopbarHandle {
+export function createTopbar(
+  seed: number,
+  idleCallbacks?: IdleWorkerBadgeCallbacks,
+): TopbarHandle {
   const bar = document.createElement("div");
   bar.id = "topbar";
   bar.className = "topbar";
@@ -246,9 +260,52 @@ export function createTopbar(seed: number): TopbarHandle {
   ageBadge.className = "topbar-age-badge";
   centerCol.appendChild(ageBadge);
 
-  // Right: Difficulty + Dev status collapsible
+  // Right: Idle badge + Difficulty + Dev status collapsible
   const rightCol = document.createElement("div");
   rightCol.className = "topbar-right";
+
+  // Idle worker badge (hidden when count === 0)
+  const idleBadge = document.createElement("div");
+  idleBadge.id = "topbar-idle-badge";
+  idleBadge.className = "topbar-idle-badge";
+  idleBadge.title =
+    "Idle villagers — click to cycle (.), Shift+click to select all (Shift+.), ⚡ to redistribute (R)";
+
+  const idleIcon = document.createElement("span");
+  idleIcon.className = "topbar-idle-icon";
+  // Villager silhouette SVG
+  idleIcon.innerHTML = `<svg viewBox="0 0 20 20" width="14" height="14" fill="#fbbf24"><circle cx="10" cy="5" r="3"/><path d="M4 18c0-3.5 2.7-6 6-6s6 2.5 6 6H4z"/></svg>`;
+
+  const idleCount = document.createElement("span");
+  idleCount.className = "topbar-idle-count";
+  idleCount.textContent = "0";
+
+  const idleLabel = document.createElement("span");
+  idleLabel.className = "topbar-idle-label";
+  idleLabel.textContent = "idle";
+
+  const idleRedistBtn = document.createElement("button");
+  idleRedistBtn.className = "topbar-idle-redist";
+  idleRedistBtn.type = "button";
+  idleRedistBtn.title = "Smart redistribute all idle workers (R)";
+  idleRedistBtn.textContent = "⚡";
+
+  idleBadge.append(idleIcon, idleCount, idleLabel, idleRedistBtn);
+
+  if (idleCallbacks) {
+    idleBadge.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest(".topbar-idle-redist")) return;
+      if (e.shiftKey && idleCallbacks.onSelectAll) {
+        idleCallbacks.onSelectAll();
+      } else {
+        idleCallbacks.onCycle();
+      }
+    });
+    idleRedistBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      idleCallbacks.onRedistribute();
+    });
+  }
 
   const difficultyBadge = document.createElement("span");
   difficultyBadge.id = "topbar-difficulty";
@@ -275,7 +332,7 @@ export function createTopbar(seed: number): TopbarHandle {
       devOverlay.style.display === "none" ? "block" : "none";
   });
 
-  rightCol.append(difficultyBadge, devToggle, devOverlay);
+  rightCol.append(idleBadge, difficultyBadge, devToggle, devOverlay);
   bar.append(resources, centerCol, rightCol);
   document.body.appendChild(bar);
 
@@ -283,6 +340,7 @@ export function createTopbar(seed: number): TopbarHandle {
   let lastResources = "";
   let lastAge = "";
   let lastDifficulty = "";
+  let lastIdleCount = -1;
 
   function paintResources(stockText: string): void {
     const items = parseStockpileLine(stockText);
@@ -338,6 +396,21 @@ export function createTopbar(seed: number): TopbarHandle {
       lastDifficulty = nextDifficulty;
       difficultyBadge.textContent = nextDifficulty;
       difficultyBadge.dataset.difficulty = id;
+    },
+    updateIdleWorkers(count: number): void {
+      if (count === lastIdleCount) return;
+      lastIdleCount = count;
+      if (count <= 0) {
+        idleBadge.style.display = "none";
+        idleBadge.classList.remove("topbar-idle-badge--active");
+        return;
+      }
+      idleCount.textContent = String(count);
+      idleBadge.style.display = "flex";
+      // Pulse animation on count change
+      idleBadge.classList.remove("topbar-idle-badge--active");
+      void idleBadge.offsetWidth;
+      idleBadge.classList.add("topbar-idle-badge--active");
     },
   };
 }
