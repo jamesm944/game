@@ -1021,18 +1021,20 @@ export function createMovementSystem(
       }
 
       if (current.kind === "garrison") {
-        const targetBuildingEid = current.targetBuildingId;
-        const bPosRow = world.rowsByComponentId
+        const targetEid = current.targetBuildingId;
+        const targetPosRow = world.rowsByComponentId
           .get(comps.positionId)
-          ?.get(targetBuildingEid);
+          ?.get(targetEid);
         const bRow =
           comps.buildingId !== undefined
-            ? world.rowsByComponentId
-                .get(comps.buildingId)
-                ?.get(targetBuildingEid)
+            ? world.rowsByComponentId.get(comps.buildingId)?.get(targetEid)
+            : undefined;
+        const targetCombatRow =
+          comps.combatId !== undefined
+            ? world.rowsByComponentId.get(comps.combatId)?.get(targetEid)
             : undefined;
 
-        if (!bPosRow || !bRow) {
+        if (!targetPosRow || (!bRow && !targetCombatRow)) {
           dequeueCurrentActivity(unit.queue);
           unit.queueDirty = true;
           unit.speed = 0;
@@ -1040,39 +1042,75 @@ export function createMovementSystem(
           continue;
         }
 
-        const bDefCode = bRow[1]!;
-        const bDef = buildingDefOf(buildingIdOfCode(bDefCode));
-        const originX = bRow[2]!;
-        const originY = bRow[3]!;
-        const rw = bDef.footprint.width;
-        const rh = bDef.footprint.height;
+        let targetOwner = 0;
+        let capacity = 0;
+        let distToEdge = 0;
+        let steerTargetX = targetPosRow[0]!;
+        let steerTargetY = targetPosRow[1]!;
+        let embarkThreshold = 1.2;
 
-        // Calculate distance from unit to building footprint rectangle
-        const closestX = Math.max(originX, Math.min(unit.x, originX + rw));
-        const closestY = Math.max(originY, Math.min(unit.y, originY + rh));
-        const cdx = unit.x - closestX;
-        const cdy = unit.y - closestY;
-        const distToEdge = Math.sqrt(cdx * cdx + cdy * cdy);
+        if (bRow) {
+          const bDefCode = bRow[1]!;
+          const bDef = buildingDefOf(buildingIdOfCode(bDefCode));
+          const originX = bRow[2]!;
+          const originY = bRow[3]!;
+          const rw = bDef.footprint.width;
+          const rh = bDef.footprint.height;
 
-        const bOwner = bRow[0]!;
+          // Calculate distance from unit to building footprint rectangle
+          const closestX = Math.max(originX, Math.min(unit.x, originX + rw));
+          const closestY = Math.max(originY, Math.min(unit.y, originY + rh));
+          const cdx = unit.x - closestX;
+          const cdy = unit.y - closestY;
+          distToEdge = Math.sqrt(cdx * cdx + cdy * cdy);
+
+          targetOwner = bRow[0]!;
+          capacity = bDef.garrisonCapacity ?? 0;
+          embarkThreshold = 1.2;
+        } else if (targetCombatRow) {
+          const uDef = unitDefOf(unitIdOfCode(targetCombatRow[0]!));
+          targetOwner = targetCombatRow[1]!;
+          capacity = uDef.garrisonCapacity ?? 0;
+          const cdx = unit.x - targetPosRow[0]!;
+          const cdy = unit.y - targetPosRow[1]!;
+          distToEdge = Math.sqrt(cdx * cdx + cdy * cdy);
+          embarkThreshold = 1.5;
+
+          // For land units embarking onto water transports: steer towards closest passable tile
+          if (
+            !tileIsPassable(
+              unit.passability,
+              size,
+              Math.floor(steerTargetX),
+              Math.floor(steerTargetY),
+            )
+          ) {
+            const near = nearestPassableTile(
+              unit.passability,
+              size,
+              Math.floor(steerTargetX),
+              Math.floor(steerTargetY),
+            );
+            if (near) {
+              steerTargetX = near.x + 0.5;
+              steerTargetY = near.y + 0.5;
+            }
+          }
+        }
+
         const uOwner =
           comps.ownerId !== undefined
             ? ownerOfUnit(world, { ownerId: comps.ownerId }, unit.eid)
             : 0;
 
-        const capacity = bDef.garrisonCapacity ?? 0;
         const currentGarrison =
           comps.garrisonId !== undefined
-            ? readGarrison(
-                world,
-                { garrisonId: comps.garrisonId },
-                targetBuildingEid,
-              )
+            ? readGarrison(world, { garrisonId: comps.garrisonId }, targetEid)
             : [];
 
         // If hostile or at capacity, cannot enter -> cancel order
         if (
-          bOwner !== uOwner ||
+          targetOwner !== uOwner ||
           capacity <= 0 ||
           currentGarrison.length >= capacity
         ) {
@@ -1083,8 +1121,8 @@ export function createMovementSystem(
           continue;
         }
 
-        // Check if close enough to enter (within 1.2 tiles of edge)
-        if (distToEdge <= 1.2) {
+        // Check if close enough to enter
+        if (distToEdge <= embarkThreshold) {
           const combatRow =
             comps.combatId !== undefined
               ? world.rowsByComponentId.get(comps.combatId)?.get(unit.eid)
@@ -1104,7 +1142,7 @@ export function createMovementSystem(
             addGarrisonedUnit(
               world,
               { garrisonId: comps.garrisonId },
-              targetBuildingEid,
+              targetEid,
               {
                 unitCode,
                 owner: uOwner,
@@ -1123,9 +1161,9 @@ export function createMovementSystem(
           continue;
         }
 
-        // Steer towards building center
-        const bx = bPosRow[0]!;
-        const by = bPosRow[1]!;
+        // Steer towards target position
+        const bx = steerTargetX;
+        const by = steerTargetY;
         const tdx = bx - unit.x;
         const tdy = by - unit.y;
         const tdist = Math.sqrt(tdx * tdx + tdy * tdy);

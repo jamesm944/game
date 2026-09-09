@@ -98,7 +98,6 @@ import {
   getStance,
   parseStance,
   setStance,
-  type UnitStance,
 } from "../components/stance";
 import {
   appendCombatEvent,
@@ -128,7 +127,12 @@ import {
 import { injuryImpairmentOf } from "../components/body";
 import { isRoutingOf } from "../components/morale";
 import { ageRankOf } from "../components/age";
-import { buildingDefOf, buildingIdOfCode, unitCodeOf, unitDefOf, unitIdOfCode } from "../../data/definitions";
+import {
+  buildingDefOf,
+  buildingIdOfCode,
+  unitCodeOf,
+  unitIdOfCode,
+} from "../../data/definitions";
 import { dropCarriedRelicsOf, dropStoredRelicsOf } from "../components/relic";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
@@ -434,12 +438,15 @@ export function createCombatSystem(
       combatantByEid.set(combatant.eid, combatant);
     }
     let maxElevation = 0;
-    for (const c of combatants) if (c.elev > maxElevation) maxElevation = c.elev;
+    for (const c of combatants)
+      if (c.elev > maxElevation) maxElevation = c.elev;
 
     // ---- 2a) Faith regeneration (V14 Issue #101): idle monks regenerate faith
     // (+faithRegenPerTick up to maxFaith) when not actively converting.
     if ((comps as Partial<FaithComponents>).faithId !== undefined) {
-      const faithRows = world.rowsByComponentId.get((comps as FaithComponents).faithId);
+      const faithRows = world.rowsByComponentId.get(
+        (comps as FaithComponents).faithId,
+      );
       if (faithRows) {
         for (const [eid, fRow] of faithRows) {
           if (!alive.has(eid)) continue;
@@ -471,9 +478,10 @@ export function createCombatSystem(
     }
 
     const structures = new Map<number, StructureTarget>();
-    const siteRows = comps.buildingSiteId !== undefined
-      ? world.rowsByComponentId.get(comps.buildingSiteId)
-      : undefined;
+    const siteRows =
+      comps.buildingSiteId !== undefined
+        ? world.rowsByComponentId.get(comps.buildingSiteId)
+        : undefined;
     if (siteRows) {
       for (const [eid, siteRow] of siteRows) {
         const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
@@ -494,9 +502,10 @@ export function createCombatSystem(
         });
       }
     }
-    const buildingRows = comps.buildingId !== undefined
-      ? world.rowsByComponentId.get(comps.buildingId)
-      : undefined;
+    const buildingRows =
+      comps.buildingId !== undefined
+        ? world.rowsByComponentId.get(comps.buildingId)
+        : undefined;
     if (buildingRows) {
       for (const [eid, buildingRow] of buildingRows) {
         const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
@@ -555,7 +564,7 @@ export function createCombatSystem(
         techCodesByOwner.set(combatant.owner, codes);
       }
       const eqRow = equipmentRows?.get(combatant.eid);
-      const hasEquip = eqRow ? (eqRow[0]! > 0 || eqRow[1]! > 0) : false;
+      const hasEquip = eqRow ? eqRow[0]! > 0 || eqRow[1]! > 0 : false;
       const hasSkills = hasSkillsRow(world, comps, combatant.eid);
       const bodyRow = bodyRows?.get(combatant.eid);
       const hasInjuries = bodyRow ? bodyRow[0] !== 0 : false;
@@ -614,9 +623,10 @@ export function createCombatSystem(
       let bestDistSq = Number.POSITIVE_INFINITY;
       for (const [owner, hash] of hashByOwner) {
         if (owner === self.owner) continue;
-        const hit = minRange !== undefined
-          ? hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange)
-          : hash.nearest(self.posRow[0]!, self.posRow[1]!, radius);
+        const hit =
+          minRange !== undefined
+            ? hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange)
+            : hash.nearest(self.posRow[0]!, self.posRow[1]!, radius);
         if (!hit) continue;
         if (
           hit.distSq < bestDistSq ||
@@ -644,10 +654,16 @@ export function createCombatSystem(
       const head = combatant.queue[0];
       const target = combatant.row[3]!;
       if (head === undefined) return false;
-      if (head.kind === "attack" || head.kind === "convert") return head.targetEid === target;
-      if (head.kind === "move" || head.kind === "attackMove" || head.kind === "patrol") {
+      if (head.kind === "attack" || head.kind === "convert")
+        return head.targetEid === target;
+      if (
+        head.kind === "move" ||
+        head.kind === "attackMove" ||
+        head.kind === "patrol"
+      ) {
         const second = combatant.queue[1];
-        return second !== undefined && (second.kind === "attack" || second.kind === "convert")
+        return second !== undefined &&
+          (second.kind === "attack" || second.kind === "convert")
           ? second.targetEid === target
           : false;
       }
@@ -876,6 +892,11 @@ export function createCombatSystem(
       // M4-T5 §2.11: a fallen carrier grounds its carried relic at the
       // corpse's position before the rows die.
       dropCarriedRelicsOf(world, comps, victimEid);
+      // N3: If the dying unit had garrisoned units (e.g. transport ship sunk),
+      // clean up the garrison row so trapped units perish with the vessel.
+      if (comps.garrisonId !== undefined) {
+        clearGarrison(world, comps, victimEid);
+      }
       // Every row dies with the entity — work-slot and site claims are
       // released by construction (claims ARE those rows).
       despawnEntity(world, victimEid);
@@ -1031,8 +1052,16 @@ export function createCombatSystem(
             victimEid: other.eid,
             amount: splashDamage,
           });
-          const wounds = applyStrikeInjuries(world, comps, other.eid, splashDamage);
-          if (attacker.owner !== other.owner && !damageThisTick.has(other.eid)) {
+          const wounds = applyStrikeInjuries(
+            world,
+            comps,
+            other.eid,
+            splashDamage,
+          );
+          if (
+            attacker.owner !== other.owner &&
+            !damageThisTick.has(other.eid)
+          ) {
             damageThisTick.set(other.eid, attacker.eid);
           }
           if (otherRow[2]! <= 0 || wounds.fatal) {
@@ -1050,7 +1079,10 @@ export function createCombatSystem(
         const sdy = sPos.y - blastY;
         const maxDist = aoeRadius + sPos.radius;
         if (sdx * sdx + sdy * sdy <= maxDist * maxDist) {
-          const structDamage = strikeDamageOnBuilding(attacker.def, attackerStats);
+          const structDamage = strikeDamageOnBuilding(
+            attacker.def,
+            attackerStats,
+          );
           otherStruct.row[otherStruct.hpIndex] = Math.max(
             0,
             otherStruct.row[otherStruct.hpIndex]! - structDamage,
@@ -1073,7 +1105,12 @@ export function createCombatSystem(
       // M3-T5: children cannot fight (SPEC §2.3). A child ordered into
       // battle marches but never lands a blow — no damage, no wounds,
       // no practice, no retaliation credit.
-      if (identityRows && identityRows.has(attacker.eid) && isChildOf(world, comps, attacker.eid)) return;
+      if (
+        identityRows &&
+        identityRows.has(attacker.eid) &&
+        isChildOf(world, comps, attacker.eid)
+      )
+        return;
       const targetRow = getCombatRow(world, comps, targetEid);
       const targetPos = positions.get(targetEid);
       const targetDef = combatantByEid.get(targetEid)?.def;
@@ -1152,7 +1189,12 @@ export function createCombatSystem(
      */
     const strikeStructure = (attacker: Combatant, targetEid: number): void => {
       // M3-T5: children cannot fight — raiding included.
-      if (identityRows && identityRows.has(attacker.eid) && isChildOf(world, comps, attacker.eid)) return;
+      if (
+        identityRows &&
+        identityRows.has(attacker.eid) &&
+        isChildOf(world, comps, attacker.eid)
+      )
+        return;
       const structure = structures.get(targetEid);
       const targetPos = positions.get(targetEid);
       if (!structure || !targetPos) return; // destroyed this tick
@@ -1249,7 +1291,9 @@ export function createCombatSystem(
       const headAct = peekActivity(combatant.queue);
       const isConvert =
         headAct?.kind === "convert" ||
-        ((headAct?.kind === "move" || headAct?.kind === "attackMove" || headAct?.kind === "patrol") &&
+        ((headAct?.kind === "move" ||
+          headAct?.kind === "attackMove" ||
+          headAct?.kind === "patrol") &&
           combatant.queue[1]?.kind === "convert");
 
       if (isConvert) {
@@ -1259,7 +1303,8 @@ export function createCombatSystem(
           continue;
         }
 
-        const convertRange = combatant.def.convertRange ?? combatant.def.sightRadius ?? 8.0;
+        const convertRange =
+          combatant.def.convertRange ?? combatant.def.sightRadius ?? 8.0;
         const reach = reachOf(combatant, targetBody, convertRange);
         const sightRadius = combatant.def.sightRadius ?? 8.0;
         const sightReach = reachOf(combatant, targetBody, sightRadius);
@@ -1277,7 +1322,11 @@ export function createCombatSystem(
         // Out of convert reach: approach target
         if (distSq > reach * reach) {
           if ((comps as Partial<FaithComponents>).faithId !== undefined) {
-            const prog = getConversionProgress(world, comps as FaithComponents, combatant.eid);
+            const prog = getConversionProgress(
+              world,
+              comps as FaithComponents,
+              combatant.eid,
+            );
             if (prog > 0) {
               clearConversion(world, comps as FaithComponents, combatant.eid);
             }
@@ -1295,7 +1344,11 @@ export function createCombatSystem(
             combatant.dirty = true;
             continue;
           }
-          if (headAct.kind === "move" || headAct.kind === "attackMove" || headAct.kind === "patrol") {
+          if (
+            headAct.kind === "move" ||
+            headAct.kind === "attackMove" ||
+            headAct.kind === "patrol"
+          ) {
             const second = combatant.queue[1];
             if (second === undefined || second.kind !== "convert") continue;
             const tailX = headAct.waypoints[headAct.waypoints.length - 2]!;
@@ -1324,9 +1377,10 @@ export function createCombatSystem(
         }
 
         // Must have full faith (default 100) to cast
-        const faith = (comps as Partial<FaithComponents>).faithId !== undefined
-          ? getFaith(world, comps as FaithComponents, combatant.eid)
-          : 100;
+        const faith =
+          (comps as Partial<FaithComponents>).faithId !== undefined
+            ? getFaith(world, comps as FaithComponents, combatant.eid)
+            : 100;
         const maxFaith = combatant.def.maxFaith ?? 100;
         if (faith < maxFaith) {
           if ((comps as Partial<FaithComponents>).faithId !== undefined) {
@@ -1342,14 +1396,25 @@ export function createCombatSystem(
         }
 
         // Advance cast progress
-        const currentProgress = (comps as Partial<FaithComponents>).faithId !== undefined
-          ? getConversionProgress(world, comps as FaithComponents, combatant.eid)
-          : 0;
+        const currentProgress =
+          (comps as Partial<FaithComponents>).faithId !== undefined
+            ? getConversionProgress(
+                world,
+                comps as FaithComponents,
+                combatant.eid,
+              )
+            : 0;
         const nextProgress = currentProgress + 1;
         const castTicks = combatant.def.castTicks ?? 25;
 
         if ((comps as Partial<FaithComponents>).faithId !== undefined) {
-          setConversion(world, comps as FaithComponents, combatant.eid, targetEid, nextProgress);
+          setConversion(
+            world,
+            comps as FaithComponents,
+            combatant.eid,
+            targetEid,
+            nextProgress,
+          );
         }
 
         if (nextProgress >= castTicks) {
@@ -1361,7 +1426,9 @@ export function createCombatSystem(
               if (combatant.owner === 0) {
                 world.rowsByComponentId.get(comps.ownerId)?.delete(targetEid);
               } else {
-                world.rowsByComponentId.get(comps.ownerId)?.set(targetEid, [combatant.owner]);
+                world.rowsByComponentId
+                  .get(comps.ownerId)
+                  ?.set(targetEid, [combatant.owner]);
               }
             }
             cancelActivities(targetCombatant.queue);
@@ -1388,7 +1455,9 @@ export function createCombatSystem(
 
       let techSet = techCodesByOwner.get(combatant.owner);
       if (techSet === undefined) {
-        techSet = new Set(researchedCodesLenient(world, comps, combatant.owner));
+        techSet = new Set(
+          researchedCodesLenient(world, comps, combatant.owner),
+        );
         techCodesByOwner.set(combatant.owner, techSet);
       }
       const hasTechs = techSet.size > 0;
@@ -1398,9 +1467,8 @@ export function createCombatSystem(
 
       // #107: ranged units gain +1 range when shooting downhill.
       const targetCombatant_ = combatantByEid.get(combatant.row[3]!);
-      const targetElev_ = targetCombatant_ !== undefined
-        ? targetCombatant_.elev
-        : combatant.elev;
+      const targetElev_ =
+        targetCombatant_ !== undefined ? targetCombatant_.elev : combatant.elev;
       const rangeBonus =
         maxElevation > 0 && effectiveRange > MELEE_RANGE
           ? elevationRangeBonus(combatant.elev, targetElev_)
@@ -1463,7 +1531,11 @@ export function createCombatSystem(
         combatant.dirty = true;
         continue;
       }
-      if (head.kind === "move" || head.kind === "attackMove" || head.kind === "patrol") {
+      if (
+        head.kind === "move" ||
+        head.kind === "attackMove" ||
+        head.kind === "patrol"
+      ) {
         const second = combatant.queue[1];
         if (second === undefined || second.kind !== "attack") continue;
         const tailX = head.waypoints[head.waypoints.length - 2]!;
@@ -1492,12 +1564,14 @@ export function createCombatSystem(
       const bDef = buildingDefOf(buildingIdOfCode(structure.defCode));
       if (!bDef.attack && !bDef.garrisonCapacity) continue;
 
-      const garrisonCount = comps.garrisonId !== undefined
-        ? getGarrisonCount(world, comps, buildingEid)
-        : 0;
-      const garrisonUnits = garrisonCount > 0 && comps.garrisonId !== undefined
-        ? readGarrison(world, comps, buildingEid)
-        : [];
+      const garrisonCount =
+        comps.garrisonId !== undefined
+          ? getGarrisonCount(world, comps, buildingEid)
+          : 0;
+      const garrisonUnits =
+        garrisonCount > 0 && comps.garrisonId !== undefined
+          ? readGarrison(world, comps, buildingEid)
+          : [];
 
       // Garrison heal over time
       const healRate = bDef.garrisonHealRate ?? 0.05;
@@ -1612,9 +1686,10 @@ export function createCombatSystem(
 
     // ---- 6c) Interruption check (V14 Issue #101): any monk damaged this tick
     // (whether by higher-eid combatants or defensive structures) drops conversion immediately.
-    const faithMap = (comps as Partial<FaithComponents>).faithId !== undefined
-      ? world.rowsByComponentId.get((comps as FaithComponents).faithId)
-      : undefined;
+    const faithMap =
+      (comps as Partial<FaithComponents>).faithId !== undefined
+        ? world.rowsByComponentId.get((comps as FaithComponents).faithId)
+        : undefined;
     if (faithMap && faithMap.size > 0 && damageThisTick.size > 0) {
       for (const eid of damageThisTick.keys()) {
         if (!faithMap.has(eid)) continue;
@@ -1623,7 +1698,9 @@ export function createCombatSystem(
         const headAct = peekActivity(combatant.queue);
         const isConvert =
           headAct?.kind === "convert" ||
-          ((headAct?.kind === "move" || headAct?.kind === "attackMove" || headAct?.kind === "patrol") &&
+          ((headAct?.kind === "move" ||
+            headAct?.kind === "attackMove" ||
+            headAct?.kind === "patrol") &&
             combatant.queue[1]?.kind === "convert");
         if (isConvert) {
           dropEngagement(combatant);
@@ -1658,9 +1735,14 @@ export function createCombatSystem(
         const distSq = ddx * ddx + ddy * ddy;
         const maxRetaliate =
           stance === "stand-ground"
-            ? (combatant.def.range ?? MELEE_RANGE) + combatant.radius + attackerPos.radius
+            ? (combatant.def.range ?? MELEE_RANGE) +
+              combatant.radius +
+              attackerPos.radius
             : combatant.def.sightRadius;
-        if (distSq <= maxRetaliate * maxRetaliate && (minRange === 0 || distSq >= minRange * minRange)) {
+        if (
+          distSq <= maxRetaliate * maxRetaliate &&
+          (minRange === 0 || distSq >= minRange * minRange)
+        ) {
           engage(combatant, attackerEid);
           diagnostics.retaliations += 1;
           continue;
@@ -1901,7 +1983,12 @@ function applyPatrolCommand(
   for (const wp of rawWaypoints) {
     if (typeof wp === "number") {
       flatWaypoints.push(wp);
-    } else if (typeof wp === "object" && wp !== null && "x" in wp && "y" in wp) {
+    } else if (
+      typeof wp === "object" &&
+      wp !== null &&
+      "x" in wp &&
+      "y" in wp
+    ) {
       flatWaypoints.push(
         requireFiniteNumber((wp as { x: unknown }).x, "patrol waypoint x"),
         requireFiniteNumber((wp as { y: unknown }).y, "patrol waypoint y"),
@@ -2013,7 +2100,8 @@ function applyGarrisonCommand(
   command: SimCommand,
 ): void {
   const data = (command.data ?? command) as Record<string, unknown>;
-  const rawBuildingId = data.targetBuildingId ?? data.buildingEid ?? data.targetId;
+  const rawBuildingId =
+    data.targetBuildingId ?? data.buildingEid ?? data.targetId;
   if (typeof rawBuildingId !== "number" || rawBuildingId < 1) return;
   const targetBuildingId = rawBuildingId;
 
@@ -2022,7 +2110,9 @@ function applyGarrisonCommand(
 
   for (const eid of rawIds) {
     if (typeof eid === "number" && eid > 0) {
-      writeActivityQueue(world, comps, eid, [garrisonActivity(targetBuildingId)]);
+      writeActivityQueue(world, comps, eid, [
+        garrisonActivity(targetBuildingId),
+      ]);
       const combatRow = getCombatRow(world, comps, eid);
       if (combatRow) combatRow[3] = 0;
     }
@@ -2037,7 +2127,8 @@ function applyUngarrisonCommand(
   command: SimCommand,
 ): void {
   const data = (command.data ?? command) as Record<string, unknown>;
-  const rawBuildingId = data.buildingEid ?? data.targetBuildingId ?? data.targetId;
+  const rawBuildingId =
+    data.buildingEid ?? data.targetBuildingId ?? data.targetId;
   if (typeof rawBuildingId !== "number" || rawBuildingId < 1) return;
   const buildingEid = rawBuildingId;
 
@@ -2065,18 +2156,46 @@ function applyUngarrisonCommand(
     const originY = bRow[3]!;
     exitX = originX + def.footprint.width / 2;
     exitY = originY + def.footprint.height + 0.5;
+  } else {
+    // Mobile unit (e.g. transport ship): disembark onto nearest passable land tile
+    const size = world.layers.size;
+    const passability = world.layers.derivedPassability;
+    const sx = Math.floor(bPos ? bPos[0]! : 10.5);
+    const sy = Math.floor(bPos ? bPos[1]! : 10.5);
+    let foundLand: { x: number; y: number } | undefined;
+    for (let r = 1; r <= 3; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const tx = sx + dx;
+          const ty = sy + dy;
+          if (
+            tx >= 0 &&
+            tx < size &&
+            ty >= 0 &&
+            ty < size &&
+            passability[ty * size + tx] !== 0
+          ) {
+            foundLand = { x: tx + 0.5, y: ty + 0.5 };
+            break;
+          }
+        }
+        if (foundLand) break;
+      }
+      if (foundLand) break;
+    }
+    if (!foundLand) {
+      // Cannot disembark into deep water without adjacent land — keep garrison intact
+      writeGarrison(world, comps, buildingEid, units);
+      return;
+    }
+    exitX = foundLand.x;
+    exitY = foundLand.y;
   }
 
   for (const u of units) {
     const defId = unitIdOfCode(u.unitCode);
-    const newEid = spawnCombatUnit(
-      world,
-      comps,
-      defId,
-      exitX,
-      exitY,
-      u.owner,
-    );
+    const newEid = spawnCombatUnit(world, comps, defId, exitX, exitY, u.owner);
     const cRow = getCombatRow(world, comps, newEid);
     if (cRow) {
       cRow[2] = u.hp;
@@ -2154,7 +2273,9 @@ function applyConvertCommand(
   const targetEid = rawTarget;
   const targetRow = getCombatRow(world, comps, targetEid);
   if (!targetRow) {
-    throw new Error(`convert targets entity ${String(targetEid)}, which has no Combat row`);
+    throw new Error(
+      `convert targets entity ${String(targetEid)}, which has no Combat row`,
+    );
   }
 
   const rawIds = data.monkEid ?? data.ids ?? data.attackerIds ?? data.entityIds;
@@ -2201,4 +2322,3 @@ function applyConvertCommand(
   }
   diagnostics.convertCommands += 1;
 }
-

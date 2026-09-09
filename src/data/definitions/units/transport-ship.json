@@ -1,0 +1,20 @@
+{
+  "id": "transport-ship",
+  "name": "Transport Ship",
+  "kind": "unit",
+  "costs": {
+    "wood": 125
+  },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "trainTime": 900,
+  "hp": 100,
+  "speed": 1.45,
+  "carryCapacity": 0,
+  "attack": 0,
+  "armorClasses": ["ship"],
+  "attackBonuses": [],
+  "sightRadius": 6,
+  "garrisonCapacity": 5,
+  "equipmentSlots": []
+}

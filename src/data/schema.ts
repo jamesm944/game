@@ -156,6 +156,8 @@ export const unitSchema = z.object({
   castTicks: z.number().int().positive().optional(),
   /** Conversion range in tiles (defaults to sightRadius or 8). */
   convertRange: z.number().positive().optional(),
+  /** Maximum garrisoned units for mobile transports (Milestone N3). */
+  garrisonCapacity: z.number().int().nonnegative().optional(),
 });
 
 export type UnitDefinition = z.infer<typeof unitSchema>;
@@ -265,7 +267,9 @@ export const buildingSchema = z.object({
   /** Maximum garrisoned units (Issue #96). */
   garrisonCapacity: z.number().int().nonnegative().optional(),
   /** Bonus attack power per garrisoned unit, keyed by unit id or "default" (Issue #96). */
-  garrisonAttackBonus: z.union([z.record(z.string(), z.number()), z.number()]).optional(),
+  garrisonAttackBonus: z
+    .union([z.record(z.string(), z.number()), z.number()])
+    .optional(),
   /** HP healed per tick for garrisoned units (Issue #96). */
   garrisonHealRate: z.number().nonnegative().optional(),
   /**
