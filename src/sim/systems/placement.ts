@@ -57,7 +57,9 @@ export type PlacementRejection =
   | "blocked-tile"
   | "occupied"
   | "unexplored"
-  | "age-gated";
+  | "age-gated"
+  | "dock-needs-water"
+  | "dock-needs-land";
 
 export interface PlacementCheck {
   readonly ok: boolean;
@@ -215,14 +217,60 @@ export function validatePlacement(
   // 3) Passability last: remaining blockers are terrain.
   const terrain = world.layers.terrainType;
   const passability = world.layers.derivedPassability;
-  for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
-    const index = tile.y * size + tile.x;
-    if (passability[index] !== 1) {
-      return {
-        ok: false,
-        reason: isWaterTerrain(terrain[index]!) ? "water" : "blocked-tile",
-        rect,
-      };
+  if (defId === "dock") {
+    // Hybrid shoreline placement rule (N1 / #108):
+    // 1. Must contain both land and water tiles within the 3x3 footprint.
+    // 2. Must contact exterior water (for ship berths/exit) and exterior land (for builders to approach).
+    let landCount = 0;
+    let waterCount = 0;
+    for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
+      const index = tile.y * size + tile.x;
+      if (isWaterTerrain(terrain[index]!)) {
+        waterCount++;
+      } else {
+        landCount++;
+      }
+    }
+    if (waterCount === 0) {
+      return { ok: false, reason: "dock-needs-water", rect };
+    }
+    if (landCount === 0) {
+      return { ok: false, reason: "dock-needs-land", rect };
+    }
+
+    let exteriorWater = false;
+    let exteriorLand = false;
+    for (let dy = -1; dy <= rect.height; dy++) {
+      for (let dx = -1; dx <= rect.width; dx++) {
+        if (dx >= 0 && dx < rect.width && dy >= 0 && dy < rect.height) continue;
+        const ex = tileX + dx;
+        const ey = tileY + dy;
+        if (ex >= 0 && ex < size && ey >= 0 && ey < size) {
+          const eIndex = ey * size + ex;
+          if (isWaterTerrain(terrain[eIndex]!)) {
+            exteriorWater = true;
+          } else {
+            exteriorLand = true;
+          }
+        }
+      }
+    }
+    if (!exteriorWater) {
+      return { ok: false, reason: "dock-needs-water", rect };
+    }
+    if (!exteriorLand) {
+      return { ok: false, reason: "dock-needs-land", rect };
+    }
+  } else {
+    for (const tile of footprintTiles(tileX, tileY, rect.width, rect.height)) {
+      const index = tile.y * size + tile.x;
+      if (passability[index] !== 1) {
+        return {
+          ok: false,
+          reason: isWaterTerrain(terrain[index]!) ? "water" : "blocked-tile",
+          rect,
+        };
+      }
     }
   }
   // 4) Fog gate (SPEC §2.9): placement requires EXPLORED tiles. The

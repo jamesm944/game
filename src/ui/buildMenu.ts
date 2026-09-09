@@ -30,6 +30,7 @@ export const BUILD_MENU_IDS: readonly string[] = [
   "farm",
   "lumber-camp",
   "mining-camp",
+  "dock",
   "palisade-wall",
   "stone-wall",
   "palisade-gate",

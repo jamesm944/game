@@ -1,0 +1,16 @@
+{
+  "id": "dock",
+  "name": "Dock",
+  "kind": "building",
+  "costs": { "wood": 150 },
+  "ageGate": "dark",
+  "techPrereqs": [],
+  "buildTime": 1050,
+  "footprint": { "width": 3, "height": 3 },
+  "hp": 1800,
+  "workSlots": 0,
+  "dropoffFilters": ["food"],
+  "acceptsRoles": [],
+  "sightRadius": 6,
+  "populationCap": 0
+}
