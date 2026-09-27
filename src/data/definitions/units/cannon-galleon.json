@@ -1,0 +1,27 @@
+{
+  "id": "cannon-galleon",
+  "name": "Cannon Galleon",
+  "kind": "unit",
+  "costs": {
+    "wood": 200,
+    "gold": 43
+  },
+  "ageGate": "imperial",
+  "techPrereqs": [],
+  "trainTime": 1500,
+  "hp": 130,
+  "speed": 1.1,
+  "carryCapacity": 0,
+  "attack": 50,
+  "range": 12,
+  "reloadTicks": 150,
+  "armorClasses": ["ship"],
+  "attackBonuses": [
+    {
+      "armorClass": "building",
+      "mult": 1.5
+    }
+  ],
+  "sightRadius": 10,
+  "equipmentSlots": []
+}

@@ -1,0 +1,28 @@
+{
+  "id": "fire-ship",
+  "name": "Fire Ship",
+  "kind": "unit",
+  "costs": {
+    "wood": 125,
+    "gold": 45
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 1050,
+  "hp": 155,
+  "speed": 1.35,
+  "carryCapacity": 0,
+  "attack": 6,
+  "range": 1,
+  "aoeRadius": 1.5,
+  "reloadTicks": 90,
+  "armorClasses": ["ship"],
+  "attackBonuses": [
+    {
+      "armorClass": "ship",
+      "mult": 1.25
+    }
+  ],
+  "sightRadius": 6,
+  "equipmentSlots": []
+}

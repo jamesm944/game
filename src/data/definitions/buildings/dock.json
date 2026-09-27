@@ -20,7 +20,9 @@
       { "unitId": "transport-ship" },
       { "unitId": "galley" },
       { "unitId": "war-galley" },
-      { "unitId": "galleon" }
+      { "unitId": "galleon" },
+      { "unitId": "fire-ship" },
+      { "unitId": "cannon-galleon" }
     ]
   }
 }

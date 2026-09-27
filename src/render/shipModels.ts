@@ -1,5 +1,5 @@
 /**
- * Naval Ship 3D Models & Sinking VFX Layer — SPEC §7 / Milestone N4 (Issue #112).
+ * Naval Ship 3D Models & Sinking VFX Layer — SPEC §7 / Milestones N4–N5.
  *
  * Implements instanced 3D rendering for all naval watercraft using CC0 models
  * from Kenney Pirate Kit:
@@ -8,6 +8,8 @@
  * - Galley (Feudal Age warship): ship-small.glb
  * - War Galley (Castle Age warship): ship-medium.glb
  * - Galleon (Imperial Age warship): ship-large.glb
+ * - Fire Ship (Castle Age AoE): ship-medium.glb (distinct scale)
+ * - Cannon Galleon (Imperial Age siege): ship-large.glb (distinct scale)
  *
  * Features:
  * - InstancedMesh batching per ship class (1 draw call per active class).
@@ -52,6 +54,9 @@ import transportShipUrl from "../assets/models/kenney-pirate-kit/glTF/boat-row-l
 import galleyUrl from "../assets/models/kenney-pirate-kit/glTF/ship-small.glb";
 import warGalleyUrl from "../assets/models/kenney-pirate-kit/glTF/ship-medium.glb";
 import galleonUrl from "../assets/models/kenney-pirate-kit/glTF/ship-large.glb";
+// N5: Fire Ship reuses ship-medium geometry; Cannon Galleon reuses ship-large.
+import fireShipUrl from "../assets/models/kenney-pirate-kit/glTF/ship-medium.glb";
+import cannonGalleonUrl from "../assets/models/kenney-pirate-kit/glTF/ship-large.glb";
 
 export const NAVAL_UNIT_IDS = [
   "fishing-boat",
@@ -59,6 +64,8 @@ export const NAVAL_UNIT_IDS = [
   "galley",
   "war-galley",
   "galleon",
+  "fire-ship",
+  "cannon-galleon",
 ] as const;
 
 export type NavalUnitId = (typeof NAVAL_UNIT_IDS)[number];
@@ -69,6 +76,8 @@ const SHIP_URLS: Record<NavalUnitId, string> = {
   galley: galleyUrl,
   "war-galley": warGalleyUrl,
   galleon: galleonUrl,
+  "fire-ship": fireShipUrl,
+  "cannon-galleon": cannonGalleonUrl,
 };
 
 /** Footprint dimensions (width x length in tiles) for scaling. */
@@ -78,6 +87,10 @@ const SHIP_SCALES: Record<NavalUnitId, { width: number; length: number; height: 
   galley: { width: 1.35, length: 2.2, height: 2.1, draft: 0.22 },
   "war-galley": { width: 1.45, length: 2.5, height: 2.3, draft: 0.25 },
   galleon: { width: 1.55, length: 2.8, height: 2.5, draft: 0.28 },
+  // Fire Ship: squat, low-slung, wider beam for fire-spreader silhouette
+  "fire-ship": { width: 1.4, length: 1.8, height: 1.6, draft: 0.22 },
+  // Cannon Galleon: long broadside profile, heavy draft
+  "cannon-galleon": { width: 1.6, length: 3.2, height: 2.8, draft: 0.32 },
 };
 
 const MAX_INSTANCES_PER_SHIP = 64;
