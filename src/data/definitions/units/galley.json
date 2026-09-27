@@ -1,0 +1,27 @@
+{
+  "id": "galley",
+  "name": "Galley",
+  "kind": "unit",
+  "costs": {
+    "wood": 90,
+    "gold": 30
+  },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "trainTime": 900,
+  "hp": 120,
+  "speed": 1.43,
+  "carryCapacity": 0,
+  "attack": 6,
+  "range": 5,
+  "reloadTicks": 60,
+  "armorClasses": ["ship"],
+  "attackBonuses": [
+    {
+      "armorClass": "ship",
+      "mult": 1.5
+    }
+  ],
+  "sightRadius": 7,
+  "equipmentSlots": []
+}

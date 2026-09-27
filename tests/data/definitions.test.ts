@@ -36,7 +36,8 @@ describe("definition loader happy path", () => {
     // V13 adds siege weapons: battering-ram, mangonel, trebuchet-packed, trebuchet (19).
     // N2: fishing-boat (20).
     // N3: transport-ship (21).
-    expect(UNIT_DEFINITIONS.size).toBe(21);
+    // N4: galley, war-galley, galleon (24).
+    expect(UNIT_DEFINITIONS.size).toBe(24);
     // M3-T5: the §2.3 school joins the building set (17). M3-T7 adds
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
     // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).
@@ -84,7 +85,7 @@ describe("definition loader happy path", () => {
     expect([...UNIT_DEF_CODES.values()]).toEqual([
       ...Array.from({ length: UNIT_DEF_CODES.size }, (_, i) => i + 1),
     ]);
-    expect(unitIds[unitIds.length - 1]).toBe("villager");
+    expect(unitIds[unitIds.length - 1]).toBe("war-galley");
 
     const buildingCodes = [...BUILDING_DEF_CODES.entries()].sort(
       (a, b) => a[1] - b[1],

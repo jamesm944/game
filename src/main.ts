@@ -189,6 +189,11 @@ import {
   createResourceModelsLayer,
   type ResourceModelsLayer,
 } from "./render/resourceModels";
+import {
+  createShipModelsLayer,
+  NAVAL_UNIT_IDS,
+  type ShipModelsLayer,
+} from "./render/shipModels";
 import { captureRelicSnapshot, type RelicSnapshotFrame } from "./sim/mirror";
 import { relicsOf, RELIC_GROUND, RELIC_CARRIED } from "./sim/components/relic";
 import {
@@ -1808,6 +1813,7 @@ function pollMatchOutcome(): void {
 let buildingModelsLayer: BuildingModelsLayer | undefined;
 let relicModelsLayer: RelicModelsLayer | undefined;
 let resourceModelsLayer: ResourceModelsLayer | undefined;
+let shipModelsLayer: ShipModelsLayer | undefined;
 let relicReuseFrame: RelicSnapshotFrame | undefined;
 let buildingFrame = captureBuildingSnapshot(world, comps);
 
@@ -2540,11 +2546,22 @@ function frame(
     }
   }
 
-  // Detect fallen units: transition into lingering corpses
+  // Detect fallen units: transition into lingering corpses or sinking ships
   for (const [eid, info] of lastUnitInfo) {
     if (!liveEidsThisFrame.has(eid)) {
       const lastHp = lastUnitHp.get(eid) ?? 0;
-      if (lastHp <= 0.25 || lastHp === 0) {
+      const unitId = unitIdOfCode(info.defCode);
+      const isShip = (NAVAL_UNIT_IDS as readonly string[]).includes(unitId);
+      if (isShip && shipModelsLayer) {
+        shipModelsLayer.addSinkingShip(
+          unitId,
+          info.x,
+          info.y,
+          info.heading,
+          info.ownerId,
+          spriteTimeSec,
+        );
+      } else if (lastHp <= 0.25 || lastHp === 0) {
         const corpseTint = playerTintOf(info.ownerId);
         activeCorpses.push({
           x: info.x,
@@ -2563,6 +2580,10 @@ function frame(
     }
   }
 
+  if (shipModelsLayer) {
+    shipModelsLayer.beginFrame();
+  }
+
   for (let i = 0; i < sampledCount; i++) {
     const x = sampleOut.positions[i * 2]!;
     const y = sampleOut.positions[i * 2 + 1]!;
@@ -2572,6 +2593,25 @@ function frame(
     if (!seen) continue;
 
     const defCode = sampleOut.defCodes ? sampleOut.defCodes[i]! : 8;
+    const unitId = unitIdOfCode(defCode);
+    if ((NAVAL_UNIT_IDS as readonly string[]).includes(unitId)) {
+      if (shipModelsLayer) {
+        const eid = staging ? staging.eids[i] ?? i : i;
+        const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+        const speed = velRow ? (velRow[1] ?? 0) : 0;
+        shipModelsLayer.addShip({
+          eid,
+          unitId,
+          x,
+          y,
+          heading: sampleOut.headings[i]!,
+          ownerId: sampleOut.ownerIds ? sampleOut.ownerIds[i]! : 0,
+          speed,
+        });
+      }
+      continue;
+    }
+
     const bucket = layerScratches[defCode];
     if (!bucket || bucket.count >= RENDER_CAPACITY) continue;
 
@@ -2783,6 +2823,10 @@ function frame(
         },
       });
     }
+  }
+
+  if (shipModelsLayer) {
+    shipModelsLayer.flush(spriteTimeSec, world.layers);
   }
 
   // Update farm furrows on terrain
@@ -3056,8 +3100,9 @@ Promise.all([
   createBuildingModelsLayer(),
   createRelicModelsLayer(),
   createResourceModelsLayer(),
+  createShipModelsLayer(scene),
 ])
-  .then(([unitLayers, bLayer, rLayer, resLayer]) => {
+  .then(([unitLayers, bLayer, rLayer, resLayer, sLayer]) => {
     for (const layer of unitLayers) {
       if (layer) scene.add(layer.mesh);
     }
@@ -3067,6 +3112,7 @@ Promise.all([
     scene.add(relicModelsLayer.group);
     resourceModelsLayer = resLayer;
     scene.add(resourceModelsLayer.group);
+    shipModelsLayer = sLayer;
     requestAnimationFrame((now) => frame(now, unitLayers));
   })
   .catch((error: unknown) => {

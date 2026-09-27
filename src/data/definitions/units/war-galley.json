@@ -1,0 +1,27 @@
+{
+  "id": "war-galley",
+  "name": "War Galley",
+  "kind": "unit",
+  "costs": {
+    "wood": 90,
+    "gold": 30
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 1050,
+  "hp": 135,
+  "speed": 1.43,
+  "carryCapacity": 0,
+  "attack": 7,
+  "range": 6,
+  "reloadTicks": 60,
+  "armorClasses": ["ship"],
+  "attackBonuses": [
+    {
+      "armorClass": "ship",
+      "mult": 1.5
+    }
+  ],
+  "sightRadius": 8,
+  "equipmentSlots": []
+}

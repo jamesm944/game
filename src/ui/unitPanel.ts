@@ -203,6 +203,20 @@ function getUnitIconSvg(unitId: string): string {
       <circle cx="6" cy="8" r="2"/>
     </svg>`;
   }
+  if (
+    unitId.includes("galley") ||
+    unitId.includes("galleon") ||
+    unitId.includes("ship") ||
+    unitId.includes("boat")
+  ) {
+    // Warship / Naval Vessel
+    return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 19c3 0 4-1 6-1s3 1 6 1 4-1 6-1"/>
+      <path d="M4 15l2 3h12l2-3H4z"/>
+      <path d="M12 4v11"/>
+      <path d="M12 5l6 4-6 2"/>
+    </svg>`;
+  }
   // Swordsman / Infantry default
   return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="14.5 17.5 3 6 6 3 17.5 14.5"/>
