@@ -107,6 +107,7 @@ import {
   COMBAT_EVENT_SHOT,
   COMBAT_EVENT_UNIT_DEATH,
   getCombatRow,
+  isNavalUnit,
   spawnCombatUnit,
   type CombatComponents,
 } from "../components/combat";
@@ -170,6 +171,7 @@ import {
 } from "../core/spatialHash";
 import { despawnEntity, type SimSystem, type World } from "../core/world";
 import { PASSABLE } from "../world/layers";
+import { waterPassabilityWithBuildings } from "../world/navigability";
 import { issueGroupRoute, resetSteeringBookkeeping } from "./movement";
 import { isChildOf } from "./lifecycle";
 import {
@@ -179,6 +181,7 @@ import {
   elevationSightBonus,
 } from "../combat/elevation";
 import type { PathScheduler } from "../path/scheduler";
+import type { DiplomacyMatrix } from "../core/diplomacy";
 
 /** Command kinds owned by this system. */
 export const ATTACK_COMMAND_KIND = "attack";
@@ -342,6 +345,7 @@ export function createCombatSystem(
   comps: SimComponents,
   diagnostics: CombatDiagnostics = createCombatDiagnostics(),
   paths?: PathScheduler | undefined,
+  diplomacy?: DiplomacyMatrix | undefined,
 ): SimSystem {
   return (world: World, commands: readonly SimCommand[]): void => {
     const size = world.layers.size;
@@ -605,6 +609,7 @@ export function createCombatSystem(
 
     // ---- 4) Enemy spatial hashes per owner for aggro queries. Ties
     // resolve to the lower eid exactly like the picking hash.
+    let waterPassCache: Uint8Array | undefined;
     const hashByOwner = new Map<number, EntitySpatialHash>();
     for (const combatant of combatants) {
       let hash = hashByOwner.get(combatant.owner);
@@ -622,7 +627,7 @@ export function createCombatSystem(
       let best: Combatant | undefined;
       let bestDistSq = Number.POSITIVE_INFINITY;
       for (const [owner, hash] of hashByOwner) {
-        if (owner === self.owner) continue;
+        if (diplomacy ? !diplomacy.isHostile(self.owner, owner) : owner === self.owner) continue;
         const hit =
           minRange !== undefined
             ? hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange)
@@ -783,12 +788,12 @@ export function createCombatSystem(
      * structure falls back to the raw point and fails honestly.
      */
     const APPROACH_STANDPOINT_SEARCH_RING = 3;
-    const passableApproachPoint = (point: {
-      x: number;
-      y: number;
-    }): { x: number; y: number } => {
+    const passableApproachPoint = (
+      point: { x: number; y: number },
+      customPassability?: Uint8Array,
+    ): { x: number; y: number } => {
       const size = world.layers.size;
-      const passability = world.layers.derivedPassability;
+      const passability = customPassability ?? world.layers.derivedPassability;
       const baseX = Math.floor(point.x);
       const baseY = Math.floor(point.y);
       const tilePassable = (tx: number, ty: number): boolean =>
@@ -1059,7 +1064,9 @@ export function createCombatSystem(
             splashDamage,
           );
           if (
-            attacker.owner !== other.owner &&
+            (diplomacy
+              ? diplomacy.isHostile(attacker.owner, other.owner)
+              : attacker.owner !== other.owner) &&
             !damageThisTick.has(other.eid)
           ) {
             damageThisTick.set(other.eid, attacker.eid);
@@ -1518,8 +1525,14 @@ export function createCombatSystem(
       }
 
       // Out of reach: keep a Move approach leg ahead of the Attack head.
+      const isNaval = isNavalUnit(world, comps, combatant.eid);
+      const customPass = isNaval
+        ? (waterPassCache ??
+          (waterPassCache = waterPassabilityWithBuildings(world, comps)))
+        : undefined;
       const standPoint = passableApproachPoint(
         standPointOf(combatant, targetBody, reach),
+        customPass,
       );
       const head = peekActivity(combatant.queue);
       if (head === undefined || head.kind === "attack") {
@@ -1629,7 +1642,12 @@ export function createCombatSystem(
       let targetEid = 0;
       for (const combatant of combatants) {
         if (!alive.has(combatant.eid)) continue;
-        if (combatant.owner === structure.owner) continue;
+        if (
+          diplomacy
+            ? !diplomacy.isHostile(structure.owner, combatant.owner)
+            : combatant.owner === structure.owner
+        )
+          continue;
         const dx = combatant.posRow[0]! - towerPos.x;
         const dy = combatant.posRow[1]! - towerPos.y;
         const distSq = dx * dx + dy * dy;

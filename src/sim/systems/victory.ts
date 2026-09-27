@@ -100,6 +100,7 @@ import {
 import { militaryProductionBuildingCount } from "./conquest";
 import type { SimComponents } from "../components";
 import type { SimSystem, World } from "../core/world";
+import type { DiplomacyMatrix } from "../core/diplomacy";
 
 /** §2.8-adjacent cadence: victory checks ride the 1 s planning rhythm. */
 export const VICTORY_CHECK_CADENCE_TICKS = 30;
@@ -111,6 +112,7 @@ export const SURRENDER_COMMAND_KIND = "surrender";
 export interface VictoryContext {
   readonly world: World;
   readonly comps: SimComponents;
+  readonly diplomacy?: DiplomacyMatrix | undefined;
 }
 
 export interface VictoryPathEvaluator {
@@ -175,6 +177,13 @@ export function conquestDefeated(
   ctx: VictoryContext,
   playerId: number,
 ): boolean {
+  const tail = latestVictoryCheck(ctx.world, ctx.comps, playerId);
+  if (
+    tail?.status === VICTORY_STATUS_SURRENDERED ||
+    tail?.status === VICTORY_STATUS_LOST
+  ) {
+    return true;
+  }
   return (
     conquestCapacityEverSeen(ctx, playerId) &&
     conquestCapacityOf(ctx, playerId) === 0
@@ -190,10 +199,17 @@ export const CONQUEST_EVALUATOR: VictoryPathEvaluator = {
   metric: conquestCapacityOf,
   // P's act completes when every ENEMY is defeated — same predicate
   // both directions, evaluated per side.
-  actComplete: (ctx, playerId) =>
-    victoryPlayerIds(ctx.world, ctx.comps).some(
-      (other) => other !== playerId && conquestDefeated(ctx, other),
-    ),
+  actComplete: (ctx, playerId) => {
+    const opponents = victoryPlayerIds(ctx.world, ctx.comps).filter(
+      (other) =>
+        other !== playerId &&
+        (!ctx.diplomacy || ctx.diplomacy.isHostile(playerId, other)),
+    );
+    return (
+      opponents.length > 0 &&
+      opponents.every((enemy) => conquestDefeated(ctx, enemy))
+    );
+  },
 };
 
 // ---- Timed paths (§2.11 Knowledge / Culture / Economic / hold-only) ------------
@@ -581,10 +597,12 @@ const UNDECIDED: VictoryOutcome = {
 export function evaluateOutcome(
   world: World,
   comps: SimComponents,
+  diplomacy?: DiplomacyMatrix | undefined,
 ): VictoryOutcome {
   const winners: number[] = [];
   const losers: DefeatRecord[] = [];
-  for (const playerId of victoryPlayerIds(world, comps)) {
+  const players = victoryPlayerIds(world, comps);
+  for (const playerId of players) {
     const tail = latestVictoryCheck(world, comps, playerId);
     if (tail?.status === VICTORY_STATUS_WON) winners.push(playerId);
     else if (tail?.status === VICTORY_STATUS_LOST) {
@@ -596,8 +614,29 @@ export function evaluateOutcome(
       losers.push({ playerId, reason: "surrender" });
     }
   }
+  if (winners.length > 0) {
+    return { decided: true, winners, losers };
+  }
+  if (losers.length > 0 && players.length <= 2) {
+    return { decided: true, winners, losers };
+  }
+  const activePlayers = players.filter(
+    (p) => !losers.some((l) => l.playerId === p),
+  );
+  if (
+    activePlayers.length > 0 &&
+    losers.length > 0 &&
+    (activePlayers.length === 1 ||
+      activePlayers.every((p1) =>
+        activePlayers.every((p2) =>
+          diplomacy ? diplomacy.isAllied(p1, p2) : p1 === p2,
+        ),
+      ))
+  ) {
+    return { decided: true, winners: activePlayers, losers };
+  }
   if (winners.length === 0 && losers.length === 0) return UNDECIDED;
-  return { decided: true, winners, losers };
+  return { decided: false, winners, losers };
 }
 
 // ---- The system ------------------------------------------------------------------
@@ -605,6 +644,8 @@ export function evaluateOutcome(
 export interface VictorySystemOptions {
   /** Evaluators to run; defaults to conquest + the M4-T4/T5 timed paths. */
   readonly paths?: readonly VictoryPathEvaluator[] | undefined;
+  /** Optional diplomacy matrix for multi-player / team games. */
+  readonly diplomacy?: DiplomacyMatrix | undefined;
 }
 
 /** HUD/readout summary for one path from one player's perspective. */
@@ -692,6 +733,7 @@ export function createVictorySystem(
   options: VictorySystemOptions = {},
 ): SimSystem {
   const paths = options.paths ?? DEFAULT_VICTORY_PATHS;
+  const diplomacy = options.diplomacy;
   for (const path of paths) {
     if (path.timerTicks === undefined) {
       if (path.thresholdPerMin !== undefined) {
@@ -722,14 +764,26 @@ export function createVictorySystem(
     for (const command of commands) {
       if (command.kind !== SURRENDER_COMMAND_KIND) continue;
       if (!command.data) throw new Error("surrender requires command data");
-      applySurrender(world, comps, command.data, () => {
-        decided = true;
-      });
+      applySurrender(
+        world,
+        comps,
+        command.data,
+        () => {
+          decided = true;
+        },
+        diplomacy,
+      );
     }
     if (decided || world.tick % VICTORY_CHECK_CADENCE_TICKS !== 0) return;
-    runChecks(world, comps, paths, () => {
-      decided = true;
-    });
+    runChecks(
+      world,
+      comps,
+      paths,
+      () => {
+        decided = true;
+      },
+      diplomacy,
+    );
   };
 }
 
@@ -738,12 +792,13 @@ function applySurrender(
   comps: SimComponents,
   data: Readonly<Record<string, unknown>>,
   freeze: () => void,
+  diplomacy?: DiplomacyMatrix | undefined,
 ): void {
   const raw = data.playerId;
   if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 0) {
     throw new Error("surrender playerId must be a non-negative integer");
   }
-  if (evaluateOutcome(world, comps).decided) return; // post-game no-op
+  if (evaluateOutcome(world, comps, diplomacy).decided) return; // post-game no-op
   const players = victoryPlayerIds(world, comps);
   if (!players.includes(raw)) {
     throw new Error(`surrender player ${String(raw)} has no ledger`);
@@ -752,18 +807,40 @@ function applySurrender(
     tick: world.tick,
     pathCode: VICTORY_PATH_CONQUEST,
     status: VICTORY_STATUS_SURRENDERED,
-    metric: conquestCapacityOf({ world, comps }, raw),
+    metric: conquestCapacityOf({ world, comps, diplomacy }, raw),
   });
-  for (const other of players) {
-    if (other === raw) continue;
-    appendVictoryCheck(world, comps, other, {
-      tick: world.tick,
-      pathCode: VICTORY_PATH_CONQUEST,
-      status: VICTORY_STATUS_WON,
-      metric: conquestCapacityOf({ world, comps }, other),
-    });
+
+  const activePlayers = players.filter((p) => {
+    const tail = latestVictoryCheck(world, comps, p);
+    return (
+      tail?.status !== VICTORY_STATUS_SURRENDERED &&
+      tail?.status !== VICTORY_STATUS_LOST
+    );
+  });
+
+  const allAllied =
+    activePlayers.length > 0 &&
+    activePlayers.every((p1) =>
+      activePlayers.every((p2) =>
+        diplomacy ? diplomacy.isAllied(p1, p2) : p1 === p2,
+      ),
+    );
+
+  if (
+    activePlayers.length <= 1 ||
+    (players.length > 2 && allAllied) ||
+    players.length <= 2
+  ) {
+    for (const other of activePlayers) {
+      appendVictoryCheck(world, comps, other, {
+        tick: world.tick,
+        pathCode: VICTORY_PATH_CONQUEST,
+        status: VICTORY_STATUS_WON,
+        metric: conquestCapacityOf({ world, comps, diplomacy }, other),
+      });
+    }
+    freeze();
   }
-  freeze();
 }
 
 function runChecks(
@@ -771,8 +848,9 @@ function runChecks(
   comps: SimComponents,
   paths: readonly VictoryPathEvaluator[],
   freeze: () => void,
+  diplomacy?: DiplomacyMatrix | undefined,
 ): void {
-  const ctx: VictoryContext = { world, comps };
+  const ctx: VictoryContext = { world, comps, diplomacy };
   const players = victoryPlayerIds(world, comps);
 
   for (const path of paths) {
@@ -781,6 +859,13 @@ function runChecks(
     // hold — every SUSTAINING interval since the log began — to cover
     // the path's timer. Same code path for both sides.
     const winnersNow = players.filter((playerId) => {
+      const tail = latestVictoryCheck(world, comps, playerId);
+      if (
+        tail?.status === VICTORY_STATUS_LOST ||
+        tail?.status === VICTORY_STATUS_SURRENDERED
+      ) {
+        return false;
+      }
       if (!path.actComplete(ctx, playerId)) return false;
       if (path.timerTicks === undefined) return true;
       return sustainedHoldTicksOf(ctx, path, playerId) >= path.timerTicks;
@@ -790,6 +875,13 @@ function runChecks(
     // Losers first, then winners ascending — pinned row order.
     for (const playerId of players) {
       if (winnerSet.has(playerId)) continue;
+      const tail = latestVictoryCheck(world, comps, playerId);
+      if (
+        tail?.status === VICTORY_STATUS_LOST ||
+        tail?.status === VICTORY_STATUS_SURRENDERED
+      ) {
+        continue;
+      }
       appendVictoryCheck(world, comps, playerId, {
         tick: world.tick,
         pathCode: path.pathCode,
@@ -817,16 +909,23 @@ function runChecks(
   // exactly what the hold-timer sum reads, so the pause/resume ledger
   // lives in digest rows only.
   for (const playerId of players) {
+    const tail = latestVictoryCheck(world, comps, playerId);
+    if (
+      tail?.status === VICTORY_STATUS_LOST ||
+      tail?.status === VICTORY_STATUS_SURRENDERED
+    ) {
+      continue;
+    }
     for (const path of paths) {
       const metric = path.metric(ctx, playerId);
       let status = VICTORY_STATUS_ONGOING;
       const actStands = path.actComplete(ctx, playerId);
       if (actStands && path.thresholdPerMin !== undefined) {
-        const tail = heartbeatHistoryOf(ctx, playerId, path.pathCode).at(-1);
+        const hTail = heartbeatHistoryOf(ctx, playerId, path.pathCode).at(-1);
         const rate =
-          tail === undefined
+          hTail === undefined
             ? 0
-            : intervalRateMilliOf(tail, { tick: world.tick, metric });
+            : intervalRateMilliOf(hTail, { tick: world.tick, metric });
         if (rate >= path.thresholdPerMin * MILLI_PER_UNIT) {
           status = VICTORY_STATUS_SUSTAINING;
         }

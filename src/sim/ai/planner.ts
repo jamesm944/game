@@ -133,6 +133,11 @@ export interface AiPlannerOptions {
    */
   readonly now?: (() => number) | undefined;
   /**
+   * Phase offset in ticks for staggered full planning passes across multiple
+   * AI players in 3+ player games (Issue #86 / #111). Defaults to 0.
+   */
+  readonly phaseOffset?: number | undefined;
+  /**
    * Injectable cross-pass memories (SPEC §2.12 save/restore): the save
    * ticket serializes both so a restored session's planner keeps its
    * build-order and military state. Fresh memories when omitted.
@@ -285,13 +290,17 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     // Deterministic and idempotent; the end-of-step flush stays a no-op.
     world.visibility.flushDirty();
     const tick = world.tick;
-    if (tick % fullPassIntervalTicks === 0) {
+    const offset = options.phaseOffset ?? 0;
+    const isFullPass =
+      (((tick - offset) % fullPassIntervalTicks) + fullPassIntervalTicks) %
+        fullPassIntervalTicks ===
+      0;
+    if (isFullPass) {
       telemetry.thinkCalls += 1;
       for (const draft of measure(fullPass)) submit(world, draft);
-    }
-    // Cheap incremental probes run EVERY non-full-pass tick — the
-    // defense rally cannot wait a full decision interval to react.
-    if (tick % fullPassIntervalTicks !== 0) {
+    } else {
+      // Cheap incremental probes run EVERY non-full-pass tick — the
+      // defense rally cannot wait a full decision interval to react.
       telemetry.incrementalCalls += 1;
       const draft = measure(incrementalCheck);
       if (draft !== undefined) submit(world, draft);
