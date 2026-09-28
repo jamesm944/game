@@ -547,3 +547,27 @@ export function canDebitLedgerSlugs(
 ): boolean {
   return resolveLedgerShortfall(world, comps, playerId, entries) === undefined;
 }
+
+/**
+ * Transfer stockpiled resources from a donor player to a recipient player.
+ * Checks balance atomically: returns true if transfer succeeded, false otherwise.
+ */
+export function transferTribute(
+  world: World,
+  comps: Pick<StockpileComponents, "stockpileId">,
+  donorPlayerId: number,
+  recipientPlayerId: number,
+  resourceCode: number,
+  amount: number,
+): boolean {
+  if (donorPlayerId === recipientPlayerId) return false;
+  if (!Number.isInteger(amount) || amount <= 0) return false;
+  requireResourceCode(resourceCode);
+  const donorRow = requireOwnerRow(world, comps, donorPlayerId);
+  const held = donorRow[resourceCode + 1] ?? 0;
+  if (held < amount) return false;
+  const recipientRow = requireOwnerRow(world, comps, recipientPlayerId);
+  donorRow[resourceCode + 1]! -= amount;
+  recipientRow[resourceCode + 1]! += amount;
+  return true;
+}

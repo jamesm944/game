@@ -54,6 +54,7 @@ import {
   planRelicCollectionSingle,
   planRelicDeposit,
   planRelicDepositSingle,
+  planTributeTransfer,
   type MilitaryMemory,
 } from "./militaryManager";
 import { planTradeRoutes } from "./tradeManager";
@@ -225,7 +226,9 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
           k.visibleEnemies().some((enemy) => enemy.eid === targetId),
         purpose,
       });
-      if (purpose === "defense") telemetry.defenseRallies += 1;
+      if (purpose === "defense" || purpose === "defense-assist") {
+        telemetry.defenseRallies += 1;
+      }
     }
     if (draft.kind === "trainUnit" && draft.data.purpose === "counter") {
       telemetry.counterTrains += 1;
@@ -254,6 +257,8 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     planMonkConversions(k, drafts);
     planTradeRoutes(k, drafts, budget);
     planNavalFleet(k, budget, drafts);
+    const tributeDraft = planTributeTransfer(k, militaryMemory, k.tick());
+    if (tributeDraft !== undefined) drafts.push(tributeDraft);
     return drafts;
   };
 

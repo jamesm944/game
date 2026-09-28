@@ -49,12 +49,14 @@ import {
   carriedRelicOf as carriedRelicOfComp,
   relicsOf,
   RELIC_GROUND,
+  RELIC_STORED,
 } from "../components/relic";
 import { buildingDefsForVictoryPath } from "../../data/victoryRoles";
 import { getActiveTradeRoutes } from "../systems/market";
 import { isAutoReseedEnabled } from "../systems/gather";
 import type { SimComponents } from "../components";
 import type { World } from "../core/world";
+import type { DiplomacyMatrix } from "../core/diplomacy";
 
 /** The M2 skirmish AI sits at player slot 1 (human is PLAYER_ONE = 0). */
 export const AI_PLAYER = 1;
@@ -132,6 +134,21 @@ export interface AiKnowledge {
     tileX: number;
     tileY: number;
   }[];
+  // ---- Alliance & Multi-Agent queries (Milestone S4 / Issue #117) ----------
+  readonly diplomacy?: DiplomacyMatrix | undefined;
+  isHostile(targetPlayer: number): boolean;
+  isAllied(targetPlayer: number): boolean;
+  alliedPlayerIds(): readonly number[];
+  alliedResources(allyPlayerId: number): readonly number[];
+  damagedAlliedBuildings(): readonly {
+    eid: number;
+    defId: string;
+    tileX: number;
+    tileY: number;
+    owner: number;
+  }[];
+  relicsHeldBy(playerId: number): number;
+  wonderCountOf(playerId: number): number;
   // ---- World knowledge (fog-gated) -----------------------------------------
   /** Explored-or-visible nodes with remaining>0, optionally per resource. */
   knownNodes(resourceCode?: number | undefined): readonly KnownNode[];
@@ -142,6 +159,7 @@ export interface AiKnowledge {
     defId: string;
     tileX: number;
     tileY: number;
+    owner?: number;
   }[];
   /**
    * Enemy villagers currently inside AI vision (M4-T6 raid-density
@@ -153,6 +171,7 @@ export interface AiKnowledge {
     eid: number;
     tileX: number;
     tileY: number;
+    owner?: number;
   }[];
   // ---- Relic queries (fog-honest: ground relics are visible world fixtures) --
   /**
@@ -166,7 +185,11 @@ export interface AiKnowledge {
   carriedRelicOf(unitEid: number): number | undefined;
   // ---- Trade queries (SPEC §2.6 / Issue #103) ------------------------------
   /** Known foreign finished markets (enemy or neutral, fog-gated via knownEntities). */
-  knownTargetMarkets(): readonly { eid: number; tileX: number; tileY: number }[];
+  knownTargetMarkets(): readonly {
+    eid: number;
+    tileX: number;
+    tileY: number;
+  }[];
   /** Own trade carts currently on the map. */
   tradeCarts(): readonly { eid: number; tileX: number; tileY: number }[];
   /** Whether a trade cart is currently assigned to an active trade route. */
@@ -188,6 +211,7 @@ export interface AiKnowledgeDeps {
   /** The real fog handle (knowledgeFor supplies the plane-gated view). */
   readonly view: KnowledgeView;
   readonly player?: number | undefined;
+  readonly diplomacy?: DiplomacyMatrix | undefined;
 }
 
 /**
@@ -199,6 +223,21 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
   const { world, comps } = deps;
   const player = deps.player ?? AI_PLAYER;
   const view = deps.view;
+  const diplomacy = deps.diplomacy;
+
+  const isHostile = (targetPlayer: number): boolean => {
+    if (diplomacy !== undefined) {
+      return diplomacy.isHostile(player, targetPlayer);
+    }
+    return targetPlayer !== player;
+  };
+
+  const isAllied = (targetPlayer: number): boolean => {
+    if (diplomacy !== undefined) {
+      return diplomacy.isAllied(player, targetPlayer);
+    }
+    return targetPlayer === player;
+  };
 
   // ---- Per-tick memo ----------------------------------------------------------
   // Planning passes issue the same queries many times (villager roster,
@@ -445,9 +484,10 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
         defId: string;
         tileX: number;
         tileY: number;
+        owner: number;
       }[] = [];
       for (const entity of knownEntities()) {
-        if (entity.owner === player) continue;
+        if (!isHostile(entity.owner)) continue;
         // Targetable entities only: villagers carry no Combat row and
         // are untargetable per the M2-T5 contract, so an attack draft
         // naming one would be rejected loudly at application. Military
@@ -459,28 +499,124 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
     },
 
     visibleEnemyVillagers() {
-      const out: { eid: number; tileX: number; tileY: number }[] = [];
+      const out: {
+        eid: number;
+        tileX: number;
+        tileY: number;
+        owner: number;
+      }[] = [];
       for (const entity of knownEntities()) {
-        if (entity.owner === player) continue;
+        if (!isHostile(entity.owner)) continue;
         if (entity.defId !== "villager") continue;
         out.push({
           eid: entity.eid,
           tileX: entity.tileX,
           tileY: entity.tileY,
+          owner: entity.owner,
         });
       }
       return out;
+    },
+
+    diplomacy,
+
+    isHostile,
+
+    isAllied,
+
+    alliedPlayerIds: () =>
+      diplomacy !== undefined
+        ? diplomacy.getAllies(player).filter((p) => p !== player)
+        : [],
+
+    alliedResources: (allyPlayerId: number) =>
+      stockpileAmountsOf(world, comps, allyPlayerId),
+
+    damagedAlliedBuildings() {
+      const out: {
+        eid: number;
+        defId: string;
+        tileX: number;
+        tileY: number;
+        owner: number;
+      }[] = [];
+      for (const [eid, row] of world.rowsByComponentId.get(comps.buildingId) ??
+        new Map()) {
+        const owner = row[0]!;
+        if (owner === player || !isAllied(owner)) continue;
+        const def = buildingDefOf(buildingIdOfCode(row[1]!));
+        if (row[4]! >= def.hp) continue;
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
+        if (!pos) continue;
+        out.push({
+          eid,
+          defId: def.id,
+          tileX: Math.floor(pos[0]!),
+          tileY: Math.floor(pos[1]!),
+          owner,
+        });
+      }
+      return out.sort((a, b) => a.eid - b.eid);
+    },
+
+    relicsHeldBy(targetPlayer: number): number {
+      const monasteryIds = buildingDefsForVictoryPath("relic").map(
+        (def) => def.id,
+      );
+      if (monasteryIds.length === 0 || !comps.relicId) return 0;
+      let held = 0;
+      for (const { row } of relicsOf(
+        world,
+        comps as Parameters<typeof relicsOf>[1],
+      )) {
+        if (row.state !== RELIC_STORED) continue;
+        const holderRow = world.rowsByComponentId
+          .get(comps.buildingId)
+          ?.get(row.holderEid);
+        if (
+          holderRow &&
+          holderRow[0] === targetPlayer &&
+          monasteryIds.includes(buildingIdOfCode(holderRow[1]!))
+        ) {
+          held += 1;
+        }
+      }
+      return held;
+    },
+
+    wonderCountOf(targetPlayer: number): number {
+      const defIds = buildingDefsForVictoryPath("wonder").map((def) => def.id);
+      if (defIds.length === 0) return 0;
+      let count = 0;
+      for (const [, row] of world.rowsByComponentId
+        .get(comps.buildingId)
+        ?.entries() ?? []) {
+        if (
+          row[0] === targetPlayer &&
+          defIds.includes(buildingIdOfCode(row[1]!))
+        ) {
+          count += 1;
+        }
+      }
+      return count;
     },
 
     knownGroundRelics() {
       // Relics are neutral map fixtures — no fog gate needed.
       const out: { eid: number; tileX: number; tileY: number }[] = [];
       if (!comps.relicId) return out;
-      for (const { eid, row } of relicsOf(world, comps as Parameters<typeof relicsOf>[1])) {
+      for (const { eid, row } of relicsOf(
+        world,
+        comps as Parameters<typeof relicsOf>[1],
+      )) {
         if (row.state !== RELIC_GROUND) continue;
         const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
         if (!pos) continue;
-        out.push({ eid, tileX: Math.floor(pos[0]!), tileY: Math.floor(pos[1]!) });
+        out.push({
+          eid,
+          tileX: Math.floor(pos[0]!),
+          tileY: Math.floor(pos[1]!),
+        });
       }
       return out;
     },
@@ -490,20 +626,29 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
         .filter((def) => def.victory?.holdTicks !== undefined)
         .map((def) => def.id);
       const out: { eid: number; tileX: number; tileY: number }[] = [];
-      for (const [eid, row] of world.rowsByComponentId.get(comps.buildingId) ?? new Map()) {
+      for (const [eid, row] of world.rowsByComponentId.get(comps.buildingId) ??
+        new Map()) {
         if (row[0] !== player) continue;
         const defId = buildingIdOfCode(row[1]!);
         if (!monasteryDefIds.includes(defId)) continue;
         const pos = world.rowsByComponentId.get(comps.positionId)?.get(eid);
         if (!pos) continue;
-        out.push({ eid, tileX: Math.floor(pos[0]!), tileY: Math.floor(pos[1]!) });
+        out.push({
+          eid,
+          tileX: Math.floor(pos[0]!),
+          tileY: Math.floor(pos[1]!),
+        });
       }
       return out.sort((a, b) => a.eid - b.eid);
     },
 
     carriedRelicOf(unitEid) {
       if (!comps.relicId) return undefined;
-      return carriedRelicOfComp(world, comps as Parameters<typeof carriedRelicOfComp>[1], unitEid);
+      return carriedRelicOfComp(
+        world,
+        comps as Parameters<typeof carriedRelicOfComp>[1],
+        unitEid,
+      );
     },
 
     knownTargetMarkets() {
@@ -511,7 +656,8 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
       for (const entity of knownEntities()) {
         if (entity.owner === player) continue;
         if (entity.defId !== "market") continue;
-        if (world.rowsByComponentId.get(comps.buildingSiteId)?.has(entity.eid)) continue;
+        if (world.rowsByComponentId.get(comps.buildingSiteId)?.has(entity.eid))
+          continue;
         out.push({
           eid: entity.eid,
           tileX: entity.tileX,

@@ -22,6 +22,7 @@ import {
   RESOURCE_GOLD,
   RESOURCE_STONE,
 } from "../components/economy";
+import { transferTribute } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimComponents } from "../components";
 import type { SimSystem, World } from "../core/world";
@@ -29,10 +30,12 @@ import type { SimSystem, World } from "../core/world";
 export const MARKET_EXCHANGE_COMMAND_KIND = "marketExchange";
 export const TRADE_ROUTE_COMMAND_KIND = "tradeRoute";
 export const ASSIGN_TRADE_ROUTE_COMMAND_KIND = "assignTradeRoute";
+export const TRIBUTE_COMMAND_KIND = "tribute";
 
 export const DEFAULT_TRADE_WAIT_TICKS = 15;
 
-export type TradeRouteState = "to_target" | "loading" | "to_origin" | "unloading";
+export type TradeRouteState =
+  "to_target" | "loading" | "to_origin" | "unloading";
 
 export interface ActiveTradeRoute {
   unitEid: number;
@@ -50,7 +53,9 @@ export interface MarketSystemOptions {
 
 const WORLD_ACTIVE_ROUTES = new WeakMap<World, Map<number, ActiveTradeRoute>>();
 
-export function getActiveTradeRoutes(world: World): Map<number, ActiveTradeRoute> {
+export function getActiveTradeRoutes(
+  world: World,
+): Map<number, ActiveTradeRoute> {
   let routes = WORLD_ACTIVE_ROUTES.get(world);
   if (!routes) {
     routes = new Map();
@@ -66,7 +71,10 @@ export function activeTradeCartsCountForMarket(
   const routes = getActiveTradeRoutes(world);
   let count = 0;
   for (const route of routes.values()) {
-    if (route.originMarketEid === marketEid || route.targetMarketEid === marketEid) {
+    if (
+      route.originMarketEid === marketEid ||
+      route.targetMarketEid === marketEid
+    ) {
       count++;
     }
   }
@@ -84,7 +92,9 @@ export function activeTradeRoutesCountForPlayer(
   for (const route of routes.values()) {
     let owner = ownerRows?.get(route.unitEid)?.[0];
     if (owner === undefined) {
-      owner = world.rowsByComponentId.get(comps.combatId)?.get(route.unitEid)?.[1];
+      owner = world.rowsByComponentId
+        .get(comps.combatId)
+        ?.get(route.unitEid)?.[1];
     }
     if (owner === undefined) owner = 0;
     if (owner === playerId) count++;
@@ -197,7 +207,11 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
     const activeRoutes = getActiveTradeRoutes(world);
 
     // Helper to issue movement to target coordinates (A* pathfinding + direct target)
-    const dispatchMove = (unitEid: number, destX: number, destY: number): void => {
+    const dispatchMove = (
+      unitEid: number,
+      destX: number,
+      destY: number,
+    ): void => {
       moveTargetRows?.set(unitEid, [destX, destY]);
       world.inbox.submit({
         kind: "groupMove",
@@ -304,6 +318,28 @@ export function createMarketSystem(options: MarketSystemOptions): SimSystem {
               dispatchMove(unitEid, targetPos[0]!, targetPos[1]!);
             }
           }
+        }
+      } else if (cmd.kind === TRIBUTE_COMMAND_KIND && cmd.data) {
+        const data = cmd.data as {
+          donorPlayerId?: number;
+          recipientPlayerId?: number;
+          resourceCode?: number;
+          amount?: number;
+        };
+        if (
+          typeof data.donorPlayerId === "number" &&
+          typeof data.recipientPlayerId === "number" &&
+          typeof data.resourceCode === "number" &&
+          typeof data.amount === "number"
+        ) {
+          transferTribute(
+            world,
+            comps,
+            data.donorPlayerId,
+            data.recipientPlayerId,
+            data.resourceCode,
+            data.amount,
+          );
         }
       }
     }

@@ -64,6 +64,8 @@ export interface MilitaryMemory {
   lastRallyTick?: number | undefined;
   /** Counter training orders emitted so far this match. */
   countersTrained: number;
+  /** Tick of the last emitted tribute transfer (cooldown anchor). */
+  lastTributeTick?: number | undefined;
 }
 
 export function createMilitaryMemory(): MilitaryMemory {
@@ -115,6 +117,7 @@ function visibleEnemyUnits(k: AiKnowledge): readonly {
   defId: string;
   tileX: number;
   tileY: number;
+  owner?: number;
 }[] {
   return k.visibleEnemies().filter((enemy) => !isBuildingDef(enemy.defId));
 }
@@ -122,10 +125,10 @@ function visibleEnemyUnits(k: AiKnowledge): readonly {
 // ---- 1) Defense rally ------------------------------------------------------------
 
 /**
- * Scan own damaged buildings for active threats and emit the rally
- * attack once a threat has persisted `reactionDelayTicks`. Prunes the
- * observation clocks of buildings no longer under threat (the clock
- * restarts if the raider leaves and comes back).
+ * Scan own damaged buildings (and allied damaged buildings if own are safe)
+ * for active threats and emit the rally attack once a threat has persisted
+ * `reactionDelayTicks`. Prunes observation clocks of buildings no longer
+ * under threat.
  */
 export function planDefenseRally(
   k: AiKnowledge,
@@ -150,6 +153,8 @@ export function planDefenseRally(
     now - memory.lastRallyTick < DEFENSE_RALLY_COOLDOWN_TICKS;
   const nextClocks = new Map<number, number>();
   let rally: CommandDraft | undefined;
+
+  // Priority 1: Defend own buildings
   for (const building of k.damagedOwnBuildings()) {
     let nearest: (Tile & { eid: number }) | undefined;
     let nearestD = Number.POSITIVE_INFINITY;
@@ -175,6 +180,37 @@ export function planDefenseRally(
       },
     };
   }
+
+  // Priority 2: Assist allied buildings under siege (Milestone S4 / Issue #117)
+  if (rally === undefined && typeof k.damagedAlliedBuildings === "function") {
+    const alliedDamaged = k.damagedAlliedBuildings();
+    for (const building of alliedDamaged) {
+      let nearest: (Tile & { eid: number }) | undefined;
+      let nearestD = Number.POSITIVE_INFINITY;
+      for (const enemy of enemies) {
+        const d = distSq(enemy, building);
+        if (d > radiusSq) continue;
+        if (d < nearestD || (d === nearestD && enemy.eid < nearest!.eid)) {
+          nearestD = d;
+          nearest = enemy;
+        }
+      }
+      if (nearest === undefined) continue;
+      const first = memory.threatSince.get(building.eid) ?? now;
+      nextClocks.set(building.eid, first);
+      if (coolingDown) continue;
+      if (now - first < reactionDelayTicks) continue;
+      rally ??= {
+        kind: "attack",
+        data: {
+          attackerIds: army.map((unit) => unit.eid),
+          targetId: nearest.eid,
+          purpose: "defense-assist",
+        },
+      };
+    }
+  }
+
   memory.threatSince = nextClocks;
   if (rally !== undefined) memory.lastRallyTick = now;
   return rally;
@@ -190,10 +226,11 @@ export interface OffensiveTarget {
 
 /**
  * Utility-score the offensive target across every legitimately visible
- * enemy entity: villager density dominates, squared distance to the AI
- * town breaks ties toward nearer targets (and serves as the tiny
- * penalty between equally-empty targets). Deterministic: ties resolve
- * to the lower eid.
+ * enemy entity:
+ * - In 2-player matches: villager density dominates, distance to AI anchor breaks ties.
+ * - In 3+ player games: multi-target utility evaluation factors in Wonder/Relic threat,
+ *   proximity, and local enemy army resistance.
+ * Deterministic: ties resolve to the lower eid.
  */
 export function scoreOffensiveTarget(
   k: AiKnowledge,
@@ -203,14 +240,85 @@ export function scoreOffensiveTarget(
   const villagers = k.visibleEnemyVillagers();
   const anchor = anchorTileOf(k);
   const radiusSq = RAID_DENSITY_RADIUS_TILES * RAID_DENSITY_RADIUS_TILES;
+
+  const isMultiPlayer =
+    k.diplomacy !== undefined && k.diplomacy.playerCount > 2;
+
   let best: OffensiveTarget | undefined;
   let bestScore = Number.NEGATIVE_INFINITY;
+
+  if (!isMultiPlayer) {
+    for (const enemy of enemies) {
+      let nearby = 0;
+      for (const villager of villagers) {
+        if (distSq(villager, enemy) <= radiusSq) nearby += 1;
+      }
+      const score = nearby * RAID_DENSITY_WEIGHT - distSq(enemy, anchor);
+      if (
+        score > bestScore ||
+        (score === bestScore && best !== undefined && enemy.eid < best.targetId)
+      ) {
+        bestScore = score;
+        best = { targetId: enemy.eid, villagersNearby: nearby };
+      }
+    }
+    return best;
+  }
+
+  // Multi-player threat-scored targeting (Milestone S4 / Issue #117)
+  const enemyUnits = visibleEnemyUnits(k);
+
   for (const enemy of enemies) {
+    const owner = enemy.owner ?? 0;
+    // Hostility gate: never target non-hostiles
+    if (typeof k.isHostile === "function" && !k.isHostile(owner)) continue;
+    if (k.diplomacy && !k.diplomacy.isHostile(k.player, owner)) continue;
+
     let nearby = 0;
     for (const villager of villagers) {
       if (distSq(villager, enemy) <= radiusSq) nearby += 1;
     }
-    const score = nearby * RAID_DENSITY_WEIGHT - distSq(enemy, anchor);
+
+    // 1. Wonder & Relic threat
+    const wonders =
+      typeof k.wonderCountOf === "function" ? k.wonderCountOf(owner) : 0;
+    const relics =
+      typeof k.relicsHeldBy === "function" ? k.relicsHeldBy(owner) : 0;
+    let threatLevel = 0;
+    if (wonders > 0) {
+      threatLevel += 15000;
+    }
+    if (relics >= 3) {
+      threatLevel += 5000 + 1500 * relics;
+    } else if (relics > 0) {
+      threatLevel += 1000 * relics;
+    }
+
+    // 2. Proximity score
+    const d = distSq(enemy, anchor);
+    const proximityScore = Math.max(0, 40000 - d);
+
+    // 3. Enemy local army strength (visible hostile military units within 12 tiles / 144 distSq)
+    let localArmy = 0;
+    for (const u of enemyUnits) {
+      if (
+        (u.owner === owner || u.owner === undefined) &&
+        distSq(u, enemy) <= 144
+      ) {
+        localArmy += 1;
+      }
+    }
+    const enemyArmyStrength = localArmy * 150;
+
+    // Multi-target utility score formula:
+    // score = (threatLevel * 1.5) + (proximityScore * 1.0) - (enemyArmyStrength * 0.8) + (nearby * RAID_DENSITY_WEIGHT)
+    const score = Math.floor(
+      threatLevel * 1.5 +
+        proximityScore * 1.0 -
+        enemyArmyStrength * 0.8 +
+        nearby * RAID_DENSITY_WEIGHT,
+    );
+
     if (
       score > bestScore ||
       (score === bestScore && best !== undefined && enemy.eid < best.targetId)
@@ -219,6 +327,7 @@ export function scoreOffensiveTarget(
       best = { targetId: enemy.eid, villagersNearby: nearby };
     }
   }
+
   return best;
 }
 
@@ -317,7 +426,9 @@ export function planCounterTraining(
   }
   let bestId: string | undefined;
   let bestScore = 0; // strictly-positive gate lives HERE
-  const visibleBuildings = k.visibleEnemies().filter((e) => isBuildingDef(e.defId));
+  const visibleBuildings = k
+    .visibleEnemies()
+    .filter((e) => isBuildingDef(e.defId));
   for (const [unitId, def] of candidates) {
     let score = counterScore(def, enemies);
     if (visibleBuildings.length > 0) {
@@ -372,7 +483,10 @@ export function isHighValueConversionTarget(defId: string): boolean {
   }
   try {
     const def = unitDefOf(defId);
-    if (def.armorClasses?.includes("cavalry") || def.armorClasses?.includes("siege")) {
+    if (
+      def.armorClasses?.includes("cavalry") ||
+      def.armorClasses?.includes("siege")
+    ) {
       return true;
     }
   } catch {
@@ -384,18 +498,18 @@ export function isHighValueConversionTarget(defId: string): boolean {
 /**
  * Plan monk conversions for idle monks against visible high-value enemy targets (V14 Issue #101).
  */
-export function planMonkConversions(
-  k: AiKnowledge,
-  out: CommandDraft[],
-): void {
+export function planMonkConversions(k: AiKnowledge, out: CommandDraft[]): void {
   const ownMonks = k.armyUnits().filter((u) => u.defId === "monk");
   if (ownMonks.length === 0) return;
 
   const enemies = k.visibleEnemies();
   if (enemies.length === 0) return;
 
-  const highValueEnemies = enemies.filter((e) => isHighValueConversionTarget(e.defId));
-  const candidateTargets = highValueEnemies.length > 0 ? highValueEnemies : enemies;
+  const highValueEnemies = enemies.filter((e) =>
+    isHighValueConversionTarget(e.defId),
+  );
+  const candidateTargets =
+    highValueEnemies.length > 0 ? highValueEnemies : enemies;
 
   for (const monk of ownMonks) {
     let bestTarget: (typeof enemies)[number] | undefined;
@@ -450,10 +564,7 @@ export function planMonkConversionSingle(
  * Emits `collectRelic` commands into `out` (does not return early after the
  * first hit — every unattended relic gets a monk assignment in one pass).
  */
-export function planRelicCollection(
-  k: AiKnowledge,
-  out: CommandDraft[],
-): void {
+export function planRelicCollection(k: AiKnowledge, out: CommandDraft[]): void {
   // Monks currently CARRYING a relic should deposit, not collect again.
   const ownMonks = k.armyUnits().filter((u) => u.defId === "monk");
   if (ownMonks.length === 0) return;
@@ -517,16 +628,14 @@ export function planRelicCollection(
  * Each carrier targets the nearest own Monastery (ascending eid on tie).
  * If the AI has no monastery yet, no commands are emitted.
  */
-export function planRelicDeposit(
-  k: AiKnowledge,
-  out: CommandDraft[],
-): void {
+export function planRelicDeposit(k: AiKnowledge, out: CommandDraft[]): void {
   // Find all own monks carrying a relic.
   const ownMonks = k.armyUnits().filter((u) => u.defId === "monk");
   const carriers = ownMonks
     .map((u) => ({ monk: u, relicEid: k.carriedRelicOf(u.eid) }))
-    .filter((e): e is { monk: typeof e.monk; relicEid: number } =>
-      e.relicEid !== undefined,
+    .filter(
+      (e): e is { monk: typeof e.monk; relicEid: number } =>
+        e.relicEid !== undefined,
     );
   if (carriers.length === 0) return;
 
@@ -570,4 +679,93 @@ export function planRelicCollectionSingle(
   const drafts: CommandDraft[] = [];
   planRelicCollection(k, drafts);
   return drafts[0];
+}
+
+// ---- 6) Autonomous Tribute Transfer (Milestone S4 / Issue #117) -----------------
+
+export const TRIBUTE_COOLDOWN_TICKS = 60;
+export const TRIBUTE_SURPLUS_THRESHOLD = 700;
+export const TRIBUTE_DEFICIT_THRESHOLD = 150;
+export const TRIBUTE_PACKET_AMOUNT = 100;
+
+/**
+ * Autonomous Tribute Transfer:
+ * When an AI has a surplus (>= 700) of a resource and an ally has a deficit (< 150),
+ * dispatch a 100-packet tribute transfer into the shared inbox.
+ * Prioritizes the greatest allied deficit, with a 60-tick cooldown to prevent order churn.
+ */
+export function planTributeTransfer(
+  k: AiKnowledge,
+  memory: MilitaryMemory,
+  currentTick: number,
+): CommandDraft | undefined {
+  if (
+    memory.lastTributeTick !== undefined &&
+    currentTick - memory.lastTributeTick < TRIBUTE_COOLDOWN_TICKS
+  ) {
+    return undefined;
+  }
+
+  const allies =
+    typeof k.alliedPlayerIds === "function" ? k.alliedPlayerIds() : [];
+  if (allies.length === 0) return undefined;
+
+  const myRes = k.resources();
+  // Standard resources to tribute: Food (0), Wood (1), Gold (2), Stone (3)
+  const resourceCodes = [0, 1, 2, 3];
+
+  interface TributeCandidate {
+    recipientId: number;
+    resourceCode: number;
+    allyAmount: number;
+  }
+
+  const candidates: TributeCandidate[] = [];
+
+  for (const allyId of allies) {
+    const allyRes =
+      typeof k.alliedResources === "function"
+        ? k.alliedResources(allyId)
+        : undefined;
+    if (!allyRes) continue;
+
+    for (const resCode of resourceCodes) {
+      const myAmount = myRes[resCode] ?? 0;
+      const allyAmount = allyRes[resCode] ?? 0;
+
+      if (
+        myAmount >= TRIBUTE_SURPLUS_THRESHOLD &&
+        allyAmount < TRIBUTE_DEFICIT_THRESHOLD
+      ) {
+        candidates.push({
+          recipientId: allyId,
+          resourceCode: resCode,
+          allyAmount,
+        });
+      }
+    }
+  }
+
+  if (candidates.length === 0) return undefined;
+
+  // Prioritize ally with deepest deficit, tie-break by lower resCode then lower recipientId
+  candidates.sort((a, b) => {
+    if (a.allyAmount !== b.allyAmount) return a.allyAmount - b.allyAmount;
+    if (a.resourceCode !== b.resourceCode)
+      return a.resourceCode - b.resourceCode;
+    return a.recipientId - b.recipientId;
+  });
+
+  const chosen = candidates[0]!;
+  memory.lastTributeTick = currentTick;
+
+  return {
+    kind: "tribute",
+    data: {
+      donorPlayerId: k.player,
+      recipientPlayerId: chosen.recipientId,
+      resourceCode: chosen.resourceCode,
+      amount: TRIBUTE_PACKET_AMOUNT,
+    },
+  };
 }
