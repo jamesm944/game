@@ -178,6 +178,10 @@ export interface MinimapDeps {
   isOwnBuilding?(ownerId: number): boolean;
   /** Camera center coordinates if directly available. */
   getCameraCenter?(): { x: number; y: number };
+  /** Optional player color resolver for multi-player skirmish (S3 / #116). */
+  readonly getPlayerColor?: ((ownerId: number) => string) | undefined;
+  /** Optional unit owner resolver (S3 / #116). */
+  readonly getUnitOwner?: ((eid: number) => number) | undefined;
 }
 
 export interface MinimapHandle {
@@ -406,7 +410,14 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
             : deps.isOwn
               ? deps.isOwn(b.eid)
               : true;
-          if (isOwn) {
+          const pColor = deps.getPlayerColor
+            ? deps.getPlayerColor(b.ownerId)
+            : undefined;
+          if (pColor) {
+            backCtx.fillStyle = isVis
+              ? pColor
+              : shade(parseInt(pColor.replace("#", ""), 16), 0.55);
+          } else if (isOwn) {
             backCtx.fillStyle = OWN_BUILDING_HEX;
           } else {
             backCtx.fillStyle = isVis
@@ -438,11 +449,21 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
             continue;
           }
           const selected = deps.isSelected(eid);
+          const unitOwner = deps.getUnitOwner
+            ? deps.getUnitOwner(eid)
+            : own
+              ? 0
+              : 1;
+          const pColor = deps.getPlayerColor
+            ? deps.getPlayerColor(unitOwner)
+            : undefined;
           backCtx.fillStyle = selected
             ? SELECTED_DOT_HEX
-            : own
-              ? OWN_DOT_HEX
-              : ENEMY_DOT_HEX;
+            : pColor
+              ? pColor
+              : own
+                ? OWN_DOT_HEX
+                : ENEMY_DOT_HEX;
           const dot = selected ? 3 : 2;
           backCtx.fillRect(
             x * pxPerTile - dot / 2,
