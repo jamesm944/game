@@ -38,6 +38,7 @@ export const STRATEGY_IDS = [
   "fast-castle-knights",
   "scouts-rush",
   "archers-push",
+  "naval-raider",
 ] as const;
 export type StrategyId = (typeof STRATEGY_IDS)[number];
 
@@ -155,6 +156,15 @@ export function siteCandidates(
 
 /** Military buildings keep one open approach lane off the town core. */
 const MILITARY_SITE_SEARCH = { minClearance: 4, maxRadius: 9 } as const;
+
+/**
+ * Dock site search: Docks must straddle the shoreline. The AI TC may be
+ * up to 20 tiles from the water on the 4-player map, so search further
+ * than military buildings. canPlace("dock", …) already enforces the
+ * hybrid shoreline constraint (N1 / #108); here we just need a big enough
+ * window to reach it.
+ */
+const DOCK_SITE_SEARCH = { minClearance: 0, maxRadius: 24 } as const;
 
 /**
  * Fast Castle → knights. The canonical FC skeleton: Feudal clicked off
@@ -340,10 +350,68 @@ const archersPush: Strategy = {
   ],
 };
 
+/**
+ * Naval Raider: builds a Dock at Feudal Age, trains Fishing Boats for
+ * food income, then galleys to contest water and raid enemy shores.
+ * Villager target lower than land strategies — fishing subsidises food.
+ */
+const navalRaider: Strategy = {
+  id: "naval-raider",
+  villagerTarget: 9,
+  gatherWeights: { food: 0.3, wood: 0.5, gold: 0.2 },
+  attackArmyThreshold: 3,
+  steps: [
+    {
+      id: "feudal-up",
+      action: { kind: "researchAge" },
+      complete: { kind: "ageReached", rank: 2 },
+      gate: { minResources: { food: 500 }, minAgeRank: 1 },
+    },
+    {
+      id: "dock",
+      requires: ["feudal-up"],
+      action: {
+        kind: "placeBuilding",
+        defId: "dock",
+        minClearance: DOCK_SITE_SEARCH.minClearance,
+        maxRadius: DOCK_SITE_SEARCH.maxRadius,
+      },
+      complete: { kind: "buildingUp", defId: "dock", count: 1 },
+      gate: { minResources: { wood: 150 }, minAgeRank: 2 },
+    },
+    {
+      id: "train-fishing-boats",
+      requires: ["dock"],
+      action: { kind: "trainArmy", unitId: "fishing-boat" },
+      complete: { kind: "armySize", unitId: "fishing-boat", count: 3 },
+      gate: { minAgeRank: 2 },
+    },
+    {
+      id: "train-galleys",
+      requires: ["dock"],
+      action: { kind: "trainArmy", unitId: "galley" },
+      complete: { kind: "armySize", unitId: "galley", count: 3 },
+      gate: { minAgeRank: 2 },
+    },
+    {
+      id: "attack",
+      requires: ["train-galleys"],
+      action: { kind: "attack" },
+      complete: {
+        kind: "armySize",
+        unitId: "galley",
+        count: Number.POSITIVE_INFINITY,
+      },
+      gate: {},
+    },
+  ],
+};
+
 export const STRATEGIES: Readonly<Record<StrategyId, Strategy>> = {
   "fast-castle-knights": fastCastleKnights,
   "scouts-rush": scoutsRush,
   "archers-push": archersPush,
+  "naval-raider": navalRaider,
 };
 
 // ---- Step evaluation --------------------------------------------------------------

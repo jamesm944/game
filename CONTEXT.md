@@ -369,3 +369,21 @@ _Avoid_: Game init, setup code
 **Render mirror**:
 The double-buffered SoA snapshot of live Pop positions/headings that the renderer reads. The sim-side producer copies it after each step(); render only samples it with an interpolation alpha. Render never touches sim component rows directly.
 _Avoid_: Snapshot state (bare), world copy
+
+### Naval & Water Economy
+
+**Dock**:
+A 3×3 hybrid coastal structure that straddles land and water. Trained ships spawn in navigable water berths while land workers construct and repair it from adjacent land tiles. Serves as drop-off point for water food.
+_Avoid_: Harbor, port (bare)
+
+**Fishing Boat**:
+A civilian vessel trained at the Dock that harvests food from water fish nodes and deposits carried cargo at coastal docks.
+_Avoid_: Fisher, fishing ship
+
+**Warship**:
+Combat vessels trained at the Dock (Galley line, Fire Ship, Cannon Galleon) possessing armor class `ship` and navigating water tiles.
+_Avoid_: Boat (for military ships)
+
+**Water fish node**:
+A resource node placed in water tiles containing harvestable Food (Shore Fish: 200 food, Deep-Sea: 350 food) gatherable exclusively by Fishing Boats.
+_Avoid_: Fish school, fishing spot

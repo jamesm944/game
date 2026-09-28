@@ -57,6 +57,7 @@ import {
   type MilitaryMemory,
 } from "./militaryManager";
 import { planTradeRoutes } from "./tradeManager";
+import { planNavalFleet } from "./navalManager";
 import { aiDifficultyOf, type AiDifficultyId } from "./difficulty";
 import type { SimSystem, World } from "../core/world";
 
@@ -252,6 +253,7 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     planRelicCollection(k, drafts);
     planMonkConversions(k, drafts);
     planTradeRoutes(k, drafts, budget);
+    planNavalFleet(k, budget, drafts);
     return drafts;
   };
 

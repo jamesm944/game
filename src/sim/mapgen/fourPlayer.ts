@@ -31,10 +31,12 @@ import {
   buildLayers,
   isWaterTerrain,
   MAX_ELEVATION_LEVEL,
+  TERRAIN_DEEP_WATER,
   TERRAIN_DIRT,
   TERRAIN_FOREST_FLOOR,
   TERRAIN_GRASS,
   TERRAIN_SHORE,
+  TERRAIN_WATER,
   type WorldLayers,
 } from "../world/layers";
 import {
@@ -112,10 +114,14 @@ export interface PlayerSpawnRecord {
   readonly treeEids: readonly number[];
 }
 
+export type FourPlayerMapPreset =
+  "continental" | "coastal" | "archipelago" | "islands";
+
 export interface FourPlayerSetupResult {
   readonly diplomacy: DiplomacyMatrix;
   readonly players: readonly PlayerSpawnRecord[];
   readonly relicEids: readonly number[];
+  readonly fishEids: readonly number[];
 }
 
 export interface FourPlayerSkirmishOptions {
@@ -124,16 +130,32 @@ export interface FourPlayerSkirmishOptions {
   readonly mode?: "ffa" | "teams" | undefined;
   readonly startingResources?: readonly number[] | undefined;
   readonly spawnRelics?: boolean | undefined;
+  readonly preset?: FourPlayerMapPreset | undefined;
+  readonly spawnFish?: boolean | undefined;
+  readonly isIslandMap?: boolean | undefined;
+}
+
+export type FourPlayerMapOptions = FourPlayerSkirmishOptions;
+
+/**
+ * Convenience generator for a 4-player island map layout (Issue #115).
+ */
+export function generateIslandLayers(
+  seed: number,
+  size: number = FOUR_PLAYER_MAP_SIZE,
+): WorldLayers {
+  return generateFourPlayerLayers(seed, size, "islands");
 }
 
 /**
  * Generate a 160×160 (or custom size) balanced 4-player skirmish map.
- * Ensures flat, cleared ground around each starting base and clear
- * land corridors connecting each quadrant to the central crossroads.
+ * Ensures flat, cleared ground around each starting base. Supports
+ * continental, coastal, archipelago, and islands terrain presets.
  */
 export function generateFourPlayerLayers(
   seed: number,
   size: number = FOUR_PLAYER_MAP_SIZE,
+  preset: FourPlayerMapPreset = "continental",
 ): WorldLayers {
   if (!Number.isInteger(seed) || seed < 0 || seed > 0xffffffff) {
     throw new Error(`mapgen seed must be a u32 integer, got ${String(seed)}`);
@@ -157,7 +179,289 @@ export function generateFourPlayerLayers(
   const elevationLevel = new Uint8Array(tileCount);
   const center = (size - 1) / 2;
 
-  // Base procedural terrain & elevation
+  if (preset === "islands") {
+    // 1. Open ocean background: deep water in central/distant ocean, water elsewhere
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = y * size + x;
+        const tx = (x - center) / 18;
+        const ty = (y - center) / 18;
+        const val = terrainNoises[0]!(tx, ty);
+        terrainType[idx] = val < 0 ? TERRAIN_DEEP_WATER : TERRAIN_WATER;
+        elevationLevel[idx] = 0;
+      }
+    }
+
+    const anchors = getFourPlayerAnchors(size);
+
+    // 2. Player home islands (radius 24 around each anchor)
+    const islandRadius = 24;
+    for (const anchor of anchors) {
+      const ax = anchor.x + 1.5;
+      const ay = anchor.y + 1.5;
+      for (let dy = -islandRadius; dy <= islandRadius; dy++) {
+        for (let dx = -islandRadius; dx <= islandRadius; dx++) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > islandRadius) continue;
+          const tx = Math.floor(ax + dx);
+          const ty = Math.floor(ay + dy);
+          if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+          const idx = ty * size + tx;
+
+          if (dist <= 16) {
+            // Core base area: flat grass
+            terrainType[idx] = TERRAIN_GRASS;
+            elevationLevel[idx] = 1;
+          } else if (dist <= 20) {
+            // Island perimeter: grass/dirt
+            const nVal = terrainNoises[0]!(tx / 10, ty / 10);
+            terrainType[idx] = nVal < 0.2 ? TERRAIN_GRASS : TERRAIN_DIRT;
+            elevationLevel[idx] = 1;
+          } else if (dist <= 23) {
+            // Shoreline
+            terrainType[idx] = TERRAIN_SHORE;
+            elevationLevel[idx] = 0;
+          } else {
+            terrainType[idx] = TERRAIN_WATER;
+            elevationLevel[idx] = 0;
+          }
+        }
+      }
+    }
+
+    // 3. Central relic islet (radius 10 around center)
+    const cx = size / 2;
+    const cy = size / 2;
+    const centerRadius = 10;
+    for (let dy = -centerRadius; dy <= centerRadius; dy++) {
+      for (let dx = -centerRadius; dx <= centerRadius; dx++) {
+        const dist = Math.hypot(dx, dy);
+        if (dist > centerRadius) continue;
+        const tx = Math.floor(cx + dx);
+        const ty = Math.floor(cy + dy);
+        if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+        const idx = ty * size + tx;
+        if (dist <= 7) {
+          terrainType[idx] = TERRAIN_GRASS;
+          elevationLevel[idx] = 1;
+        } else if (dist <= 9) {
+          terrainType[idx] = TERRAIN_SHORE;
+          elevationLevel[idx] = 0;
+        }
+      }
+    }
+
+    // 4. Neutral islets at the 4 cardinal positions for relics
+    const cardinalPositions = [
+      { x: cx, y: cy - 32 },
+      { x: cx, y: cy + 32 },
+      { x: cx - 32, y: cy },
+      { x: cx + 32, y: cy },
+    ];
+    for (const cpos of cardinalPositions) {
+      const cRadius = 6;
+      for (let dy = -cRadius; dy <= cRadius; dy++) {
+        for (let dx = -cRadius; dx <= cRadius; dx++) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > cRadius) continue;
+          const tx = Math.floor(cpos.x + dx);
+          const ty = Math.floor(cpos.y + dy);
+          if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+          const idx = ty * size + tx;
+          if (dist <= 4) {
+            terrainType[idx] = TERRAIN_GRASS;
+            elevationLevel[idx] = 1;
+          } else {
+            terrainType[idx] = TERRAIN_SHORE;
+            elevationLevel[idx] = 0;
+          }
+        }
+      }
+    }
+
+    return buildLayers(terrainType, elevationLevel);
+  }
+
+  if (preset === "coastal") {
+    // 1. Base procedural terrain from simplex noise
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = y * size + x;
+        const tx = (x - center) / 18;
+        const ty = (y - center) / 18;
+        let sum = 0;
+        let amp = 1;
+        let freq = 1;
+        let norm = 0;
+        for (const n of terrainNoises) {
+          sum += n(tx * freq, ty * freq) * amp;
+          norm += amp;
+          amp *= 0.5;
+          freq *= 2;
+        }
+        const val = sum / norm;
+        if (val < -0.3) terrainType[idx] = TERRAIN_SHORE;
+        else if (val < 0.3) terrainType[idx] = TERRAIN_GRASS;
+        else if (val < 0.55) terrainType[idx] = TERRAIN_DIRT;
+        else terrainType[idx] = TERRAIN_FOREST_FLOOR;
+        elevationLevel[idx] = 1;
+      }
+    }
+
+    const cx = size / 2;
+    const cy = size / 2;
+
+    // 2. Large central sea (radius 40 around cx, cy)
+    const seaRadius = 40;
+    for (let dy = -seaRadius - 4; dy <= seaRadius + 4; dy++) {
+      for (let dx = -seaRadius - 4; dx <= seaRadius + 4; dx++) {
+        const dist = Math.hypot(dx, dy);
+        const tx = Math.floor(cx + dx);
+        const ty = Math.floor(cy + dy);
+        if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+        const idx = ty * size + tx;
+        if (dist <= seaRadius - 12) {
+          terrainType[idx] = TERRAIN_DEEP_WATER;
+          elevationLevel[idx] = 0;
+        } else if (dist <= seaRadius) {
+          terrainType[idx] = TERRAIN_WATER;
+          elevationLevel[idx] = 0;
+        } else if (dist <= seaRadius + 3) {
+          terrainType[idx] = TERRAIN_SHORE;
+          elevationLevel[idx] = 0;
+        }
+      }
+    }
+
+    const anchors = getFourPlayerAnchors(size);
+
+    // 3. Clear base areas (radius 16 land around each anchor)
+    for (const anchor of anchors) {
+      const ax = anchor.x + 1.5;
+      const ay = anchor.y + 1.5;
+      const baseRadius = 16;
+      for (let dy = -baseRadius; dy <= baseRadius; dy++) {
+        for (let dx = -baseRadius; dx <= baseRadius; dx++) {
+          const distSq = dx * dx + dy * dy;
+          if (distSq > baseRadius * baseRadius) continue;
+          const tx = Math.floor(ax + dx);
+          const ty = Math.floor(ay + dy);
+          if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+          const idx = ty * size + tx;
+          terrainType[idx] = TERRAIN_GRASS;
+          elevationLevel[idx] = 1;
+        }
+      }
+    }
+
+    // 4. Perimeter land corridors connecting adjacent bases (SW-NW, NW-NE, NE-SE, SE-SW)
+    const perimeterPairs = [
+      [anchors[0]!, anchors[2]!], // SW to NW
+      [anchors[2]!, anchors[1]!], // NW to NE
+      [anchors[1]!, anchors[3]!], // NE to SE
+      [anchors[3]!, anchors[0]!], // SE to SW
+    ];
+    for (const [a1, a2] of perimeterPairs) {
+      if (!a1 || !a2) continue;
+      const ax1 = a1.x + 1.5;
+      const ay1 = a1.y + 1.5;
+      const ax2 = a2.x + 1.5;
+      const ay2 = a2.y + 1.5;
+      const steps = 80;
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const px = ax1 + (ax2 - ax1) * t;
+        const py = ay1 + (ay2 - ay1) * t;
+        const halfWidth = 5;
+        for (let cdy = -halfWidth; cdy <= halfWidth; cdy++) {
+          for (let cdx = -halfWidth; cdx <= halfWidth; cdx++) {
+            const tx = Math.floor(px + cdx);
+            const ty = Math.floor(py + cdy);
+            if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+            const idx = ty * size + tx;
+            if (isWaterTerrain(terrainType[idx]!)) {
+              terrainType[idx] = TERRAIN_GRASS;
+            }
+            elevationLevel[idx] = 1;
+          }
+        }
+      }
+    }
+
+    return buildLayers(terrainType, elevationLevel);
+  }
+
+  if (preset === "archipelago") {
+    // 1. Water background
+    for (let idx = 0; idx < tileCount; idx++) {
+      terrainType[idx] = TERRAIN_WATER;
+      elevationLevel[idx] = 0;
+    }
+
+    const anchors = getFourPlayerAnchors(size);
+
+    // 2. 4 Home islands around anchors (radius 20)
+    for (const anchor of anchors) {
+      const ax = anchor.x + 1.5;
+      const ay = anchor.y + 1.5;
+      const iRadius = 20;
+      for (let dy = -iRadius; dy <= iRadius; dy++) {
+        for (let dx = -iRadius; dx <= iRadius; dx++) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > iRadius) continue;
+          const tx = Math.floor(ax + dx);
+          const ty = Math.floor(ay + dy);
+          if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+          const idx = ty * size + tx;
+          if (dist <= 15) {
+            terrainType[idx] = TERRAIN_GRASS;
+            elevationLevel[idx] = 1;
+          } else if (dist <= 18) {
+            terrainType[idx] = TERRAIN_DIRT;
+            elevationLevel[idx] = 1;
+          } else {
+            terrainType[idx] = TERRAIN_SHORE;
+            elevationLevel[idx] = 0;
+          }
+        }
+      }
+    }
+
+    const cx = size / 2;
+    const cy = size / 2;
+
+    // 3. Intermediate neutral islets at cardinals and center
+    const islets = [
+      { x: cx, y: cy, r: 12 },
+      { x: cx, y: cy - 35, r: 8 },
+      { x: cx, y: cy + 35, r: 8 },
+      { x: cx - 35, y: cy, r: 8 },
+      { x: cx + 35, y: cy, r: 8 },
+    ];
+    for (const isl of islets) {
+      for (let dy = -isl.r; dy <= isl.r; dy++) {
+        for (let dx = -isl.r; dx <= isl.r; dx++) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > isl.r) continue;
+          const tx = Math.floor(isl.x + dx);
+          const ty = Math.floor(isl.y + dy);
+          if (tx < 1 || tx >= size - 1 || ty < 1 || ty >= size - 1) continue;
+          const idx = ty * size + tx;
+          if (dist <= isl.r - 3) {
+            terrainType[idx] = TERRAIN_GRASS;
+            elevationLevel[idx] = 1;
+          } else {
+            terrainType[idx] = TERRAIN_SHORE;
+            elevationLevel[idx] = 0;
+          }
+        }
+      }
+    }
+
+    return buildLayers(terrainType, elevationLevel);
+  }
+
+  // Base procedural terrain & elevation (continental preset)
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const idx = y * size + x;
@@ -560,9 +864,66 @@ export function setupFourPlayerSkirmish(
     }
   }
 
+  // 6. Fish Resource Nodes (in water tiles)
+  const fishEids: number[] = [];
+  if (options.spawnFish !== false) {
+    const prng = createPrng(((options.seed ?? 12345) ^ 0xf158) >>> 0);
+    const waterIndices: number[] = [];
+    for (let idx = 0; idx < size * size; idx++) {
+      if (isWaterTerrain(world.layers.terrainType[idx]!)) {
+        waterIndices.push(idx);
+      }
+    }
+
+    const targetFishCount = Math.min(32, Math.floor(waterIndices.length / 60));
+    let attempts = 0;
+    const maxAttempts = targetFishCount * 25;
+    while (
+      fishEids.length < targetFishCount &&
+      attempts < maxAttempts &&
+      waterIndices.length > 0
+    ) {
+      attempts++;
+      const randIdx = Math.floor(prng.nextFloat() * waterIndices.length);
+      const tileIdx = waterIndices[randIdx]!;
+      const tx = tileIdx % size;
+      const ty = Math.floor(tileIdx / size);
+
+      if (occupiedTiles.has(tileIdx)) continue;
+
+      let tooClose = false;
+      for (const feid of fishEids) {
+        const pos = world.rowsByComponentId.get(comps.positionId)?.get(feid);
+        if (pos) {
+          const dx = Math.abs(pos[0]! - (tx + 0.5));
+          const dy = Math.abs(pos[1]! - (ty + 0.5));
+          if (Math.max(dx, dy) < 4) {
+            tooClose = true;
+            break;
+          }
+        }
+      }
+      if (tooClose) continue;
+
+      occupy(tx, ty);
+      const isDeep = world.layers.terrainType[tileIdx] === TERRAIN_DEEP_WATER;
+      const amount = isDeep ? 350 : 200;
+      const eid = spawnResourceNode(
+        world,
+        comps,
+        tx,
+        ty,
+        RESOURCE_FOOD,
+        amount,
+      );
+      fishEids.push(eid);
+    }
+  }
+
   return {
     diplomacy,
     players,
     relicEids,
+    fishEids,
   };
 }

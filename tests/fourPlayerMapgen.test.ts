@@ -4,8 +4,10 @@ import { defineSimComponents, type SimComponents } from "../src/sim/components";
 import {
   FOUR_PLAYER_MAP_SIZE,
   generateFourPlayerLayers,
+  generateIslandLayers,
   getFourPlayerAnchors,
   setupFourPlayerSkirmish,
+  type FourPlayerMapOptions,
 } from "../src/sim/mapgen/fourPlayer";
 import {
   getResourceNodeRow,
@@ -19,6 +21,7 @@ import { getBuildingRow } from "../src/sim/components/buildings";
 import { relicRowOf, RELIC_GROUND } from "../src/sim/components/relic";
 import { isWaterTerrain, TERRAIN_GRASS } from "../src/sim/world/layers";
 import { unitIdOfCode } from "../src/data/definitions";
+import { validatePlacement } from "../src/sim/systems/placement";
 
 /** Helper: verify BFS path exists between two points on the map. */
 function hasLandPath(
@@ -269,5 +272,222 @@ describe("4-Player Symmetric Mapgen & Balanced Starting Spawns (Milestone S2 / I
     expect(layers1.terrainType).toEqual(layers2.terrainType);
     expect(layers1.elevationLevel).toEqual(layers2.elevationLevel);
     expect(layers1.derivedPassability).toEqual(layers2.derivedPassability);
+  });
+
+  it("coastal preset: provides central sea with dock shorelines, perimeter land path, and fish", () => {
+    const seed = 54321;
+    const layers = generateFourPlayerLayers(
+      seed,
+      FOUR_PLAYER_MAP_SIZE,
+      "coastal",
+    );
+    const world = createWorld(seed, { size: FOUR_PLAYER_MAP_SIZE, layers });
+    const comps = defineSimComponents(world);
+
+    const result = setupFourPlayerSkirmish(world, comps, { seed });
+    expect(result.players).toHaveLength(4);
+
+    // 1. Spawns fish in the central sea
+    expect(result.fishEids.length).toBeGreaterThan(0);
+    for (const feid of result.fishEids) {
+      const row = getResourceNodeRow(world, comps, feid);
+      expect(row).toBeDefined();
+      expect(row![0]).toBe(RESOURCE_FOOD);
+      expect(row![1]).toBeGreaterThanOrEqual(200);
+      const pos = getNodePos(world, comps, feid);
+      const tx = Math.floor(pos.x);
+      const ty = Math.floor(pos.y);
+      expect(isWaterTerrain(layers.terrainType[ty * 160 + tx]!)).toBe(true);
+    }
+
+    // 2. Each player has a valid dock site within 24 tiles of their TC
+    for (const p of result.players) {
+      let foundDockSite = false;
+      const tcPos = { x: p.tcOrigin.x + 1.5, y: p.tcOrigin.y + 1.5 };
+      for (let r = 1; r <= 24 && !foundDockSite; r++) {
+        for (let dy = -r; dy <= r && !foundDockSite; dy++) {
+          for (let dx = -r; dx <= r && !foundDockSite; dx++) {
+            const tx = Math.floor(tcPos.x) + dx;
+            const ty = Math.floor(tcPos.y) + dy;
+            if (tx < 1 || tx >= 157 || ty < 1 || ty >= 157) continue;
+            const check = validatePlacement(
+              world,
+              comps,
+              "dock",
+              tx,
+              ty,
+              p.playerId,
+              {
+                ignoreAgeGate: true,
+              },
+            );
+            if (check.ok) foundDockSite = true;
+          }
+        }
+      }
+      expect(foundDockSite).toBe(true);
+    }
+
+    // 3. Perimeter land pathability connects all 4 bases
+    const [p0, p1, p2, p3] = result.players;
+    const base0 = { x: p0!.tcOrigin.x + 3.5, y: p0!.tcOrigin.y + 1.5 };
+    const base1 = { x: p1!.tcOrigin.x - 0.5, y: p1!.tcOrigin.y + 1.5 };
+    const base2 = { x: p2!.tcOrigin.x + 3.5, y: p2!.tcOrigin.y + 1.5 };
+    const base3 = { x: p3!.tcOrigin.x - 0.5, y: p3!.tcOrigin.y + 1.5 };
+
+    expect(hasLandPath(world, base0, base2)).toBe(true);
+    expect(hasLandPath(world, base2, base1)).toBe(true);
+    expect(hasLandPath(world, base1, base3)).toBe(true);
+    expect(hasLandPath(world, base3, base0)).toBe(true);
+  });
+
+  it("islands preset: generates 4 isolated player islands, deep-sea fish, and shorelines", () => {
+    const seed = 98765;
+    const layers = generateFourPlayerLayers(
+      seed,
+      FOUR_PLAYER_MAP_SIZE,
+      "islands",
+    );
+    const world = createWorld(seed, { size: FOUR_PLAYER_MAP_SIZE, layers });
+    const comps = defineSimComponents(world);
+
+    const result = setupFourPlayerSkirmish(world, comps, { seed });
+    expect(result.players).toHaveLength(4);
+
+    // 1. Starting resource envelopes are intact for all 4 players
+    for (const p of result.players) {
+      expect(p.berryEids).toHaveLength(6);
+      expect(p.primaryGoldEids).toHaveLength(4);
+      expect(p.secondaryGoldEids).toHaveLength(2);
+      expect(p.stoneEids).toHaveLength(3);
+      expect(p.treeEids).toHaveLength(12);
+      expect(p.villagerEids).toHaveLength(3);
+      expect(p.scoutEid).toBeGreaterThan(0);
+    }
+
+    // 2. Player islands are strictly isolated (no land paths between player bases)
+    const [p0, p1, p2, p3] = result.players;
+    const base0 = { x: p0!.tcOrigin.x + 1.5, y: p0!.tcOrigin.y + 1.5 };
+    const base1 = { x: p1!.tcOrigin.x + 1.5, y: p1!.tcOrigin.y + 1.5 };
+    const base2 = { x: p2!.tcOrigin.x + 1.5, y: p2!.tcOrigin.y + 1.5 };
+    const base3 = { x: p3!.tcOrigin.x + 1.5, y: p3!.tcOrigin.y + 1.5 };
+
+    expect(hasLandPath(world, base0, base1)).toBe(false);
+    expect(hasLandPath(world, base0, base2)).toBe(false);
+    expect(hasLandPath(world, base0, base3)).toBe(false);
+    expect(hasLandPath(world, base1, base2)).toBe(false);
+    expect(hasLandPath(world, base1, base3)).toBe(false);
+    expect(hasLandPath(world, base2, base3)).toBe(false);
+
+    // 3. Every player island has a valid dock site within 24 tiles of TC
+    for (const p of result.players) {
+      let foundDockSite = false;
+      const tcPos = { x: p.tcOrigin.x + 1.5, y: p.tcOrigin.y + 1.5 };
+      for (let r = 1; r <= 24 && !foundDockSite; r++) {
+        for (let dy = -r; dy <= r && !foundDockSite; dy++) {
+          for (let dx = -r; dx <= r && !foundDockSite; dx++) {
+            const tx = Math.floor(tcPos.x) + dx;
+            const ty = Math.floor(tcPos.y) + dy;
+            if (tx < 1 || tx >= 157 || ty < 1 || ty >= 157) continue;
+            const check = validatePlacement(
+              world,
+              comps,
+              "dock",
+              tx,
+              ty,
+              p.playerId,
+              {
+                ignoreAgeGate: true,
+              },
+            );
+            if (check.ok) foundDockSite = true;
+          }
+        }
+      }
+      expect(foundDockSite).toBe(true);
+    }
+
+    // 4. Open ocean contains rich deep-sea fish nodes (350 food)
+    expect(result.fishEids.length).toBeGreaterThan(0);
+    const deepFish = result.fishEids.some((eid) => {
+      const row = getResourceNodeRow(world, comps, eid);
+      return row && row[1] === 350;
+    });
+    expect(deepFish).toBe(true);
+  });
+
+  it("archipelago preset: generates home islands separated by water channels with fish", () => {
+    const seed = 112233;
+    const layers = generateFourPlayerLayers(
+      seed,
+      FOUR_PLAYER_MAP_SIZE,
+      "archipelago",
+    );
+    const world = createWorld(seed, { size: FOUR_PLAYER_MAP_SIZE, layers });
+    const comps = defineSimComponents(world);
+
+    const result = setupFourPlayerSkirmish(world, comps, { seed });
+    expect(result.players).toHaveLength(4);
+    expect(result.fishEids.length).toBeGreaterThan(0);
+
+    for (const p of result.players) {
+      let foundDockSite = false;
+      const tcPos = { x: p.tcOrigin.x + 1.5, y: p.tcOrigin.y + 1.5 };
+      for (let r = 1; r <= 24 && !foundDockSite; r++) {
+        for (let dy = -r; dy <= r && !foundDockSite; dy++) {
+          for (let dx = -r; dx <= r && !foundDockSite; dx++) {
+            const tx = Math.floor(tcPos.x) + dx;
+            const ty = Math.floor(tcPos.y) + dy;
+            if (tx < 1 || tx >= 157 || ty < 1 || ty >= 157) continue;
+            const check = validatePlacement(
+              world,
+              comps,
+              "dock",
+              tx,
+              ty,
+              p.playerId,
+              {
+                ignoreAgeGate: true,
+              },
+            );
+            if (check.ok) foundDockSite = true;
+          }
+        }
+      }
+      expect(foundDockSite).toBe(true);
+    }
+  });
+
+  it("determinism holds for all map presets", () => {
+    const seed = 445566;
+    for (const preset of ["coastal", "islands", "archipelago"] as const) {
+      const l1 = generateFourPlayerLayers(seed, FOUR_PLAYER_MAP_SIZE, preset);
+      const l2 = generateFourPlayerLayers(seed, FOUR_PLAYER_MAP_SIZE, preset);
+      expect(l1.terrainType).toEqual(l2.terrainType);
+      expect(l1.elevationLevel).toEqual(l2.elevationLevel);
+      expect(l1.derivedPassability).toEqual(l2.derivedPassability);
+    }
+  });
+
+  it("generateIslandLayers produces identical layers to preset 'islands' and respects FourPlayerMapOptions", () => {
+    const seed = 12345;
+    const islandLayers = generateIslandLayers(seed, FOUR_PLAYER_MAP_SIZE);
+    const presetLayers = generateFourPlayerLayers(
+      seed,
+      FOUR_PLAYER_MAP_SIZE,
+      "islands",
+    );
+    expect(islandLayers.terrainType).toEqual(presetLayers.terrainType);
+    expect(islandLayers.elevationLevel).toEqual(presetLayers.elevationLevel);
+    expect(islandLayers.derivedPassability).toEqual(
+      presetLayers.derivedPassability,
+    );
+
+    const mapOptions: FourPlayerMapOptions = {
+      seed,
+      isIslandMap: true,
+      mode: "ffa",
+    };
+    expect(mapOptions.isIslandMap).toBe(true);
   });
 });
