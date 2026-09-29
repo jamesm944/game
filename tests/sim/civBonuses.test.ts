@@ -164,12 +164,14 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
 
       const knightDef = unitDefOf("knight");
       const baseKnightStats = deriveUnitStats(knightDef, {});
+      expect(baseKnightStats.hp).toBe(70);
       const frankKnightStats = deriveUnitStats(knightDef, { civBonuses: bonuses });
       // Base knight HP = 70, +20% = 84 HP
       expect(frankKnightStats.hp).toBe(84);
 
       const scoutDef = unitDefOf("scout-cavalry");
       const baseScoutStats = deriveUnitStats(scoutDef, {});
+      expect(baseScoutStats.hp).toBe(45);
       const frankScoutStats = deriveUnitStats(scoutDef, { civBonuses: bonuses });
       // Base scout HP = 45, +20% = 54 HP
       expect(frankScoutStats.hp).toBe(54);
@@ -307,6 +309,7 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
       setPlayerCivilization(world, 1, "britons");
 
       const tcDef = buildingDefOf("town-center");
+      expect(tcDef.hp).toBe(2400);
       // Base TC HP = 2400. Byzantines: 2400 * 1.25 = 3000
       expect(buildingMaxHp(world, 0, "town-center")).toBe(3000);
       expect(buildingMaxHp(world, 1, "town-center")).toBe(2400);

@@ -5,7 +5,7 @@
  * bonuses, and validates unique unit production gating.
  */
 
-import { CIV_DEFINITIONS, civDefOf } from "../../data/definitions";
+import { CIV_DEFINITIONS } from "../../data/definitions";
 import type { CivilizationDefinition, TechEffect } from "../../data/schema";
 import type { World } from "./world";
 
