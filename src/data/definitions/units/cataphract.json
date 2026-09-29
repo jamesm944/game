@@ -1,0 +1,19 @@
+{
+  "id": "cataphract",
+  "name": "Cataphract",
+  "kind": "unit",
+  "costs": { "food": 70, "gold": 75 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 600,
+  "hp": 110,
+  "speed": 1.35,
+  "carryCapacity": 0,
+  "attack": 9,
+  "range": 0.5,
+  "reloadTicks": 54,
+  "armorClasses": ["cavalry"],
+  "attackBonuses": [{ "armorClass": "infantry", "mult": 2.0 }],
+  "sightRadius": 6,
+  "equipmentSlots": []
+}

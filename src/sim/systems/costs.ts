@@ -10,6 +10,7 @@
 
 import { RESOURCE_SLUGS } from "../../data/schema";
 import { RESOURCE_NAMES, requireResourceCode } from "../components/economy";
+import { getCivBonuses } from "../core/civilization";
 import type { World } from "../core/world";
 
 /** Minimal component surface these helpers need. */
@@ -92,3 +93,77 @@ export function payCosts(
     row[code + 1]! -= amount;
   }
 }
+
+/**
+ * Calculate the effective costs of a unit, building, or tech for a player
+ * taking into account civilization bonuses (e.g. Goths -25% infantry cost,
+ * Byzantines -25% counter-unit cost, Britons -50% TC wood, Franks -25% castle stone,
+ * Byzantines -33% Imperial Age cost).
+ *
+ * If no civilizations are configured or no bonuses apply, returns `target.costs` untouched.
+ */
+export function effectiveCosts(
+  world: World,
+  playerId: number,
+  target: {
+    readonly id: string;
+    readonly costs: CostLedger;
+    readonly armorClasses?: readonly string[] | undefined;
+  },
+): CostLedger {
+  if (!world.civilizations || world.civilizations.size === 0) {
+    return target.costs;
+  }
+  const bonuses = getCivBonuses(world, playerId);
+  if (bonuses.length === 0) {
+    return target.costs;
+  }
+
+  let modified = false;
+  const result: Record<string, number> = { ...target.costs };
+
+  for (const bonus of bonuses) {
+    let matches = false;
+    if (
+      bonus.target === `unit:${target.id}` ||
+      bonus.target === `building:${target.id}` ||
+      bonus.target === `tech:${target.id}`
+    ) {
+      matches = true;
+    } else if (bonus.target.startsWith("class:") && target.armorClasses) {
+      const cls = bonus.target.slice("class:".length);
+      if (target.armorClasses.includes(cls)) {
+        matches = true;
+      }
+    }
+    if (!matches) continue;
+
+    if (bonus.stat === "cost:all") {
+      for (const res of Object.keys(result)) {
+        const current = result[res]!;
+        if (bonus.op === "mult") {
+          result[res] = Math.round(current * bonus.value);
+          modified = true;
+        } else if (bonus.op === "add") {
+          result[res] = Math.max(0, current + bonus.value);
+          modified = true;
+        }
+      }
+    } else if (bonus.stat.startsWith("cost:")) {
+      const res = bonus.stat.slice("cost:".length);
+      if (result[res] !== undefined) {
+        const current = result[res]!;
+        if (bonus.op === "mult") {
+          result[res] = Math.round(current * bonus.value);
+          modified = true;
+        } else if (bonus.op === "add") {
+          result[res] = Math.max(0, current + bonus.value);
+          modified = true;
+        }
+      }
+    }
+  }
+
+  return modified ? result : target.costs;
+}
+

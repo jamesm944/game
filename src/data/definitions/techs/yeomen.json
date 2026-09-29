@@ -1,0 +1,13 @@
+{
+  "id": "yeomen",
+  "name": "Yeomen",
+  "kind": "tech",
+  "costs": { "wood": 750, "gold": 450 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 1200,
+  "effects": [
+    { "target": "class:archer", "stat": "range", "op": "add", "value": 1 },
+    { "target": "building:watch-tower", "stat": "attack", "op": "add", "value": 2 }
+  ]
+}

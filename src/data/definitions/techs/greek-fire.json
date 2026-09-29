@@ -1,0 +1,12 @@
+{
+  "id": "greek-fire",
+  "name": "Greek Fire",
+  "kind": "tech",
+  "costs": { "food": 250, "gold": 300 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 1200,
+  "effects": [
+    { "target": "unit:fire-ship", "stat": "range", "op": "add", "value": 1 }
+  ]
+}

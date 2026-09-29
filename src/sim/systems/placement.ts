@@ -40,7 +40,7 @@ import {
   buildingDefOf,
   buildingIdOfCode,
 } from "../../data/definitions";
-import { canAffordCosts, payCosts } from "./costs";
+import { canAffordCosts, effectiveCosts, payCosts } from "./costs";
 import { isDefAgeUnlocked } from "./age";
 import { IMPASSABLE, PASSABLE, isWaterTerrain } from "../world/layers";
 import type { SimCommand } from "../core/inbox";
@@ -295,7 +295,8 @@ export function canAfford(
   defId: string,
 ): boolean {
   const def = buildingDefOf(defId);
-  return canAffordCosts(world, comps, playerId, def.costs);
+  const costs = effectiveCosts(world, playerId, def);
+  return canAffordCosts(world, comps, playerId, costs);
 }
 
 /**
@@ -310,7 +311,8 @@ function payCostUpFront(
   defId: string,
 ): void {
   const def = buildingDefOf(defId);
-  payCosts(world, comps, playerId, def.costs, `placement of ${def.id}`);
+  const costs = effectiveCosts(world, playerId, def);
+  payCosts(world, comps, playerId, costs, `placement of ${def.id}`);
 }
 
 /**

@@ -1,0 +1,12 @@
+{
+  "id": "anarchy",
+  "name": "Anarchy",
+  "kind": "tech",
+  "costs": { "food": 450, "gold": 250 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 1200,
+  "effects": [
+    { "target": "unit:huskarl", "stat": "speed", "op": "mult", "value": 1.1 }
+  ]
+}

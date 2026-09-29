@@ -387,3 +387,22 @@ _Avoid_: Boat (for military ships)
 **Water fish node**:
 A resource node placed in water tiles containing harvestable Food (Shore Fish: 200 food, Deep-Sea: 350 food) gatherable exclusively by Fishing Boats.
 _Avoid_: Fish school, fishing spot
+
+### Civilizations & Asymmetry
+
+**Civilization**:
+The historical culture assigned to a player (Britons, Franks, Goths, Byzantines) that dictates passive bonuses, a Unique Unit, and a Unique Tech.
+_Avoid_: Faction, race, tribe
+
+**Unique Unit**:
+A specialized military unit trained at the Castle (or Barracks via unique tech) exclusive to a specific Civilization (Longbowman, Throwing Axeman, Huskarl, Cataphract).
+_Avoid_: Special unit, elite unit (when meaning base UU)
+
+**Unique Technology**:
+A Castle-age technology exclusive to a specific Civilization granting signature military or economic empowerment (Yeomen, Chivalry, Anarchy, Greek Fire).
+_Avoid_: Civ upgrade, unique upgrade
+
+**Civilization Bonus**:
+An innate, passive modifier applied unconditionally to a player's units, buildings, costs, or gather activities based on their chosen Civilization.
+_Avoid_: Passive buff, perk
+

@@ -1,0 +1,22 @@
+{
+  "id": "huskarl",
+  "name": "Huskarl",
+  "kind": "unit",
+  "costs": { "food": 52, "gold": 26 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 480,
+  "hp": 60,
+  "speed": 1.05,
+  "carryCapacity": 0,
+  "attack": 10,
+  "range": 0.5,
+  "reloadTicks": 60,
+  "armorClasses": ["infantry"],
+  "attackBonuses": [
+    { "armorClass": "archer", "mult": 1.5 },
+    { "armorClass": "building", "mult": 1.3 }
+  ],
+  "sightRadius": 6,
+  "equipmentSlots": []
+}

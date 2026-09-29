@@ -49,7 +49,7 @@ import {
 } from "../../data/definitions";
 import { AGE_RANK, type AgeName } from "../../data/schema";
 import { PLAYER_ONE } from "../core/stockpile";
-import { payCosts } from "./costs";
+import { effectiveCosts, payCosts } from "./costs";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
 
@@ -324,7 +324,8 @@ function applyResearchCommand(
   }
 
   // Escrow at enqueue (AoE2-faithful); throws loudly when broke.
-  payCosts(world, comps, parsed.playerId, tech.costs, `researching ${tech.id}`);
+  const costs = effectiveCosts(world, parsed.playerId, tech);
+  payCosts(world, comps, parsed.playerId, costs, `researching ${tech.id}`);
   setAgeResearchRow(
     world,
     comps,

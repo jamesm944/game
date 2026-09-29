@@ -21,6 +21,7 @@ export const KIND = z.enum([
   "tech",
   "recipe",
   "victoryPath",
+  "civ",
 ]);
 
 /** Age names used by every `ageGate` field (SPEC §3). */
@@ -354,3 +355,20 @@ export const recipeSchema = z.object({
 });
 
 export type RecipeDefinition = z.infer<typeof recipeSchema>;
+
+/**
+ * Asymmetric civilization definition — Milestone C1 (Issue #118).
+ * Defines unique unit, unique tech, and passive civ bonuses.
+ */
+export const civSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]+$/, "stable slug"),
+  name: z.string().min(1),
+  description: z.string().min(1),
+  kind: z.literal("civ"),
+  uniqueUnitId: z.string().min(1),
+  uniqueTechId: z.string().min(1),
+  bonuses: z.array(techEffectSchema).default([]),
+});
+
+export type CivilizationDefinition = z.infer<typeof civSchema>;
+

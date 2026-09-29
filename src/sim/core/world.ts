@@ -71,6 +71,12 @@ export interface World {
    * any caller.
    */
   readonly visibility: VisibilityProvider;
+  /**
+   * Asymmetric civilizations assigned per player (Milestone C1 / #118).
+   * Maps playerId -> civId (e.g. 0 -> "britons", 1 -> "franks").
+   * Omitted or empty preserves symmetric legacy behavior with zero civ bonuses.
+   */
+  civilizations?: Map<number, string> | undefined;
 }
 
 export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
@@ -95,6 +101,13 @@ export interface CreateWorldOptions {
    * the seam; production passes createFogVisibility().provider).
    */
   readonly visibility?: VisibilityProvider | undefined;
+  /**
+   * Optional map of player IDs to civilization slugs (Milestone C1 / #118).
+   */
+  readonly civilizations?:
+    | ReadonlyMap<number, string>
+    | Record<number, string>
+    | undefined;
 }
 
 export function createWorld(
@@ -106,6 +119,17 @@ export function createWorld(
   }
   const layers =
     options.layers ?? generateMap(seed, options.size ?? DEFAULT_MAP_SIZE);
+  let civilizations: Map<number, string> | undefined;
+  if (options.civilizations) {
+    civilizations = new Map<number, string>();
+    if (options.civilizations instanceof Map) {
+      for (const [p, c] of options.civilizations) civilizations.set(p, c);
+    } else {
+      for (const [p, c] of Object.entries(options.civilizations)) {
+        civilizations.set(Number(p), c as string);
+      }
+    }
+  }
   return {
     seed,
     prng: createPrng(seed),
@@ -119,6 +143,7 @@ export function createWorld(
     layers,
     pathScheduler: options.pathScheduler,
     visibility: options.visibility ?? createAllVisibleProvider(layers.size),
+    civilizations,
   };
 }
 

@@ -138,6 +138,7 @@ import { dropCarriedRelicsOf, dropStoredRelicsOf } from "../components/relic";
 import { clearAssignedNode } from "../components/economy";
 import { clearProductionJob, getProductionJob } from "../components/production";
 import { equipmentCountsOf } from "../components/equipment";
+import { getCivBonuses } from "../core/civilization";
 import { hasSkillsRow } from "../components/skills";
 import {
   awardPractice,
@@ -573,7 +574,18 @@ export function createCombatSystem(
       const bodyRow = bodyRows?.get(combatant.eid);
       const hasInjuries = bodyRow ? bodyRow[0] !== 0 : false;
 
-      if (codes.size === 0 && !hasEquip && !hasSkills && !hasInjuries) {
+      const civBonuses = world.civilizations
+        ? getCivBonuses(world, combatant.owner)
+        : undefined;
+      const hasCivBonuses = civBonuses !== undefined && civBonuses.length > 0;
+
+      if (
+        codes.size === 0 &&
+        !hasEquip &&
+        !hasSkills &&
+        !hasInjuries &&
+        !hasCivBonuses
+      ) {
         const defCode = combatant.row[0]!;
         let base = baseStatsByDefCode.get(defCode);
         if (!base) {
@@ -600,6 +612,7 @@ export function createCombatSystem(
             attackMult: impairment.attackMult,
             speedMult: impairment.speedMult,
           },
+          civBonuses,
         };
         stats = deriveUnitStats(combatant.def, ctx);
         statsMemo.set(key, stats);

@@ -52,6 +52,7 @@ import { spawnRelic } from "../components/relic";
 import { createPlayerStockpile } from "../core/stockpile";
 import { createPlayerAgeState } from "../components/age";
 import { createDiplomacyMatrix, type DiplomacyMatrix } from "../core/diplomacy";
+import { setPlayerCivilization } from "../core/civilization";
 import type { SimComponents } from "../components";
 import type { World } from "../core/world";
 
@@ -67,6 +68,14 @@ export const FOUR_PLAYER_STARTING_RESOURCES: readonly number[] = [
   0, // Iron
   0, // Coal
   0, // Clay
+];
+
+/** Default 4-player asymmetric civilization assignment across players 0..3 (Milestone C1 / #118). */
+export const DEFAULT_FOUR_PLAYER_CIVS: readonly string[] = [
+  "britons",
+  "franks",
+  "goths",
+  "byzantines",
 ];
 
 /** Base anchor coordinates for 4 players in a 160×160 grid. */
@@ -103,6 +112,7 @@ export function getFourPlayerAnchors(
 
 export interface PlayerSpawnRecord {
   readonly playerId: number;
+  readonly civId?: string | undefined;
   readonly tcEid: number;
   readonly tcOrigin: { readonly x: number; readonly y: number };
   readonly villagerEids: readonly number[];
@@ -133,6 +143,10 @@ export interface FourPlayerSkirmishOptions {
   readonly preset?: FourPlayerMapPreset | undefined;
   readonly spawnFish?: boolean | undefined;
   readonly isIslandMap?: boolean | undefined;
+  readonly civilizations?:
+    | ReadonlyMap<number, string>
+    | Readonly<Record<number, string>>
+    | undefined;
 }
 
 export type FourPlayerMapOptions = FourPlayerSkirmishOptions;
@@ -662,6 +676,21 @@ export function setupFourPlayerSkirmish(
   for (const anchor of anchors) {
     const { playerId, centerAngle } = anchor;
 
+    // 0. Civilization assignment
+    let civId: string | undefined;
+    if (options.civilizations instanceof Map) {
+      civId = options.civilizations.get(playerId);
+    } else if (options.civilizations) {
+      civId = (options.civilizations as Record<number, string>)[playerId];
+    }
+    if (!civId) {
+      civId =
+        DEFAULT_FOUR_PLAYER_CIVS[
+          playerId % DEFAULT_FOUR_PLAYER_CIVS.length
+        ]!;
+    }
+    setPlayerCivilization(world, playerId, civId);
+
     // 1. Stockpile and Age
     createPlayerStockpile(world, comps, playerId, [...startingResources]);
     createPlayerAgeState(world, comps, playerId);
@@ -818,6 +847,7 @@ export function setupFourPlayerSkirmish(
 
     players.push({
       playerId,
+      civId,
       tcEid,
       tcOrigin: { x: tcX, y: tcY },
       villagerEids,

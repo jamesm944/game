@@ -163,10 +163,14 @@ describe("damage counter table (SPEC §2.5)", () => {
       const mult = bonusMultiplierOf(unitDefOf(attackerId), BUILDING_ARMOR_CLASSES);
       if (attackerId === "battering-ram") {
         expect(mult).toBe(60);
-      } else if (attackerId === "mangonel") {
+      } else if (attackerId === "mangonel" || attackerId === "cannon-galleon") {
         expect(mult).toBe(1.5);
       } else if (attackerId === "trebuchet") {
         expect(mult).toBe(2.5);
+      } else if (attackerId === "huskarl") {
+        expect(mult).toBe(1.3);
+      } else if (attackerId === "throwing-axeman") {
+        expect(mult).toBe(1.2);
       } else {
         expect(mult).toBe(1);
       }

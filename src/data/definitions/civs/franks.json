@@ -1,0 +1,13 @@
+{
+  "id": "franks",
+  "name": "Franks",
+  "description": "Cavalry and fortress civilization. Sturdy knights boast unmatched health, economical castles secure territory, and efficient foragers fuel knight production.",
+  "kind": "civ",
+  "uniqueUnitId": "throwing-axeman",
+  "uniqueTechId": "chivalry",
+  "bonuses": [
+    { "target": "class:cavalry", "stat": "hp", "op": "mult", "value": 1.2 },
+    { "target": "building:castle", "stat": "cost:stone", "op": "mult", "value": 0.75 },
+    { "target": "activity:gather-food", "stat": "workRate", "op": "mult", "value": 1.15 }
+  ]
+}

@@ -16,6 +16,7 @@
 import { builtinSources, loadDefinitions } from "./load";
 import type {
   BuildingDefinition,
+  CivilizationDefinition,
   RecipeDefinition,
   TechDefinition,
   UnitDefinition,
@@ -29,6 +30,7 @@ export const BUILDING_DEFINITIONS = REGISTRY.buildings;
 export const TECH_DEFINITIONS = REGISTRY.techs;
 export const RECIPE_DEFINITIONS = REGISTRY.recipes;
 export const VICTORY_PATH_DEFINITIONS = REGISTRY.victoryPaths;
+export const CIV_DEFINITIONS = REGISTRY.civs;
 
 /** u8 def codes assigned by ascending slug over each loaded family. */
 function assignCodes<T extends { id: string }>(
@@ -127,6 +129,8 @@ export const TECH_DEF_CODES = assignCanonicalCodes(
   REGISTRY.techs,
   CANONICAL_TECH_IDS,
 );
+/** u8 civ codes (ascending slug). */
+export const CIV_DEF_CODES = assignCodes(REGISTRY.civs);
 
 export function unitDefOf(id: string): UnitDefinition {
   const def = REGISTRY.units.get(id);
@@ -216,6 +220,26 @@ export function techIdOfCode(code: number): string {
     if (candidate === code) return id;
   }
   throw new Error(`unknown tech def code: ${String(code)}`);
+}
+
+export function civDefOf(id: string): CivilizationDefinition {
+  const def = REGISTRY.civs.get(id);
+  if (!def) throw new Error(`unknown civilization definition: ${JSON.stringify(id)}`);
+  return def;
+}
+
+export function civCodeOf(id: string): number {
+  const code = CIV_DEF_CODES.get(id);
+  if (code === undefined)
+    throw new Error(`unknown civilization definition: ${JSON.stringify(id)}`);
+  return code;
+}
+
+export function civIdOfCode(code: number): string {
+  for (const [id, candidate] of CIV_DEF_CODES) {
+    if (candidate === code) return id;
+  }
+  throw new Error(`unknown civilization def code: ${String(code)}`);
 }
 
 /** Recipes of one building ascending by id — cached; content is static. */

@@ -1,0 +1,14 @@
+{
+  "id": "britons",
+  "name": "Britons",
+  "description": "Foot archer and food civilization. Longbowmen rain arrows from extreme distance, while swift food gathering supports rapid settlement growth.",
+  "kind": "civ",
+  "uniqueUnitId": "longbowman",
+  "uniqueTechId": "yeomen",
+  "bonuses": [
+    { "target": "unit:archer", "stat": "range", "op": "add", "value": 1 },
+    { "target": "unit:arbalest", "stat": "range", "op": "add", "value": 1 },
+    { "target": "activity:gather-food", "stat": "workRate", "op": "mult", "value": 1.2 },
+    { "target": "building:town-center", "stat": "cost:wood", "op": "mult", "value": 0.5 }
+  ]
+}

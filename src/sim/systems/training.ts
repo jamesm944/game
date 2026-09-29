@@ -54,7 +54,8 @@ import {
   unitIdOfCode,
 } from "../../data/definitions";
 import { isDefAgeUnlocked } from "./age";
-import { payCosts } from "./costs";
+import { effectiveCosts, payCosts } from "./costs";
+import { canPlayerTrainUnit } from "../core/civilization";
 import { PLAYER_ONE } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
@@ -211,6 +212,9 @@ export function canEnqueueTraining(
   if (!queueConfig.trainable.some((entry) => entry.unitId === resolved)) {
     return false;
   }
+  if (!canPlayerTrainUnit(world, playerId, resolved)) {
+    return false;
+  }
   const unitDef = unitDefOf(resolved);
   if (!isDefAgeUnlocked(world, comps, playerId, unitDef.ageGate)) {
     return false;
@@ -252,6 +256,11 @@ function applyTrainCommand(
   if (!queueConfig.trainable.some((entry) => entry.unitId === unitId)) {
     throw new Error(`${def.id} does not train ${unitId}`);
   }
+  if (!canPlayerTrainUnit(world, target.playerId, unitId)) {
+    throw new Error(
+      `player ${String(target.playerId)} cannot train ${unitId}: civilization restriction`,
+    );
+  }
   const unitDef = unitDefOf(unitId);
 
   // Polite age-gate refusal BEFORE escrow: gated content can reach the
@@ -268,11 +277,12 @@ function applyTrainCommand(
   }
 
   // Escrow at enqueue (AoE2-faithful); throws when unaffordable.
+  const costs = effectiveCosts(world, target.playerId, unitDef);
   payCosts(
     world,
     comps,
     target.playerId,
-    unitDef.costs,
+    costs,
     `training a ${unitId}`,
   );
 

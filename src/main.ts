@@ -262,6 +262,7 @@ import {
   type UnitStance,
 } from "./ui/commandPanel";
 import { deriveUnitStats } from "./sim/combat/stats";
+import { getCivBonuses } from "./sim/core/civilization";
 import { givenNameOf } from "./sim/components/pop";
 import { createDomainPanel, type DomainPanelData } from "./ui/domainPanel";
 import {
@@ -711,6 +712,30 @@ const UNIT_SPECS: Record<
     json: monkJson,
     width: 1.6,
     height: 2.0,
+  },
+  longbowman: {
+    png: archerPng,
+    json: archerJson,
+    width: 1.0,
+    height: 1.6,
+  },
+  "throwing-axeman": {
+    png: manAtArmsPng,
+    json: manAtArmsJson,
+    width: 1.05,
+    height: 1.55,
+  },
+  huskarl: {
+    png: manAtArmsPng,
+    json: manAtArmsJson,
+    width: 1.1,
+    height: 1.6,
+  },
+  cataphract: {
+    png: knightPng,
+    json: knightJson,
+    width: 1.45,
+    height: 1.85,
   },
 };
 
@@ -3013,7 +3038,10 @@ function frame(
     const hp = combatRow[2]!;
     const unitId = unitIdOfCode(defCode);
     const def = unitDefOf(unitId);
-    const stats = deriveUnitStats(def);
+    const civBonuses = world.civilizations
+      ? getCivBonuses(world, ownerId)
+      : undefined;
+    const stats = deriveUnitStats(def, { civBonuses });
     const identityRow = world.rowsByComponentId.get(comps.identityId)?.get(eid);
     const popName = identityRow ? givenNameOf(world, identityRow[0]!) : undefined;
     let armor = 0;

@@ -1041,6 +1041,7 @@ export function createGatherSystem(
               comps,
               worker.eid,
               DEFAULT_GATHER_TICKS_PER_UNIT,
+              worker.resourceCode,
             ),
           ),
         );

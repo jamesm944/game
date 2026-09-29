@@ -62,8 +62,16 @@ import { traitWorkSpeedMult, traitXpGainMult } from "../data/traits";
 import type { SimComponents } from "../components";
 import type { NeedsComponents } from "../components/needs";
 import { injuryImpairmentOf } from "../components/body";
+import {
+  RESOURCE_FOOD,
+  RESOURCE_WOOD,
+  RESOURCE_GOLD,
+  RESOURCE_STONE,
+} from "../components/economy";
+import { ownerOfUnit } from "../components/owner";
 import { restWorkMultiplierOf } from "./needs";
 import { deprivationWorkMultiplierOf } from "./schedules";
+import { getCivBonuses } from "../core/civilization";
 import type { SimSystem, World } from "../core/world";
 
 /** Components the skill helpers/system need. */
@@ -325,6 +333,7 @@ export function resolveGatherInterval(
   comps: SimComponents & NeedsComponents,
   eid: number,
   baseTicks: number,
+  resourceCode?: number | undefined,
 ): number {
   const skillMult = workMultiplierFor(
     skillLevelOf(world, comps, eid, "gathering") ?? 0,
@@ -335,10 +344,42 @@ export function resolveGatherInterval(
   const injuryWorkMult = injuryImpairmentOf(world, comps, eid).workMult;
   // M3-T6: a bad night's sleep drags the whole next day (§2.4).
   const deprivedMult = deprivationWorkMultiplierOf(world, comps, eid);
+
+  let civMult = 1;
+  if (world.civilizations) {
+    const combatRow = world.rowsByComponentId.get(comps.combatId)?.get(eid);
+    const playerId =
+      combatRow !== undefined
+        ? combatRow[1]!
+        : comps.ownerId !== undefined
+          ? ownerOfUnit(world, comps, eid)
+          : 0;
+    const bonuses = getCivBonuses(world, playerId);
+    for (const b of bonuses) {
+      if (b.stat === "workRate") {
+        if (
+          (b.target === "activity:gather-food" &&
+            (resourceCode === undefined || resourceCode === RESOURCE_FOOD)) ||
+          (b.target === "activity:gather-wood" &&
+            resourceCode === RESOURCE_WOOD) ||
+          (b.target === "activity:gather-gold" &&
+            resourceCode === RESOURCE_GOLD) ||
+          (b.target === "activity:gather-stone" &&
+            resourceCode === RESOURCE_STONE) ||
+          b.target === "activity:gather"
+        ) {
+          if (b.op === "mult") civMult *= b.value;
+          else if (b.op === "add") civMult += b.value;
+        }
+      }
+    }
+  }
+
   return Math.max(
     1,
     Math.round(
-      baseTicks / (skillMult * restMult * injuryWorkMult * deprivedMult),
+      baseTicks /
+        (skillMult * restMult * injuryWorkMult * deprivedMult * civMult),
     ),
   );
 }

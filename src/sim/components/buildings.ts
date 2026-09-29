@@ -50,6 +50,7 @@ import { RESOURCE_SLUGS } from "../../data/schema";
 import { RESOURCE_FOOD } from "./economy";
 import { acceptedResourceMask } from "../core/stockpile";
 import { ownerOfUnit, type OwnerComponents } from "./owner";
+import { getCivBonuses } from "../core/civilization";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
 
 export const ASSIGNED_SITE = "AssignedSite" as const;
@@ -146,6 +147,32 @@ export interface SpawnBuildingSiteOptions {
 }
 
 /**
+ * Effective maximum HP of a building taking into account civilization bonuses
+ * (e.g. Byzantines +25% building HP).
+ */
+export function buildingMaxHp(
+  world: World,
+  playerId: number,
+  defId: string,
+): number {
+  const def = buildingDefOf(defId);
+  let hp = def.hp;
+  if (world.civilizations) {
+    const bonuses = getCivBonuses(world, playerId);
+    for (const b of bonuses) {
+      if (
+        b.stat === "hp" &&
+        (b.target === "class:building" || b.target === `building:${defId}`)
+      ) {
+        if (b.op === "mult") hp = Math.round(hp * b.value);
+        else if (b.op === "add") hp += b.value;
+      }
+    }
+  }
+  return hp;
+}
+
+/**
  * Spawn one construction-site entity centered on its footprint. The
  * caller (systems/placement.ts) owns validity, cost escrow, passability
  * and version bumps — this helper is pure state creation.
@@ -166,6 +193,7 @@ export function spawnBuildingSite(
   const playerId = options.playerId ?? 0;
   const def = buildingDefOf(defId);
   const eid = spawnEntity(world);
+  const maxHp = buildingMaxHp(world, playerId, defId);
   requireRows(world, comps.positionId).set(eid, [
     tileX + def.footprint.width / 2,
     tileY + def.footprint.height / 2,
@@ -174,7 +202,7 @@ export function spawnBuildingSite(
     playerId,
     buildingCodeOf(defId),
     0, // progressMilliTicks
-    def.hp, // hp — sites are attackable from placement day one (M2-T7)
+    maxHp, // hp — sites are attackable from placement day one (M2-T7)
   ]);
   // Fog dirty mark (SPEC §2.9): sites already radiate their definition
   // sight radius (AoE2 foundations reveal their surroundings).
@@ -235,12 +263,13 @@ export function completeBuilding(
   const pos = requireRow(world, comps.positionId, siteEid, "Position");
   const originX = pos[0]! - def.footprint.width / 2;
   const originY = pos[1]! - def.footprint.height / 2;
+  const maxHp = buildingMaxHp(world, playerId, def.id);
   requireRows(world, comps.buildingId).set(siteEid, [
     playerId,
     defCode,
     originX,
     originY,
-    Math.min(carriedHp, def.hp),
+    Math.min(carriedHp, maxHp),
   ]);
   if (def.dropoffFilters.length > 0) {
     // M2-T2: the definition's filter list resolves into the DropOff row
@@ -490,6 +519,15 @@ export function populationCapOf(
     for (const row of rows.values()) {
       if (ownerId !== undefined && row[0] !== ownerId) continue;
       cap += buildingDefOf(buildingIdOfCode(row[1]!)).populationCap;
+    }
+  }
+  if (ownerId !== undefined && world.civilizations) {
+    const bonuses = getCivBonuses(world, ownerId);
+    for (const b of bonuses) {
+      if (b.stat === "populationCap") {
+        if (b.op === "add") cap += b.value;
+        else if (b.op === "mult") cap = Math.round(cap * b.value);
+      }
     }
   }
   return cap;

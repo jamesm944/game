@@ -76,6 +76,10 @@ export interface StatContext {
    */
   readonly impairment?:
     { readonly attackMult: number; readonly speedMult: number } | undefined;
+  /**
+   * Passive civilization bonuses of the unit's owner (Milestone C1 / #118).
+   */
+  readonly civBonuses?: readonly TechEffect[] | undefined;
 }
 
 /**
@@ -94,6 +98,7 @@ export interface DerivedStats {
   readonly speed: number;
   readonly range: number;
   readonly reloadTicks: number;
+  readonly hp: number;
 }
 
 function emptyArmorByClass(): Record<ArmorClass, number> {
@@ -102,17 +107,8 @@ function emptyArmorByClass(): Record<ArmorClass, number> {
   return table;
 }
 
-/** True when the effect's selector targets this unit at all. */
-function selectorMatches(selector: string, def: UnitDefinition): boolean {
-  if (selector.startsWith("class:")) {
-    return def.armorClasses.includes(selector.slice("class:".length));
-  }
-  if (selector.startsWith("unit:")) {
-    return selector.slice("unit:".length) === def.id;
-  }
-  // Freeform selectors (activity:, economy …) never touch combat stats.
-  return false;
-}
+import { selectorMatches } from "../core/civilization";
+export { selectorMatches };
 
 const ARMOR_STATS = new Set(["melee-armor", "pierce-armor", "armor"]);
 
@@ -122,6 +118,7 @@ interface StatAccumulator {
   speed: number;
   range: number;
   reloadTicks: number;
+  hp: number;
 }
 
 /** Apply one matched effect to the mutable stat accumulator. */
@@ -142,8 +139,14 @@ function applyEffect(stats: StatAccumulator, effect: TechEffect): void {
     stats.speed = Math.max(scale(stats.speed), Number.EPSILON);
   } else if (effect.stat === "range") {
     stats.range = Math.max(scale(stats.range), MELEE_RANGE / 2);
-  } else if (effect.stat === "reload-ticks" || effect.stat === "reload") {
+  } else if (
+    effect.stat === "reload-ticks" ||
+    effect.stat === "reload" ||
+    effect.stat === "reloadTicks"
+  ) {
     stats.reloadTicks = Math.max(1, Math.round(scale(stats.reloadTicks)));
+  } else if (effect.stat === "hp") {
+    stats.hp = Math.max(1, Math.round(scale(stats.hp)));
   }
   // Unknown stats (work-rate, economy …) are not combat concerns.
 }
@@ -224,7 +227,14 @@ export function deriveUnitStats(
     speed: def.speed,
     range: def.range ?? MELEE_RANGE,
     reloadTicks: def.reloadTicks ?? DEFAULT_RELOAD_TICKS,
+    hp: def.hp,
   };
+  if (ctx.civBonuses !== undefined) {
+    for (const effect of ctx.civBonuses) {
+      if (!selectorMatches(effect.target, def)) continue;
+      applyEffect(stats, effect);
+    }
+  }
   if (ctx.equipment !== undefined) {
     applyEquipment(stats, def, ctx.equipment);
   }
@@ -244,7 +254,14 @@ export function deriveUnitStats(
   if (ctx.impairment !== undefined) {
     applyImpairment(stats, ctx.impairment);
   }
-  return stats;
+  return {
+    attack: stats.attack,
+    armorByClass: stats.armorByClass,
+    speed: stats.speed,
+    range: stats.range,
+    reloadTicks: stats.reloadTicks,
+    hp: stats.hp,
+  };
 }
 
 /** Inverse of TECH_DEF_CODES without throwing on unknown codes. */

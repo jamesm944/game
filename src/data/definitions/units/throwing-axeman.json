@@ -1,0 +1,19 @@
+{
+  "id": "throwing-axeman",
+  "name": "Throwing Axeman",
+  "kind": "unit",
+  "costs": { "food": 55, "gold": 25 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 510,
+  "hp": 50,
+  "speed": 1.0,
+  "carryCapacity": 0,
+  "attack": 7,
+  "range": 3,
+  "reloadTicks": 60,
+  "armorClasses": ["infantry"],
+  "attackBonuses": [{ "armorClass": "building", "mult": 1.2 }],
+  "sightRadius": 6,
+  "equipmentSlots": []
+}

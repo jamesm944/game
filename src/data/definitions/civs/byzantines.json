@@ -1,0 +1,15 @@
+{
+  "id": "byzantines",
+  "name": "Byzantines",
+  "description": "Defense and counter civilization. Resilient fortifications withstand sieges, inexpensive counter units and fire ships blunt enemy assaults, and discounted Imperial Age advances power late-game dominance.",
+  "kind": "civ",
+  "uniqueUnitId": "cataphract",
+  "uniqueTechId": "greek-fire",
+  "bonuses": [
+    { "target": "class:building", "stat": "hp", "op": "mult", "value": 1.25 },
+    { "target": "unit:skirmisher", "stat": "cost:all", "op": "mult", "value": 0.75 },
+    { "target": "unit:fire-ship", "stat": "cost:all", "op": "mult", "value": 0.75 },
+    { "target": "tech:imperial-age", "stat": "cost:all", "op": "mult", "value": 0.67 },
+    { "target": "unit:fire-ship", "stat": "reloadTicks", "op": "mult", "value": 0.8 }
+  ]
+}

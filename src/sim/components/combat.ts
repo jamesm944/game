@@ -43,6 +43,7 @@ import { attachPopSkills, type SkillComponents } from "./skills";
 import { attachPopMorale, type MoraleComponents } from "./morale";
 import { attachFaith, type FaithComponents } from "./faith";
 import { spawnEntity, type ComponentRows, type World } from "../core/world";
+import { getCivBonuses, selectorMatches } from "../core/civilization";
 
 export const COMBAT = "Combat" as const;
 export const COMBAT_EVENTS = "CombatEvents" as const;
@@ -151,8 +152,22 @@ export function spawnCombatUnit(
   rows(comps.positionId, [x, y]);
   rows(comps.velocityId, [0, 0, 0, 0, 0, 0, 0, 0]);
   const turnRate = options.turnRate ?? defaultTurnRateFor(world.seed, eid);
+  let unitHp = def.hp;
+  let unitSpeed = def.speed;
+  if (world.civilizations && world.civilizations.size > 0) {
+    const bonuses = getCivBonuses(world, playerId);
+    for (const b of bonuses) {
+      if (b.stat === "hp" && selectorMatches(b.target, def)) {
+        unitHp = b.op === "add" ? unitHp + b.value : Math.round(unitHp * b.value);
+      }
+      if (b.stat === "speed" && selectorMatches(b.target, def)) {
+        unitSpeed = b.op === "add" ? unitSpeed + b.value : unitSpeed * b.value;
+      }
+    }
+  }
+
   rows(comps.unitTagId, [
-    def.speed,
+    unitSpeed,
     turnRate,
     options.radius ?? DEFAULT_COMBAT_RADIUS,
   ]);
@@ -161,7 +176,7 @@ export function spawnCombatUnit(
   rows(comps.combatId, [
     unitCodeOf(def.id),
     playerId,
-    def.hp,
+    unitHp,
     0, // targetEid — disengaged
     0, // cooldownTicks — free to strike
   ]);

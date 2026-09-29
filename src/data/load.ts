@@ -24,11 +24,13 @@ import {
   COMMODITY_SLUGS,
   RESOURCE_SLUGS,
   buildingSchema,
+  civSchema,
   recipeSchema,
   techSchema,
   unitSchema,
   victoryPathDefinitionSchema,
   type BuildingDefinition,
+  type CivilizationDefinition,
   type RecipeDefinition,
   type TechDefinition,
   type UnitDefinition,
@@ -48,6 +50,7 @@ export interface DefinitionRegistry {
   readonly techs: ReadonlyMap<string, TechDefinition>;
   readonly recipes: ReadonlyMap<string, RecipeDefinition>;
   readonly victoryPaths: ReadonlyMap<string, VictoryPathDefinition>;
+  readonly civs: ReadonlyMap<string, CivilizationDefinition>;
 }
 
 export interface LoadDefinitionsOptions {
@@ -69,6 +72,7 @@ const DEFINITIONS_KIND_DIRS = [
   "techs",
   "recipes",
   "victory",
+  "civs",
 ];
 
 /**
@@ -88,7 +92,7 @@ export function builtinSources(): DefinitionSource[] {
     // Pattern must be an inline literal — Vite's static analysis of
     // import.meta.glob accepts literals only (pattern included).
     const modules: ViteRawGlob = import.meta.glob(
-      "./definitions/{units,buildings,techs,recipes,victory}/*.json",
+      "./definitions/{units,buildings,techs,recipes,victory,civs}/*.json",
       {
         query: "?raw",
         import: "default",
@@ -164,6 +168,7 @@ const KIND_SCHEMAS = {
   tech: techSchema,
   recipe: recipeSchema,
   victoryPath: victoryPathDefinitionSchema,
+  civ: civSchema,
 } as const;
 
 type ParsedDefinition =
@@ -171,7 +176,8 @@ type ParsedDefinition =
   | BuildingDefinition
   | TechDefinition
   | RecipeDefinition
-  | VictoryPathDefinition;
+  | VictoryPathDefinition
+  | CivilizationDefinition;
 
 function formatIssues(
   prefix: string,
@@ -215,6 +221,7 @@ export function loadDefinitions(
   const techs = new Map<string, TechDefinition>();
   const recipes = new Map<string, RecipeDefinition>();
   const victoryPaths = new Map<string, VictoryPathDefinition>();
+  const civs = new Map<string, CivilizationDefinition>();
   const validated: {
     readonly label: string;
     readonly def: ParsedDefinition;
@@ -252,7 +259,8 @@ export function loadDefinitions(
     else if (def.kind === "building") buildings.set(def.id, def);
     else if (def.kind === "tech") techs.set(def.id, def);
     else if (def.kind === "recipe") recipes.set(def.id, def);
-    else victoryPaths.set(def.id, def);
+    else if (def.kind === "victoryPath") victoryPaths.set(def.id, def);
+    else civs.set(def.id, def);
   }
 
   // ---- Round 3: cross-validate references between loaded sets.
@@ -386,6 +394,50 @@ export function loadDefinitions(
         }
         break;
       }
+      case "civ": {
+        if (!units.has(def.uniqueUnitId)) {
+          errors.push(
+            `civ ${def.id}: uniqueUnitId references unknown unit ${JSON.stringify(def.uniqueUnitId)}`,
+          );
+        }
+        if (!techs.has(def.uniqueTechId)) {
+          errors.push(
+            `civ ${def.id}: uniqueTechId references unknown tech ${JSON.stringify(def.uniqueTechId)}`,
+          );
+        }
+        for (const bonus of def.bonuses) {
+          if (bonus.target.startsWith("class:")) {
+            const armorClass = bonus.target.slice("class:".length);
+            if (!armorClasses.has(armorClass)) {
+              errors.push(
+                `civ ${def.id}: bonus target references unknown armor class ${JSON.stringify(armorClass)}`,
+              );
+            }
+          } else if (bonus.target.startsWith("unit:")) {
+            const unitId = bonus.target.slice("unit:".length);
+            if (!units.has(unitId)) {
+              errors.push(
+                `civ ${def.id}: bonus target references unknown unit ${JSON.stringify(unitId)}`,
+              );
+            }
+          } else if (bonus.target.startsWith("building:")) {
+            const buildingId = bonus.target.slice("building:".length);
+            if (!buildings.has(buildingId)) {
+              errors.push(
+                `civ ${def.id}: bonus target references unknown building ${JSON.stringify(buildingId)}`,
+              );
+            }
+          } else if (bonus.target.startsWith("tech:")) {
+            const techId = bonus.target.slice("tech:".length);
+            if (!techs.has(techId)) {
+              errors.push(
+                `civ ${def.id}: bonus target references unknown tech ${JSON.stringify(techId)}`,
+              );
+            }
+          }
+        }
+        break;
+      }
     }
   }
 
@@ -394,5 +446,5 @@ export function loadDefinitions(
       `definition validation failed (${String(errors.length)}):\n  - ${errors.join("\n  - ")}`,
     );
   }
-  return { units, buildings, techs, recipes, victoryPaths };
+  return { units, buildings, techs, recipes, victoryPaths, civs };
 }

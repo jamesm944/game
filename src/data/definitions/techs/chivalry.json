@@ -1,0 +1,12 @@
+{
+  "id": "chivalry",
+  "name": "Chivalry",
+  "kind": "tech",
+  "costs": { "wood": 400, "gold": 400 },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 1200,
+  "effects": [
+    { "target": "class:cavalry", "stat": "speed", "op": "mult", "value": 1.1 }
+  ]
+}

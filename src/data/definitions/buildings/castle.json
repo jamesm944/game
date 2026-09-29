@@ -22,6 +22,10 @@
   "trainQueue": {
     "capacity": 15,
     "trainable": [
+      { "unitId": "longbowman" },
+      { "unitId": "throwing-axeman" },
+      { "unitId": "huskarl" },
+      { "unitId": "cataphract" },
       { "unitId": "battering-ram" },
       { "unitId": "mangonel" },
       { "unitId": "trebuchet-packed" }
