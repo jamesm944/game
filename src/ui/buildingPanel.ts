@@ -57,6 +57,8 @@ export interface BuildingPanelData {
   readonly trainableUnits?: readonly {
     readonly unitId: string;
     readonly label: string;
+    readonly capableBuildingCount?: number | undefined;
+    readonly capableBuildingEids?: readonly number[] | undefined;
   }[];
   /** Garrison status if building can hold units (V13 #96). */
   readonly garrison?:
@@ -68,6 +70,16 @@ export interface BuildingPanelData {
   readonly autoReseedEnabled?: boolean | undefined;
   /** Remaining food on selected farm (if farm). */
   readonly farmFoodRemaining?: number | undefined;
+  /** All selected building entity ids when multiple are selected (Q1 / #119). */
+  readonly buildingEids?: readonly number[] | undefined;
+  /** Multi-building queue status breakdown across selected buildings (Q1 / #119). */
+  readonly multiQueueSummary?: readonly {
+    readonly buildingEid: number;
+    readonly buildingName: string;
+    readonly queueCount: number;
+    readonly activeUnitName?: string | undefined;
+    readonly remainingTicks?: number | undefined;
+  }[] | undefined;
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
@@ -169,12 +181,21 @@ export function issueAppointForeman(
   });
 }
 
-export function createBuildingPanel(deps: {
+export interface BuildingPanelDeps {
   getData(): BuildingPanelData | undefined;
   currentTick(): number;
   inbox: CommandInbox;
   onClick?: () => void;
-}): { refresh(): void } {
+  onTrainUnit?: (
+    unitId: string,
+    count: number,
+    capableBuildingEids?: readonly number[],
+  ) => void;
+}
+
+export function createBuildingPanel(deps: BuildingPanelDeps): {
+  refresh(): void;
+} {
   const panel = document.createElement("div");
   panel.id = "building-panel";
   panel.style.display = "none";
@@ -217,9 +238,21 @@ export function createBuildingPanel(deps: {
   trainButton.type = "button";
   trainButton.className = "panel-train";
   trainButton.textContent = "Train Villager (50 food)";
-  trainButton.addEventListener("click", () => {
+  trainButton.addEventListener("click", (e: MouseEvent) => {
     deps.onClick?.();
-    issueTrainVillager(deps.inbox, deps.currentTick());
+    const count = e.shiftKey ? 5 : 1;
+    const d = deps.getData();
+    if (deps.onTrainUnit) {
+      deps.onTrainUnit(
+        "villager",
+        count,
+        d?.buildingEid !== undefined ? [d.buildingEid] : undefined,
+      );
+    } else {
+      for (let i = 0; i < count; i++) {
+        issueTrainVillager(deps.inbox, deps.currentTick());
+      }
+    }
   });
 
   const reseedWrap = document.createElement("div");
@@ -287,10 +320,21 @@ export function createBuildingPanel(deps: {
         }
         return;
       }
-      // The production line is volatile (countdowns/stock counts change
-      // every tick) and farmFoodRemaining changes on harvests —
-      // structural rebuilds key off everything else.
-      const { production, farmFoodRemaining, ...structural } = data;
+      // Exclude volatile tick countdowns from structural rebuild key so DOM buttons
+      // aren't needlessly recreated every frame during training.
+      const {
+        production,
+        farmFoodRemaining,
+        queue,
+        multiQueueSummary,
+        ...structuralRest
+      } = data;
+      const structural = {
+        ...structuralRest,
+        hasQueue: queue !== undefined || (multiQueueSummary !== undefined && multiQueueSummary.length > 0),
+        queueLen: queue?.length,
+        multiQueueLens: multiQueueSummary?.map((m) => m.queueCount),
+      };
       const key = JSON.stringify(structural);
       const structuralChange = key !== lastKey;
       if (structuralChange) {
@@ -315,7 +359,7 @@ export function createBuildingPanel(deps: {
         if (data.garrison !== undefined) {
           panel.appendChild(garrisonWrap);
         }
-        if (data.queue !== undefined) {
+        if (data.queue !== undefined || (data.trainableUnits && data.trainableUnits.length > 0)) {
           if (data.trainableUnits && data.trainableUnits.length > 0) {
             for (const u of data.trainableUnits) {
               const btn = document.createElement("button");
@@ -323,17 +367,25 @@ export function createBuildingPanel(deps: {
               btn.className = "panel-train";
               btn.textContent = u.label;
               btn.disabled = !(data.canTrain ?? false);
-              btn.addEventListener("click", () => {
+              btn.title = "Click to train 1 · Shift-click to train 5";
+              btn.addEventListener("click", (e: MouseEvent) => {
                 deps.onClick?.();
-                if (data.buildingEid && u.unitId !== "villager") {
-                  issueTrainUnit(
-                    deps.inbox,
-                    deps.currentTick(),
-                    data.buildingEid,
-                    u.unitId,
-                  );
+                const count = e.shiftKey ? 5 : 1;
+                if (deps.onTrainUnit) {
+                  deps.onTrainUnit(u.unitId, count, u.capableBuildingEids);
+                } else if (data.buildingEid && u.unitId !== "villager") {
+                  for (let i = 0; i < count; i++) {
+                    issueTrainUnit(
+                      deps.inbox,
+                      deps.currentTick(),
+                      data.buildingEid,
+                      u.unitId,
+                    );
+                  }
                 } else {
-                  issueTrainVillager(deps.inbox, deps.currentTick());
+                  for (let i = 0; i < count; i++) {
+                    issueTrainVillager(deps.inbox, deps.currentTick());
+                  }
                 }
               });
               panel.appendChild(btn);
@@ -341,6 +393,7 @@ export function createBuildingPanel(deps: {
           } else {
             panel.appendChild(trainButton);
             trainButton.disabled = !(data.canTrain ?? false);
+            trainButton.title = "Click to train 1 · Shift-click to train 5";
           }
         }
         // M4-T1 appointment section: ranked candidates, one button each
@@ -471,10 +524,24 @@ export function createBuildingPanel(deps: {
       const metaText = metaParts.join(" · ");
       if (metaEl.textContent !== metaText) metaEl.textContent = metaText;
 
-      const queueText =
-        data.queue === undefined
-          ? ""
-          : data.queue.length === 0
+      let queueText = "";
+      if (data.multiQueueSummary && data.multiQueueSummary.length > 0) {
+        queueText = data.multiQueueSummary
+          .map((b) => {
+            if (b.queueCount === 0) {
+              return `${b.buildingName}: empty`;
+            }
+            const activeStr = b.activeUnitName
+              ? `${b.activeUnitName} ${Math.max(0, b.remainingTicks ?? 0) / 30 <= 0 ? "done" : `${((b.remainingTicks ?? 0) / 30).toFixed(1)}s`}`
+              : `${String(b.queueCount)} queued`;
+            const extra =
+              b.queueCount > 1 ? ` (+${String(b.queueCount - 1)})` : "";
+            return `${b.buildingName}: ${activeStr}${extra}`;
+          })
+          .join(" · ");
+      } else if (data.queue !== undefined) {
+        queueText =
+          data.queue.length === 0
             ? "queue empty"
             : data.queue
                 .map(
@@ -482,6 +549,7 @@ export function createBuildingPanel(deps: {
                     `${entry.label} ${String(Math.max(0, entry.remainingTicks) / 30 <= 0 ? "done" : `${(entry.remainingTicks / 30).toFixed(1)}s`)}`,
                 )
                 .join(" → ");
+      }
       if (queueEl.textContent !== queueText) queueEl.textContent = queueText;
 
       // Recipe workshop line: "Planks — wood 4/2 · running 8.3s".

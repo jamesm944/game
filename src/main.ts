@@ -302,6 +302,10 @@ import {
   smartRedistributeIdleWorkers,
   formatRedistributionMessage,
 } from "./sim/economy/idleWorkers";
+import {
+  aggregateBuildingSelection,
+  dispatchBalancedTraining,
+} from "./sim/economy/multiQueue";
 import { victoryPathReadouts } from "./sim/systems/victory";
 import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createToastHost } from "./ui/toast";
@@ -880,6 +884,30 @@ const buildingAt = (x: number, y: number): number | undefined => {
   return undefined;
 };
 
+/** Buildings/sites whose footprints intersect an axis-aligned world rect. */
+const buildingsInRect = (
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+): number[] => {
+  const result: number[] = [];
+  for (let i = world.entities.length - 1; i >= 0; i--) {
+    const eid = world.entities[i]!;
+    const rect =
+      siteRectOf(world, comps, eid) ?? buildingRectOf(world, comps, eid);
+    if (!rect) continue;
+    const bMinX = rect.x;
+    const bMaxX = rect.x + rect.width;
+    const bMinY = rect.y;
+    const bMaxY = rect.y + rect.height;
+    if (minX <= bMaxX && maxX >= bMinX && minY <= bMaxY && maxY >= bMinY) {
+      result.push(eid);
+    }
+  }
+  return result;
+};
+
 wireSelectionInput({
   canvas,
   groundPointAt: groundAt,
@@ -887,6 +915,7 @@ wireSelectionInput({
   worldPerPixel,
   isOnScreen,
   buildingAt,
+  buildingsInRect,
   isPlacementArmed: () => buildMenu.armedDefId() !== null,
 });
 
@@ -1845,8 +1874,55 @@ let buildingFrame = captureBuildingSnapshot(world, comps);
 const buildingPanel = createBuildingPanel({
   currentTick: () => world.tick,
   inbox: world.inbox,
+  onTrainUnit: (unitId, count, capableBuildingEids) => {
+    const selected = getSelectedEids();
+    const eids =
+      capableBuildingEids && capableBuildingEids.length > 0
+        ? capableBuildingEids
+        : selected;
+    dispatchBalancedTraining(
+      world,
+      comps,
+      world.inbox,
+      world.tick,
+      eids,
+      PLAYER_ONE,
+      unitId,
+      count,
+    );
+  },
   getData: () => {
     const selected = getSelectedEids();
+    if (selected.length > 1) {
+      const summary = aggregateBuildingSelection(
+        world,
+        comps,
+        selected,
+        PLAYER_ONE,
+      );
+      if (summary) {
+        return {
+          title: summary.title,
+          buildingEids: summary.buildingEids,
+          trainableUnits: summary.trainableUnits.map((u) => ({
+            unitId: u.unitId,
+            label: u.label,
+            capableBuildingCount: u.capableBuildingCount,
+            capableBuildingEids: u.capableBuildingEids,
+          })),
+          canTrain: summary.canTrain,
+          pop: summary.pop,
+          multiQueueSummary: summary.buildingQueues.map((bq) => ({
+            buildingEid: bq.buildingEid,
+            buildingName: bq.defName,
+            queueCount: bq.queueLength,
+            activeUnitName: bq.headUnitName,
+            remainingTicks: bq.headRemainingTicks,
+          })),
+        };
+      }
+      return undefined;
+    }
     if (selected.length !== 1) return undefined;
     const eid = selected[0]!;
     const siteRow = getBuildingSiteRow(world, comps, eid);
@@ -1964,6 +2040,8 @@ const buildingPanel = createBuildingPanel({
       return {
         unitId: t.unitId,
         label: `Train ${uDef.name} (${costStr})`,
+        capableBuildingCount: 1,
+        capableBuildingEids: [eid],
       };
     });
     return {
@@ -2919,13 +2997,12 @@ function frame(
     selectionRings.write(ringScratch, 0, now / 1000);
   }
 
-  // Rally flags for production buildings (V11)
+  // Rally flags for production buildings (V11 & Q1 #119)
   const selectedEids = getSelectedEids();
-  const selectedBuildingEid =
-    selectedEids.length === 1 && getBuildingRow(world, comps, selectedEids[0]!)
-      ? selectedEids[0]
-      : undefined;
-  rallyFlagLayer.update(selectedBuildingEid, now / 1000);
+  const selectedBuildingEids = selectedEids.filter(
+    (eid) => getBuildingRow(world, comps, eid) !== undefined,
+  );
+  rallyFlagLayer.update(selectedBuildingEids, now / 1000);
 
   // Chimney smoke particles (V11)
   chimneySmokeLayer.setTime(now / 1000);

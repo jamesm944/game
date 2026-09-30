@@ -119,6 +119,16 @@ export interface SelectionInputDeps {
    * clicks can select buildings as well as Pops.
    */
   buildingAt?(x: number, y: number): number | undefined;
+  /**
+   * Buildings/construction sites intersecting world rect bounds.
+   * Consulted when box select encloses no units (AoE2-style unit priority).
+   */
+  buildingsInRect?(
+    minX: number,
+    minY: number,
+    maxX: number,
+    maxY: number,
+  ): number[];
   /** True when placement is armed (prevents dragging selection box during placement). */
   isPlacementArmed?(): boolean;
 }
@@ -213,18 +223,34 @@ export function wireSelectionInput(deps: SelectionInputDeps): void {
   ): void => {
     if (!rect) return;
     const frame = deps.getFrame();
-    if (!frame || frame.count === 0) {
-      if (!additive) clearSelection();
+    const hits =
+      frame && frame.count > 0
+        ? hashFrom(frame).queryRect(
+            rect.minX,
+            rect.minY,
+            rect.maxX,
+            rect.maxY,
+          )
+        : [];
+    if (hits.length > 0) {
+      if (additive) addToSelection(hits);
+      else setSelection(hits);
       return;
     }
-    const hits = hashFrom(frame).queryRect(
-      rect.minX,
-      rect.minY,
-      rect.maxX,
-      rect.maxY,
-    );
-    if (additive) addToSelection(hits);
-    else setSelection(hits); // empty box without shift deselects (prototype)
+    // When no units are in the box, check for buildings in the rect (modern RTS QoL)
+    const bHits =
+      deps.buildingsInRect?.(
+        rect.minX,
+        rect.minY,
+        rect.maxX,
+        rect.maxY,
+      ) ?? [];
+    if (bHits.length > 0) {
+      if (additive) addToSelection(bHits);
+      else setSelection(bHits);
+      return;
+    }
+    if (!additive) clearSelection(); // empty box without shift deselects (prototype)
   };
 
   const selectSameTypeOnScreen = (eid: number): void => {

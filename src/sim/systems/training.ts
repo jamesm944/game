@@ -56,6 +56,14 @@ import {
 import { isDefAgeUnlocked } from "./age";
 import { effectiveCosts, payCosts } from "./costs";
 import { canPlayerTrainUnit } from "../core/civilization";
+import {
+  SET_RALLY_POINT_KIND,
+  SET_MULTI_RALLY_POINT_KIND,
+  CLEAR_RALLY_POINT_KIND,
+  setRallyPoint,
+  clearRallyPoint,
+  dispatchSpawnedUnitToRally,
+} from "../core/rally";
 import { PLAYER_ONE } from "../core/stockpile";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
@@ -63,6 +71,11 @@ import type { SimSystem, World } from "../core/world";
 /** Command kinds owned by this system. */
 export const TRAIN_VILLAGER_KIND = "trainVillager";
 export const TRAIN_UNIT_KIND = "trainUnit";
+export {
+  SET_RALLY_POINT_KIND,
+  SET_MULTI_RALLY_POINT_KIND,
+  CLEAR_RALLY_POINT_KIND,
+};
 
 /** Perimeter search depth (in whole-tile rings) for spawn placement. */
 export const SPAWN_RING_DEPTH = 3;
@@ -308,6 +321,102 @@ function applyTrainCommand(
   diagnostics.commandsApplied += 1;
 }
 
+function applySetRallyCommand(
+  world: World,
+  comps: SimComponents,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  const bEid = data.buildingEid;
+  if (typeof bEid !== "number" || !Number.isInteger(bEid) || bEid < 1) {
+    throw new Error(
+      `setRallyPoint buildingEid must be a positive integer, got ${String(bEid)}`,
+    );
+  }
+  const x = data.x;
+  const y = data.y;
+  if (
+    typeof x !== "number" ||
+    !Number.isFinite(x) ||
+    typeof y !== "number" ||
+    !Number.isFinite(y)
+  ) {
+    throw new Error(
+      `setRallyPoint coordinates must be finite numbers, got (${String(x)}, ${String(y)})`,
+    );
+  }
+  const targetEntityId =
+    data.targetEntityId !== undefined
+      ? typeof data.targetEntityId === "number" &&
+        Number.isInteger(data.targetEntityId) &&
+        data.targetEntityId > 0
+        ? data.targetEntityId
+        : undefined
+      : undefined;
+
+  const row = getBuildingRow(world, comps, bEid);
+  if (!row) {
+    throw new Error(
+      `setRallyPoint targets entity ${String(bEid)}, which is not a finished building`,
+    );
+  }
+  const def = buildingDefOf(buildingIdOfCode(row[1]!));
+  if (!def.trainQueue) {
+    throw new Error(`building ${def.id} does not have a production queue`);
+  }
+
+  setRallyPoint(world, bEid, { x, y, targetEntityId });
+}
+
+function applySetMultiRallyCommand(
+  world: World,
+  comps: SimComponents,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  const bEids = data.buildingEids;
+  if (!Array.isArray(bEids) || bEids.length === 0) {
+    throw new Error("setMultiRallyPoint buildingEids must be a non-empty array");
+  }
+  const x = data.x;
+  const y = data.y;
+  if (
+    typeof x !== "number" ||
+    !Number.isFinite(x) ||
+    typeof y !== "number" ||
+    !Number.isFinite(y)
+  ) {
+    throw new Error(
+      `setMultiRallyPoint coordinates must be finite numbers, got (${String(x)}, ${String(y)})`,
+    );
+  }
+  const targetEntityId =
+    data.targetEntityId !== undefined
+      ? typeof data.targetEntityId === "number" &&
+        Number.isInteger(data.targetEntityId) &&
+        data.targetEntityId > 0
+        ? data.targetEntityId
+        : undefined
+      : undefined;
+
+  for (const bEid of bEids) {
+    if (typeof bEid !== "number" || !Number.isInteger(bEid) || bEid < 1) continue;
+    const row = getBuildingRow(world, comps, bEid);
+    if (!row) continue;
+    const def = buildingDefOf(buildingIdOfCode(row[1]!));
+    if (!def.trainQueue) continue;
+    setRallyPoint(world, bEid, { x, y, targetEntityId });
+  }
+}
+
+function applyClearRallyCommand(
+  world: World,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  const bEid = data.buildingEid;
+  if (typeof bEid === "number" && Number.isInteger(bEid) && bEid >= 1) {
+    clearRallyPoint(world, bEid);
+  }
+}
+
 /**
  * Build the training SimSystem. Register after construction so only
  * finished buildings ever carry live queues.
@@ -338,6 +447,18 @@ export function createTrainingSystem(
           command.kind,
           command.data,
         );
+      } else if (command.kind === SET_RALLY_POINT_KIND) {
+        if (!command.data)
+          throw new Error("setRallyPoint requires command data");
+        applySetRallyCommand(world, comps, command.data);
+      } else if (command.kind === SET_MULTI_RALLY_POINT_KIND) {
+        if (!command.data)
+          throw new Error("setMultiRallyPoint requires command data");
+        applySetMultiRallyCommand(world, comps, command.data);
+      } else if (command.kind === CLEAR_RALLY_POINT_KIND) {
+        if (!command.data)
+          throw new Error("clearRallyPoint requires command data");
+        applyClearRallyCommand(world, command.data);
       }
     }
 
@@ -402,7 +523,7 @@ export function createTrainingSystem(
           customPass,
         );
         if (!tile) continue; // boxed in: retry next tick
-        spawnTrainedUnit(
+        const spawnedEid = spawnTrainedUnit(
           world,
           comps,
           unitId,
@@ -414,6 +535,7 @@ export function createTrainingSystem(
         diagnostics.unitsTrained += 1;
         entries.shift();
         writeTrainQueue(world, comps, eid, entries);
+        dispatchSpawnedUnitToRally(world, comps, spawnedEid, eid, unitId);
       }
     }
   };

@@ -489,8 +489,13 @@ export interface OrderInputDeps {
   isCarryingRelic?(unitEid: number): boolean;
   /** Query if a selected entity is a production building with a train queue. */
   isProductionBuilding?(eid: number): boolean;
-  /** Set rally point for a production building. */
-  setRallyPoint?(buildingEid: number, rallyX: number, rallyY: number): void;
+  /** Set rally point for a production building (with optional target entity). */
+  setRallyPoint?(
+    buildingEid: number,
+    rallyX: number,
+    rallyY: number,
+    targetEntityId?: number,
+  ): void;
   /**
    * Allied garrison target building entity under a world point, or undefined.
    */
@@ -581,6 +586,50 @@ export function issueConvert(
   return command;
 }
 
+export function issueSetRallyPoint(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEid: number,
+  x: number,
+  y: number,
+  targetEntityId?: number,
+): SimCommand {
+  const command: SimCommand = {
+    kind: "setRallyPoint",
+    targetTick: currentTick + 1,
+    data: {
+      buildingEid,
+      x,
+      y,
+      targetEntityId,
+    },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export function issueSetMultiRallyPoint(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEids: readonly number[],
+  x: number,
+  y: number,
+  targetEntityId?: number,
+): SimCommand {
+  const command: SimCommand = {
+    kind: "setMultiRallyPoint",
+    targetTick: currentTick + 1,
+    data: {
+      buildingEids: [...buildingEids],
+      x,
+      y,
+      targetEntityId,
+    },
+  };
+  inbox.submit(command);
+  return command;
+}
+
 const ORDERS_PANEL_LIMIT = 20;
 
 export function wireOrderInput(deps: OrderInputDeps): void {
@@ -654,17 +703,55 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       }
     }
 
-    // 0b. Production building -> set rally point
+    // 0b. Production building(s) -> set rally point (Q1: supports multiple selected buildings)
     if (
-      deps.selectionCount() === 1 &&
-      deps.isProductionBuilding?.(selection[0]!)
+      selection.length > 0 &&
+      selection.every((eid) => deps.isProductionBuilding?.(eid))
     ) {
-      const bEid = selection[0]!;
-      deps.setRallyPoint?.(bEid, ground.x, ground.y);
+      const targetNodeId = deps.nodeAt?.(ground.x, ground.y);
+      const targetSiteId = deps.siteAt?.(ground.x, ground.y);
+      const targetGarrisonId = deps.garrisonAt?.(ground.x, ground.y);
+      const targetEntityId = targetNodeId ?? targetSiteId ?? targetGarrisonId;
+
+      if (selection.length === 1) {
+        issueSetRallyPoint(
+          deps.inbox,
+          deps.currentTick(),
+          selection[0]!,
+          ground.x,
+          ground.y,
+          targetEntityId,
+        );
+      } else {
+        issueSetMultiRallyPoint(
+          deps.inbox,
+          deps.currentTick(),
+          selection,
+          ground.x,
+          ground.y,
+          targetEntityId,
+        );
+      }
+
+      for (const bEid of selection) {
+        deps.setRallyPoint?.(bEid, ground.x, ground.y, targetEntityId);
+      }
       deps.onMoveOrdered(ground.x, ground.y);
+      const targetDesc =
+        targetNodeId !== undefined
+          ? " (Resource Node)"
+          : targetSiteId !== undefined
+            ? " (Construction Site)"
+            : targetGarrisonId !== undefined
+              ? " (Garrison)"
+              : "";
+      const label =
+        selection.length === 1
+          ? `Rally Point → (${Math.round(ground.x)}, ${Math.round(ground.y)})${targetDesc}`
+          : `Rally Point (${String(selection.length)} buildings) → (${Math.round(ground.x)}, ${Math.round(ground.y)})${targetDesc}`;
       log.push(deps.currentTick() + 1, {
         kind: "rally",
-        label: `tick ${String(deps.currentTick() + 1)} · Rally Point → (${Math.round(ground.x)}, ${Math.round(ground.y)})`,
+        label: `tick ${String(deps.currentTick() + 1)} · ${label}`,
       });
       renderList();
       return;

@@ -16,6 +16,7 @@ import type { PathScheduler } from "../path/scheduler";
 import type { VisibilityProvider } from "../systems/fog";
 import { createAllVisibleProvider } from "../systems/fog";
 import type { WorldLayers } from "../world/layers";
+import type { RallyTarget } from "./rally";
 
 export const TICK_HZ = 30;
 export const TICK_DT_MS = 1000 / TICK_HZ;
@@ -77,6 +78,11 @@ export interface World {
    * Omitted or empty preserves symmetric legacy behavior with zero civ bonuses.
    */
   civilizations?: Map<number, string> | undefined;
+  /**
+   * Active rally points assigned per production building (Milestone Q1 / #120).
+   * Maps buildingEid -> RallyTarget.
+   */
+  rallyPoints?: Map<number, RallyTarget> | undefined;
 }
 
 export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
