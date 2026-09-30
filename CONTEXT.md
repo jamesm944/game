@@ -420,3 +420,11 @@ _Avoid_: Round-robin (bare), auto-train
 An authoritative world coordinate or target entity assigned to a production building where newly spawned units are automatically routed upon training completion.
 _Avoid_: Spawn waypoint, flag target (bare)
 
+**Idle Villager Notification**:
+An alert event (toast notification, audio chime `ui.idle`, and minimap pulse) triggered when working-age Pops become idle, providing click-to-camera-jump and auto-selection.
+_Avoid_: Idle worker popup, worker buzzer
+
+**Minimap Alert Ping**:
+An animated expanding pulse ring rendered at specific world coordinates on the minimap to draw attention to critical events (idle villagers, attacks, flare signals).
+_Avoid_: Radar blip, flare (when meaning automated alert)
+
