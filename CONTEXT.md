@@ -406,3 +406,17 @@ _Avoid_: Civ upgrade, unique upgrade
 An innate, passive modifier applied unconditionally to a player's units, buildings, costs, or gather activities based on their chosen Civilization.
 _Avoid_: Passive buff, perk
 
+### Modern RTS Quality of Life
+
+**Multi-Building Queue Aggregation**:
+Unified selection and production across multiple production buildings, presenting a unified trainable unit roster with capable building count badges and aggregate queue status.
+_Avoid_: Batch selection (bare), multi-select queue (bare)
+
+**Balanced Training**:
+Greedy shortest-queue-first distribution of unit training commands across capable selected production buildings, tie-breaking by remaining ticks on head item and lowest entity ID.
+_Avoid_: Round-robin (bare), auto-train
+
+**Rally Point**:
+An authoritative world coordinate or target entity assigned to a production building where newly spawned units are automatically routed upon training completion.
+_Avoid_: Spawn waypoint, flag target (bare)
+
