@@ -1985,6 +1985,18 @@ canvas {
   color: #fef08a;
 }
 
+.game-toast-idle-villager {
+  border-left: 4px solid #f59e0b;
+}
+
+.game-toast-idle-villager .game-toast-icon {
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.game-toast-idle-villager .game-toast-title {
+  color: #fde68a;
+}
+
 @keyframes toast-slide-in {
   from {
     transform: translateX(-30px);

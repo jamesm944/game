@@ -3,6 +3,7 @@
 export const AUDIO_CLIPS = [
   "ui.click",
   "ui.order",
+  "ui.idle",
   "act.chop",
   "act.mine",
   "act.build",

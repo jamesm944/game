@@ -125,6 +125,11 @@ class MockCanvasContext {
   fill(): void {
     this.path.push({ op: "fill" });
   }
+  arc(x: number, y: number, _r: number, _startAngle: number, _endAngle: number): void {
+    this.path.push({ op: "arc", x, y });
+  }
+  save(): void {}
+  restore(): void {}
   drawImage(): void {
     this.drawImageCalls++;
   }
@@ -213,7 +218,7 @@ describe("Minimap Redraw & Viewport Updating in Headless DOM", () => {
         isSelected: (eid) => eid === 10,
         fog: {
           isExplored: (_x, _y) => true,
-          isVisible: (x, y) => x < 16,
+          isVisible: (x, _y) => x < 16,
         },
         groundPointAt: (cx, cy) => ({
           x: cx === 0 ? 5 : 25,
@@ -280,6 +285,12 @@ describe("Minimap Redraw & Viewport Updating in Headless DOM", () => {
       // Verify updateViewport can be called independently
       handle.updateViewport();
       expect(mainCanvas.ctx.drawImageCalls).toBeGreaterThan(1);
+
+      // Verify minimap alert ping registers and renders expanding arc pulses
+      handle.ping(10, 10, "#f59e0b", 1000);
+      handle.updateViewport();
+      const arcOps = mainCanvas.ctx.path.filter((p) => p.op === "arc");
+      expect(arcOps.length).toBeGreaterThan(0);
     } finally {
       tearDownMockDom();
     }

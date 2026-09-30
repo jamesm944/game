@@ -142,6 +142,7 @@ export class VoicePool {
     const clips: import("./intents").AudioClip[] = [
       "ui.click",
       "ui.order",
+      "ui.idle",
       "act.chop",
       "act.mine",
       "act.build",

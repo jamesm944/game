@@ -23,6 +23,7 @@ interface ClipShape {
 const SHAPES: Record<AudioClip, ClipShape> = {
   "ui.click": { duration: 0.05, kind: "tone", freq: 880, decay: 40 },
   "ui.order": { duration: 0.09, kind: "tone", freq: 620, decay: 30 },
+  "ui.idle": { duration: 0.18, kind: "tone", freq: 587, decay: 16 },
   "act.chop": { duration: 0.12, kind: "noise", freq: 0, decay: 60 },
   "act.mine": { duration: 0.1, kind: "noise", freq: 0, decay: 90 },
   "act.build": { duration: 0.14, kind: "noise", freq: 0, decay: 50 },

@@ -15,6 +15,7 @@ export type ToastKind =
   | "research-complete"
   | "age-up"
   | "unit-idle"
+  | "idle-villager"
   | "farm-exhausted"
   | "generic";
 
@@ -44,6 +45,12 @@ export interface ToastManager {
   notifyResearchComplete(techName: string): void;
   notifyAgeUp(ageName: string): void;
   notifyUnitIdle(x: number, y: number, unitName?: string): boolean;
+  notifyIdleVillager(
+    x: number,
+    y: number,
+    idleCount?: number,
+    reason?: string,
+  ): boolean;
   notifyFarmExhausted(x?: number, y?: number, subtitle?: string): boolean;
   destroy(): void;
 }
@@ -80,6 +87,20 @@ export function formatUnitIdleMessage(unitName?: string): {
   };
 }
 
+export function formatIdleVillagerMessage(
+  idleCount: number = 1,
+  reason?: string,
+): {
+  message: string;
+  subtitle: string;
+} {
+  const unitStr = idleCount === 1 ? "villager" : "villagers";
+  return {
+    message: `💤 ${String(idleCount)} ${unitStr} idle`,
+    subtitle: reason ?? "Click to jump and assign tasks",
+  };
+}
+
 export function getIconForKind(kind: ToastKind): string {
   switch (kind) {
     case "under-attack":
@@ -105,6 +126,12 @@ export function getIconForKind(kind: ToastKind): string {
     case "unit-idle":
       return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 12h8l-8 8h8M14 4h6l-6 6h6"/>
+      </svg>`;
+    case "idle-villager":
+      return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10" cy="7" r="4"/>
+        <path d="M3 21v-2a6 6 0 0 1 12 0v2"/>
+        <path d="M17 6h4l-4 4h4" stroke-width="1.5"/>
       </svg>`;
     case "farm-exhausted":
       return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -294,6 +321,28 @@ export function createToastManager(
     return true;
   }
 
+  function notifyIdleVillager(
+    x: number,
+    y: number,
+    idleCount: number = 1,
+    reason?: string,
+  ): boolean {
+    const now = Date.now();
+    if (now - lastIdleTime < idleThrottleMs) {
+      return false;
+    }
+    lastIdleTime = now;
+    const formatted = formatIdleVillagerMessage(idleCount, reason);
+    show({
+      kind: "idle-villager",
+      message: formatted.message,
+      subtitle: formatted.subtitle,
+      location: { x, y },
+      durationMs: DEFAULT_DURATION_MS,
+    });
+    return true;
+  }
+
   function notifyFarmExhausted(
     x?: number,
     y?: number,
@@ -331,6 +380,7 @@ export function createToastManager(
     notifyResearchComplete,
     notifyAgeUp,
     notifyUnitIdle,
+    notifyIdleVillager,
     notifyFarmExhausted,
     destroy,
   };

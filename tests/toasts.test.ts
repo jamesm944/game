@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createToastManager,
   formatAgeUpMessage,
+  formatIdleVillagerMessage,
   formatResearchCompleteMessage,
   formatUnderAttackMessage,
   formatUnitIdleMessage,
@@ -135,12 +136,29 @@ describe("Toast Notification Formatters (Issue #104)", () => {
     expect(res.subtitle).toBe("Knight");
   });
 
+  it("formats idle-villager message correctly for single and multiple workers", () => {
+    const single = formatIdleVillagerMessage(1);
+    expect(single.message).toBe("💤 1 villager idle");
+    expect(single.subtitle).toBe("Click to jump and assign tasks");
+
+    const multi = formatIdleVillagerMessage(3);
+    expect(multi.message).toBe("💤 3 villagers idle");
+
+    const custom = formatIdleVillagerMessage(2, "Gold vein exhausted");
+    expect(custom.message).toBe("💤 2 villagers idle");
+    expect(custom.subtitle).toBe("Gold vein exhausted");
+  });
+
   it("provides distinct SVG icons for every toast kind", () => {
     const attackIcon = getIconForKind("under-attack");
     const techIcon = getIconForKind("research-complete");
     const ageIcon = getIconForKind("age-up");
     const idleIcon = getIconForKind("unit-idle");
+    const idleVillagerIcon = getIconForKind("idle-villager");
     const genericIcon = getIconForKind("generic");
+
+    expect(idleVillagerIcon).toContain("<svg");
+    expect(idleVillagerIcon).toContain("#f59e0b");
 
     expect(attackIcon).toContain("<svg");
     expect(attackIcon).toContain("#ef4444"); // danger red
@@ -248,7 +266,7 @@ describe("Toast Notification Manager with Mock DOM", () => {
       container: mockContainer as unknown as HTMLElement,
     });
 
-    const id = toastManager.show({
+    toastManager.show({
       kind: "research-complete",
       message: "✓ Iron Casting researched",
       durationMs: 3000,
@@ -303,5 +321,34 @@ describe("Toast Notification Manager with Mock DOM", () => {
     expect(result).toBe(true);
     expect(mockContainer.children.length).toBe(1);
     expect(mockContainer.children[0]!.className).toContain("game-toast-farm-exhausted");
+  });
+
+  it("notifies idle villager with kind, location and camera jump click handling", () => {
+    const onJumpTo = vi.fn();
+    toastManager = createToastManager({
+      container: mockContainer as unknown as HTMLElement,
+      onJumpTo,
+      idleThrottleMs: 6000,
+    });
+
+    const fired = toastManager.notifyIdleVillager(42, 58, 2, "Wood depleted");
+    expect(fired).toBe(true);
+    expect(mockContainer.children.length).toBe(1);
+
+    const toastEl = mockContainer.children[0]!;
+    expect(toastEl.className).toContain("game-toast-idle-villager");
+    expect(toastEl.className).toContain("game-toast-clickable");
+
+    toastEl.click();
+    expect(onJumpTo).toHaveBeenCalledWith(42, 58);
+
+    // Throttled within interval
+    const throttled = toastManager.notifyIdleVillager(42, 58, 2);
+    expect(throttled).toBe(false);
+
+    // Unthrottled after interval
+    vi.advanceTimersByTime(6500);
+    const retry = toastManager.notifyIdleVillager(42, 58, 1);
+    expect(retry).toBe(true);
   });
 });

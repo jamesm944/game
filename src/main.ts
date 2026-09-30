@@ -241,7 +241,6 @@ import {
 } from "./sim/components/combat";
 import {
   RESOURCE_WOOD,
-  getResourceNodeRow,
 } from "./sim/components/economy";
 import {
   isAutoReseedEnabled,
@@ -928,9 +927,32 @@ const ageUpBanner = createAgeUpBanner();
 const toastManager = createToastManager({
   onJumpTo: (x, y) => {
     cameraRig.setCenter(x, y);
+    // If an idle villager is near (x, y), select them and play audio feedback
+    const idleEids = findIdleVillagers(world, comps, PLAYER_ONE);
+    const posRows = world.rowsByComponentId.get(comps.positionId);
+    let nearestEid: number | undefined;
+    let nearestDistSq = Infinity;
+    for (const eid of idleEids) {
+      const pos = posRows?.get(eid);
+      if (!pos) continue;
+      const dx = pos[0]! - x;
+      const dy = pos[1]! - y;
+      const distSq = dx * dx + dy * dy;
+      if (distSq < nearestDistSq && distSq <= 25) {
+        nearestDistSq = distSq;
+        nearestEid = eid;
+      }
+    }
+    if (nearestEid !== undefined) {
+      setSelection([nearestEid]);
+      audioScheduler.push({ clip: "ui.idle", priority: 8 });
+    }
   },
 });
 let lastPlayerAgeRank = currentAgeRankOf(world, comps, PLAYER_ONE);
+let lastIdleVillagerCount = 0;
+let lastIdleVillagerAlertTime = 0;
+const IDLE_VILLAGER_ALERT_COOLDOWN_MS = 6000;
 const knownTechCodes = new Set<number>(
   researchedTechCodesOf(world, comps, PLAYER_ONE),
 );
@@ -1762,6 +1784,7 @@ function handleCycleIdleWorkerCommand(): void {
     toast.show("No idle villagers");
     return;
   }
+  audioScheduler.push({ clip: "ui.idle", priority: 8 });
   idleCycleIndex = idleCycleIndex % idleEids.length;
   const eid = idleEids[idleCycleIndex]!;
   const currentNum = idleCycleIndex + 1;
@@ -1769,7 +1792,10 @@ function handleCycleIdleWorkerCommand(): void {
   setSelection([eid]);
   const posRows = world.rowsByComponentId.get(comps.positionId);
   const pos = posRows?.get(eid);
-  if (pos) cameraRig.setCenter(pos[0]!, pos[1]!);
+  if (pos) {
+    cameraRig.setCenter(pos[0]!, pos[1]!);
+    minimap.ping(pos[0]!, pos[1]!, "#f59e0b", 1500);
+  }
   toast.show(`Idle villager ${String(currentNum)}/${String(idleEids.length)}`);
 }
 
@@ -1779,10 +1805,17 @@ function handleSelectAllIdleWorkersCommand(): void {
     toast.show("No idle villagers");
     return;
   }
+  audioScheduler.push({ clip: "ui.idle", priority: 8 });
   setSelection(idleEids);
   const posRows = world.rowsByComponentId.get(comps.positionId);
   const pos = posRows?.get(idleEids[0]!);
-  if (pos) cameraRig.setCenter(pos[0]!, pos[1]!);
+  if (pos) {
+    cameraRig.setCenter(pos[0]!, pos[1]!);
+    for (const eid of idleEids) {
+      const p = posRows?.get(eid);
+      if (p) minimap.ping(p[0]!, p[1]!, "#f59e0b", 1500);
+    }
+  }
   toast.show(
     `Selected all ${String(idleEids.length)} idle villager${idleEids.length === 1 ? "" : "s"}`,
   );
@@ -2498,6 +2531,7 @@ function frame(
           const victimPos = getPosition(world, comps, e.victimEid);
           if (victimPos) {
             toastManager.notifyUnderAttack(victimPos.x, victimPos.y);
+            minimap.ping(victimPos.x, victimPos.y, "#ef4444", 2500);
           }
         }
       }
@@ -2531,6 +2565,9 @@ function frame(
             ? "Insufficient wood (60) to reseed farm"
             : "Auto-reseed disabled",
         );
+        if (x !== undefined && y !== undefined) {
+          minimap.ping(x, y, "#eab308", 2500);
+        }
       }
     } catch {
       /* minimal worlds */
@@ -3097,7 +3134,25 @@ function frame(
   topbar.updateDifficulty(session.aiDifficulty);
   // #106: update idle worker badge every frame (cheap: just iterates
   // entity list, no allocations when count is unchanged).
-  topbar.updateIdleWorkers(findIdleVillagers(world, comps).length);
+  const idleVillagerEids = findIdleVillagers(world, comps, PLAYER_ONE);
+  const idleCount = idleVillagerEids.length;
+  topbar.updateIdleWorkers(idleCount);
+
+  // Q2 (#121): detect new idle workers, sound alert cue and trigger toast & minimap ping
+  if (idleCount > lastIdleVillagerCount && idleCount > 0) {
+    const now = performance.now();
+    if (now - lastIdleVillagerAlertTime >= IDLE_VILLAGER_ALERT_COOLDOWN_MS) {
+      lastIdleVillagerAlertTime = now;
+      audioScheduler.push({ clip: "ui.idle", priority: 6 });
+      const firstEid = idleVillagerEids[0]!;
+      const pos = getPosition(world, comps, firstEid);
+      if (pos) {
+        toastManager.notifyIdleVillager(pos.x, pos.y, idleCount);
+        minimap.ping(pos.x, pos.y, "#f59e0b", 3000);
+      }
+    }
+  }
+  lastIdleVillagerCount = idleCount;
   victoryPathsPanel.update(victoryPathReadouts(world, comps, VIEWER));
   controlGroups.refreshChips();
   buildMenu.refresh();

@@ -189,7 +189,9 @@ export interface MinimapHandle {
   redraw(): void;
   /** Repaint only the viewport quad over the cached background buffer (~60 Hz). */
   updateViewport(): void;
-  readonly element: HTMLCanvasElement;
+  /** Emit an expanding pulse ring at world coordinates (x, y) to draw attention to alerts. */
+  ping(x: number, y: number, color?: string, durationMs?: number): void;
+  readonly element?: HTMLCanvasElement;
 }
 
 export function createMinimap(deps: MinimapDeps): MinimapHandle {
@@ -240,6 +242,31 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
 
   // Initial draw of bake into backBuffer
   backCtx.drawImage(bake, 0, 0);
+
+  // ---- Animated Alert Pings ---------------------------------------------------
+  interface MinimapPing {
+    x: number;
+    y: number;
+    color: string;
+    startTime: number;
+    durationMs: number;
+  }
+  const pings: MinimapPing[] = [];
+
+  const ping = (
+    x: number,
+    y: number,
+    color = "#f59e0b",
+    durationMs = 2500,
+  ): void => {
+    pings.push({
+      x: Math.min(layers.size, Math.max(0, x)),
+      y: Math.min(layers.size, Math.max(0, y)),
+      color,
+      startTime: Date.now(),
+      durationMs,
+    });
+  };
 
   // ---- Camera jump & viewport dragging interaction ----------------------------
   let pointerDown = false;
@@ -295,6 +322,39 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
     ctx.strokeStyle = VIEWPORT_BORDER_STROKE;
     ctx.lineWidth = VIEWPORT_LINE_WIDTH;
     ctx.stroke();
+
+    // 7. Render expanding alert ping rings
+    if (pings.length > 0) {
+      const now = Date.now();
+      for (let i = pings.length - 1; i >= 0; i--) {
+        const p = pings[i]!;
+        const elapsed = now - p.startTime;
+        if (elapsed >= p.durationMs) {
+          pings.splice(i, 1);
+          continue;
+        }
+        const progress = elapsed / p.durationMs;
+        const radius = 2 + progress * 14;
+        const alpha = Math.max(0, 1 - progress);
+        const cx = p.x * pxPerTile;
+        const cy = p.y * pxPerTile;
+
+        if (ctx.save) ctx.save();
+        ctx.beginPath();
+        if (ctx.arc) ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = alpha;
+        ctx.stroke();
+
+        ctx.beginPath();
+        if (ctx.arc) ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, 0.9 - progress * 0.5);
+        ctx.fill();
+        if (ctx.restore) ctx.restore();
+      }
+    }
   };
 
   canvas.addEventListener("pointerdown", (event: PointerEvent) => {
@@ -477,5 +537,6 @@ export function createMinimap(deps: MinimapDeps): MinimapHandle {
       // 6. Blit backBuffer and draw live viewport quad
       updateViewport();
     },
+    ping,
   };
 }
