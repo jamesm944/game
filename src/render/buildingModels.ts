@@ -38,7 +38,13 @@ import {
   createBuildingShadowMesh,
   MAX_BUILDING_SHADOWS,
   updateBuildingShadows,
+  updateBuildingShadowSun,
 } from "./buildingShadows";
+import {
+  createNightLights,
+  MAX_NIGHT_LIGHTS,
+  type NightLightsHandle,
+} from "./nightLights";
 
 // GLTF model asset URLs
 import tcDark from "../assets/models/quaternius-ultimate-fantasy-rts/glTF/TownCenter_FirstAge_Level1.gltf";
@@ -351,11 +357,15 @@ export function modelKeyFor(defId: string, ageRank: number): string {
 export interface BuildingWriteOptions {
   readonly isGhost?: ((index: number) => boolean) | undefined;
   readonly viewerId?: number | undefined;
+  readonly sunDir?: { x: number; y: number; z: number } | undefined;
+  readonly minuteOfDay?: number | undefined;
+  readonly renderTimeSeconds?: number | undefined;
 }
 
 export interface BuildingModelsLayer {
   readonly group: Group;
   readonly shadowMesh: InstancedMesh;
+  readonly nightLights: NightLightsHandle;
   write(
     frame: BuildingSnapshotFrame,
     layers: WorldLayers,
@@ -413,12 +423,17 @@ export async function createBuildingModelsLayer(): Promise<BuildingModelsLayer> 
   const shadowMesh = createBuildingShadowMesh(MAX_BUILDING_SHADOWS);
   group.add(shadowMesh);
 
+  // Preallocated instanced architectural night illumination (Issue #129 / L1)
+  const nightLights = createNightLights(MAX_NIGHT_LIGHTS);
+  group.add(nightLights.mesh);
+
   // Preallocated bucket counts
   const bucketCounts = new Map<string, number>();
 
   return {
     group,
     shadowMesh,
+    nightLights,
     write(frame, layers, options: BuildingWriteOptions = {}) {
       // Reset bucket counts
       for (const key of meshes.keys()) {
@@ -495,8 +510,24 @@ export async function createBuildingModelsLayer(): Promise<BuildingModelsLayer> 
         }
       }
 
-      // Update building ground contact shadow decals (Issue #99)
+      // Update building ground contact shadow decals (Issue #99 / #129)
       updateBuildingShadows(shadowMesh, frame, layers, options.isGhost);
+      if (options.sunDir) {
+        const isNight =
+          (options.minuteOfDay ?? 720) < 360 ||
+          (options.minuteOfDay ?? 720) >= 1260;
+        updateBuildingShadowSun(shadowMesh, options.sunDir, isNight);
+      }
+
+      // Update architectural night lighting (Issue #129 / L1)
+      if (options.minuteOfDay !== undefined) {
+        nightLights.update(
+          frame,
+          layers,
+          options.minuteOfDay,
+          options.renderTimeSeconds ?? 0,
+        );
+      }
     },
   };
 }

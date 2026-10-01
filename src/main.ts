@@ -2940,6 +2940,9 @@ function frame(
       {
         isGhost: (index) => bGhosts[index] === 1,
         viewerId: VIEWER,
+        sunDir: sun.position,
+        minuteOfDay: currentMinute,
+        renderTimeSeconds: now * 0.001,
       },
     );
   }

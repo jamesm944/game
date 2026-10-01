@@ -13,11 +13,13 @@
  */
 
 import {
+  Color,
   DynamicDrawUsage,
   InstancedMesh,
   Object3D,
   PlaneGeometry,
   ShaderMaterial,
+  Vector2,
 } from "three";
 import type { BuildingSnapshotFrame } from "../sim/mirror";
 import type { WorldLayers } from "../sim/world/layers";
@@ -29,28 +31,69 @@ const scratchObj = new Object3D();
 
 export function createBuildingShadowMaterial(): ShaderMaterial {
   return new ShaderMaterial({
+    uniforms: {
+      uShadowOffset: { value: new Vector2(0, 0) },
+      uShadowColor: { value: new Color(0.02, 0.03, 0.05) },
+      uShadowDarkness: { value: 0.65 },
+    },
     vertexShader: `
+      uniform vec2 uShadowOffset;
       varying vec2 vUv;
       void main() {
         vUv = uv;
-        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+        vec3 displaced = position;
+        displaced.x += uShadowOffset.x * 0.45;
+        displaced.y += uShadowOffset.y * 0.45;
+        vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(displaced, 1.0);
         gl_Position = projectionMatrix * mvPosition;
       }
     `,
     fragmentShader: `
+      uniform vec3 uShadowColor;
+      uniform float uShadowDarkness;
       varying vec2 vUv;
       void main() {
         vec2 center = (vUv - vec2(0.5)) * 2.0;
         float dist = length(center);
         if (dist >= 1.0) discard;
         // Soft cubic ease-out falloff from dark core to transparent edge
-        float alpha = smoothstep(1.0, 0.1, dist) * 0.65;
-        gl_FragColor = vec4(0.02, 0.03, 0.05, alpha);
+        float alpha = smoothstep(1.0, 0.1, dist) * uShadowDarkness;
+        gl_FragColor = vec4(uShadowColor, alpha);
       }
     `,
     transparent: true,
     depthWrite: false,
   });
+}
+
+/**
+ * Updates shadow direction and darkness to match the celestial sun position.
+ */
+export function updateBuildingShadowSun(
+  shadowMesh: InstancedMesh,
+  sunDir: { x: number; y: number; z: number },
+  isNight: boolean = false,
+): void {
+  const mat = shadowMesh.material as ShaderMaterial;
+  if (!mat?.uniforms?.uShadowOffset) return;
+
+  const sunY = Math.max(0.1, Math.min(1.0, sunDir.y));
+  const offsetMag = Math.max(0, 0.35 * (1.0 - sunY));
+  mat.uniforms.uShadowOffset.value.set(
+    -sunDir.x * offsetMag,
+    -sunDir.z * offsetMag,
+  );
+
+  if (mat.uniforms.uShadowDarkness) {
+    mat.uniforms.uShadowDarkness.value = isNight ? 0.35 : 0.65;
+  }
+  if (mat.uniforms.uShadowColor) {
+    if (isNight) {
+      mat.uniforms.uShadowColor.value.setRGB(0.015, 0.02, 0.04);
+    } else {
+      mat.uniforms.uShadowColor.value.setRGB(0.02, 0.03, 0.05);
+    }
+  }
 }
 
 export function createBuildingShadowMesh(
