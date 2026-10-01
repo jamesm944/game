@@ -428,3 +428,17 @@ _Avoid_: Idle worker popup, worker buzzer
 An animated expanding pulse ring rendered at specific world coordinates on the minimap to draw attention to critical events (idle villagers, attacks, flare signals).
 _Avoid_: Radar blip, flare (when meaning automated alert)
 
+### Tactical Formations & Command Queuing
+
+**Waypoint Queuing**:
+Sequential activity chaining achieved by holding Shift during right-click contextual orders, appending actions to an entity's ActivityQueue rather than immediately replacing the active command.
+_Avoid_: Shift-queue (bare), order stacking
+
+**Tactical Unit Formation**:
+A geometric arrangement of units in a selected squad (AoE2 Line, Box, Staggered, Flank; Bannerlord Shield Wall, Square, Circle, Wedge) that dictates unit relative spacing, defense bonuses, and marching posture.
+_Avoid_: Group shape, troop stance (when meaning formation geometry)
+
+**Formation Speed Harmonization**:
+The rule governing units marching in formation where all members throttle their movement speed to match the slowest unit in the formation, preserving relative slot geometry during transit.
+_Avoid_: Slowdown, unit pacing
+
