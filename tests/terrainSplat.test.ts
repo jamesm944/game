@@ -14,7 +14,9 @@ import {
   TERRAIN_FOREST_FLOOR,
   type WorldLayers,
 } from "../src/sim/world/layers";
-import { ClampToEdgeWrapping, LinearFilter } from "three";
+// Numeric constants matching Three.js LinearFilter (1006) and ClampToEdgeWrapping (1001)
+const THREE_LINEAR_FILTER = 1006;
+const THREE_CLAMP_TO_EDGE = 1001;
 
 function mockLayers(size = 4): WorldLayers {
   const count = size * size;
@@ -49,10 +51,10 @@ describe("terrain splatmap & mesh (V13, #93)", () => {
 
     expect(splat.image.width).toBe(4);
     expect(splat.image.height).toBe(4);
-    expect(splat.minFilter).toBe(LinearFilter);
-    expect(splat.magFilter).toBe(LinearFilter);
-    expect(splat.wrapS).toBe(ClampToEdgeWrapping);
-    expect(splat.wrapT).toBe(ClampToEdgeWrapping);
+    expect(splat.minFilter).toBe(THREE_LINEAR_FILTER);
+    expect(splat.magFilter).toBe(THREE_LINEAR_FILTER);
+    expect(splat.wrapS).toBe(THREE_CLAMP_TO_EDGE);
+    expect(splat.wrapT).toBe(THREE_CLAMP_TO_EDGE);
 
     const data = splat.image.data as Uint8Array;
 

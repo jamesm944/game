@@ -14,7 +14,6 @@
 import type { BuildingComponents, TrainQueueEntry } from "../components/buildings";
 import {
   getBuildingRow,
-  getBuildingSiteRow,
   populationCapOf,
   populationOf,
   readTrainQueue,

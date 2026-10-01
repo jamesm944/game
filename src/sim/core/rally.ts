@@ -12,7 +12,6 @@
 
 import type { World } from "./world";
 import type { SimComponents } from "../components";
-import { unitDefOf } from "../../data/definitions";
 
 export const SET_RALLY_POINT_KIND = "setRallyPoint";
 export const SET_MULTI_RALLY_POINT_KIND = "setMultiRallyPoint";
@@ -96,8 +95,6 @@ export function dispatchSpawnedUnitToRally(
     const nodeRows = world.rowsByComponentId.get(comps.resourceNodeId);
     const nodeRow = nodeRows?.get(targetEntityId);
     if (nodeRow && nodeRow[1]! > 0) {
-      // Living resource node
-      const uDef = unitDefOf(unitId);
       const isVillager = unitId === "villager";
       const isFishingBoat = unitId === "fishing-boat";
 

@@ -181,6 +181,28 @@ export function consumeStrategy(
     : undefined;
 }
 
+// ---- Graphics quality selection & persistence (P1 / #130) -------------------
+
+export const GRAPHICS_QUALITY_KEY = "ageofwind.graphics";
+export const GRAPHICS_QUALITIES = ["high", "medium", "low"] as const;
+export type GraphicsQuality = (typeof GRAPHICS_QUALITIES)[number];
+
+export function stashGraphicsQuality(
+  storage: SettingsStorage,
+  quality: GraphicsQuality,
+): void {
+  storage.setItem(GRAPHICS_QUALITY_KEY, quality);
+}
+
+export function readStoredGraphicsQuality(
+  storage: SettingsStorage,
+): GraphicsQuality {
+  const raw = storage.getItem(GRAPHICS_QUALITY_KEY);
+  return raw && (GRAPHICS_QUALITIES as readonly string[]).includes(raw)
+    ? (raw as GraphicsQuality)
+    : "high";
+}
+
 // ---- Autosave cadence display -------------------------------------------------
 
 /**
@@ -219,6 +241,10 @@ export interface SettingsPanelDeps {
   onPreviewSound?(clip: "ui.click" | "act.chop" | "ui.order"): void;
   /** Preformatted autosave cadence line. */
   readonly autosaveLabel: string;
+  /** Active graphics quality setting. */
+  readonly graphicsQuality?: GraphicsQuality | undefined;
+  /** Callback triggered when user changes graphics quality. */
+  onSetGraphicsQuality?(quality: GraphicsQuality): void;
 }
 
 export interface SettingsHandle {
@@ -330,6 +356,36 @@ export function createSettingsPanel(deps: SettingsPanelDeps): SettingsHandle {
   strategyNote.textContent = "applies to the next match";
   strategyRow.append(strategySelect, strategyNote);
   panel.append(strategyHeading, strategyRow);
+
+  // Graphics quality selector (P1 / #130)
+  const graphicsHeading = document.createElement("h4");
+  graphicsHeading.textContent = "Graphics quality";
+  const graphicsRow = document.createElement("label");
+  graphicsRow.className = "settings-difficulty-row";
+  const graphicsSelect = document.createElement("select");
+  graphicsSelect.id = "settings-graphics";
+
+  const graphicsOptions: Array<{ id: GraphicsQuality; label: string }> = [
+    { id: "high", label: "High (Shaders & Bloom)" },
+    { id: "medium", label: "Medium (Standard)" },
+    { id: "low", label: "Low (Battery Saver)" },
+  ];
+
+  for (const opt of graphicsOptions) {
+    const option = document.createElement("option");
+    option.value = opt.id;
+    option.textContent = opt.label;
+    graphicsSelect.appendChild(option);
+  }
+  graphicsSelect.value = deps.graphicsQuality ?? "high";
+  graphicsSelect.addEventListener("change", () => {
+    deps.onSetGraphicsQuality?.(graphicsSelect.value as GraphicsQuality);
+  });
+  const graphicsNote = document.createElement("span");
+  graphicsNote.className = "settings-note";
+  graphicsNote.textContent = "live shader switch";
+  graphicsRow.append(graphicsSelect, graphicsNote);
+  panel.append(graphicsHeading, graphicsRow);
 
   // Autosave cadence display (read-only).
   const autosaveRow = document.createElement("div");

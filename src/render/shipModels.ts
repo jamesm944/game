@@ -302,7 +302,6 @@ export async function createShipModelsLayer(
       for (const [id, mesh] of instancedMeshes) {
         const liveList = liveSamplesByUnit.get(id) ?? [];
         const sinkingList = activeSinking.filter((s) => s.unitId === id);
-        const total = liveList.length + sinkingList.length;
         const capacity = mesh.instanceMatrix.count;
         let count = 0;
 

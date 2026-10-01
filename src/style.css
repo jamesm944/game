@@ -1686,14 +1686,16 @@ canvas {
   color: #f0d9a0;
 }
 
-.settings-difficulty-row {
+.settings-difficulty-row,
+.settings-graphics-row {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 3px;
 }
 
-.settings-difficulty-row select {
+.settings-difficulty-row select,
+.settings-graphics-row select {
   font: inherit;
   color: #10141c;
   background: #e8edf5;

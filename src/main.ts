@@ -224,6 +224,10 @@ import {
   type HealthBarAttributeArrays,
 } from "./render/overlayPack";
 import {
+  createPostProcessingPipeline,
+  type PostProcessingPipeline,
+} from "./render/postProcessing";
+import {
   issueAttackMove,
   issueGather,
   issueGuard,
@@ -315,11 +319,14 @@ import {
   createSettingsPanel,
   formatAutosaveInterval,
   persistVolume,
+  readStoredGraphicsQuality,
   readStoredStrategy,
   readStoredVolumes,
   stashDifficulty,
+  stashGraphicsQuality,
   stashStrategy,
   type BusVolumeName,
+  type GraphicsQuality,
 } from "./ui/settings";
 import { createDevStatsHud, type DevStatsHandle } from "./ui/devstats";
 import {
@@ -513,6 +520,18 @@ if (typeof window !== "undefined" && window.__game) {
   window.__game.scene = scene;
   window.__game.renderer = renderer;
   window.__game.sun = sun;
+}
+
+// Graphics quality & post-processing pipeline (P1 / #130)
+let currentGraphicsQuality: GraphicsQuality = readStoredGraphicsQuality(
+  window.localStorage,
+);
+let postProcessing: PostProcessingPipeline | undefined =
+  currentGraphicsQuality === "high"
+    ? createPostProcessingPipeline(window.innerWidth, window.innerHeight)
+    : undefined;
+if (currentGraphicsQuality === "low") {
+  renderer.shadowMap.enabled = false;
 }
 
 // M3-T6 day/night lighting (render-only): the mirror sample's tint
@@ -1126,6 +1145,31 @@ const settingsPanel = createSettingsPanel({
   },
   onPreviewSound: (clip) => {
     audioScheduler.push({ clip, priority: 2 });
+  },
+  graphicsQuality: currentGraphicsQuality,
+  onSetGraphicsQuality: (q) => {
+    currentGraphicsQuality = q;
+    stashGraphicsQuality(window.localStorage, q);
+    if (q === "high") {
+      renderer.shadowMap.enabled = true;
+      if (!postProcessing) {
+        postProcessing = createPostProcessingPipeline(
+          window.innerWidth,
+          window.innerHeight,
+        );
+      }
+    } else {
+      if (postProcessing) {
+        postProcessing.dispose();
+        postProcessing = undefined;
+      }
+      if (q === "low") {
+        renderer.shadowMap.enabled = false;
+      } else {
+        renderer.shadowMap.enabled = true;
+      }
+    }
+    toast.show(`Graphics: ${q}`);
   },
 });
 void settingsPanel;
@@ -2467,6 +2511,7 @@ function updateFps(now: number): void {
 window.addEventListener("resize", () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   cameraRig.resize(window.innerWidth, window.innerHeight);
+  postProcessing?.setSize(window.innerWidth, window.innerHeight);
 });
 
 let lastFrame = performance.now();
@@ -3250,7 +3295,11 @@ function frame(
   companyPanel.refresh();
   companyNewsToasts();
   pollMatchOutcome();
-  renderer.render(scene, cameraRig.camera);
+  if (currentGraphicsQuality === "high" && postProcessing) {
+    postProcessing.render(renderer, scene, cameraRig.camera);
+  } else {
+    renderer.render(scene, cameraRig.camera);
+  }
 
   // SPEC §7 draw-call budget: terrain + instanced sprite field +
   // buildings + EXACTLY TWO overlay draws (selection rings + health
