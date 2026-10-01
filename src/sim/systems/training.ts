@@ -291,13 +291,7 @@ function applyTrainCommand(
 
   // Escrow at enqueue (AoE2-faithful); throws when unaffordable.
   const costs = effectiveCosts(world, target.playerId, unitDef);
-  payCosts(
-    world,
-    comps,
-    target.playerId,
-    costs,
-    `training a ${unitId}`,
-  );
+  payCosts(world, comps, target.playerId, costs, `training a ${unitId}`);
 
   const entries = readTrainQueue(world, comps, target.eid);
   if (entries.length >= queueConfig.capacity) {
@@ -374,7 +368,9 @@ function applySetMultiRallyCommand(
 ): void {
   const bEids = data.buildingEids;
   if (!Array.isArray(bEids) || bEids.length === 0) {
-    throw new Error("setMultiRallyPoint buildingEids must be a non-empty array");
+    throw new Error(
+      "setMultiRallyPoint buildingEids must be a non-empty array",
+    );
   }
   const x = data.x;
   const y = data.y;
@@ -398,7 +394,8 @@ function applySetMultiRallyCommand(
       : undefined;
 
   for (const bEid of bEids) {
-    if (typeof bEid !== "number" || !Number.isInteger(bEid) || bEid < 1) continue;
+    if (typeof bEid !== "number" || !Number.isInteger(bEid) || bEid < 1)
+      continue;
     const row = getBuildingRow(world, comps, bEid);
     if (!row) continue;
     const def = buildingDefOf(buildingIdOfCode(row[1]!));

@@ -21,10 +21,7 @@ import {
   WORK_SLOTS_PER_NODE,
 } from "../components/economy";
 import { getAssignedSite } from "../components/buildings";
-import {
-  readActivityQueue,
-  type SimComponents,
-} from "../components";
+import { readActivityQueue, type SimComponents } from "../components";
 import { peekActivity } from "../activities";
 import { unitIdOfCode } from "../../data/definitions";
 import { currentAgeRankOf } from "../systems/age";
@@ -151,8 +148,7 @@ export function smartRedistributeIdleWorkers(
       return {
         resource: res,
         deficit:
-          Math.round(weight * totalWorkers) -
-          (workersByResource.get(res) ?? 0),
+          Math.round(weight * totalWorkers) - (workersByResource.get(res) ?? 0),
       };
     })
     .sort((a, b) => b.deficit - a.deficit || a.resource - b.resource);
@@ -237,9 +233,7 @@ export function smartRedistributeIdleWorkers(
  * Format a human-readable feedback toast message summarizing redistribution.
  * e.g. "3 idle workers dispatched to wood (2) and food (1)"
  */
-export function formatRedistributionMessage(
-  res: RedistributionResult,
-): string {
+export function formatRedistributionMessage(res: RedistributionResult): string {
   if (res.total === 0) {
     return "No idle workers to redistribute";
   }

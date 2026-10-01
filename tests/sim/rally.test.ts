@@ -65,7 +65,9 @@ function spawnTestBarracks(
   y: number = 10,
   playerId: number = PLAYER_ONE,
 ): number {
-  const siteEid = spawnBuildingSite(world, comps, "barracks", x, y, { playerId });
+  const siteEid = spawnBuildingSite(world, comps, "barracks", x, y, {
+    playerId,
+  });
   completeBuilding(world, comps, siteEid);
   return siteEid;
 }
@@ -125,7 +127,13 @@ describe("dispatchSpawnedUnitToRally", () => {
       PLAYER_ONE,
     );
 
-    dispatchSpawnedUnitToRally(world, comps, soldierEid, barracksEid, "militia");
+    dispatchSpawnedUnitToRally(
+      world,
+      comps,
+      soldierEid,
+      barracksEid,
+      "militia",
+    );
 
     // Check inbox for scheduled groupMove order
     const due = world.inbox.drainDue(world.tick + 1);
@@ -180,7 +188,9 @@ describe("dispatchSpawnedUnitToRally", () => {
       100,
     );
     // Mark depleted
-    world.rowsByComponentId.get(comps.resourceNodeId)!.get(depletedNodeEid)![1] = 0;
+    world.rowsByComponentId
+      .get(comps.resourceNodeId)!
+      .get(depletedNodeEid)![1] = 0;
 
     setRallyPoint(world, tcEid, {
       x: 28,
@@ -207,14 +217,9 @@ describe("dispatchSpawnedUnitToRally", () => {
   it("dispatches spawned villager to construction site rally via build", () => {
     const { world, comps } = setupTestWorld();
     const tcEid = spawnTestTownCenter(world, comps, 20, 20);
-    const siteEid = spawnBuildingSite(
-      world,
-      comps,
-      "house",
-      15,
-      15,
-      { playerId: PLAYER_ONE },
-    );
+    const siteEid = spawnBuildingSite(world, comps, "house", 15, 15, {
+      playerId: PLAYER_ONE,
+    });
 
     setRallyPoint(world, tcEid, { x: 15, y: 15, targetEntityId: siteEid });
 
@@ -238,7 +243,11 @@ describe("dispatchSpawnedUnitToRally", () => {
     const barracksEid = spawnTestBarracks(world, comps, 10, 10);
     const nodeEid = spawnResourceNode(world, comps, 25, 25, RESOURCE_GOLD, 800);
 
-    setRallyPoint(world, barracksEid, { x: 25, y: 25, targetEntityId: nodeEid });
+    setRallyPoint(world, barracksEid, {
+      x: 25,
+      y: 25,
+      targetEntityId: nodeEid,
+    });
 
     const soldierEid = spawnCombatUnit(
       world,
@@ -250,7 +259,13 @@ describe("dispatchSpawnedUnitToRally", () => {
     );
 
     // Militia cannot gather, so it should fall back to ground move
-    dispatchSpawnedUnitToRally(world, comps, soldierEid, barracksEid, "militia");
+    dispatchSpawnedUnitToRally(
+      world,
+      comps,
+      soldierEid,
+      barracksEid,
+      "militia",
+    );
 
     const due = world.inbox.drainDue(world.tick + 1);
     expect(due).toHaveLength(1);
@@ -370,7 +385,11 @@ describe("Training System Rally Command Handling & Spawn Loop", () => {
     // The newly spawned unit should have move target (35, 35)
     let foundMovingUnit = false;
     for (const [eid, target] of moveRows!) {
-      if (eid !== bEid && Math.abs(target[0]! - 35) < 0.1 && Math.abs(target[1]! - 35) < 0.1) {
+      if (
+        eid !== bEid &&
+        Math.abs(target[0]! - 35) < 0.1 &&
+        Math.abs(target[1]! - 35) < 0.1
+      ) {
         foundMovingUnit = true;
         break;
       }

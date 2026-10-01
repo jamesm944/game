@@ -166,4 +166,3 @@ export function effectiveCosts(
 
   return modified ? result : target.costs;
 }
-

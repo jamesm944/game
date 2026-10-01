@@ -159,9 +159,7 @@ export function stashStrategy(
   storage.setItem(STRATEGY_STORAGE_KEY, strategy);
 }
 
-export function readStoredStrategy(
-  storage: SettingsStorage,
-): AiStrategyOption {
+export function readStoredStrategy(storage: SettingsStorage): AiStrategyOption {
   const raw = storage.getItem(STRATEGY_STORAGE_KEY);
   if (raw === "random") return "random";
   return raw && (STRATEGY_IDS as readonly string[]).includes(raw)

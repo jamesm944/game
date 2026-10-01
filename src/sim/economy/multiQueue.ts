@@ -11,7 +11,10 @@
  *    the world inbox targeting the chosen building's EID.
  */
 
-import type { BuildingComponents, TrainQueueEntry } from "../components/buildings";
+import type {
+  BuildingComponents,
+  TrainQueueEntry,
+} from "../components/buildings";
 import {
   getBuildingRow,
   populationCapOf,
@@ -273,7 +276,10 @@ export function pickBuildingForTraining(
     if (score < bestScore) {
       bestScore = score;
       bestEid = bEid;
-    } else if (score === bestScore && (bestEid === undefined || bEid < bestEid)) {
+    } else if (
+      score === bestScore &&
+      (bestEid === undefined || bEid < bestEid)
+    ) {
       bestEid = bEid;
     }
   }
@@ -322,7 +328,10 @@ export function dispatchBalancedTraining(
       issueTrainUnit(inbox, currentTick, targetEid, unitId);
     }
 
-    simulatedAdditions.set(targetEid, (simulatedAdditions.get(targetEid) ?? 0) + 1);
+    simulatedAdditions.set(
+      targetEid,
+      (simulatedAdditions.get(targetEid) ?? 0) + 1,
+    );
     enqueued += 1;
   }
 

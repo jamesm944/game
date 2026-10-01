@@ -1,7 +1,8 @@
 const { chromium } = require("playwright");
 const path = require("path");
 
-const OUT_DIR = "/Users/jamesmoss/.gemini/antigravity-ide/brain/2f658d40-5ac3-4e34-9fc1-c7a4ee96f57b/screenshots";
+const OUT_DIR =
+  "/Users/jamesmoss/.gemini/antigravity-ide/brain/2f658d40-5ac3-4e34-9fc1-c7a4ee96f57b/screenshots";
 
 async function main() {
   const browser = await chromium.launch({
@@ -16,21 +17,38 @@ async function main() {
 
   console.log("Navigating to dev server...");
   await page.goto("http://localhost:5173", { waitUntil: "networkidle" });
-  await page.waitForFunction(() => window.__game !== undefined, { timeout: 15000 });
+  await page.waitForFunction(() => window.__game !== undefined, {
+    timeout: 15000,
+  });
   await page.waitForTimeout(2000);
 
   // 1. Close-up Village
   console.log("Capturing Close-up Village...");
   await page.evaluate(() => {
     const game = window.__game;
-    const { world, comps, cameraRig, stampFinishedBuilding, spawnUnit, session } = game;
+    const {
+      world,
+      comps,
+      cameraRig,
+      stampFinishedBuilding,
+      spawnUnit,
+      session,
+    } = game;
 
     function revealFog(cx, cy, radius) {
       const fog = session.fog;
       const size = fog.state.size;
       const plane = fog.state.planes[0];
-      for (let y = Math.max(0, cy - radius); y <= Math.min(size - 1, cy + radius); y++) {
-        for (let x = Math.max(0, cx - radius); x <= Math.min(size - 1, cx + radius); x++) {
+      for (
+        let y = Math.max(0, cy - radius);
+        y <= Math.min(size - 1, cy + radius);
+        y++
+      ) {
+        for (
+          let x = Math.max(0, cx - radius);
+          x <= Math.min(size - 1, cx + radius);
+          x++
+        ) {
           if (Math.hypot(x - cx, y - cy) <= radius) {
             const idx = y * size + x;
             plane.explored[idx] = 1;
@@ -113,7 +131,11 @@ async function main() {
     const size = fog.state.size;
     const plane = fog.state.planes[0];
     for (let y = Math.max(0, by - 15); y <= Math.min(size - 1, by + 15); y++) {
-      for (let x = Math.max(0, bx - 15); x <= Math.min(size - 1, bx + 15); x++) {
+      for (
+        let x = Math.max(0, bx - 15);
+        x <= Math.min(size - 1, bx + 15);
+        x++
+      ) {
         const idx = y * size + x;
         plane.explored[idx] = 1;
         plane.visible[idx] = 1;
@@ -169,7 +191,11 @@ async function main() {
     const size = fog.state.size;
     const plane = fog.state.planes[0];
     for (let y = Math.max(0, cy - 20); y <= Math.min(size - 1, cy + 20); y++) {
-      for (let x = Math.max(0, cx - 20); x <= Math.min(size - 1, cx + 20); x++) {
+      for (
+        let x = Math.max(0, cx - 20);
+        x <= Math.min(size - 1, cx + 20);
+        x++
+      ) {
         const idx = y * size + x;
         plane.explored[idx] = 1;
         plane.visible[idx] = 1;

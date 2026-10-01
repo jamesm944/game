@@ -15,7 +15,7 @@ import type { WorldLayers } from "../world/layers";
 
 /** Damage multiplier constants — SPEC §2.5 / Issue #107. */
 export const HIGH_GROUND_DAMAGE_MULT = 1.25;
-export const LOW_GROUND_DAMAGE_MULT  = 0.75;
+export const LOW_GROUND_DAMAGE_MULT = 0.75;
 
 /** Minimum level difference to trigger the range/sight bonuses. */
 export const ELEVATION_RANGE_BONUS_THRESHOLD = 1;

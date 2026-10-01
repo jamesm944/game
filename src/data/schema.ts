@@ -371,4 +371,3 @@ export const civSchema = z.object({
 });
 
 export type CivilizationDefinition = z.infer<typeof civSchema>;
-

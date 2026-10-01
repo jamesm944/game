@@ -41,7 +41,9 @@ export function playerColorOf(playerId: number): PlayerColorDef {
   return PLAYER_COLORS[playerId] ?? PLAYER_COLORS[0]!;
 }
 
-export function playerTintOf(playerId: number): readonly [number, number, number] {
+export function playerTintOf(
+  playerId: number,
+): readonly [number, number, number] {
   const p = PLAYER_COLORS[playerId];
   return p ? p.tint : PLAYER_COLORS[0]!.tint;
 }

@@ -265,11 +265,7 @@ export function createToastManager(
     return id;
   }
 
-  function notifyUnderAttack(
-    x: number,
-    y: number,
-    label?: string,
-  ): boolean {
+  function notifyUnderAttack(x: number, y: number, label?: string): boolean {
     const now = Date.now();
     if (now - lastAttackTime < attackThrottleMs) {
       return false;
@@ -301,11 +297,7 @@ export function createToastManager(
     });
   }
 
-  function notifyUnitIdle(
-    x: number,
-    y: number,
-    unitName?: string,
-  ): boolean {
+  function notifyUnitIdle(x: number, y: number, unitName?: string): boolean {
     const now = Date.now();
     if (now - lastIdleTime < idleThrottleMs) {
       return false;

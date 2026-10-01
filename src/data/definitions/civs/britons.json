@@ -8,7 +8,17 @@
   "bonuses": [
     { "target": "unit:archer", "stat": "range", "op": "add", "value": 1 },
     { "target": "unit:arbalest", "stat": "range", "op": "add", "value": 1 },
-    { "target": "activity:gather-food", "stat": "workRate", "op": "mult", "value": 1.2 },
-    { "target": "building:town-center", "stat": "cost:wood", "op": "mult", "value": 0.5 }
+    {
+      "target": "activity:gather-food",
+      "stat": "workRate",
+      "op": "mult",
+      "value": 1.2
+    },
+    {
+      "target": "building:town-center",
+      "stat": "cost:wood",
+      "op": "mult",
+      "value": 0.5
+    }
   ]
 }

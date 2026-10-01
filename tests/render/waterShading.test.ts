@@ -58,9 +58,7 @@ describe("W1: Water Optics & Wave Physics Formulas", () => {
     const deepLum =
       WATER_DEEP_COLOR[0] + WATER_DEEP_COLOR[1] + WATER_DEEP_COLOR[2];
     const shallowLum =
-      WATER_SHALLOW_COLOR[0] +
-      WATER_SHALLOW_COLOR[1] +
-      WATER_SHALLOW_COLOR[2];
+      WATER_SHALLOW_COLOR[0] + WATER_SHALLOW_COLOR[1] + WATER_SHALLOW_COLOR[2];
     expect(deepLum).toBeLessThan(shallowLum);
 
     // Foam is high-albedo sea salt near-white with blue-tinted undertone

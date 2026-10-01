@@ -43,10 +43,22 @@ describe("tile query helpers", () => {
   // Row 3: Water (water)
   const size = 4;
   const terrain = new Uint8Array([
-    TERRAIN_GRASS, TERRAIN_GRASS, TERRAIN_GRASS, TERRAIN_GRASS,
-    TERRAIN_GRASS, TERRAIN_DIRT,  TERRAIN_DIRT,  TERRAIN_GRASS,
-    TERRAIN_SHORE, TERRAIN_SHORE, TERRAIN_SHORE, TERRAIN_SHORE,
-    TERRAIN_WATER, TERRAIN_WATER, TERRAIN_WATER, TERRAIN_DEEP_WATER,
+    TERRAIN_GRASS,
+    TERRAIN_GRASS,
+    TERRAIN_GRASS,
+    TERRAIN_GRASS,
+    TERRAIN_GRASS,
+    TERRAIN_DIRT,
+    TERRAIN_DIRT,
+    TERRAIN_GRASS,
+    TERRAIN_SHORE,
+    TERRAIN_SHORE,
+    TERRAIN_SHORE,
+    TERRAIN_SHORE,
+    TERRAIN_WATER,
+    TERRAIN_WATER,
+    TERRAIN_WATER,
+    TERRAIN_DEEP_WATER,
   ]);
   const elev = new Uint8Array(size * size);
   const layers = buildLayers(terrain, elev);
@@ -91,10 +103,14 @@ describe("tile query helpers", () => {
     expect(navigabilityAt(layers, 0, 0)).toBe(FLAG_WALKABLE_LAND);
 
     // Shoreline land: FLAG_WALKABLE_LAND | FLAG_SHORELINE (5)
-    expect(navigabilityAt(layers, 1, 2)).toBe(FLAG_WALKABLE_LAND | FLAG_SHORELINE);
+    expect(navigabilityAt(layers, 1, 2)).toBe(
+      FLAG_WALKABLE_LAND | FLAG_SHORELINE,
+    );
 
     // Shoreline water: FLAG_NAVIGABLE_WATER | FLAG_SHORELINE (6)
-    expect(navigabilityAt(layers, 1, 3)).toBe(FLAG_NAVIGABLE_WATER | FLAG_SHORELINE);
+    expect(navigabilityAt(layers, 1, 3)).toBe(
+      FLAG_NAVIGABLE_WATER | FLAG_SHORELINE,
+    );
   });
 
   it("derives full water passability for A* pathfinding", () => {

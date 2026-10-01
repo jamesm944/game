@@ -21,7 +21,7 @@ export const WATER_DEEP_COLOR: readonly [number, number, number] = [
 
 /** Shallow coastal turquoise color [R, G, B] */
 export const WATER_SHALLOW_COLOR: readonly [number, number, number] = [
-  0.10, 0.55, 0.65,
+  0.1, 0.55, 0.65,
 ];
 
 /** Seafoam crest and surf color [R, G, B] */
@@ -75,8 +75,9 @@ export function calculateFoamFactor(
   if (shoreProximity < 0.1) return 0;
 
   // Wave wash oscillating against shoreline
-  const surfWave =
-    Math.sin(time * 2.8 - shoreProximity * 14.0 + (worldX + worldZ) * 3.5);
+  const surfWave = Math.sin(
+    time * 2.8 - shoreProximity * 14.0 + (worldX + worldZ) * 3.5,
+  );
   // High-frequency surface froth turbulence
   const froth =
     Math.sin(worldX * 24.0 + time * 2.0) * Math.cos(worldZ * 24.0 - time * 1.5);

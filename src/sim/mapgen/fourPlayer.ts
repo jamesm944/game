@@ -144,9 +144,7 @@ export interface FourPlayerSkirmishOptions {
   readonly spawnFish?: boolean | undefined;
   readonly isIslandMap?: boolean | undefined;
   readonly civilizations?:
-    | ReadonlyMap<number, string>
-    | Readonly<Record<number, string>>
-    | undefined;
+    ReadonlyMap<number, string> | Readonly<Record<number, string>> | undefined;
 }
 
 export type FourPlayerMapOptions = FourPlayerSkirmishOptions;
@@ -685,9 +683,7 @@ export function setupFourPlayerSkirmish(
     }
     if (!civId) {
       civId =
-        DEFAULT_FOUR_PLAYER_CIVS[
-          playerId % DEFAULT_FOUR_PLAYER_CIVS.length
-        ]!;
+        DEFAULT_FOUR_PLAYER_CIVS[playerId % DEFAULT_FOUR_PLAYER_CIVS.length]!;
     }
     setPlayerCivilization(world, playerId, civId);
 

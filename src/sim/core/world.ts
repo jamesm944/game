@@ -111,9 +111,7 @@ export interface CreateWorldOptions {
    * Optional map of player IDs to civilization slugs (Milestone C1 / #118).
    */
   readonly civilizations?:
-    | ReadonlyMap<number, string>
-    | Record<number, string>
-    | undefined;
+    ReadonlyMap<number, string> | Record<number, string> | undefined;
 }
 
 export function createWorld(

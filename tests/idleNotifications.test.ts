@@ -10,7 +10,11 @@ import {
   getIconForKind,
 } from "../src/ui/toasts";
 import { createWorld, type World } from "../src/sim/core/world";
-import { defineSimComponents, spawnUnit, type SimComponents } from "../src/sim/components";
+import {
+  defineSimComponents,
+  spawnUnit,
+  type SimComponents,
+} from "../src/sim/components";
 import { findIdleVillagers } from "../src/sim/economy/idleWorkers";
 import { PLAYER_ONE } from "../src/sim/core/stockpile";
 import { unitCodeOf } from "../src/data/definitions";
@@ -105,13 +109,9 @@ function spawnVillager(
   playerId: number = PLAYER_ONE,
 ): number {
   const eid = spawnUnit(world, comps, x, y, { ownerId: playerId });
-  world.rowsByComponentId.get(comps.combatId)!.set(eid, [
-    VILLAGER_CODE,
-    3,
-    40,
-    0,
-    0,
-  ]);
+  world.rowsByComponentId
+    .get(comps.combatId)!
+    .set(eid, [VILLAGER_CODE, 3, 40, 0, 0]);
   return eid;
 }
 
@@ -143,7 +143,9 @@ describe("Q2: Idle Villager Detection & State Transitions", () => {
     expect(idleAfterNode).toContain(v2);
 
     // Assign v2 to a construction site -> no longer idle
-    const siteEid = spawnBuildingSite(world, comps, "house", 15, 15, { playerId: PLAYER_ONE });
+    const siteEid = spawnBuildingSite(world, comps, "house", 15, 15, {
+      playerId: PLAYER_ONE,
+    });
     assignSite(world, comps, v2, siteEid);
 
     const idleAfterBuild = findIdleVillagers(world, comps, PLAYER_ONE);
@@ -176,7 +178,11 @@ describe("Q2: Idle Villager Notifications & Toast Manager", () => {
     const mockContainer = new MockElement();
     mockContainer.id = "game-toast-container";
 
-    (globalThis as unknown as { document: { createElement: () => HTMLElement } }).document = {
+    (
+      globalThis as unknown as {
+        document: { createElement: () => HTMLElement };
+      }
+    ).document = {
       createElement: () => new MockElement() as unknown as HTMLElement,
     };
 

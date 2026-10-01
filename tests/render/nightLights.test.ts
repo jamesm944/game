@@ -156,8 +156,9 @@ describe("L1: Architectural Night Lights Layer", () => {
 describe("L1: Dynamic Sun Ground Shadows", () => {
   it("adjusts shadow offset and darkness based on celestial sun vector", () => {
     const shadowMesh = createBuildingShadowMesh(64);
-    const mat =
-      shadowMesh.material as ReturnType<typeof createBuildingShadowMaterial>;
+    const mat = shadowMesh.material as ReturnType<
+      typeof createBuildingShadowMaterial
+    >;
 
     expect(mat.uniforms.uShadowOffset).toBeDefined();
     expect(mat.uniforms.uShadowDarkness).toBeDefined();

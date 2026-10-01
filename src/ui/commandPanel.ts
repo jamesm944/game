@@ -14,10 +14,7 @@
  */
 
 export type UnitStance =
-  | "aggressive"
-  | "defensive"
-  | "stand-ground"
-  | "no-attack";
+  "aggressive" | "defensive" | "stand-ground" | "no-attack";
 
 export interface CommandPanelDeps {
   readonly onStop: () => void;
@@ -64,7 +61,8 @@ export const COMMAND_BUTTONS: readonly CommandButtonMeta[] = [
     id: "stance",
     hotkey: "Z",
     name: "Stance",
-    description: "Cycle stance: Aggressive, Defensive, Stand Ground, No Attack (Z)",
+    description:
+      "Cycle stance: Aggressive, Defensive, Stand Ground, No Attack (Z)",
   },
   {
     id: "garrison",
@@ -205,7 +203,11 @@ export function createCommandPanel(deps: CommandPanelDeps): CommandPanelHandle {
 
   return {
     element: panel,
-    update(hasSelection: boolean, stance: UnitStance, garrisonAvailable: boolean): void {
+    update(
+      hasSelection: boolean,
+      stance: UnitStance,
+      garrisonAvailable: boolean,
+    ): void {
       if (!hasSelection) {
         if (lastVisible) {
           panel.classList.remove("visible");

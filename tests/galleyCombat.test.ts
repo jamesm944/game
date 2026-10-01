@@ -63,10 +63,7 @@ import {
   COMBAT_EVENT_DAMAGE,
   COMBAT_EVENT_SHOT,
 } from "../src/sim/components/combat";
-import {
-  unitDefOf,
-  buildingDefOf,
-} from "../src/data/definitions";
+import { unitDefOf, buildingDefOf } from "../src/data/definitions";
 import { deriveUnitStats } from "../src/sim/combat/stats";
 import { AGE_RANK } from "../src/data/schema";
 import {
@@ -121,8 +118,18 @@ function setupTestWorld(): TestHarness {
   stampFinishedBuilding(world, comps, "house", 1, 4, { playerId: PLAYER_ONE });
 
   // Initial stockpile: 1000 wood, 1000 food, 1000 gold
-  createPlayerStockpile(world, comps, PLAYER_ONE, [1000, 1000, 1000, 0, 0, 0, 0]);
-  createPlayerStockpile(world, comps, PLAYER_TWO, [1000, 1000, 1000, 0, 0, 0, 0]);
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_ONE,
+    [1000, 1000, 1000, 0, 0, 0, 0],
+  );
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_TWO,
+    [1000, 1000, 1000, 0, 0, 0, 0],
+  );
 
   createPlayerAgeState(world, comps, PLAYER_ONE);
   createPlayerAgeState(world, comps, PLAYER_TWO);
@@ -156,7 +163,9 @@ describe("Milestone N4: Galley Line Combat", () => {
     expect(warGalley.reloadTicks).toBe(60);
     expect(warGalley.sightRadius).toBe(8);
     expect(warGalley.armorClasses).toContain("ship");
-    expect(warGalley.attackBonuses).toEqual([{ armorClass: "ship", mult: 1.5 }]);
+    expect(warGalley.attackBonuses).toEqual([
+      { armorClass: "ship", mult: 1.5 },
+    ]);
 
     const galleon = unitDefOf("galleon");
     expect(galleon.id).toBe("galleon");
@@ -186,27 +195,51 @@ describe("Milestone N4: Galley Line Combat", () => {
     });
 
     // 1. In Dark Age:
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley")).toBe(false);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley")).toBe(false);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon")).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley"),
+    ).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley"),
+    ).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon"),
+    ).toBe(false);
 
     // 2. Advance to Feudal Age:
     setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, AGE_RANK.feudal);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley")).toBe(false);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon")).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley"),
+    ).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon"),
+    ).toBe(false);
 
     // 3. Advance to Castle Age:
     setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, AGE_RANK.castle);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon")).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon"),
+    ).toBe(false);
 
     // 4. Advance to Imperial Age:
     setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, AGE_RANK.imperial);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon")).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galley"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "war-galley"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "galleon"),
+    ).toBe(true);
   });
 
   it("trains a Galley and spawns it at the Dock water berth", () => {
@@ -227,8 +260,12 @@ describe("Milestone N4: Galley Line Combat", () => {
     step(h.world);
 
     // Deducted 90 wood and 30 gold
-    expect(stockpileAmountsOf(h.world, h.comps, PLAYER_ONE)[1]).toBe(initialWood - 90);
-    expect(stockpileAmountsOf(h.world, h.comps, PLAYER_ONE)[2]).toBe(initialGold - 30);
+    expect(stockpileAmountsOf(h.world, h.comps, PLAYER_ONE)[1]).toBe(
+      initialWood - 90,
+    );
+    expect(stockpileAmountsOf(h.world, h.comps, PLAYER_ONE)[2]).toBe(
+      initialGold - 30,
+    );
 
     // Step through trainTime (900 ticks)
     for (let t = 0; t < 905; t++) {

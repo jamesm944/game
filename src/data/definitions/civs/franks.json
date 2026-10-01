@@ -7,7 +7,17 @@
   "uniqueTechId": "chivalry",
   "bonuses": [
     { "target": "class:cavalry", "stat": "hp", "op": "mult", "value": 1.2 },
-    { "target": "building:castle", "stat": "cost:stone", "op": "mult", "value": 0.75 },
-    { "target": "activity:gather-food", "stat": "workRate", "op": "mult", "value": 1.15 }
+    {
+      "target": "building:castle",
+      "stat": "cost:stone",
+      "op": "mult",
+      "value": 0.75
+    },
+    {
+      "target": "activity:gather-food",
+      "stat": "workRate",
+      "op": "mult",
+      "value": 1.15
+    }
   ]
 }

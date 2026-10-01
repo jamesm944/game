@@ -81,7 +81,10 @@ const SHIP_URLS: Record<NavalUnitId, string> = {
 };
 
 /** Footprint dimensions (width x length in tiles) for scaling. */
-const SHIP_SCALES: Record<NavalUnitId, { width: number; length: number; height: number; draft: number }> = {
+const SHIP_SCALES: Record<
+  NavalUnitId,
+  { width: number; length: number; height: number; draft: number }
+> = {
   "fishing-boat": { width: 0.95, length: 1.15, height: 0.8, draft: 0.12 },
   "transport-ship": { width: 1.1, length: 1.45, height: 0.95, draft: 0.15 },
   galley: { width: 1.35, length: 2.2, height: 2.1, draft: 0.22 },
@@ -166,9 +169,7 @@ function extractShipModel(
   });
 
   const merged =
-    geoms.length > 0
-      ? mergeGeometries(geoms, false)
-      : new BoxGeometry(1, 1, 1);
+    geoms.length > 0 ? mergeGeometries(geoms, false) : new BoxGeometry(1, 1, 1);
 
   const geometry = normalizeShipGeometry(merged, scaleConfig);
   const material =
@@ -335,7 +336,10 @@ export async function createShipModelsLayer(
         for (let i = 0; i < sinkingList.length && count < capacity; i++) {
           const s = sinkingList[i]!;
           const elapsed = timeSec - s.startSec;
-          const progress = Math.min(1.0, Math.max(0.0, elapsed / SINK_DURATION_SEC));
+          const progress = Math.min(
+            1.0,
+            Math.max(0.0, elapsed / SINK_DURATION_SEC),
+          );
 
           const waterY = terrainHeightAt(layers, s.x, s.y);
           // Submerge, pitch, and roll as it takes on water

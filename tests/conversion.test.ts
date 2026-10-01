@@ -28,24 +28,18 @@
 
 import { describe, expect, it } from "vitest";
 import {
-  cancelActivities,
   convertActivity,
   decodeActivities,
   encodeActivities,
-  peekActivity,
 } from "../src/sim/activities";
 import {
   defineSimComponents,
   getCombatRow,
-  getPosition,
   setPosition,
   spawnCombatUnit,
-  writeActivityQueue,
-  readActivityQueue,
   getFaith,
   setFaith,
   getConversionProgress,
-  clearConversion,
 } from "../src/sim/components";
 import {
   computeWorldDigest,
@@ -70,9 +64,10 @@ import {
 import { buildLayers, TERRAIN_GRASS } from "../src/sim/world/layers";
 import { PLAYER_ONE, createPlayerStockpile } from "../src/sim/core/stockpile";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
-import { unitCodeOf, unitDefOf } from "../src/data/definitions";
-import { captureActiveConversions, captureSimSnapshot } from "../src/sim/mirror";
-import { issueConvert } from "../src/ui/orders";
+import {
+  captureActiveConversions,
+  captureSimSnapshot,
+} from "../src/sim/mirror";
 import {
   planMonkConversions,
   isHighValueConversionTarget,
@@ -83,7 +78,10 @@ installSimPurityShims();
 
 const PLAYER_TWO = 1;
 
-function createTestWorld(size = 32, seed = 20260906): {
+function createTestWorld(
+  size = 32,
+  seed = 20260906,
+): {
   world: World;
   comps: ReturnType<typeof defineSimComponents>;
   paths: PathScheduler;
@@ -100,8 +98,14 @@ function createTestWorld(size = 32, seed = 20260906): {
   createPlayerStockpile(world, comps, PLAYER_ONE);
   createPlayerStockpile(world, comps, PLAYER_TWO);
 
-  registerSystem(world, createMovementSystem(comps, paths, createMovementDiagnostics()));
-  registerSystem(world, createCombatSystem(comps, createCombatDiagnostics(), paths));
+  registerSystem(
+    world,
+    createMovementSystem(comps, paths, createMovementDiagnostics()),
+  );
+  registerSystem(
+    world,
+    createCombatSystem(comps, createCombatDiagnostics(), paths),
+  );
 
   return { world, comps, paths };
 }
@@ -153,7 +157,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
   it("successfully converts an enemy knight after 25 cast ticks", () => {
     const { world, comps } = createTestWorld();
     const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-    const knightEid = spawnCombatUnit(world, comps, "knight", 14, 10, PLAYER_TWO);
+    const knightEid = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      14,
+      10,
+      PLAYER_TWO,
+    );
 
     // Verify initial ownership
     expect(getCombatRow(world, comps, monkEid)![1]).toBe(PLAYER_ONE);
@@ -198,9 +209,23 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
   it("interrupts conversion if monk is damaged", () => {
     const { world, comps } = createTestWorld();
     const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-    const targetKnight = spawnCombatUnit(world, comps, "knight", 14, 10, PLAYER_TWO);
+    const targetKnight = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      14,
+      10,
+      PLAYER_TWO,
+    );
     // Enemy archer to attack monk
-    const enemyArcher = spawnCombatUnit(world, comps, "archer", 10, 12, PLAYER_TWO);
+    const enemyArcher = spawnCombatUnit(
+      world,
+      comps,
+      "archer",
+      10,
+      12,
+      PLAYER_TWO,
+    );
 
     // Order monk to convert targetKnight
     world.inbox.submit({
@@ -253,7 +278,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
   it("interrupts conversion if monk receives a move command", () => {
     const { world, comps } = createTestWorld();
     const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-    const targetEid = spawnCombatUnit(world, comps, "militia", 13, 10, PLAYER_TWO);
+    const targetEid = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      13,
+      10,
+      PLAYER_TWO,
+    );
 
     world.inbox.submit({
       kind: CONVERT_COMMAND_KIND,
@@ -295,7 +327,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
   it("interrupts conversion immediately on stop command", () => {
     const { world, comps } = createTestWorld();
     const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-    const targetEid = spawnCombatUnit(world, comps, "militia", 13, 10, PLAYER_TWO);
+    const targetEid = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      13,
+      10,
+      PLAYER_TWO,
+    );
 
     world.inbox.submit({
       kind: CONVERT_COMMAND_KIND,
@@ -330,7 +369,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
   it("interrupts conversion if target leaves sight radius (> 8 tiles)", () => {
     const { world, comps } = createTestWorld();
     const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-    const targetEid = spawnCombatUnit(world, comps, "scout-cavalry", 14, 10, PLAYER_TWO);
+    const targetEid = spawnCombatUnit(
+      world,
+      comps,
+      "scout-cavalry",
+      14,
+      10,
+      PLAYER_TWO,
+    );
 
     world.inbox.submit({
       kind: CONVERT_COMMAND_KIND,
@@ -359,7 +405,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
   it("captureActiveConversions and mirror frame capture active conversions", () => {
     const { world, comps } = createTestWorld();
     const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-    const targetEid = spawnCombatUnit(world, comps, "knight", 14, 10, PLAYER_TWO);
+    const targetEid = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      14,
+      10,
+      PLAYER_TWO,
+    );
 
     world.inbox.submit({
       kind: CONVERT_COMMAND_KIND,
@@ -398,7 +451,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
     const { world, comps } = createTestWorld();
     // AI player is PLAYER_TWO (1)
     const monkEid = spawnCombatUnit(world, comps, "monk", 15, 15, PLAYER_TWO);
-    const enemyKnightEid = spawnCombatUnit(world, comps, "knight", 18, 15, PLAYER_ONE);
+    const enemyKnightEid = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      18,
+      15,
+      PLAYER_ONE,
+    );
 
     // Build AI knowledge for PLAYER_TWO with all-visible view
     const view = {
@@ -406,8 +466,20 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
       isVisible: () => true,
       isExplored: () => true,
       knownEntities: () => [
-        { eid: monkEid, defId: "monk", tileX: 15, tileY: 15, owner: PLAYER_TWO },
-        { eid: enemyKnightEid, defId: "knight", tileX: 18, tileY: 15, owner: PLAYER_ONE },
+        {
+          eid: monkEid,
+          defId: "monk",
+          tileX: 15,
+          tileY: 15,
+          owner: PLAYER_TWO,
+        },
+        {
+          eid: enemyKnightEid,
+          defId: "knight",
+          tileX: 18,
+          tileY: 15,
+          owner: PLAYER_ONE,
+        },
       ],
       lastKnown: () => undefined,
     };
@@ -431,7 +503,14 @@ describe("Monk conversion mechanic (V14 Issue #101)", () => {
     const runSim = (): string => {
       const { world, comps } = createTestWorld(32, 424242);
       const monkEid = spawnCombatUnit(world, comps, "monk", 10, 10, PLAYER_ONE);
-      const targetEid = spawnCombatUnit(world, comps, "knight", 14, 10, PLAYER_TWO);
+      const targetEid = spawnCombatUnit(
+        world,
+        comps,
+        "knight",
+        14,
+        10,
+        PLAYER_TWO,
+      );
 
       world.inbox.submit({
         kind: CONVERT_COMMAND_KIND,

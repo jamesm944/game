@@ -100,10 +100,10 @@ function spawnVillager(
   const eid = spawnUnit(world, comps, x, y, { ownerId: playerId });
   world.rowsByComponentId.get(comps.combatId)!.set(eid, [
     VILLAGER_CODE, // unitCode
-    3,             // attack (villager gathering tool)
-    40,            // hp
-    0,             // targetEid (none)
-    0,             // reloadCounter
+    3, // attack (villager gathering tool)
+    40, // hp
+    0, // targetEid (none)
+    0, // reloadCounter
   ]);
   return eid;
 }
@@ -165,7 +165,7 @@ describe("findIdleVillagers", () => {
     const { world, comps } = makeHarness();
     const otherPlayer = 2;
     const playerUnit = spawnVillager(world, comps, 5, 5, PLAYER_ONE);
-    const enemyUnit  = spawnVillager(world, comps, 20, 20, otherPlayer);
+    const enemyUnit = spawnVillager(world, comps, 20, 20, otherPlayer);
     step(world);
 
     const idle = findIdleVillagers(world, comps, PLAYER_ONE);
@@ -216,7 +216,9 @@ describe("smartRedistributeIdleWorkers", () => {
   it("does not exceed node capacity (work slots)", () => {
     const { world, comps } = makeHarness();
     // Node with only 1 slot
-    spawnResourceNode(world, comps, 15, 15, RESOURCE_FOOD, 200, { workSlots: 1 });
+    spawnResourceNode(world, comps, 15, 15, RESOURCE_FOOD, 200, {
+      workSlots: 1,
+    });
 
     // Three idle villagers compete for 1 slot
     spawnVillager(world, comps, 15, 15);
@@ -234,7 +236,9 @@ describe("smartRedistributeIdleWorkers", () => {
     // Use amount=1 which is the minimum valid, then manually deplete it
     const nodeEid = spawnResourceNode(world, comps, 15, 15, RESOURCE_FOOD, 1);
     // Deplete manually
-    world.rowsByComponentId.get(comps.resourceNodeId)!.set(nodeEid, [RESOURCE_FOOD, 0, 4]);
+    world.rowsByComponentId
+      .get(comps.resourceNodeId)!
+      .set(nodeEid, [RESOURCE_FOOD, 0, 4]);
 
     spawnVillager(world, comps, 15, 15);
     step(world);
@@ -278,7 +282,9 @@ describe("smartRedistributeIdleWorkers", () => {
     const submitted: Array<{ kind: string; data: { nodeId: number } }> = [];
     const origSubmit = world.inbox.submit.bind(world.inbox);
     world.inbox.submit = (cmd) => {
-      submitted.push(cmd as unknown as { kind: string; data: { nodeId: number } });
+      submitted.push(
+        cmd as unknown as { kind: string; data: { nodeId: number } },
+      );
       origSubmit(cmd);
     };
 
@@ -293,8 +299,12 @@ describe("smartRedistributeIdleWorkers", () => {
   it("spreads workers across multiple resources matching age weights", () => {
     const { world, comps } = makeHarness();
     // Generous food and wood nodes
-    spawnResourceNode(world, comps, 10, 10, RESOURCE_FOOD, 500, { workSlots: 10 });
-    spawnResourceNode(world, comps, 20, 20, RESOURCE_WOOD, 500, { workSlots: 10 });
+    spawnResourceNode(world, comps, 10, 10, RESOURCE_FOOD, 500, {
+      workSlots: 10,
+    });
+    spawnResourceNode(world, comps, 20, 20, RESOURCE_WOOD, 500, {
+      workSlots: 10,
+    });
 
     // 6 idle villagers
     for (let i = 0; i < 6; i++) {

@@ -485,8 +485,13 @@ export function populationOf(
       count += 1;
     }
   }
-  if ("garrisonId" in comps && typeof (comps as { garrisonId?: number }).garrisonId === "number") {
-    const garrisonRows = world.rowsByComponentId.get((comps as { garrisonId: number }).garrisonId);
+  if (
+    "garrisonId" in comps &&
+    typeof (comps as { garrisonId?: number }).garrisonId === "number"
+  ) {
+    const garrisonRows = world.rowsByComponentId.get(
+      (comps as { garrisonId: number }).garrisonId,
+    );
     if (garrisonRows) {
       for (const [, gRow] of garrisonRows) {
         const gCount = gRow[0] ?? 0;

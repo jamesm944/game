@@ -111,10 +111,16 @@ export function createCastBars(
 
   return {
     mesh,
-    write(origins: Float32Array, progress: Float32Array, count: number): number {
+    write(
+      origins: Float32Array,
+      progress: Float32Array,
+      count: number,
+    ): number {
       const visible = Math.min(count, capacity);
       if (visible > 0) {
-        (originAttr.array as Float32Array).set(origins.subarray(0, visible * 3));
+        (originAttr.array as Float32Array).set(
+          origins.subarray(0, visible * 3),
+        );
         (progressAttr.array as Float32Array).set(progress.subarray(0, visible));
         originAttr.needsUpdate = true;
         progressAttr.needsUpdate = true;

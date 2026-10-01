@@ -381,7 +381,9 @@ export function captureActiveConversions(
   const posRows = world.rowsByComponentId.get(comps.positionId);
   if (!posRows) return [];
 
-  const combatRows = comps.combatId ? world.rowsByComponentId.get(comps.combatId) : undefined;
+  const combatRows = comps.combatId
+    ? world.rowsByComponentId.get(comps.combatId)
+    : undefined;
   const result: ActiveConversion[] = [];
 
   for (const [monkEid, fRow] of faithRows) {

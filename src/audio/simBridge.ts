@@ -104,7 +104,11 @@ export function collectAudioIntents(
         const position = worldX !== undefined ? { worldX } : {};
         if (resCode === RESOURCE_WOOD) {
           intents.push({ clip: "act.chop", ...position, priority: 1 });
-        } else if (resCode !== undefined && resCode >= RESOURCE_GOLD && resCode <= RESOURCE_CLAY) {
+        } else if (
+          resCode !== undefined &&
+          resCode >= RESOURCE_GOLD &&
+          resCode <= RESOURCE_CLAY
+        ) {
           intents.push({ clip: "act.mine", ...position, priority: 1 });
         }
       }

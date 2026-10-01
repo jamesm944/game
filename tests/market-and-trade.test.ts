@@ -11,7 +11,10 @@ import {
   TRADE_ROUTE_COMMAND_KIND,
 } from "../src/sim/systems/market";
 import { planTradeRoutes } from "../src/sim/ai/tradeManager";
-import { createResourceBudget, type AiKnowledge } from "../src/sim/ai/knowledge";
+import {
+  createResourceBudget,
+  type AiKnowledge,
+} from "../src/sim/ai/knowledge";
 import type { CommandDraft } from "../src/sim/ai/buildOrder";
 import {
   RESOURCE_FOOD,
@@ -351,16 +354,33 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
     // Register market system with tradeWaitTicks = 2
     registerSystem(world, createMarketSystem({ comps, tradeWaitTicks: 2 }));
 
-    createPlayerStockpile(world, comps, PLAYER_ONE, [100, 100, 100, 100, 0, 0, 0]);
-    createPlayerStockpile(world, comps, PLAYER_TWO, [100, 100, 100, 100, 0, 0, 0]);
+    createPlayerStockpile(
+      world,
+      comps,
+      PLAYER_ONE,
+      [100, 100, 100, 100, 0, 0, 0],
+    );
+    createPlayerStockpile(
+      world,
+      comps,
+      PLAYER_TWO,
+      [100, 100, 100, 100, 0, 0, 0],
+    );
 
-    const homeEid = stampFinishedBuilding(world, comps, "market", 10, 10, {
+    stampFinishedBuilding(world, comps, "market", 10, 10, {
       playerId: PLAYER_ONE,
     });
     const targetEid = stampFinishedBuilding(world, comps, "market", 30, 10, {
       playerId: PLAYER_TWO,
     });
-    const cartEid = spawnCombatUnit(world, comps, "trade-cart", 12, 12, PLAYER_ONE);
+    const cartEid = spawnCombatUnit(
+      world,
+      comps,
+      "trade-cart",
+      12,
+      12,
+      PLAYER_ONE,
+    );
 
     world.inbox.submit({
       kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
@@ -393,7 +413,7 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
       finishedBuildings: (defId?: string) => (defId === "market" ? [100] : []),
       knownTargetMarkets: () => [{ eid: 200, tileX: 40, tileY: 40 }],
       tradeCarts: () => [{ eid: 50, tileX: 12, tileY: 12 }],
-      isTradeCartActive: (eid: number) => false,
+      isTradeCartActive: (_eid: number) => false,
       population: () => 5,
       populationCap: () => 15,
       canTrain: () => true,
@@ -454,16 +474,33 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
     // 2-tick wait for test brevity
     registerSystem(world, createMarketSystem({ comps, tradeWaitTicks: 2 }));
 
-    createPlayerStockpile(world, comps, PLAYER_ONE, [500, 500, 100, 500, 0, 0, 0]);
-    createPlayerStockpile(world, comps, PLAYER_TWO, [500, 500, 100, 500, 0, 0, 0]);
+    createPlayerStockpile(
+      world,
+      comps,
+      PLAYER_ONE,
+      [500, 500, 100, 500, 0, 0, 0],
+    );
+    createPlayerStockpile(
+      world,
+      comps,
+      PLAYER_TWO,
+      [500, 500, 100, 500, 0, 0, 0],
+    );
 
-    const homeEid = stampFinishedBuilding(world, comps, "market", 10, 10, {
+    stampFinishedBuilding(world, comps, "market", 10, 10, {
       playerId: PLAYER_ONE,
     });
     const targetEid = stampFinishedBuilding(world, comps, "market", 30, 10, {
       playerId: PLAYER_TWO,
     });
-    const cartEid = spawnCombatUnit(world, comps, "trade-cart", 12, 12, PLAYER_ONE);
+    const cartEid = spawnCombatUnit(
+      world,
+      comps,
+      "trade-cart",
+      12,
+      12,
+      PLAYER_ONE,
+    );
 
     world.inbox.submit({
       kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
@@ -504,13 +541,20 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
   it("cleans up trade route if cart or market is destroyed", () => {
     const { world, comps } = createHarness();
 
-    const homeEid = stampFinishedBuilding(world, comps, "market", 10, 10, {
+    stampFinishedBuilding(world, comps, "market", 10, 10, {
       playerId: PLAYER_ONE,
     });
     const targetEid = stampFinishedBuilding(world, comps, "market", 30, 10, {
       playerId: PLAYER_TWO,
     });
-    const cartEid = spawnCombatUnit(world, comps, "trade-cart", 12, 12, PLAYER_ONE);
+    const cartEid = spawnCombatUnit(
+      world,
+      comps,
+      "trade-cart",
+      12,
+      12,
+      PLAYER_ONE,
+    );
 
     world.inbox.submit({
       kind: ASSIGN_TRADE_ROUTE_COMMAND_KIND,
@@ -530,4 +574,3 @@ describe("V9: Market & Trade Carts (Issue #80)", () => {
     expect(routes.has(cartEid)).toBe(false);
   });
 });
-

@@ -28,17 +28,11 @@ import {
 } from "../src/sim/core/world";
 import {
   defineSimComponents,
-  getPosition,
   spawnCombatUnit,
   combatHpOf,
-  combatDefOf,
   type SimComponents,
 } from "../src/sim/components";
-import {
-  createPlayerStockpile,
-  PLAYER_ONE,
-  stockpileAmountsOf,
-} from "../src/sim/core/stockpile";
+import { createPlayerStockpile, PLAYER_ONE } from "../src/sim/core/stockpile";
 
 const PLAYER_TWO = 1;
 import {
@@ -48,7 +42,6 @@ import {
 import {
   createTrainingSystem,
   canEnqueueTraining,
-  TRAIN_UNIT_KIND,
 } from "../src/sim/systems/training";
 import { createMovementSystem } from "../src/sim/systems/movement";
 import {
@@ -56,10 +49,7 @@ import {
   createCombatDiagnostics,
   ATTACK_COMMAND_KIND,
 } from "../src/sim/systems/combat";
-import {
-  unitDefOf,
-  buildingDefOf,
-} from "../src/data/definitions";
+import { unitDefOf, buildingDefOf } from "../src/data/definitions";
 import { deriveUnitStats } from "../src/sim/combat/stats";
 import { AGE_RANK } from "../src/data/schema";
 import {
@@ -112,8 +102,18 @@ function setupTestWorld(): TestHarness {
   stampFinishedBuilding(world, comps, "house", 1, 7, { playerId: PLAYER_ONE });
 
   // Generous stockpile: 2000 wood, 2000 food, 2000 gold
-  createPlayerStockpile(world, comps, PLAYER_ONE, [2000, 2000, 2000, 0, 0, 0, 0]);
-  createPlayerStockpile(world, comps, PLAYER_TWO, [2000, 2000, 2000, 0, 0, 0, 0]);
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_ONE,
+    [2000, 2000, 2000, 0, 0, 0, 0],
+  );
+  createPlayerStockpile(
+    world,
+    comps,
+    PLAYER_TWO,
+    [2000, 2000, 2000, 0, 0, 0, 0],
+  );
 
   createPlayerAgeState(world, comps, PLAYER_ONE);
   createPlayerAgeState(world, comps, PLAYER_TWO);
@@ -134,7 +134,9 @@ describe("Milestone N5: Advanced Fleet — Fire Ship & Cannon Galleon", () => {
     expect(fireShip.aoeRadius).toBe(1.5);
     expect(fireShip.reloadTicks).toBe(90);
     expect(fireShip.armorClasses).toContain("ship");
-    expect(fireShip.attackBonuses).toEqual([{ armorClass: "ship", mult: 1.25 }]);
+    expect(fireShip.attackBonuses).toEqual([
+      { armorClass: "ship", mult: 1.25 },
+    ]);
 
     const cannonGalleon = unitDefOf("cannon-galleon");
     expect(cannonGalleon.id).toBe("cannon-galleon");
@@ -147,7 +149,9 @@ describe("Milestone N5: Advanced Fleet — Fire Ship & Cannon Galleon", () => {
     expect(cannonGalleon.reloadTicks).toBe(150);
     expect(cannonGalleon.sightRadius).toBe(10);
     expect(cannonGalleon.armorClasses).toContain("ship");
-    expect(cannonGalleon.attackBonuses).toEqual([{ armorClass: "building", mult: 1.5 }]);
+    expect(cannonGalleon.attackBonuses).toEqual([
+      { armorClass: "building", mult: 1.5 },
+    ]);
 
     // Dock should include both
     const dock = buildingDefOf("dock");
@@ -163,23 +167,63 @@ describe("Milestone N5: Advanced Fleet — Fire Ship & Cannon Galleon", () => {
     });
 
     // Dark Age — neither available
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship")).toBe(false);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "cannon-galleon")).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship"),
+    ).toBe(false);
+    expect(
+      canEnqueueTraining(
+        h.world,
+        h.comps,
+        dockEid,
+        PLAYER_ONE,
+        "cannon-galleon",
+      ),
+    ).toBe(false);
 
     // Feudal Age — neither available
     setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, AGE_RANK.feudal);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship")).toBe(false);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "cannon-galleon")).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship"),
+    ).toBe(false);
+    expect(
+      canEnqueueTraining(
+        h.world,
+        h.comps,
+        dockEid,
+        PLAYER_ONE,
+        "cannon-galleon",
+      ),
+    ).toBe(false);
 
     // Castle Age — Fire Ship becomes available; Cannon Galleon still locked
     setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, AGE_RANK.castle);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "cannon-galleon")).toBe(false);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(
+        h.world,
+        h.comps,
+        dockEid,
+        PLAYER_ONE,
+        "cannon-galleon",
+      ),
+    ).toBe(false);
 
     // Imperial Age — both available
     setPlayerAgeRank(h.world, h.comps, PLAYER_ONE, AGE_RANK.imperial);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship")).toBe(true);
-    expect(canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "cannon-galleon")).toBe(true);
+    expect(
+      canEnqueueTraining(h.world, h.comps, dockEid, PLAYER_ONE, "fire-ship"),
+    ).toBe(true);
+    expect(
+      canEnqueueTraining(
+        h.world,
+        h.comps,
+        dockEid,
+        PLAYER_ONE,
+        "cannon-galleon",
+      ),
+    ).toBe(true);
   });
 
   it("verifies Fire Ship splash AoE damages adjacent ship within 1.5 tiles", () => {
@@ -258,9 +302,16 @@ describe("Milestone N5: Advanced Fleet — Fire Ship & Cannon Galleon", () => {
     attachOwner(h.world, h.comps, cannonEid, PLAYER_ONE);
 
     // Enemy watch tower on land at (10, 10) — distance = 6, well within range 12
-    const targetTower = stampFinishedBuilding(h.world, h.comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_TWO,
-    });
+    const targetTower = stampFinishedBuilding(
+      h.world,
+      h.comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_TWO,
+      },
+    );
 
     // Buildings store HP at row index [4] via buildingId component
     // Building row: [ownerPlayerId, defCode, originTileX, originTileY, hp]

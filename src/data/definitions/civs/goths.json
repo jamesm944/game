@@ -6,8 +6,18 @@
   "uniqueUnitId": "huskarl",
   "uniqueTechId": "anarchy",
   "bonuses": [
-    { "target": "class:infantry", "stat": "cost:all", "op": "mult", "value": 0.75 },
-    { "target": "building:town-center", "stat": "populationCap", "op": "add", "value": 10 },
+    {
+      "target": "class:infantry",
+      "stat": "cost:all",
+      "op": "mult",
+      "value": 0.75
+    },
+    {
+      "target": "building:town-center",
+      "stat": "populationCap",
+      "op": "add",
+      "value": 10
+    },
     { "target": "class:infantry", "stat": "attack", "op": "add", "value": 2 }
   ]
 }

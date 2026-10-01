@@ -25,9 +25,7 @@ import {
 import { AI_DIFFICULTIES } from "../src/sim/ai/difficulty";
 
 /** Minimal knowledge stub: only what each scenario needs. */
-function knowledgeStub(
-  parts: Partial<AiKnowledge> = {},
-): AiKnowledge {
+function knowledgeStub(parts: Partial<AiKnowledge> = {}): AiKnowledge {
   const never = (): never => {
     throw new Error("not needed in this scenario");
   };

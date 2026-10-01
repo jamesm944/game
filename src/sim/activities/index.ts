@@ -253,6 +253,85 @@ export function cancelActivities(queue: ActivityQueue): void {
   queue.length = 0;
 }
 
+/**
+ * Retrieve the destination coordinate of the last queued activity in an activity queue,
+ * or fallback to the provided default coordinate if no queued destination exists.
+ */
+export function getLastQueuedDestination(
+  queue: readonly Activity[],
+  defaultX: number,
+  defaultY: number,
+): { x: number; y: number } {
+  for (let i = queue.length - 1; i >= 0; i--) {
+    const act = queue[i]!;
+    if (act.kind === "move" || act.kind === "attackMove") {
+      if (act.waypoints.length >= 2) {
+        return {
+          x: act.waypoints[act.waypoints.length - 2]!,
+          y: act.waypoints[act.waypoints.length - 1]!,
+        };
+      }
+    } else if (act.kind === "patrol") {
+      if (act.waypoints.length >= 2) {
+        return {
+          x: act.waypoints[act.waypoints.length - 2]!,
+          y: act.waypoints[act.waypoints.length - 1]!,
+        };
+      }
+    }
+  }
+  return { x: defaultX, y: defaultY };
+}
+
+/**
+ * Extract a sequenced chain of world waypoint coordinates for a unit from its current position
+ * and pending ActivityQueue. Returns an empty array if there are no pending waypoints to steer toward.
+ */
+export function extractWaypointChain(
+  currentX: number,
+  currentY: number,
+  queue: readonly Activity[],
+): { x: number; y: number }[] {
+  if (queue.length === 0) return [];
+  const points: { x: number; y: number }[] = [{ x: currentX, y: currentY }];
+
+  for (let i = 0; i < queue.length; i++) {
+    const act = queue[i]!;
+    if (act.kind === "move" || act.kind === "attackMove") {
+      const startCursor = i === 0 ? act.cursor : 0;
+      for (let k = startCursor; k < act.waypoints.length; k += 2) {
+        const wx = act.waypoints[k]!;
+        const wy = act.waypoints[k + 1]!;
+        const last = points[points.length - 1];
+        if (
+          !last ||
+          Math.abs(last.x - wx) > 0.05 ||
+          Math.abs(last.y - wy) > 0.05
+        ) {
+          points.push({ x: wx, y: wy });
+        }
+      }
+    } else if (act.kind === "patrol") {
+      const startCursor = i === 0 ? act.cursor : 0;
+      for (let k = startCursor; k < act.waypoints.length; k += 2) {
+        const wx = act.waypoints[k]!;
+        const wy = act.waypoints[k + 1]!;
+        const last = points[points.length - 1];
+        if (
+          !last ||
+          Math.abs(last.x - wx) > 0.05 ||
+          Math.abs(last.y - wy) > 0.05
+        ) {
+          points.push({ x: wx, y: wy });
+        }
+      }
+    }
+  }
+
+  if (points.length <= 1) return [];
+  return points;
+}
+
 /** Build a Move activity over a copy of the given flat waypoints. */
 export function moveActivity(waypoints: readonly number[]): MoveActivity {
   if (waypoints.length < 2 || waypoints.length % 2 !== 0) {
@@ -687,7 +766,9 @@ export function decodeActivities(row: readonly number[]): ActivityQueue {
       const cursor = payload[0]!;
       const dirFlag = payload[1]!;
       if (dirFlag !== 0 && dirFlag !== 1) {
-        throw new Error(`patrol activity ${String(i)} has malformed direction flag`);
+        throw new Error(
+          `patrol activity ${String(i)} has malformed direction flag`,
+        );
       }
       const waypoints = payload.slice(2);
       if (

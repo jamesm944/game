@@ -26,7 +26,10 @@ import {
 } from "../../src/sim/components/buildings";
 import { resolveGatherInterval } from "../../src/sim/systems/skills";
 import { createPlayerStockpile } from "../../src/sim/core/stockpile";
-import { createPlayerAgeState, setPlayerAgeRank } from "../../src/sim/components/age";
+import {
+  createPlayerAgeState,
+  setPlayerAgeRank,
+} from "../../src/sim/components/age";
 import { canEnqueueTraining } from "../../src/sim/systems/training";
 import { canAfford } from "../../src/sim/systems/placement";
 import { RESOURCE_FOOD, RESOURCE_WOOD } from "../../src/sim/components/economy";
@@ -67,18 +70,26 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
 
       const archerDef = unitDefOf("archer");
       const baseArcherStats = deriveUnitStats(archerDef, {});
-      const britonArcherStats = deriveUnitStats(archerDef, { civBonuses: bonuses });
+      const britonArcherStats = deriveUnitStats(archerDef, {
+        civBonuses: bonuses,
+      });
       expect(britonArcherStats.range).toBe(baseArcherStats.range + 1);
 
       const arbalestDef = unitDefOf("arbalest");
       const baseArbalestStats = deriveUnitStats(arbalestDef, {});
-      const britonArbalestStats = deriveUnitStats(arbalestDef, { civBonuses: bonuses });
+      const britonArbalestStats = deriveUnitStats(arbalestDef, {
+        civBonuses: bonuses,
+      });
       expect(britonArbalestStats.range).toBe(baseArbalestStats.range + 1);
 
       // Other units (e.g. skirmisher, knight) do not receive the range bonus
       const skirmisherDef = unitDefOf("skirmisher");
-      const britonSkirmStats = deriveUnitStats(skirmisherDef, { civBonuses: bonuses });
-      expect(britonSkirmStats.range).toBe(deriveUnitStats(skirmisherDef, {}).range);
+      const britonSkirmStats = deriveUnitStats(skirmisherDef, {
+        civBonuses: bonuses,
+      });
+      expect(britonSkirmStats.range).toBe(
+        deriveUnitStats(skirmisherDef, {}).range,
+      );
     });
 
     it("applies 1.2x food gather work rate bonus", () => {
@@ -165,21 +176,27 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
       const knightDef = unitDefOf("knight");
       const baseKnightStats = deriveUnitStats(knightDef, {});
       expect(baseKnightStats.hp).toBe(70);
-      const frankKnightStats = deriveUnitStats(knightDef, { civBonuses: bonuses });
+      const frankKnightStats = deriveUnitStats(knightDef, {
+        civBonuses: bonuses,
+      });
       // Base knight HP = 70, +20% = 84 HP
       expect(frankKnightStats.hp).toBe(84);
 
       const scoutDef = unitDefOf("scout-cavalry");
       const baseScoutStats = deriveUnitStats(scoutDef, {});
       expect(baseScoutStats.hp).toBe(45);
-      const frankScoutStats = deriveUnitStats(scoutDef, { civBonuses: bonuses });
+      const frankScoutStats = deriveUnitStats(scoutDef, {
+        civBonuses: bonuses,
+      });
       // Base scout HP = 45, +20% = 54 HP
       expect(frankScoutStats.hp).toBe(54);
 
       // Spawning unit directly gets the bonus HP
       const comps = defineSimComponents(world);
       const knightEid = spawnCombatUnit(world, comps, "knight", 10, 10, 0);
-      const combatRow = world.rowsByComponentId.get(comps.combatId)!.get(knightEid)!;
+      const combatRow = world.rowsByComponentId
+        .get(comps.combatId)!
+        .get(knightEid)!;
       expect(combatRow[2]).toBe(84); // hp
     });
 
@@ -262,11 +279,15 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
       setPlayerCivilization(world, 1, "britons");
 
       // Spawn completed Town Center for Goths (player 0)
-      const siteEid0 = spawnBuildingSite(world, comps, "town-center", 10, 10, { playerId: 0 });
+      const siteEid0 = spawnBuildingSite(world, comps, "town-center", 10, 10, {
+        playerId: 0,
+      });
       completeBuilding(world, comps, siteEid0);
 
       // Spawn completed Town Center for Britons (player 1)
-      const siteEid1 = spawnBuildingSite(world, comps, "town-center", 30, 30, { playerId: 1 });
+      const siteEid1 = spawnBuildingSite(world, comps, "town-center", 30, 30, {
+        playerId: 1,
+      });
       completeBuilding(world, comps, siteEid1);
 
       // Base TC popCap = 5. Goths get +10 = 15
@@ -314,9 +335,13 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
       expect(buildingMaxHp(world, 0, "town-center")).toBe(3000);
       expect(buildingMaxHp(world, 1, "town-center")).toBe(2400);
 
-      const siteEid = spawnBuildingSite(world, comps, "town-center", 10, 10, { playerId: 0 });
+      const siteEid = spawnBuildingSite(world, comps, "town-center", 10, 10, {
+        playerId: 0,
+      });
       const completed = completeBuilding(world, comps, siteEid);
-      const bRow = world.rowsByComponentId.get(comps.buildingId)!.get(completed.eid)!;
+      const bRow = world.rowsByComponentId
+        .get(comps.buildingId)!
+        .get(completed.eid)!;
       expect(bRow[4]).toBe(3000); // completed building HP
     });
 
@@ -401,27 +426,39 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
       setPlayerAgeRank(world, comps, 1, 3); // Castle Age
 
       // Spawn Castle for Britons (Player 0)
-      const bCastleSite = spawnBuildingSite(world, comps, "castle", 10, 10, { playerId: 0 });
+      const bCastleSite = spawnBuildingSite(world, comps, "castle", 10, 10, {
+        playerId: 0,
+      });
       completeBuilding(world, comps, bCastleSite);
 
       // Spawn Castle for Franks (Player 1)
-      const fCastleSite = spawnBuildingSite(world, comps, "castle", 30, 30, { playerId: 1 });
+      const fCastleSite = spawnBuildingSite(world, comps, "castle", 30, 30, {
+        playerId: 1,
+      });
       completeBuilding(world, comps, fCastleSite);
 
       // Britons castle can enqueue Longbowman, cannot enqueue Throwing Axeman
-      expect(canEnqueueTraining(world, comps, bCastleSite, 0, "longbowman")).toBe(true);
-      expect(canEnqueueTraining(world, comps, bCastleSite, 0, "throwing-axeman")).toBe(false);
+      expect(
+        canEnqueueTraining(world, comps, bCastleSite, 0, "longbowman"),
+      ).toBe(true);
+      expect(
+        canEnqueueTraining(world, comps, bCastleSite, 0, "throwing-axeman"),
+      ).toBe(false);
 
       // Franks castle can enqueue Throwing Axeman, cannot enqueue Longbowman
-      expect(canEnqueueTraining(world, comps, fCastleSite, 1, "throwing-axeman")).toBe(true);
-      expect(canEnqueueTraining(world, comps, fCastleSite, 1, "longbowman")).toBe(false);
+      expect(
+        canEnqueueTraining(world, comps, fCastleSite, 1, "throwing-axeman"),
+      ).toBe(true);
+      expect(
+        canEnqueueTraining(world, comps, fCastleSite, 1, "longbowman"),
+      ).toBe(false);
     });
 
     it("canAfford considers civilization discounts", () => {
       const world = createWorld(42);
       const comps = defineSimComponents(world);
       setPlayerCivilization(world, 0, "britons"); // TC wood -50% (150 wood)
-      setPlayerCivilization(world, 1, "franks");  // TC full cost (300 wood)
+      setPlayerCivilization(world, 1, "franks"); // TC full cost (300 wood)
 
       // Give player 0 exactly 200 wood (more than 150, less than 300)
       createPlayerStockpile(world, comps, 0, [0, 200, 0, 0, 0, 0, 0]);
@@ -475,9 +512,13 @@ describe("Civilization Bonuses & Asymmetry (Milestone C1 / Issue #118)", () => {
       expect(effectiveCosts(world, 0, tcDef)).toBe(tcDef.costs);
       expect(buildingMaxHp(world, 0, "town-center")).toBe(tcDef.hp);
 
-      const siteEid = spawnBuildingSite(world, comps, "town-center", 10, 10, { playerId: 0 });
+      const siteEid = spawnBuildingSite(world, comps, "town-center", 10, 10, {
+        playerId: 0,
+      });
       const completed = completeBuilding(world, comps, siteEid);
-      const bRow = world.rowsByComponentId.get(comps.buildingId)!.get(completed.eid)!;
+      const bRow = world.rowsByComponentId
+        .get(comps.buildingId)!
+        .get(completed.eid)!;
       expect(bRow[4]).toBe(tcDef.hp);
 
       expect(populationCapOf(world, comps, 0)).toBe(5);

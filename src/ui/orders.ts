@@ -47,6 +47,7 @@ export function issueGroupMove(
   entityIds: readonly number[],
   x: number,
   y: number,
+  queue?: boolean,
 ): SimCommand {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     throw new Error(
@@ -69,7 +70,7 @@ export function issueGroupMove(
   const command: SimCommand = {
     kind: GROUP_MOVE_KIND,
     targetTick: currentTick + 1,
-    data: { entityIds: ids, x, y },
+    data: { entityIds: ids, x, y, ...(queue ? { queue: true } : {}) },
   };
   inbox.submit(command);
   return command;
@@ -85,6 +86,7 @@ export function issueGather(
   currentTick: number,
   entityIds: readonly number[],
   nodeId: number,
+  queue?: boolean,
 ): SimCommand {
   if (typeof nodeId !== "number" || !Number.isInteger(nodeId) || nodeId < 1) {
     throw new Error(
@@ -107,7 +109,7 @@ export function issueGather(
   const command: SimCommand = {
     kind: GATHER_KIND,
     targetTick: currentTick + 1,
-    data: { entityIds: ids, nodeId },
+    data: { entityIds: ids, nodeId, ...(queue ? { queue: true } : {}) },
   };
   inbox.submit(command);
   return command;
@@ -124,6 +126,7 @@ export function issueBuild(
   currentTick: number,
   entityIds: readonly number[],
   siteEid: number,
+  queue?: boolean,
 ): SimCommand {
   if (
     typeof siteEid !== "number" ||
@@ -150,7 +153,7 @@ export function issueBuild(
   const command: SimCommand = {
     kind: BUILD_KIND,
     targetTick: currentTick + 1,
-    data: { entityIds: ids, siteEid },
+    data: { entityIds: ids, siteEid, ...(queue ? { queue: true } : {}) },
   };
   inbox.submit(command);
   return command;
@@ -168,6 +171,7 @@ export function issueAttackMove(
   ids: readonly number[],
   x: number,
   y: number,
+  queue?: boolean,
 ): SimCommand {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     throw new Error(
@@ -178,7 +182,7 @@ export function issueAttackMove(
   const command: SimCommand = {
     kind: ATTACK_MOVE_KIND,
     targetTick: currentTick + 1,
-    data: { ids: entityIds, x, y },
+    data: { ids: entityIds, x, y, ...(queue ? { queue: true } : {}) },
   };
   inbox.submit(command);
   return command;
@@ -212,6 +216,7 @@ export function issuePatrol(
   currentTick: number,
   ids: readonly number[],
   waypoints: readonly { x: number; y: number }[],
+  queue?: boolean,
 ): SimCommand {
   const entityIds = canonicalIds(ids, "patrol");
   if (waypoints.length < 2) {
@@ -220,7 +225,7 @@ export function issuePatrol(
   const command: SimCommand = {
     kind: PATROL_KIND,
     targetTick: currentTick + 1,
-    data: { ids: entityIds, waypoints },
+    data: { ids: entityIds, waypoints, ...(queue ? { queue: true } : {}) },
   };
   inbox.submit(command);
   return command;
@@ -563,13 +568,21 @@ export function issueConvert(
   monkIds: readonly number[],
   targetId: number,
 ): SimCommand {
-  if (typeof targetId !== "number" || !Number.isInteger(targetId) || targetId < 1) {
-    throw new Error(`convert target id must be a positive integer, got ${String(targetId)}`);
+  if (
+    typeof targetId !== "number" ||
+    !Number.isInteger(targetId) ||
+    targetId < 1
+  ) {
+    throw new Error(
+      `convert target id must be a positive integer, got ${String(targetId)}`,
+    );
   }
   const ids: number[] = [];
   for (const id of monkIds) {
     if (typeof id !== "number" || !Number.isInteger(id) || id < 1) {
-      throw new Error(`convert entity id must be a positive integer, got ${String(id)}`);
+      throw new Error(
+        `convert entity id must be a positive integer, got ${String(id)}`,
+      );
     }
     if (!ids.includes(id)) ids.push(id);
   }
@@ -680,6 +693,7 @@ export function wireOrderInput(deps: OrderInputDeps): void {
     const ground = deps.getGroundPoint(event.clientX, event.clientY);
     if (!ground || deps.selectionCount() === 0) return;
     const selection = deps.selection();
+    const isQueued = event.shiftKey;
 
     // Contextual dispatch:
     // 0a. Enemy unit clicked with monk selected -> convert
@@ -827,12 +841,14 @@ export function wireOrderInput(deps: OrderInputDeps): void {
         deps.currentTick(),
         selection,
         nodeId,
+        isQueued,
       );
       log.push(command.targetTick, {
         kind: "gather",
         label:
           `tick ${String(command.targetTick)} · ` +
-          formatGatherLabel(selection.length, nodeId),
+          formatGatherLabel(selection.length, nodeId) +
+          (isQueued ? " (Queued)" : ""),
       });
       renderList();
       return;
@@ -846,12 +862,14 @@ export function wireOrderInput(deps: OrderInputDeps): void {
         deps.currentTick(),
         selection,
         siteId,
+        isQueued,
       );
       log.push(command.targetTick, {
         kind: "build",
         label:
           `tick ${String(command.targetTick)} · ` +
-          formatBuildLabel(selection.length, siteId),
+          formatBuildLabel(selection.length, siteId) +
+          (isQueued ? " (Queued)" : ""),
       });
       renderList();
       return;
@@ -881,6 +899,7 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       selection,
       ground.x,
       ground.y,
+      isQueued,
     );
     // Same-frame feedback: marker exists before this handler returns.
     deps.onMoveOrdered(ground.x, ground.y);
@@ -888,7 +907,8 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       kind: "move",
       label:
         `tick ${String(command.targetTick)} · ` +
-        formatMoveLabel(selection.length, ground.x, ground.y),
+        formatMoveLabel(selection.length, ground.x, ground.y) +
+        (isQueued ? " (Queued)" : ""),
     });
     renderList();
   });

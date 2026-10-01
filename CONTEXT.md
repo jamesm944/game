@@ -441,4 +441,3 @@ _Avoid_: Group shape, troop stance (when meaning formation geometry)
 **Formation Speed Harmonization**:
 The rule governing units marching in formation where all members throttle their movement speed to match the slowest unit in the formation, preserving relative slot geometry during transit.
 _Avoid_: Slowdown, unit pacing
-

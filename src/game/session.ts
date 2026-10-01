@@ -119,10 +119,7 @@ import {
   createPlannerTelemetry,
   type PlannerTelemetry,
 } from "../sim/ai/planner";
-import {
-  STRATEGY_IDS,
-  type StrategyId,
-} from "../sim/ai/buildOrder";
+import { STRATEGY_IDS, type StrategyId } from "../sim/ai/buildOrder";
 import { aiDifficultyOf, type AiDifficultyId } from "../sim/ai/difficulty";
 import { scatterResourceNodes } from "../sim/mapgen/resources";
 

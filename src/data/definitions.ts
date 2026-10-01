@@ -224,7 +224,8 @@ export function techIdOfCode(code: number): string {
 
 export function civDefOf(id: string): CivilizationDefinition {
   const def = REGISTRY.civs.get(id);
-  if (!def) throw new Error(`unknown civilization definition: ${JSON.stringify(id)}`);
+  if (!def)
+    throw new Error(`unknown civilization definition: ${JSON.stringify(id)}`);
   return def;
 }
 

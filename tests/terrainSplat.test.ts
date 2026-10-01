@@ -120,7 +120,9 @@ describe("terrain splatmap & mesh (V13, #93)", () => {
     // Tile (0, 0) is deep water at level 0: 0 * ELEVATION_STEP - WATER_RECESS
     expect(terrainHeightAt(layers, 0.5, 0.5)).toBeCloseTo(-0.15);
     // Tile (1, 0) is water at level 1: 1 * ELEVATION_STEP - WATER_RECESS
-    expect(terrainHeightAt(layers, 1.5, 0.5)).toBeCloseTo(ELEVATION_STEP - 0.15);
+    expect(terrainHeightAt(layers, 1.5, 0.5)).toBeCloseTo(
+      ELEVATION_STEP - 0.15,
+    );
     // Tile (3, 0) is grass at level 0: 0 * ELEVATION_STEP
     expect(terrainHeightAt(layers, 3.5, 0.5)).toBeCloseTo(0);
   });

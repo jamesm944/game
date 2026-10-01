@@ -86,7 +86,7 @@ class MockElement {
   }
 
   querySelector(selector: string): MockElement | null {
-    if (selector.startsWith("[data-toast-id=\"")) {
+    if (selector.startsWith('[data-toast-id="')) {
       const id = selector.slice(16, -2);
       for (const child of this.children) {
         if (child.getAttribute("data-toast-id") === id) return child;
@@ -97,9 +97,7 @@ class MockElement {
 
   querySelectorAll(selector: string): MockElement[] {
     if (selector === ".game-toast") {
-      return this.children.filter((c) =>
-        c.classList.contains("game-toast"),
-      );
+      return this.children.filter((c) => c.classList.contains("game-toast"));
     }
     return [];
   }
@@ -188,7 +186,11 @@ describe("Toast Notification Manager with Mock DOM", () => {
     mockContainer.setAttribute("aria-live", "polite");
 
     // Stub document.createElement for toasts
-    (globalThis as unknown as { document: { createElement: () => HTMLElement } }).document = {
+    (
+      globalThis as unknown as {
+        document: { createElement: () => HTMLElement };
+      }
+    ).document = {
       createElement: () => new MockElement() as unknown as HTMLElement,
     };
   });
@@ -240,23 +242,39 @@ describe("Toast Notification Manager with Mock DOM", () => {
     });
 
     // First call fires
-    const first = toastManager.notifyUnderAttack(10, 10, "Barracks under attack");
+    const first = toastManager.notifyUnderAttack(
+      10,
+      10,
+      "Barracks under attack",
+    );
     expect(first).toBe(true);
     expect(mockContainer.children.length).toBe(1);
 
     // Immediate second call is throttled
-    const second = toastManager.notifyUnderAttack(10, 10, "Barracks under attack");
+    const second = toastManager.notifyUnderAttack(
+      10,
+      10,
+      "Barracks under attack",
+    );
     expect(second).toBe(false);
     expect(mockContainer.children.length).toBe(1);
 
     // Advance 2 seconds (still throttled)
     vi.advanceTimersByTime(2000);
-    const third = toastManager.notifyUnderAttack(10, 10, "Barracks under attack");
+    const third = toastManager.notifyUnderAttack(
+      10,
+      10,
+      "Barracks under attack",
+    );
     expect(third).toBe(false);
 
     // Advance past 4 seconds total
     vi.advanceTimersByTime(2500);
-    const fourth = toastManager.notifyUnderAttack(10, 10, "Barracks under attack");
+    const fourth = toastManager.notifyUnderAttack(
+      10,
+      10,
+      "Barracks under attack",
+    );
     expect(fourth).toBe(true);
     expect(mockContainer.children.length).toBe(1);
   });
@@ -320,7 +338,9 @@ describe("Toast Notification Manager with Mock DOM", () => {
     );
     expect(result).toBe(true);
     expect(mockContainer.children.length).toBe(1);
-    expect(mockContainer.children[0]!.className).toContain("game-toast-farm-exhausted");
+    expect(mockContainer.children[0]!.className).toContain(
+      "game-toast-farm-exhausted",
+    );
   });
 
   it("notifies idle villager with kind, location and camera jump click handling", () => {

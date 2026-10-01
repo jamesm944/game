@@ -128,7 +128,7 @@ describe("applyElevationDamage", () => {
   it("handles all single-step elevation differences", () => {
     for (let base = 0; base < 8; base++) {
       const high = applyElevationDamage(20, base + 1, base);
-      const low  = applyElevationDamage(20, base, base + 1);
+      const low = applyElevationDamage(20, base, base + 1);
       expect(high).toBe(Math.max(1, Math.round(20 * 1.25)));
       expect(low).toBe(Math.max(1, Math.round(20 * 0.75)));
     }

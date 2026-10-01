@@ -54,7 +54,10 @@ describe("Building Ground Contact Shadows (Issue #99)", () => {
     expect(geom.attributes.uv).toBeDefined();
 
     // Check material
-    const mat = mesh.material as { transparent?: boolean; depthWrite?: boolean };
+    const mat = mesh.material as {
+      transparent?: boolean;
+      depthWrite?: boolean;
+    };
     expect(mat).toBeDefined();
     expect(mat.transparent).toBe(true);
     expect(mat.depthWrite).toBe(false);

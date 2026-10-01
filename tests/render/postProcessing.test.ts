@@ -102,13 +102,25 @@ describe("P1: Analytical Vignette Shading", () => {
 
 describe("P1: Post-Processing Shader Definition", () => {
   it("contains all necessary uniforms and ACES tone mapping GLSL function", () => {
-    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("uniform sampler2D tDiffuse;");
-    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("uniform vec2 uResolution;");
-    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("uniform float uBloomIntensity;");
-    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("uniform float uVignetteIntensity;");
+    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain(
+      "uniform sampler2D tDiffuse;",
+    );
+    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain(
+      "uniform vec2 uResolution;",
+    );
+    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain(
+      "uniform float uBloomIntensity;",
+    );
+    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain(
+      "uniform float uVignetteIntensity;",
+    );
     expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("uniform float uContrast;");
-    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("uniform float uSaturation;");
+    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain(
+      "uniform float uSaturation;",
+    );
     expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("vec3 ACESFilm(vec3 x)");
-    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain("smoothstep(0.80, 1.25, luma)");
+    expect(POST_PROCESSING_FRAGMENT_GLSL).toContain(
+      "smoothstep(0.80, 1.25, luma)",
+    );
   });
 });

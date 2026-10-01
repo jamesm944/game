@@ -186,11 +186,7 @@ export function createPostProcessingPipeline(
     }
   }
 
-  function render(
-    renderer: WebGLRenderer,
-    scene: Scene,
-    camera: Camera,
-  ): void {
+  function render(renderer: WebGLRenderer, scene: Scene, camera: Camera): void {
     // 1. Render primary 3D world scene into offscreen render target
     renderer.setRenderTarget(renderTarget);
     renderer.render(scene, camera);

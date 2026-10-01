@@ -64,13 +64,7 @@ export function writeGarrison(
 ): void {
   const row: number[] = [units.length];
   for (const unit of units) {
-    row.push(
-      unit.unitCode,
-      unit.owner,
-      unit.hp,
-      unit.maxHp,
-      unit.stanceCode,
-    );
+    row.push(unit.unitCode, unit.owner, unit.hp, unit.maxHp, unit.stanceCode);
   }
   const rows = world.rowsByComponentId.get(comps.garrisonId);
   if (!rows) throw new Error("unregistered Garrison component");

@@ -16,7 +16,8 @@ import type { World } from "../core/world";
 export const STANCE = "Stance" as const;
 export const STANCE_ARITY = 1;
 
-export type UnitStance = "aggressive" | "defensive" | "stand-ground" | "no-attack";
+export type UnitStance =
+  "aggressive" | "defensive" | "stand-ground" | "no-attack";
 
 export const STANCE_CODE_AGGRESSIVE = 0;
 export const STANCE_CODE_DEFENSIVE = 1;

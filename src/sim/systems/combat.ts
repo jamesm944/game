@@ -640,7 +640,12 @@ export function createCombatSystem(
       let best: Combatant | undefined;
       let bestDistSq = Number.POSITIVE_INFINITY;
       for (const [owner, hash] of hashByOwner) {
-        if (diplomacy ? !diplomacy.isHostile(self.owner, owner) : owner === self.owner) continue;
+        if (
+          diplomacy
+            ? !diplomacy.isHostile(self.owner, owner)
+            : owner === self.owner
+        )
+          continue;
         const hit =
           minRange !== undefined
             ? hash.nearest(self.posRow[0]!, self.posRow[1]!, radius, minRange)

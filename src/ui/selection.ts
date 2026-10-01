@@ -225,12 +225,7 @@ export function wireSelectionInput(deps: SelectionInputDeps): void {
     const frame = deps.getFrame();
     const hits =
       frame && frame.count > 0
-        ? hashFrom(frame).queryRect(
-            rect.minX,
-            rect.minY,
-            rect.maxX,
-            rect.maxY,
-          )
+        ? hashFrom(frame).queryRect(rect.minX, rect.minY, rect.maxX, rect.maxY)
         : [];
     if (hits.length > 0) {
       if (additive) addToSelection(hits);
@@ -239,12 +234,7 @@ export function wireSelectionInput(deps: SelectionInputDeps): void {
     }
     // When no units are in the box, check for buildings in the rect (modern RTS QoL)
     const bHits =
-      deps.buildingsInRect?.(
-        rect.minX,
-        rect.minY,
-        rect.maxX,
-        rect.maxY,
-      ) ?? [];
+      deps.buildingsInRect?.(rect.minX, rect.minY, rect.maxX, rect.maxY) ?? [];
     if (bHits.length > 0) {
       if (additive) addToSelection(bHits);
       else setSelection(bHits);

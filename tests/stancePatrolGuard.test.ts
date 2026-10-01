@@ -44,7 +44,6 @@ import {
   getPosition,
   readActivityQueue,
   spawnCombatUnit,
-  writeActivityQueue,
 } from "../src/sim/components";
 import {
   computeWorldDigest,
@@ -82,7 +81,10 @@ installSimPurityShims();
 
 const PLAYER_TWO = 1;
 
-function createTestWorld(size = 32, seed = 20260906): {
+function createTestWorld(
+  size = 32,
+  seed = 20260906,
+): {
   world: World;
   comps: ReturnType<typeof defineSimComponents>;
   paths: PathScheduler;
@@ -99,7 +101,10 @@ function createTestWorld(size = 32, seed = 20260906): {
   createPlayerStockpile(world, comps, PLAYER_ONE);
   createPlayerStockpile(world, comps, PLAYER_TWO);
 
-  registerSystem(world, createMovementSystem(comps, paths, createMovementDiagnostics()));
+  registerSystem(
+    world,
+    createMovementSystem(comps, paths, createMovementDiagnostics()),
+  );
   registerSystem(world, createCombatSystem(comps, createCombatDiagnostics()));
 
   return { world, comps, paths };
@@ -107,7 +112,12 @@ function createTestWorld(size = 32, seed = 20260906): {
 
 describe("Stance Component & Parsing", () => {
   it("converts stances to codes and back correctly", () => {
-    const stances: UnitStance[] = ["aggressive", "defensive", "stand-ground", "no-attack"];
+    const stances: UnitStance[] = [
+      "aggressive",
+      "defensive",
+      "stand-ground",
+      "no-attack",
+    ];
     for (const stance of stances) {
       const code = stanceToCode(stance);
       expect(codeToStance(code)).toBe(stance);
@@ -122,7 +132,14 @@ describe("Stance Component & Parsing", () => {
 
   it("attaches, reads, and updates stance on an entity", () => {
     const { world, comps } = createTestWorld();
-    const unit = spawnCombatUnit(world, comps, "militia", 10.5, 10.5, PLAYER_ONE);
+    const unit = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
 
     // Default without row is aggressive
     expect(getStance(world, comps, unit)).toBe("aggressive");
@@ -172,11 +189,25 @@ describe("Unit Stances in Combat", () => {
   it("no-attack stance does not auto-acquire or retaliate when attacked", () => {
     const { world, comps } = createTestWorld();
     // Passive unit with no-attack stance
-    const passive = spawnCombatUnit(world, comps, "militia", 10.5, 10.5, PLAYER_ONE);
+    const passive = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
     attachStance(world, comps, passive, "no-attack");
 
     // Enemy adjacent unit
-    const enemy = spawnCombatUnit(world, comps, "militia", 11.5, 10.5, PLAYER_TWO);
+    const enemy = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      11.5,
+      10.5,
+      PLAYER_TWO,
+    );
 
     // Enemy attacks passive unit
     world.inbox.submit({
@@ -205,11 +236,18 @@ describe("Unit Stances in Combat", () => {
 
   it("stand-ground stance attacks enemies in melee range but does not pursue", () => {
     const { world, comps } = createTestWorld();
-    const defender = spawnCombatUnit(world, comps, "militia", 10.5, 10.5, PLAYER_ONE);
+    const defender = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
     attachStance(world, comps, defender, "stand-ground");
 
     // Enemy is 3 tiles away (outside melee reach 0.8 tiles, but within sight range 4 tiles)
-    const enemy = spawnCombatUnit(world, comps, "militia", 13.5, 10.5, PLAYER_TWO);
+    spawnCombatUnit(world, comps, "militia", 13.5, 10.5, PLAYER_TWO);
 
     const posBefore = getPosition(world, comps, defender)!;
 
@@ -229,11 +267,25 @@ describe("Unit Stances in Combat", () => {
 
   it("defensive stance pursues enemy but drops engagement if enemy exceeds 4 tiles away", () => {
     const { world, comps } = createTestWorld();
-    const defender = spawnCombatUnit(world, comps, "militia", 10.5, 10.5, PLAYER_ONE);
+    const defender = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
     attachStance(world, comps, defender, "defensive");
 
     // Enemy is initially in sight range (3 tiles away)
-    const enemy = spawnCombatUnit(world, comps, "militia", 13.5, 10.5, PLAYER_TWO);
+    const enemy = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      13.5,
+      10.5,
+      PLAYER_TWO,
+    );
 
     // Defender attacks enemy and starts pursuing
     world.inbox.submit({
@@ -258,7 +310,14 @@ describe("Unit Stances in Combat", () => {
 
   it("setStance command updates stance via inbox", () => {
     const { world, comps } = createTestWorld();
-    const unit = spawnCombatUnit(world, comps, "militia", 10.5, 10.5, PLAYER_ONE);
+    const unit = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
 
     expect(getStance(world, comps, unit)).toBe("aggressive");
 
@@ -342,7 +401,14 @@ describe("Patrol Command & Movement", () => {
     });
 
     // Place an enemy along the path at (9.5, 5.5)
-    const enemy = spawnCombatUnit(world, comps, "militia", 9.5, 5.5, PLAYER_TWO);
+    const enemy = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      9.5,
+      5.5,
+      PLAYER_TWO,
+    );
 
     // Step until knight spots enemy and attacks
     let spotted = false;
@@ -376,8 +442,22 @@ describe("Patrol Command & Movement", () => {
 describe("Guard Command & Behavior", () => {
   it("follows guarded unit within 1.5 tiles", () => {
     const { world, comps } = createTestWorld();
-    const leader = spawnCombatUnit(world, comps, "militia", 5.5, 5.5, PLAYER_ONE);
-    const bodyguard = spawnCombatUnit(world, comps, "knight", 5.5, 7.0, PLAYER_ONE);
+    const leader = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      5.5,
+      5.5,
+      PLAYER_ONE,
+    );
+    const bodyguard = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      5.5,
+      7.0,
+      PLAYER_ONE,
+    );
 
     // Bodyguard guards leader
     world.inbox.submit({
@@ -416,11 +496,25 @@ describe("Guard Command & Behavior", () => {
 
   it("defends guarded unit when guarded unit is attacked", () => {
     const { world, comps } = createTestWorld();
-    const vip = spawnCombatUnit(world, comps, "militia", 10.5, 10.5, PLAYER_ONE);
+    const vip = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
     // Set VIP to no-attack so VIP doesn't fight back
     attachStance(world, comps, vip, "no-attack");
 
-    const bodyguard = spawnCombatUnit(world, comps, "knight", 11.5, 10.5, PLAYER_ONE);
+    const bodyguard = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      11.5,
+      10.5,
+      PLAYER_ONE,
+    );
 
     // Order bodyguard to guard VIP
     world.inbox.submit({
@@ -432,7 +526,14 @@ describe("Guard Command & Behavior", () => {
     step(world);
 
     // Enemy attacks VIP
-    const enemy = spawnCombatUnit(world, comps, "militia", 9.5, 10.5, PLAYER_TWO);
+    const enemy = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      9.5,
+      10.5,
+      PLAYER_TWO,
+    );
     world.inbox.submit({
       kind: "attack",
       targetTick: world.tick + 1,
@@ -457,9 +558,30 @@ describe("Guard Command & Behavior", () => {
 describe("Golden Fixture: Patrol Reversal and Guard Follow Determinism", () => {
   function runGoldenScenario(seed: number): string[] {
     const { world, comps } = createTestWorld(32, seed);
-    const patroller = spawnCombatUnit(world, comps, "knight", 5.5, 5.5, PLAYER_ONE);
-    const leader = spawnCombatUnit(world, comps, "militia", 8.5, 8.5, PLAYER_ONE);
-    const bodyguard = spawnCombatUnit(world, comps, "knight", 8.5, 9.5, PLAYER_ONE);
+    const patroller = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      5.5,
+      5.5,
+      PLAYER_ONE,
+    );
+    const leader = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      8.5,
+      8.5,
+      PLAYER_ONE,
+    );
+    const bodyguard = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      8.5,
+      9.5,
+      PLAYER_ONE,
+    );
 
     world.inbox.submit({
       kind: PATROL_COMMAND_KIND,
@@ -508,9 +630,30 @@ describe("Save/Load Round-Trip: Patrol and Guard Activities in Skirmish Session"
     });
     const { world, comps } = session;
 
-    const patroller = spawnCombatUnit(world, comps, "knight", 10.5, 10.5, PLAYER_ONE);
-    const leader = spawnCombatUnit(world, comps, "militia", 12.5, 12.5, PLAYER_ONE);
-    const guard = spawnCombatUnit(world, comps, "knight", 13.5, 12.5, PLAYER_ONE);
+    const patroller = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      10.5,
+      10.5,
+      PLAYER_ONE,
+    );
+    const leader = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      12.5,
+      12.5,
+      PLAYER_ONE,
+    );
+    const guard = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      13.5,
+      12.5,
+      PLAYER_ONE,
+    );
 
     world.inbox.submit({
       kind: PATROL_COMMAND_KIND,
@@ -547,7 +690,11 @@ describe("Save/Load Round-Trip: Patrol and Guard Activities in Skirmish Session"
     });
 
     // Check restored patroller queue
-    const patrollerQueue = readActivityQueue(restored.world, restored.comps, patroller);
+    const patrollerQueue = readActivityQueue(
+      restored.world,
+      restored.comps,
+      patroller,
+    );
     expect(patrollerQueue.length).toBe(1);
     expect(patrollerQueue[0]!.kind).toBe("patrol");
     if (patrollerQueue[0]!.kind === "patrol") {
@@ -566,8 +713,9 @@ describe("Save/Load Round-Trip: Patrol and Guard Activities in Skirmish Session"
     for (let t = 0; t < 50; t++) {
       step(world);
       step(restored.world);
-      expect(computeWorldDigest(restored.world)).toBe(computeWorldDigest(world));
+      expect(computeWorldDigest(restored.world)).toBe(
+        computeWorldDigest(world),
+      );
     }
   });
 });
-

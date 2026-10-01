@@ -216,8 +216,15 @@ import {
   playbackRateForZoom,
 } from "./render/atlasFrames";
 import { createHealthBars } from "./render/healthBars";
-import { createCastBars, CAST_BAR_CAPACITY, CAST_BAR_LIFT } from "./render/castBars";
-import { createConversionRings, CONVERSION_RING_CAPACITY } from "./render/conversionRings";
+import {
+  createCastBars,
+  CAST_BAR_CAPACITY,
+  CAST_BAR_LIFT,
+} from "./render/castBars";
+import {
+  createConversionRings,
+  CONVERSION_RING_CAPACITY,
+} from "./render/conversionRings";
 import {
   HEALTH_BAR_CAPACITY,
   packHealthBarAttributes,
@@ -243,9 +250,7 @@ import {
   researchedTechCodesOf,
   COMBAT_EVENT_DAMAGE,
 } from "./sim/components/combat";
-import {
-  RESOURCE_WOOD,
-} from "./sim/components/economy";
+import { RESOURCE_WOOD } from "./sim/components/economy";
 import {
   isAutoReseedEnabled,
   readFarmDepletedEvents,
@@ -2091,7 +2096,8 @@ const buildingPanel = createBuildingPanel({
       : undefined;
     const farmFoodRemaining =
       def.id === "farm" && comps.resourceNodeId !== undefined
-        ? (world.rowsByComponentId.get(comps.resourceNodeId)?.get(eid)?.[1] ?? 0)
+        ? (world.rowsByComponentId.get(comps.resourceNodeId)?.get(eid)?.[1] ??
+          0)
         : undefined;
 
     if (!def.trainQueue) {
@@ -2786,7 +2792,7 @@ function frame(
     const unitId = unitIdOfCode(defCode);
     if ((NAVAL_UNIT_IDS as readonly string[]).includes(unitId)) {
       if (shipModelsLayer) {
-        const eid = staging ? staging.eids[i] ?? i : i;
+        const eid = staging ? (staging.eids[i] ?? i) : i;
         const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
         const speed = velRow ? (velRow[1] ?? 0) : 0;
         shipModelsLayer.addShip({
@@ -3215,7 +3221,11 @@ function frame(
   const selEids = getSelectedEids();
   const selectedUnits: SelectedUnitSummary[] = [];
   for (const eid of selEids) {
-    if (getBuildingRow(world, comps, eid) || getBuildingSiteRow(world, comps, eid)) continue;
+    if (
+      getBuildingRow(world, comps, eid) ||
+      getBuildingSiteRow(world, comps, eid)
+    )
+      continue;
     const combatRow = world.rowsByComponentId.get(comps.combatId)?.get(eid);
     if (!combatRow) continue;
     const defCode = combatRow[0]!;
@@ -3228,7 +3238,9 @@ function frame(
       : undefined;
     const stats = deriveUnitStats(def, { civBonuses });
     const identityRow = world.rowsByComponentId.get(comps.identityId)?.get(eid);
-    const popName = identityRow ? givenNameOf(world, identityRow[0]!) : undefined;
+    const popName = identityRow
+      ? givenNameOf(world, identityRow[0]!)
+      : undefined;
     let armor = 0;
     for (const tag of def.armorClasses) {
       const a = stats.armorByClass[tag as keyof typeof stats.armorByClass];

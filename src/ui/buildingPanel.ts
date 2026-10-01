@@ -62,8 +62,7 @@ export interface BuildingPanelData {
   }[];
   /** Garrison status if building can hold units (V13 #96). */
   readonly garrison?:
-    | { readonly count: number; readonly capacity: number }
-    | undefined;
+    { readonly count: number; readonly capacity: number } | undefined;
   /** True if selected building is a Mill or Farm supporting auto-reseed toggle (V15 #105). */
   readonly canAutoReseed?: boolean | undefined;
   /** Current auto-reseed setting for player. */
@@ -73,13 +72,15 @@ export interface BuildingPanelData {
   /** All selected building entity ids when multiple are selected (Q1 / #119). */
   readonly buildingEids?: readonly number[] | undefined;
   /** Multi-building queue status breakdown across selected buildings (Q1 / #119). */
-  readonly multiQueueSummary?: readonly {
-    readonly buildingEid: number;
-    readonly buildingName: string;
-    readonly queueCount: number;
-    readonly activeUnitName?: string | undefined;
-    readonly remainingTicks?: number | undefined;
-  }[] | undefined;
+  readonly multiQueueSummary?:
+    | readonly {
+        readonly buildingEid: number;
+        readonly buildingName: string;
+        readonly queueCount: number;
+        readonly activeUnitName?: string | undefined;
+        readonly remainingTicks?: number | undefined;
+      }[]
+    | undefined;
 }
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
@@ -285,12 +286,7 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
   reseedToggleBtn.style.cursor = "pointer";
   reseedToggleBtn.addEventListener("click", () => {
     deps.onClick?.();
-    issueSetAutoReseed(
-      deps.inbox,
-      deps.currentTick(),
-      0,
-      !currentAutoReseed,
-    );
+    issueSetAutoReseed(deps.inbox, deps.currentTick(), 0, !currentAutoReseed);
   });
 
   reseedHeader.append(reseedLabelSpan, reseedToggleBtn);
@@ -324,14 +320,17 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
       // aren't needlessly recreated every frame during training.
       const {
         production,
-        farmFoodRemaining,
+        farmFoodRemaining: _farmFoodRemaining,
         queue,
         multiQueueSummary,
         ...structuralRest
       } = data;
+      void _farmFoodRemaining;
       const structural = {
         ...structuralRest,
-        hasQueue: queue !== undefined || (multiQueueSummary !== undefined && multiQueueSummary.length > 0),
+        hasQueue:
+          queue !== undefined ||
+          (multiQueueSummary !== undefined && multiQueueSummary.length > 0),
         queueLen: queue?.length,
         multiQueueLens: multiQueueSummary?.map((m) => m.queueCount),
       };
@@ -359,7 +358,10 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
         if (data.garrison !== undefined) {
           panel.appendChild(garrisonWrap);
         }
-        if (data.queue !== undefined || (data.trainableUnits && data.trainableUnits.length > 0)) {
+        if (
+          data.queue !== undefined ||
+          (data.trainableUnits && data.trainableUnits.length > 0)
+        ) {
           if (data.trainableUnits && data.trainableUnits.length > 0) {
             for (const u of data.trainableUnits) {
               const btn = document.createElement("button");

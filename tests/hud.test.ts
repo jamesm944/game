@@ -72,7 +72,16 @@ describe("AI difficulty badge (M4-T6, §2.8 disclosure)", () => {
 
 describe("resource topbar icons & parsing (V13, #92)", () => {
   it("provides distinct SVG icons for all 7 resources and pop", () => {
-    const slugs = ["food", "wood", "gold", "stone", "iron", "coal", "clay", "pop"];
+    const slugs = [
+      "food",
+      "wood",
+      "gold",
+      "stone",
+      "iron",
+      "coal",
+      "clay",
+      "pop",
+    ];
     const svgs = new Set<string>();
     for (const slug of slugs) {
       const svg = resourceIconSvg(slug);
@@ -83,7 +92,9 @@ describe("resource topbar icons & parsing (V13, #92)", () => {
   });
 
   it("parses stockpile + pop lines accurately", () => {
-    const parsed = parseStockpileLine("food 200 · wood 600 · gold 100 · pop 13/20");
+    const parsed = parseStockpileLine(
+      "food 200 · wood 600 · gold 100 · pop 13/20",
+    );
     expect(parsed).toEqual([
       { name: "food", value: "200" },
       { name: "wood", value: "600" },
@@ -103,4 +114,3 @@ describe("resource topbar icons & parsing (V13, #92)", () => {
     expect(castle.borderColor).not.toBe(imperial.borderColor);
   });
 });
-

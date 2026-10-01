@@ -172,16 +172,8 @@ import {
   SOCIAL_EVENTS_ARITY,
   type SocialEventComponents,
 } from "./socialEvents";
-import {
-  STANCE,
-  STANCE_ARITY,
-  type StanceComponents,
-} from "./stance";
-import {
-  GARRISON,
-  GARRISON_ARITY,
-  type GarrisonComponents,
-} from "./garrison";
+import { STANCE, STANCE_ARITY, type StanceComponents } from "./stance";
+import { GARRISON, GARRISON_ARITY, type GarrisonComponents } from "./garrison";
 import {
   COMMODITY_STOCKPILE,
   DROP_OFF,

@@ -158,7 +158,8 @@ export function spawnCombatUnit(
     const bonuses = getCivBonuses(world, playerId);
     for (const b of bonuses) {
       if (b.stat === "hp" && selectorMatches(b.target, def)) {
-        unitHp = b.op === "add" ? unitHp + b.value : Math.round(unitHp * b.value);
+        unitHp =
+          b.op === "add" ? unitHp + b.value : Math.round(unitHp * b.value);
       }
       if (b.stat === "speed" && selectorMatches(b.target, def)) {
         unitSpeed = b.op === "add" ? unitSpeed + b.value : unitSpeed * b.value;

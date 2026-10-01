@@ -5,11 +5,7 @@ import {
   spawnUnit,
   type SimComponents,
 } from "../src/sim/components";
-import {
-  RESOURCE_FOOD,
-  RESOURCE_WOOD,
-  getInventory,
-} from "../src/sim/components/economy";
+import { RESOURCE_FOOD, RESOURCE_WOOD } from "../src/sim/components/economy";
 import {
   createPlayerStockpile,
   createDropOffPoint,
@@ -38,9 +34,9 @@ import {
   type SetAutoReseedCommandData,
 } from "../src/sim/systems/gather";
 import { completeBuilding } from "../src/sim/components/buildings";
-import { buildingCodeOf } from "../src/data/definitions";
 import { planAutoReseed } from "../src/sim/ai/economyManager";
 import type { AiKnowledge } from "../src/sim/ai/knowledge";
+import type { CommandDraft } from "../src/sim/ai/buildOrder";
 import {
   issueSetAutoReseed,
   formatFarmFoodStatus,
@@ -84,21 +80,14 @@ function spawnTestFarm(
   y: number,
   initialFood: number = 5,
 ): number {
-  const siteEid = spawnBuildingSite(
-    world,
-    comps,
-    "farm",
-    x,
-    y,
-    { playerId: PLAYER_ONE },
-  );
+  const siteEid = spawnBuildingSite(world, comps, "farm", x, y, {
+    playerId: PLAYER_ONE,
+  });
   completeBuilding(world, comps, siteEid);
   // Override food to initialFood for fast testing
-  world.rowsByComponentId.get(comps.resourceNodeId)!.set(siteEid, [
-    RESOURCE_FOOD,
-    initialFood,
-    1,
-  ]);
+  world.rowsByComponentId
+    .get(comps.resourceNodeId)!
+    .set(siteEid, [RESOURCE_FOOD, initialFood, 1]);
   return siteEid;
 }
 
@@ -111,7 +100,10 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
     world.inbox.submit({
       kind: SET_AUTO_RESEED_COMMAND_KIND,
       targetTick: 1,
-      data: { playerId: PLAYER_ONE, enabled: false } as SetAutoReseedCommandData,
+      data: {
+        playerId: PLAYER_ONE,
+        enabled: false,
+      } as SetAutoReseedCommandData,
     });
     step(world);
 
@@ -153,7 +145,9 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
     expect(amounts[RESOURCE_WOOD]).toBe(150 - FARM_RESEED_WOOD_COST);
 
     // Farm node food should be restored to BASE_FARM_FOOD (175)
-    const nodeRow = world.rowsByComponentId.get(comps.resourceNodeId)?.get(farmEid);
+    const nodeRow = world.rowsByComponentId
+      .get(comps.resourceNodeId)
+      ?.get(farmEid);
     expect(nodeRow).toBeDefined();
     expect(nodeRow![1]).toBe(BASE_FARM_FOOD);
   });
@@ -228,7 +222,7 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
       autoReseedEnabled: () => autoReseedState,
     } as unknown as AiKnowledge;
 
-    const drafts1: any[] = [];
+    const drafts1: CommandDraft[] = [];
     planAutoReseed(mockKnowledgeWithWood, drafts1);
     expect(drafts1.length).toBe(1);
     expect(drafts1[0]).toEqual({
@@ -243,7 +237,7 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
       autoReseedEnabled: () => autoReseedState,
     } as unknown as AiKnowledge;
 
-    const drafts2: any[] = [];
+    const drafts2: CommandDraft[] = [];
     planAutoReseed(mockKnowledgeLowWood, drafts2);
     expect(drafts2.length).toBe(1);
     expect(drafts2[0]).toEqual({
@@ -253,12 +247,17 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
   });
 
   it("issueSetAutoReseed helper formats and submits command into inbox", () => {
-    const submitted: any[] = [];
+    const submitted: unknown[] = [];
     const mockInbox = {
-      submit: (cmd: any) => submitted.push(cmd),
+      submit: (cmd: unknown) => submitted.push(cmd),
     };
 
-    issueSetAutoReseed(mockInbox as any, 15, 0, false);
+    issueSetAutoReseed(
+      mockInbox as unknown as Parameters<typeof issueSetAutoReseed>[0],
+      15,
+      0,
+      false,
+    );
     expect(submitted.length).toBe(1);
     expect(submitted[0]).toEqual({
       kind: SET_AUTO_RESEED_COMMAND_KIND,
@@ -266,7 +265,12 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
       data: { playerId: 0, enabled: false },
     });
 
-    issueSetAutoReseed(mockInbox as any, 20, 1, true);
+    issueSetAutoReseed(
+      mockInbox as unknown as Parameters<typeof issueSetAutoReseed>[0],
+      20,
+      1,
+      true,
+    );
     expect(submitted.length).toBe(2);
     expect(submitted[1]).toEqual({
       kind: SET_AUTO_RESEED_COMMAND_KIND,
@@ -276,122 +280,131 @@ describe("Auto-Reseed Farms (V15 / #105)", () => {
   });
 
   it("formats farm food status line correctly", () => {
-    expect(formatFarmFoodStatus(175)).toBe("Food remaining: 175 / 175 · Reseed: 60 wood");
-    expect(formatFarmFoodStatus(45, 175)).toBe("Food remaining: 45 / 175 · Reseed: 60 wood");
-    expect(formatFarmFoodStatus(0, 250)).toBe("Food remaining: 0 / 250 · Reseed: 60 wood");
+    expect(formatFarmFoodStatus(175)).toBe(
+      "Food remaining: 175 / 175 · Reseed: 60 wood",
+    );
+    expect(formatFarmFoodStatus(45, 175)).toBe(
+      "Food remaining: 45 / 175 · Reseed: 60 wood",
+    );
+    expect(formatFarmFoodStatus(0, 250)).toBe(
+      "Food remaining: 0 / 250 · Reseed: 60 wood",
+    );
   });
 
-class MockNodeElement {
-  id = "";
-  tagName = "DIV";
-  innerHTML = "";
-  textContent = "";
-  parentNode: MockNodeElement | null = null;
-  children: MockNodeElement[] = [];
-  listeners: Record<string, ((e?: unknown) => void)[]> = {};
-  attributes = new Map<string, string>();
-  style: Record<string, string> = {};
-  offsetWidth = 100;
+  class MockNodeElement {
+    id = "";
+    tagName = "DIV";
+    innerHTML = "";
+    textContent = "";
+    parentNode: MockNodeElement | null = null;
+    children: MockNodeElement[] = [];
+    listeners: Record<string, ((e?: unknown) => void)[]> = {};
+    attributes = new Map<string, string>();
+    style: Record<string, string> = {};
+    offsetWidth = 100;
 
-  get firstChild(): MockNodeElement | null {
-    return this.children[0] ?? null;
-  }
-
-  _className = "";
-  get className(): string {
-    return this._className;
-  }
-  set className(val: string) {
-    this._className = val;
-    this.classList._classes.clear();
-    for (const c of val.split(/\s+/).filter(Boolean)) {
-      this.classList._classes.add(c);
+    get firstChild(): MockNodeElement | null {
+      return this.children[0] ?? null;
     }
-  }
 
-  classList = {
-    _classes: new Set<string>(),
-    add: (c: string) => {
-      this.classList._classes.add(c);
-      this._className = Array.from(this.classList._classes).join(" ");
-    },
-    remove: (c: string) => {
-      this.classList._classes.delete(c);
-      this._className = Array.from(this.classList._classes).join(" ");
-    },
-    contains: (c: string) => this.classList._classes.has(c),
-  };
-
-  setAttribute(name: string, val: string): void {
-    this.attributes.set(name, val);
-  }
-  getAttribute(name: string): string | null {
-    return this.attributes.get(name) ?? null;
-  }
-
-  appendChild(child: MockNodeElement): void {
-    child.parentNode = this;
-    this.children.push(child);
-  }
-
-  append(...items: (MockNodeElement | string)[]): void {
-    for (const item of items) {
-      if (typeof item === "string") continue;
-      this.appendChild(item);
+    _className = "";
+    get className(): string {
+      return this._className;
     }
-  }
-
-  remove(): void {
-    if (this.parentNode) {
-      const idx = this.parentNode.children.indexOf(this);
-      if (idx >= 0) this.parentNode.children.splice(idx, 1);
-      this.parentNode = null;
-    }
-  }
-
-  addEventListener(type: string, handler: (e?: unknown) => void): void {
-    if (!this.listeners[type]) this.listeners[type] = [];
-    this.listeners[type]!.push(handler);
-  }
-
-  click(): void {
-    for (const h of this.listeners["click"] ?? []) {
-      h();
-    }
-  }
-
-  querySelector(selector: string): MockNodeElement | null {
-    const check = (node: MockNodeElement): MockNodeElement | null => {
-      if (selector.startsWith(".") && node.classList.contains(selector.slice(1)))
-        return node;
-      if (selector.startsWith("#") && node.id === selector.slice(1))
-        return node;
-      for (const child of node.children) {
-        const found = check(child);
-        if (found) return found;
+    set className(val: string) {
+      this._className = val;
+      this.classList._classes.clear();
+      for (const c of val.split(/\s+/).filter(Boolean)) {
+        this.classList._classes.add(c);
       }
-      return null;
-    };
-    return check(this);
-  }
-}
+    }
 
-function setupMockDom() {
-  const body = new MockNodeElement();
-  body.id = "body";
-  (globalThis as any).document = {
-    body,
-    createElement: (tag: string) => {
-      const el = new MockNodeElement();
-      el.tagName = tag.toUpperCase();
-      return el as unknown as HTMLElement;
-    },
-    getElementById: (id: string) => {
-      if (body.id === id) return body as unknown as HTMLElement;
-      return body.querySelector("#" + id) as unknown as HTMLElement;
-    },
-  };
-}
+    classList = {
+      _classes: new Set<string>(),
+      add: (c: string) => {
+        this.classList._classes.add(c);
+        this._className = Array.from(this.classList._classes).join(" ");
+      },
+      remove: (c: string) => {
+        this.classList._classes.delete(c);
+        this._className = Array.from(this.classList._classes).join(" ");
+      },
+      contains: (c: string) => this.classList._classes.has(c),
+    };
+
+    setAttribute(name: string, val: string): void {
+      this.attributes.set(name, val);
+    }
+    getAttribute(name: string): string | null {
+      return this.attributes.get(name) ?? null;
+    }
+
+    appendChild(child: MockNodeElement): void {
+      child.parentNode = this;
+      this.children.push(child);
+    }
+
+    append(...items: (MockNodeElement | string)[]): void {
+      for (const item of items) {
+        if (typeof item === "string") continue;
+        this.appendChild(item);
+      }
+    }
+
+    remove(): void {
+      if (this.parentNode) {
+        const idx = this.parentNode.children.indexOf(this);
+        if (idx >= 0) this.parentNode.children.splice(idx, 1);
+        this.parentNode = null;
+      }
+    }
+
+    addEventListener(type: string, handler: (e?: unknown) => void): void {
+      if (!this.listeners[type]) this.listeners[type] = [];
+      this.listeners[type]!.push(handler);
+    }
+
+    click(): void {
+      for (const h of this.listeners["click"] ?? []) {
+        h();
+      }
+    }
+
+    querySelector(selector: string): MockNodeElement | null {
+      const check = (node: MockNodeElement): MockNodeElement | null => {
+        if (
+          selector.startsWith(".") &&
+          node.classList.contains(selector.slice(1))
+        )
+          return node;
+        if (selector.startsWith("#") && node.id === selector.slice(1))
+          return node;
+        for (const child of node.children) {
+          const found = check(child);
+          if (found) return found;
+        }
+        return null;
+      };
+      return check(this);
+    }
+  }
+
+  function setupMockDom() {
+    const body = new MockNodeElement();
+    body.id = "body";
+    (globalThis as unknown as { document: unknown }).document = {
+      body,
+      createElement: (tag: string) => {
+        const el = new MockNodeElement();
+        el.tagName = tag.toUpperCase();
+        return el as unknown as HTMLElement;
+      },
+      getElementById: (id: string) => {
+        if (body.id === id) return body as unknown as HTMLElement;
+        return body.querySelector("#" + id) as unknown as HTMLElement;
+      },
+    };
+  }
 
   it("renders Auto-Reseed UI toggle button on Mill and Farm panels and dispatches toggle command", () => {
     setupMockDom();
@@ -407,14 +420,17 @@ function setupMockDom() {
 
     const panel = createBuildingPanel({
       getData: () => currentData,
-      inbox: inbox as any,
+      inbox: inbox as unknown as Parameters<
+        typeof createBuildingPanel
+      >[0]["inbox"],
       currentTick: () => 10,
     });
 
     panel.refresh();
 
     const container = (document.getElementById("building-panel") ??
-      (document.body as any).children[0]) as unknown as HTMLElement;
+      (document.body as unknown as { children: HTMLElement[] })
+        .children[0]) as HTMLElement;
     const reseedBtn = container.querySelector(
       ".panel-toggle-btn",
     ) as HTMLButtonElement;

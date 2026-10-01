@@ -76,7 +76,11 @@ describe("unitPanel formatUnitCardTitle", () => {
 
 describe("unitPanel formatUnitStats", () => {
   it("formats melee unit stats line", () => {
-    const unit = makeUnit(1, "militia", 40, 40, { attack: 6, armor: 1, speed: 0.9 });
+    const unit = makeUnit(1, "militia", 40, 40, {
+      attack: 6,
+      armor: 1,
+      speed: 0.9,
+    });
     const stats = formatUnitStats(unit);
     expect(stats).toContain("⚔ 6");
     expect(stats).toContain("🛡 1");
@@ -85,7 +89,12 @@ describe("unitPanel formatUnitStats", () => {
   });
 
   it("includes range for ranged units", () => {
-    const unit = makeUnit(2, "archer", 30, 30, { attack: 4, armor: 0, range: 4, speed: 1.0 });
+    const unit = makeUnit(2, "archer", 30, 30, {
+      attack: 4,
+      armor: 0,
+      range: 4,
+      speed: 1.0,
+    });
     const stats = formatUnitStats(unit);
     expect(stats).toContain("🏹 4");
   });

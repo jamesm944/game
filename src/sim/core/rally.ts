@@ -53,10 +53,7 @@ export function setRallyPoint(
  * Clears the active rally target for a building.
  * Returns true if a rally point was present and removed.
  */
-export function clearRallyPoint(
-  world: World,
-  buildingEid: number,
-): boolean {
+export function clearRallyPoint(world: World, buildingEid: number): boolean {
   if (!world.rallyPoints) return false;
   return world.rallyPoints.delete(buildingEid);
 }
@@ -64,10 +61,7 @@ export function clearRallyPoint(
 /**
  * Checks if a building currently has a rally point.
  */
-export function hasRallyPoint(
-  world: World,
-  buildingEid: number,
-): boolean {
+export function hasRallyPoint(world: World, buildingEid: number): boolean {
   return world.rallyPoints?.has(buildingEid) ?? false;
 }
 

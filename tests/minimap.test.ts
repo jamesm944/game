@@ -99,13 +99,27 @@ class MockCanvasContext {
   strokeStyle = "";
   lineWidth = 1;
   globalAlpha = 1.0;
-  rectCalls: { x: number; y: number; w: number; h: number; fill: string; alpha: number }[] = [];
+  rectCalls: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    fill: string;
+    alpha: number;
+  }[] = [];
   path: { op: string; x?: number; y?: number }[] = [];
   drawImageCalls: number = 0;
 
   scale(_x: number, _y: number): void {}
   fillRect(x: number, y: number, w: number, h: number): void {
-    this.rectCalls.push({ x, y, w, h, fill: this.fillStyle, alpha: this.globalAlpha });
+    this.rectCalls.push({
+      x,
+      y,
+      w,
+      h,
+      fill: this.fillStyle,
+      alpha: this.globalAlpha,
+    });
   }
   beginPath(): void {
     this.path.push({ op: "beginPath" });
@@ -125,7 +139,13 @@ class MockCanvasContext {
   fill(): void {
     this.path.push({ op: "fill" });
   }
-  arc(x: number, y: number, _r: number, _startAngle: number, _endAngle: number): void {
+  arc(
+    x: number,
+    y: number,
+    _r: number,
+    _startAngle: number,
+    _endAngle: number,
+  ): void {
     this.path.push({ op: "arc", x, y });
   }
   save(): void {}
@@ -140,7 +160,7 @@ class MockCanvasElement {
   width = 176;
   height = 176;
   style = { width: "176px", height: "176px", cursor: "crosshair" };
-  listeners: Record<string, ((e: any) => void)[]> = {};
+  listeners: Record<string, ((e: unknown) => void)[]> = {};
   ctx = new MockCanvasContext();
 
   getContext(type: string): MockCanvasContext | null {
@@ -151,11 +171,11 @@ class MockCanvasElement {
     return { left: 0, top: 0, width: 176, height: 176 };
   }
   setPointerCapture() {}
-  addEventListener(type: string, handler: (e: any) => void) {
+  addEventListener(type: string, handler: (e: unknown) => void) {
     if (!this.listeners[type]) this.listeners[type] = [];
     this.listeners[type]!.push(handler);
   }
-  dispatchEvent(type: string, event: any) {
+  dispatchEvent(type: string, event: unknown) {
     for (const h of this.listeners[type] ?? []) {
       h(event);
     }
@@ -175,16 +195,16 @@ describe("Minimap Redraw & Viewport Updating in Headless DOM", () => {
         if (tag === "canvas") {
           const c = new MockCanvasElement();
           mockCanvases.push(c);
-          return c as any;
+          return c as unknown as HTMLElement;
         }
-        return {} as any;
+        return {} as unknown as HTMLElement;
       },
       body: {
         appendChild: () => {},
       },
     };
-    (globalThis as any).document = fakeDoc;
-    (globalThis as any).window = {
+    (globalThis as unknown as { document: unknown }).document = fakeDoc;
+    (globalThis as unknown as { window: unknown }).window = {
       innerWidth: 1920,
       innerHeight: 1080,
       devicePixelRatio: 1,
@@ -192,8 +212,8 @@ describe("Minimap Redraw & Viewport Updating in Headless DOM", () => {
   };
 
   const tearDownMockDom = () => {
-    (globalThis as any).window = origWindow;
-    (globalThis as any).document = origDocument;
+    (globalThis as unknown as { window: unknown }).window = origWindow;
+    (globalThis as unknown as { document: unknown }).document = origDocument;
   };
 
   it("renders resource nodes, buildings, and units on redraw", () => {
@@ -204,17 +224,19 @@ describe("Minimap Redraw & Viewport Updating in Headless DOM", () => {
         size,
         terrainType: new Uint8Array(size * size).fill(3), // grass
         elevationLevel: new Uint8Array(size * size).fill(0),
-      } as any;
+        derivedPassability: new Uint8Array(size * size).fill(1),
+      };
 
       const setCenterMock = vi.fn();
 
       const deps: MinimapDeps = {
         layers: fakeLayers,
-        getFrame: () => ({
-          count: 1,
-          eids: new Int32Array([10]),
-          positions: new Float32Array([10, 10]),
-        } as any),
+        getFrame: () =>
+          ({
+            count: 1,
+            eids: new Int32Array([10]),
+            positions: new Float32Array([10, 10]),
+          }) as unknown as ReturnType<MinimapDeps["getFrame"]>,
         isSelected: (eid) => eid === 10,
         fog: {
           isExplored: (_x, _y) => true,

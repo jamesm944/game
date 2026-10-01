@@ -7,9 +7,29 @@
   "uniqueTechId": "greek-fire",
   "bonuses": [
     { "target": "class:building", "stat": "hp", "op": "mult", "value": 1.25 },
-    { "target": "unit:skirmisher", "stat": "cost:all", "op": "mult", "value": 0.75 },
-    { "target": "unit:fire-ship", "stat": "cost:all", "op": "mult", "value": 0.75 },
-    { "target": "tech:imperial-age", "stat": "cost:all", "op": "mult", "value": 0.67 },
-    { "target": "unit:fire-ship", "stat": "reloadTicks", "op": "mult", "value": 0.8 }
+    {
+      "target": "unit:skirmisher",
+      "stat": "cost:all",
+      "op": "mult",
+      "value": 0.75
+    },
+    {
+      "target": "unit:fire-ship",
+      "stat": "cost:all",
+      "op": "mult",
+      "value": 0.75
+    },
+    {
+      "target": "tech:imperial-age",
+      "stat": "cost:all",
+      "op": "mult",
+      "value": 0.67
+    },
+    {
+      "target": "unit:fire-ship",
+      "stat": "reloadTicks",
+      "op": "mult",
+      "value": 0.8
+    }
   ]
 }

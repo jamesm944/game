@@ -240,7 +240,9 @@ export function createUnitPanel(deps: UnitPanelDeps = {}): UnitPanelHandle {
   function renderSingle(unit: SelectedUnitSummary): void {
     const hpInfo = formatUnitHpBar(unit.hp, unit.maxHp);
     const pColor = playerColorOf(unit.ownerId);
-    const displayName = unit.popName ? `${unit.popName} (${unit.name})` : unit.name;
+    const displayName = unit.popName
+      ? `${unit.popName} (${unit.name})`
+      : unit.name;
 
     panel.innerHTML = `
       <div class="unit-single-card">
@@ -417,7 +419,11 @@ export function createUnitPanel(deps: UnitPanelDeps = {}): UnitPanelHandle {
       const firstEid = units[0] ? units[0].eid : -1;
       const count = units.length;
 
-      if (count === lastUnitCount && firstEid === lastFirstEid && hpKey === lastHpString) {
+      if (
+        count === lastUnitCount &&
+        firstEid === lastFirstEid &&
+        hpKey === lastHpString
+      ) {
         return;
       }
 

@@ -132,11 +132,9 @@ describe("createSkirmishWorld", () => {
       aiStrategy: "random",
     });
     expect(randomSessionA.aiStrategy).toBe(randomSessionB.aiStrategy);
-    expect([
-      "fast-castle-knights",
-      "scouts-rush",
-      "archers-push",
-    ]).toContain(randomSessionA.aiStrategy);
+    expect(["fast-castle-knights", "scouts-rush", "archers-push"]).toContain(
+      randomSessionA.aiStrategy,
+    );
   });
 });
 

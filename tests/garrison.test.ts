@@ -35,10 +35,8 @@ import {
 } from "../src/sim/activities";
 import {
   addGarrisonedUnit,
-  clearGarrison,
   getGarrisonCount,
   readGarrison,
-  writeGarrison,
 } from "../src/sim/components/garrison";
 import {
   defineSimComponents,
@@ -49,7 +47,6 @@ import {
   spawnCombatUnit,
   writeActivityQueue,
   COMBAT_EVENT_SHOT,
-  COMBAT_EVENT_DAMAGE,
 } from "../src/sim/components";
 import {
   computeWorldDigest,
@@ -81,14 +78,17 @@ import {
 import { buildLayers, TERRAIN_GRASS } from "../src/sim/world/layers";
 import { PLAYER_ONE, createPlayerStockpile } from "../src/sim/core/stockpile";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
-import { buildingDefOf, unitCodeOf, unitDefOf } from "../src/data/definitions";
-import { attachStance, STANCE_CODE_DEFENSIVE } from "../src/sim/components/stance";
+import { buildingDefOf, unitCodeOf } from "../src/data/definitions";
+import { STANCE_CODE_DEFENSIVE } from "../src/sim/components/stance";
 
 installSimPurityShims();
 
 const PLAYER_TWO = 1;
 
-function createTestWorld(size = 32, seed = 20260906): {
+function createTestWorld(
+  size = 32,
+  seed = 20260906,
+): {
   world: World;
   comps: ReturnType<typeof defineSimComponents>;
   paths: PathScheduler;
@@ -105,7 +105,10 @@ function createTestWorld(size = 32, seed = 20260906): {
   createPlayerStockpile(world, comps, PLAYER_ONE);
   createPlayerStockpile(world, comps, PLAYER_TWO);
 
-  registerSystem(world, createMovementSystem(comps, paths, createMovementDiagnostics()));
+  registerSystem(
+    world,
+    createMovementSystem(comps, paths, createMovementDiagnostics()),
+  );
   registerSystem(world, createCombatSystem(comps, createCombatDiagnostics()));
 
   return { world, comps, paths };
@@ -128,9 +131,16 @@ describe("Garrison Activity Encoding", () => {
 describe("Garrison Component & Population", () => {
   it("stores and retrieves garrisoned units, preserving unit data", () => {
     const { world, comps } = createTestWorld();
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_ONE,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_ONE,
+      },
+    );
 
     expect(getGarrisonCount(world, comps, towerEid)).toBe(0);
 
@@ -163,7 +173,7 @@ describe("Garrison Component & Population", () => {
     const initialPop = populationOf(world, comps, PLAYER_ONE);
 
     // Spawn an active unit
-    const unitEid = spawnCombatUnit(world, comps, "villager", 8, 8, PLAYER_ONE);
+    spawnCombatUnit(world, comps, "villager", 8, 8, PLAYER_ONE);
     expect(populationOf(world, comps, PLAYER_ONE)).toBe(initialPop + 1);
 
     // Garrison the unit by adding to garrison and despawning active unit
@@ -182,12 +192,26 @@ describe("Garrison Component & Population", () => {
 describe("Garrison Movement Steering & Entering", () => {
   it("unit steers towards building and enters when close enough", () => {
     const { world, comps } = createTestWorld();
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_ONE,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_ONE,
+      },
+    );
 
     // Spawn unit near tower at (10.5, 8.5) (1.5 tiles from tower origin (10, 10))
-    const unitEid = spawnCombatUnit(world, comps, "archer", 10.5, 8.5, PLAYER_ONE);
+    const unitEid = spawnCombatUnit(
+      world,
+      comps,
+      "archer",
+      10.5,
+      8.5,
+      PLAYER_ONE,
+    );
     expect(world.entities.includes(unitEid)).toBe(true);
 
     // Issue garrison command
@@ -214,11 +238,25 @@ describe("Garrison Movement Steering & Entering", () => {
 
   it("cannot enter enemy building", () => {
     const { world, comps } = createTestWorld();
-    const enemyTowerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_TWO,
-    });
+    const enemyTowerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_TWO,
+      },
+    );
 
-    const unitEid = spawnCombatUnit(world, comps, "militia", 10.5, 8.5, PLAYER_ONE);
+    const unitEid = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      10.5,
+      8.5,
+      PLAYER_ONE,
+    );
 
     world.inbox.submit({
       kind: GARRISON_COMMAND_KIND,
@@ -237,9 +275,16 @@ describe("Garrison Movement Steering & Entering", () => {
 
   it("cannot exceed building garrison capacity", () => {
     const { world, comps } = createTestWorld();
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_ONE,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_ONE,
+      },
+    );
     const cap = buildingDefOf("watch-tower").garrisonCapacity ?? 5;
 
     // Fill tower to capacity
@@ -255,7 +300,14 @@ describe("Garrison Movement Steering & Entering", () => {
     expect(getGarrisonCount(world, comps, towerEid)).toBe(cap);
 
     // Try to garrison one more unit
-    const extraUnit = spawnCombatUnit(world, comps, "archer", 10.5, 8.5, PLAYER_ONE);
+    const extraUnit = spawnCombatUnit(
+      world,
+      comps,
+      "archer",
+      10.5,
+      8.5,
+      PLAYER_ONE,
+    );
     world.inbox.submit({
       kind: GARRISON_COMMAND_KIND,
       targetTick: world.tick + 1,
@@ -282,7 +334,14 @@ describe("Combat DPS Bonus & Town Center Firing", () => {
     });
 
     // Enemy unit within TC range (range = 6)
-    const enemyEid = spawnCombatUnit(world, comps, "militia", 12, 10, PLAYER_TWO);
+    const enemyEid = spawnCombatUnit(
+      world,
+      comps,
+      "militia",
+      12,
+      10,
+      PLAYER_TWO,
+    );
     const enemyCombat = getCombatRow(world, comps, enemyEid)!;
     const initialHp = enemyCombat[2]!;
 
@@ -393,9 +452,16 @@ describe("Garrison Healing Over Time", () => {
   it("damages unit inside garrison heal over time up to maxHp", () => {
     const { world, comps } = createTestWorld();
     const combat = createCombatSystem(comps);
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_ONE,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_ONE,
+      },
+    );
 
     // Add damaged unit (hp 10, maxHp 40)
     addGarrisonedUnit(world, comps, towerEid, {
@@ -421,9 +487,16 @@ describe("Garrison Healing Over Time", () => {
 describe("Ungarrison Command", () => {
   it("ungarrison releases units at building exit point with preserved stats", () => {
     const { world, comps } = createTestWorld();
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_ONE,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_ONE,
+      },
+    );
 
     addGarrisonedUnit(world, comps, towerEid, {
       unitCode: unitCodeOf("archer"),
@@ -469,9 +542,16 @@ describe("Ungarrison Command", () => {
 describe("Building Destruction Ejection", () => {
   it("ejects trapped units onto adjacent ground when building is destroyed", () => {
     const { world, comps } = createTestWorld();
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 10, 10, {
-      playerId: PLAYER_ONE,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      10,
+      10,
+      {
+        playerId: PLAYER_ONE,
+      },
+    );
 
     addGarrisonedUnit(world, comps, towerEid, {
       unitCode: unitCodeOf("militia"),
@@ -482,7 +562,14 @@ describe("Building Destruction Ejection", () => {
     });
 
     // Spawn massive enemy force to destroy the tower
-    const enemy = spawnCombatUnit(world, comps, "knight", 10.5, 9.5, PLAYER_TWO);
+    const enemy = spawnCombatUnit(
+      world,
+      comps,
+      "knight",
+      10.5,
+      9.5,
+      PLAYER_TWO,
+    );
     // Directly deal lethal damage to tower
     const bRow = comps.buildingId
       ? world.rowsByComponentId.get(comps.buildingId)?.get(towerEid)
@@ -506,7 +593,9 @@ describe("Building Destruction Ejection", () => {
     // Trapped militia was ejected onto ground
     const ejectedUnit = world.entities.find((e) => {
       const cRow = getCombatRow(world, comps, e);
-      return cRow && cRow[0] === unitCodeOf("militia") && cRow[1] === PLAYER_ONE;
+      return (
+        cRow && cRow[0] === unitCodeOf("militia") && cRow[1] === PLAYER_ONE
+      );
     });
 
     expect(ejectedUnit).toBeDefined();
@@ -524,9 +613,16 @@ describe("Garrison Save/Load Round-Trip & Determinism", () => {
     });
     const { world, comps } = session;
 
-    const towerEid = stampFinishedBuilding(world, comps, "watch-tower", 12, 12, {
-      playerId: 0,
-    });
+    const towerEid = stampFinishedBuilding(
+      world,
+      comps,
+      "watch-tower",
+      12,
+      12,
+      {
+        playerId: 0,
+      },
+    );
 
     addGarrisonedUnit(world, comps, towerEid, {
       unitCode: unitCodeOf("archer"),
@@ -544,7 +640,11 @@ describe("Garrison Save/Load Round-Trip & Determinism", () => {
     });
 
     expect(getGarrisonCount(restored.world, restored.comps, towerEid)).toBe(1);
-    const restoredGarrison = readGarrison(restored.world, restored.comps, towerEid);
+    const restoredGarrison = readGarrison(
+      restored.world,
+      restored.comps,
+      towerEid,
+    );
     expect(restoredGarrison.length).toBe(1);
     expect(restoredGarrison[0]!.unitCode).toBe(unitCodeOf("archer"));
     expect(restoredGarrison[0]!.owner).toBe(0);
@@ -560,8 +660,15 @@ describe("Garrison Save/Load Round-Trip & Determinism", () => {
         playerId: PLAYER_ONE,
       });
 
-      const u1 = spawnCombatUnit(world, comps, "archer", 14.5, 12.5, PLAYER_ONE);
-      const enemy = spawnCombatUnit(world, comps, "militia", 18.5, 14.5, PLAYER_TWO);
+      const u1 = spawnCombatUnit(
+        world,
+        comps,
+        "archer",
+        14.5,
+        12.5,
+        PLAYER_ONE,
+      );
+      spawnCombatUnit(world, comps, "militia", 18.5, 14.5, PLAYER_TWO);
 
       world.inbox.submit({
         kind: GARRISON_COMMAND_KIND,

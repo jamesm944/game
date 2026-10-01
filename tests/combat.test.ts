@@ -160,7 +160,10 @@ describe("damage counter table (SPEC §2.5)", () => {
     expect(BUILDING_ARMOR_CLASSES).toEqual(["building"]);
     // Siege units hold building multipliers in V13 (battering-ram 60x, mangonel 1.5x, trebuchet 2.5x)
     for (const attackerId of UNIT_IDS) {
-      const mult = bonusMultiplierOf(unitDefOf(attackerId), BUILDING_ARMOR_CLASSES);
+      const mult = bonusMultiplierOf(
+        unitDefOf(attackerId),
+        BUILDING_ARMOR_CLASSES,
+      );
       if (attackerId === "battering-ram") {
         expect(mult).toBe(60);
       } else if (attackerId === "mangonel" || attackerId === "cannon-galleon") {

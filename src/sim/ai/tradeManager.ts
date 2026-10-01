@@ -33,11 +33,11 @@ export function planTradeRoutes(
 
     let bestMarket = targetMarkets[0]!;
     let bestDistSq =
-      (cart.tileX - bestMarket.tileX) ** 2 + (cart.tileY - bestMarket.tileY) ** 2;
+      (cart.tileX - bestMarket.tileX) ** 2 +
+      (cart.tileY - bestMarket.tileY) ** 2;
     for (let i = 1; i < targetMarkets.length; i++) {
       const tm = targetMarkets[i]!;
-      const d =
-        (cart.tileX - tm.tileX) ** 2 + (cart.tileY - tm.tileY) ** 2;
+      const d = (cart.tileX - tm.tileX) ** 2 + (cart.tileY - tm.tileY) ** 2;
       if (d < bestDistSq || (d === bestDistSq && tm.eid < bestMarket.eid)) {
         bestDistSq = d;
         bestMarket = tm;
