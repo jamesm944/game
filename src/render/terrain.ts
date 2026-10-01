@@ -38,6 +38,11 @@ import {
   type WorldLayers,
 } from "../sim/world/layers";
 import type { FogShaderUniforms } from "./fogTexture";
+import {
+  createWaterUniforms,
+  WATER_FRAGMENT_GLSL,
+  type WaterUniforms,
+} from "./water";
 
 import grassUrl from "../assets/models/terrain/ambientcg-grass001/Grass001_1K-JPG_Color.jpg";
 import dirtUrl from "../assets/models/terrain/ambientcg-ground110-dirt/Ground110_1K-JPG_Color.jpg";
@@ -55,7 +60,7 @@ const BORDER_SKIRT_DROP = 2;
  * Flat palette indexed by the STABLE terrain ids in layers.ts (deep
  * water … forest floor). Never renumber the enum — these follow it.
  */
-const TERRAIN_HEX: readonly number[] = [
+export const TERRAIN_HEX: readonly number[] = [
   0x16324a, // deep-water
   0x2e648c, // water
   0xc7ae7e, // shore
@@ -218,6 +223,7 @@ function loadTerrainTexture(url: string): Texture {
 
 export interface TerrainMesh extends Mesh {
   readonly uTime: { value: number };
+  readonly waterUniforms: WaterUniforms;
   updateFarms(
     farmTiles: ReadonlyArray<{
       x: number;
@@ -401,6 +407,7 @@ export function buildTerrainMesh(
   farmTexture.needsUpdate = true;
 
   const uTime = { value: 0 };
+  const waterUniforms = createWaterUniforms();
 
   const material = new MeshLambertMaterial({ vertexColors: true });
 
@@ -413,6 +420,13 @@ export function buildTerrainMesh(
     shader.uniforms.uFarmMask = { value: farmTexture };
     shader.uniforms.uTime = uTime;
     shader.uniforms.uFogMapSize = { value: size };
+
+    shader.uniforms.uSunDir = waterUniforms.uSunDir;
+    shader.uniforms.uSunColor = waterUniforms.uSunColor;
+    shader.uniforms.uSkyColor = waterUniforms.uSkyColor;
+    shader.uniforms.uWaterDeepColor = waterUniforms.uWaterDeepColor;
+    shader.uniforms.uWaterShallowColor = waterUniforms.uWaterShallowColor;
+    shader.uniforms.uFoamColor = waterUniforms.uFoamColor;
 
     if (fog) {
       shader.uniforms.uFogCurr = fog.uFogCurr;
@@ -463,6 +477,13 @@ export function buildTerrainMesh(
       uniform float uTime;
       uniform float uFogMapSize;
 
+      uniform vec3 uSunDir;
+      uniform vec3 uSunColor;
+      uniform vec3 uSkyColor;
+      uniform vec3 uWaterDeepColor;
+      uniform vec3 uWaterShallowColor;
+      uniform vec3 uFoamColor;
+
       varying float vTerrainType;
       varying vec2 vWorldUv;
       varying vec3 vWorldPos;
@@ -511,27 +532,7 @@ export function buildTerrainMesh(
         vec3 rockFace = mix(colRock.rgb * 1.08, colDirt.rgb, 0.22);
         texColor = rockFace;
       } else if (vTerrainType < 1.5) {
-        // Water with procedural dual-scrolling normal waves, depth gradient & sparkle
-        vec2 waveUv1 = vWorldUv * 1.5 + vec2(uTime * 0.05, uTime * 0.03);
-        vec2 waveUv2 = vWorldUv * 2.2 - vec2(uTime * 0.04, -uTime * 0.06);
-        float n1 = sin(waveUv1.x * 5.0 + waveUv1.y * 3.5);
-        float n2 = cos(waveUv2.x * 6.5 - waveUv2.y * 5.0);
-        float waveRipple = (n1 + n2) * 0.5;
-
-        float causticTime = uTime * 1.6;
-        float caustics = sin((vWorldUv.x + vWorldUv.y) * 7.0 + causticTime) * 0.5 + 0.5;
-
-        vec3 deepWater = vec3(0.08, 0.22, 0.38);
-        vec3 shallowWater = vec3(0.14, 0.40, 0.54);
-        vec3 waterBase = mix(deepWater, shallowWater, clamp(vTerrainType, 0.0, 1.0));
-
-        vec3 sunDir = normalize(vec3(0.5, 1.4, 0.7));
-        vec3 waveNormal = normalize(vec3(n1 * 0.12, 1.0, n2 * 0.12));
-        float specular = pow(max(0.0, dot(reflect(-sunDir, waveNormal), vec3(0.0, 1.0, 0.0))), 24.0);
-
-        vec3 waterColor = waterBase + vec3(0.02, 0.05, 0.08) * waveRipple + vec3(0.03, 0.06, 0.08) * caustics;
-        texColor = waterColor + vec3(0.85, 0.95, 1.0) * (specular * 0.5);
-      }
+${WATER_FRAGMENT_GLSL}      }
 
       // Farm furrow pattern
       float farmFlag = texture2D(uFarmMask, vFogUv).r;
@@ -573,6 +574,7 @@ export function buildTerrainMesh(
   const baseMesh = new Mesh(merged, material);
   const mesh = Object.assign(baseMesh, {
     uTime,
+    waterUniforms,
     updateFarms(
       farmTiles: ReadonlyArray<{
         x: number;

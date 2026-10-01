@@ -2657,8 +2657,13 @@ function frame(
     0.28 + 0.2 * tint[2]!,
   );
 
-  // Advance terrain animated shaders (water shimmer)
+  // Advance terrain animated shaders (water waves, Fresnel reflections, foam & sun glints)
   terrain.uTime.value = now * 0.001;
+  if (terrain.waterUniforms) {
+    terrain.waterUniforms.uSunDir.value.copy(sun.position).normalize();
+    terrain.waterUniforms.uSunColor.value.copy(sun.color);
+    terrain.waterUniforms.uSkyColor.value.copy(hemisphereLight.color);
+  }
 
   for (let c = 0; c < layerScratches.length; c++) {
     layerScratches[c]!.count = 0;
