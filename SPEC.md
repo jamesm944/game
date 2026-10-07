@@ -436,6 +436,28 @@ Shipped-scope checklist (V12 / #83 sign-off):
 - [x] Polish & juice: animated selection rings, rally pennant flags, chimney smoke particles, wind tree sway, UI transitions (V11 / #82)
 - [x] Canonical 5-scene screenshot suite (dawn village, field battle, night settlement, fog frontier, victory overlay) committed to `docs/screenshots/`, M1–M4 budget gates green, Wayfinder Map 2 (#69) destination reached (V12 / #83)
 
+### Wayfinder Map 3 — Advanced Tactical Command & Diplomacy ✅ (shipped)
+
+- [x] Unit Stances & Command Panel: Aggressive, Defensive, Stand Ground, No Attack (V13 / #91, #95)
+- [x] Patrol & Guard Activities: Cyclic waypoints with auto-engage and ally escort tethering (V13 / #95)
+- [x] Advanced Naval Fleet: War Galleys, Fast Fire Ships, Cannon Galleons, Transport Ships with shore embarkation (V14 / #100)
+- [x] Idle Worker Management: HUD badge, cycling, hotkey select-all, and intelligent redistribution (V15 / #106)
+- [x] Tribute & Diplomacy: Live tribute sending with market transaction fees, dynamic stance toggles (V16 / #110)
+
+### Wayfinder Map 4 — Civilizations, Religion & Multi-Player Skirmish ✅ (shipped)
+
+- [x] Civilizations & Unique Bonuses: Britons, Franks, Goths, Byzantines with distinct tech traits (#118)
+- [x] Monks & Faith: Relic capture, Monastery generation, faith meter, enemy conversion (#119)
+- [x] Mill Auto-Reseed: Farm queue and auto-reseed toggle on Mill building panels (#120)
+- [x] 4-Player Skirmish & Mapgen: Seeded multi-player maps with AI personalities and naval expansion (#121)
+
+### Wayfinder Map 5 — Polish, Waypoints, Formations & v1.0.0 Release ✅ (shipped, Epic #122)
+
+- [x] C0: Clean test seam purity and zero-tolerance ESLint & Prettier verification (#123)
+- [x] Q3: Shift-click Waypoint Queuing & 3D Cyan Dotted Visuals across movement, gathering, building, and patrol (#124)
+- [x] Q4: Tactical Unit Formations (AoE2 Quartet + Bannerlord Tactical) with Speed Harmonization and HUD command grid controls (#125)
+- [x] R1: Production Release Gate, 155 test suites green (1,135 passing tests), Vite bundle validation, and v1.0.0 tag (#126)
+
 ---
 
 ## 9. Open Risks & Mitigations
