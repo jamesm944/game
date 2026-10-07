@@ -17,6 +17,8 @@ import type { VisibilityProvider } from "../systems/fog";
 import { createAllVisibleProvider } from "../systems/fog";
 import type { WorldLayers } from "../world/layers";
 import type { RallyTarget } from "./rally";
+import type { DiplomacyMatrix } from "./diplomacy";
+import type { ScenarioRuntime } from "../scenario/types";
 
 export const TICK_HZ = 30;
 export const TICK_DT_MS = 1000 / TICK_HZ;
@@ -83,6 +85,14 @@ export interface World {
    * Maps buildingEid -> RallyTarget.
    */
   rallyPoints?: Map<number, RallyTarget> | undefined;
+  /**
+   * Active diplomacy matrix tracking pairwise player stances (Milestone S1 / #111).
+   */
+  diplomacy?: DiplomacyMatrix | undefined;
+  /**
+   * Active scenario scripting and trigger engine runtime (Milestone S5 / #133).
+   */
+  scenario?: ScenarioRuntime | undefined;
 }
 
 export type SimSystem = (world: World, commands: readonly SimCommand[]) => void;
@@ -112,6 +122,14 @@ export interface CreateWorldOptions {
    */
   readonly civilizations?:
     ReadonlyMap<number, string> | Record<number, string> | undefined;
+  /**
+   * Optional diplomacy matrix for multi-player skirmish or scripted scenarios.
+   */
+  readonly diplomacy?: DiplomacyMatrix | undefined;
+  /**
+   * Optional scenario scripting runtime (Milestone S5 / #133).
+   */
+  readonly scenario?: ScenarioRuntime | undefined;
 }
 
 export function createWorld(
@@ -148,6 +166,8 @@ export function createWorld(
     pathScheduler: options.pathScheduler,
     visibility: options.visibility ?? createAllVisibleProvider(layers.size),
     civilizations,
+    diplomacy: options.diplomacy,
+    scenario: options.scenario,
   };
 }
 

@@ -2355,3 +2355,281 @@ canvas {
   min-width: 40px;
   text-align: right;
 }
+
+/* ---- Objectives HUD & Panel (Milestone S5 / #133) ------------------------- */
+
+.topbar-objectives-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f1f5f9;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.topbar-objectives-btn:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.8);
+  color: #fef3c7;
+}
+
+.objectives-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f59e0b;
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.objectives-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 23, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.objectives-panel--hidden {
+  display: none !important;
+}
+
+.objectives-panel-card {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  border-radius: 12px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.85), 0 0 20px rgba(245, 158, 11, 0.15);
+  color: #f8fafc;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: ui-monospace, monospace;
+}
+
+.objectives-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.objectives-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.objectives-header-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fef3c7;
+  letter-spacing: 0.02em;
+}
+
+.objectives-icon {
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+}
+
+.objectives-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.objectives-close-btn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.objectives-briefing {
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid #f59e0b;
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 20px;
+}
+
+.objectives-section {
+  margin-bottom: 20px;
+}
+
+.objectives-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin: 0 0 10px 0;
+  font-weight: 700;
+}
+
+.objectives-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.objective-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.15s ease;
+}
+
+.objective-item--active {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.objective-item--completed {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.objective-item--failed {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.objective-status-icon {
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 900;
+  margin-top: 1px;
+}
+
+.objective-status-icon--pending {
+  color: #f59e0b;
+}
+
+.objective-status-icon--completed {
+  color: #22c55e;
+}
+
+.objective-status-icon--failed {
+  color: #ef4448;
+}
+
+.objective-content {
+  flex: 1;
+}
+
+.objective-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 3px;
+}
+
+.objective-item--completed .objective-title {
+  color: #86efac;
+  text-decoration: line-through;
+}
+
+.objective-item--failed .objective-title {
+  color: #fca5a5;
+  text-decoration: line-through;
+}
+
+.objective-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.objective-pill {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  align-self: center;
+}
+
+.objective-pill--pending {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.objective-pill--completed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.objective-pill--failed {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.objectives-transcripts {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.objectives-transcripts-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transcript-entry {
+  font-size: 12px;
+  line-height: 1.4;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.transcript-sender {
+  font-weight: 700;
+  color: #f59e0b;
+  margin-right: 6px;
+}
+
+.transcript-text {
+  color: #cbd5e1;
+}
+
