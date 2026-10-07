@@ -173,6 +173,11 @@ import {
   type SocialEventComponents,
 } from "./socialEvents";
 import { STANCE, STANCE_ARITY, type StanceComponents } from "./stance";
+import {
+  FORMATION,
+  FORMATION_ARITY,
+  type FormationComponents,
+} from "./formation";
 import { GARRISON, GARRISON_ARITY, type GarrisonComponents } from "./garrison";
 import {
   COMMODITY_STOCKPILE,
@@ -309,6 +314,8 @@ export const SIM_COMPONENT_ARITIES: readonly [string, number][] = [
   // M4-T1: Foreman registers alphabetically between Equipment
   // (which EQUIPMENT_COMPONENT_ARITIES lists last) and GateRejected.
   [FOREMAN, FOREMAN_ARITY],
+  // Q4 (Issue #125): Formation registers alphabetically between Foreman and Garrison.
+  [FORMATION, FORMATION_ARITY],
   // V13: Garrison registers alphabetically between Foreman and GateRejected.
   [GARRISON, GARRISON_ARITY],
   // M3-T3: JobCooldown registers alphabetically between Inventory
@@ -385,6 +392,7 @@ export interface SimComponents
     SkillComponents,
     SocialEventComponents,
     StanceComponents,
+    FormationComponents,
     GarrisonComponents,
     VictoryComponents {}
 
@@ -434,6 +442,8 @@ export function defineSimComponents(world: World): SimComponents {
     // M4-T1: Foreman registers alphabetically between Equipment and
     // GateRejected.
     foremanId: defineComponent(world, FOREMAN),
+    // Q4 (Issue #125): Formation registers alphabetically between Foreman and Garrison.
+    formationId: defineComponent(world, FORMATION),
     // V13: Garrison registers alphabetically between Foreman and GateRejected.
     garrisonId: defineComponent(world, GARRISON),
     gateRejectedId: defineComponent(world, GATE_REJECTED),
@@ -790,5 +800,6 @@ export * from "./pop";
 export * from "./relic";
 export * from "./skills";
 export * from "./stance";
+export * from "./formation";
 export * from "./garrison";
 export * from "./faith";

@@ -18,6 +18,7 @@
  */
 
 import type { CommandInbox, SimCommand } from "../sim/core/inbox";
+import type { FormationType } from "../sim/components/formation";
 
 /** Movement command kind (M1-T8). */
 export const GROUP_MOVE_KIND = "groupMove";
@@ -48,6 +49,7 @@ export function issueGroupMove(
   x: number,
   y: number,
   queue?: boolean,
+  formation?: FormationType,
 ): SimCommand {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     throw new Error(
@@ -70,7 +72,13 @@ export function issueGroupMove(
   const command: SimCommand = {
     kind: GROUP_MOVE_KIND,
     targetTick: currentTick + 1,
-    data: { entityIds: ids, x, y, ...(queue ? { queue: true } : {}) },
+    data: {
+      entityIds: ids,
+      x,
+      y,
+      ...(queue ? { queue: true } : {}),
+      ...(formation ? { formation } : {}),
+    },
   };
   inbox.submit(command);
   return command;
@@ -172,6 +180,7 @@ export function issueAttackMove(
   x: number,
   y: number,
   queue?: boolean,
+  formation?: FormationType,
 ): SimCommand {
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
     throw new Error(
@@ -182,7 +191,13 @@ export function issueAttackMove(
   const command: SimCommand = {
     kind: ATTACK_MOVE_KIND,
     targetTick: currentTick + 1,
-    data: { ids: entityIds, x, y, ...(queue ? { queue: true } : {}) },
+    data: {
+      ids: entityIds,
+      x,
+      y,
+      ...(queue ? { queue: true } : {}),
+      ...(formation ? { formation } : {}),
+    },
   };
   inbox.submit(command);
   return command;
@@ -261,6 +276,24 @@ export function issueSetStance(
     kind: SET_STANCE_KIND,
     targetTick: currentTick + 1,
     data: { ids: entityIds, stance },
+  };
+  inbox.submit(command);
+  return command;
+}
+
+export const SET_FORMATION_KIND = "setFormation";
+
+export function issueSetFormation(
+  inbox: CommandInbox,
+  currentTick: number,
+  ids: readonly number[],
+  formation: FormationType,
+): SimCommand {
+  const entityIds = canonicalIds(ids, "setFormation");
+  const command: SimCommand = {
+    kind: SET_FORMATION_KIND,
+    targetTick: currentTick + 1,
+    data: { entityIds, formation },
   };
   inbox.submit(command);
   return command;
@@ -373,7 +406,8 @@ export type OrderKind =
   | "ungarrison"
   | "pack"
   | "unpack"
-  | "convert";
+  | "convert"
+  | "formation";
 
 const KIND_TAGS: Record<OrderKind, string> = {
   move: "MOV",
@@ -390,6 +424,7 @@ const KIND_TAGS: Record<OrderKind, string> = {
   pack: "PCK",
   unpack: "UPK",
   convert: "CVT",
+  formation: "FOR",
 };
 
 export interface OrderLogEntry {
@@ -509,6 +544,8 @@ export interface OrderInputDeps {
   enemyAt?(x: number, y: number): number | undefined;
   /** Query if a selected unit is a monk. */
   isMonk?(unitEid: number): boolean;
+  /** Active formation to apply to group moves. */
+  getFormation?(): FormationType;
   /** Same-frame feedback hook: called synchronously on issue. */
   onMoveOrdered(x: number, y: number): void;
 }
@@ -893,6 +930,7 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       return;
     }
 
+    const formation = deps.getFormation?.();
     const command = issueGroupMove(
       deps.inbox,
       deps.currentTick(),
@@ -900,6 +938,7 @@ export function wireOrderInput(deps: OrderInputDeps): void {
       ground.x,
       ground.y,
       isQueued,
+      formation,
     );
     // Same-frame feedback: marker exists before this handler returns.
     deps.onMoveOrdered(ground.x, ground.y);

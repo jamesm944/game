@@ -862,6 +862,10 @@ canvas {
     opacity 0.2s ease-out;
   opacity: 0;
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
 }
 
 #command-panel.visible {
@@ -873,6 +877,14 @@ canvas {
   display: flex;
   gap: 6px;
   align-items: center;
+}
+
+.formation-grid {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  padding-top: 4px;
 }
 
 .command-btn {
@@ -901,6 +913,13 @@ canvas {
   border-color: rgb(240 217 160 / 0.4);
   color: #fff;
   transform: translateY(-1px);
+}
+
+.command-btn.active {
+  background: rgb(240 217 160 / 0.22);
+  border-color: #f0d9a0;
+  color: #fff;
+  box-shadow: 0 0 6px rgb(240 217 160 / 0.35);
 }
 
 .command-btn:active:not(:disabled) {

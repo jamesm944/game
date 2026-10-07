@@ -48,6 +48,8 @@ import {
   type UnitDefinition,
 } from "../../data/schema";
 
+import type { FormationType } from "../components/formation";
+
 /** Everything that modifies a definition's base numbers right now. */
 export interface StatContext {
   /**
@@ -80,6 +82,10 @@ export interface StatContext {
    * Passive civilization bonuses of the unit's owner (Milestone C1 / #118).
    */
   readonly civBonuses?: readonly TechEffect[] | undefined;
+  /**
+   * Tactical unit formation (Q4 / #125). Shield wall adds +2 pierce armor, -20% speed.
+   */
+  readonly formation?: FormationType | undefined;
 }
 
 /**
@@ -254,6 +260,16 @@ export function deriveUnitStats(
   if (ctx.impairment !== undefined) {
     applyImpairment(stats, ctx.impairment);
   }
+  if (ctx.formation === "shieldWall") {
+    stats.speed = Math.max(stats.speed * 0.8, Number.EPSILON);
+    for (const tag of def.armorClasses) {
+      const armorClass = tag as ArmorClass;
+      const held = stats.armorByClass[armorClass];
+      if (held !== undefined) {
+        stats.armorByClass[armorClass] = held + 2;
+      }
+    }
+  }
   return {
     attack: stats.attack,
     armorByClass: stats.armorByClass,
@@ -318,7 +334,12 @@ export function strikeDamage(
   defenderStats: DerivedStats,
 ): number {
   const mult = bonusMultiplierOf(attackerDef, defenderDef.armorClasses);
-  const armor = effectiveArmorOf(defenderStats, defenderDef.armorClasses);
+  let armor = effectiveArmorOf(defenderStats, defenderDef.armorClasses);
+  if (attackerDef.range !== undefined && attackerDef.range > MELEE_RANGE) {
+    const pierce =
+      (defenderStats.armorByClass as Record<string, number>)["pierce"] ?? 0;
+    if (pierce > armor) armor = pierce;
+  }
   return Math.max(1, Math.floor(attackerStats.attack * mult - armor));
 }
 

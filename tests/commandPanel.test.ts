@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   COMMAND_BUTTONS,
+  FORMATION_BUTTONS,
+  formatFormationLabel,
   formatStanceLabel,
+  nextFormation,
   nextStance,
   type UnitStance,
 } from "../src/ui/commandPanel";
@@ -27,6 +30,48 @@ describe("commandPanel button definitions (V13, #91)", () => {
 
     const attack = COMMAND_BUTTONS.find((b) => b.id === "attack-move");
     expect(attack?.hotkey).toBe("A");
+  });
+});
+
+describe("commandPanel formation buttons (Q4, #125)", () => {
+  it("defines all 8 tactical formation buttons with distinct hotkeys", () => {
+    expect(FORMATION_BUTTONS.length).toBe(8);
+    const ids = FORMATION_BUTTONS.map((b) => b.id);
+    expect(ids).toEqual([
+      "line",
+      "box",
+      "staggered",
+      "flank",
+      "shieldWall",
+      "square",
+      "circle",
+      "wedge",
+    ]);
+
+    const hotkeys = new Set(FORMATION_BUTTONS.map((b) => b.hotkey));
+    expect(hotkeys.size).toBe(FORMATION_BUTTONS.length);
+  });
+
+  it("cycles through all 8 formations", () => {
+    expect(nextFormation("line")).toBe("box");
+    expect(nextFormation("box")).toBe("staggered");
+    expect(nextFormation("staggered")).toBe("flank");
+    expect(nextFormation("flank")).toBe("shieldWall");
+    expect(nextFormation("shieldWall")).toBe("square");
+    expect(nextFormation("square")).toBe("circle");
+    expect(nextFormation("circle")).toBe("wedge");
+    expect(nextFormation("wedge")).toBe("line");
+  });
+
+  it("formats human-readable labels for all formations", () => {
+    expect(formatFormationLabel("line")).toBe("Formation: Line");
+    expect(formatFormationLabel("box")).toBe("Formation: Box");
+    expect(formatFormationLabel("staggered")).toBe("Formation: Staggered");
+    expect(formatFormationLabel("flank")).toBe("Formation: Flank");
+    expect(formatFormationLabel("shieldWall")).toBe("Formation: Shield Wall");
+    expect(formatFormationLabel("square")).toBe("Formation: Square");
+    expect(formatFormationLabel("circle")).toBe("Formation: Circle");
+    expect(formatFormationLabel("wedge")).toBe("Formation: Wedge");
   });
 });
 

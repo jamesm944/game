@@ -125,6 +125,7 @@ import {
   readGarrison,
   writeGarrison,
 } from "../components/garrison";
+import { getFormation, parseFormation } from "../components/formation";
 import { injuryImpairmentOf } from "../components/body";
 import { isRoutingOf } from "../components/morale";
 import { ageRankOf } from "../components/age";
@@ -601,7 +602,11 @@ export function createCombatSystem(
       // softer, legs chase slower), so the impairment multipliers join
       // the memo key — wounded and unwounded twins never collapse.
       const impairment = injuryImpairmentOf(world, comps, combatant.eid);
-      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a:${skills?.get("melee") ?? "x"}m${skills?.get("ranged") ?? "x"}r:${impairment.attackMult}at${impairment.speedMult}sp`;
+      const formation =
+        comps.formationId !== undefined
+          ? getFormation(world, comps, combatant.eid)
+          : undefined;
+      const key = `${combatant.row[0]}:${combatant.owner}:${equipment.weapons}w${equipment.armor}a:${skills?.get("melee") ?? "x"}m${skills?.get("ranged") ?? "x"}r:${impairment.attackMult}at${impairment.speedMult}sp:${formation ?? "none"}`;
       let stats = statsMemo.get(key);
       if (!stats) {
         const ctx: StatContext = {
@@ -613,6 +618,7 @@ export function createCombatSystem(
             speedMult: impairment.speedMult,
           },
           civBonuses,
+          formation,
         };
         stats = deriveUnitStats(combatant.def, ctx);
         statsMemo.set(key, stats);
@@ -1687,10 +1693,13 @@ export function createCombatSystem(
       if (!targetCombatant || !targetRow) continue;
 
       const defenderStats = statsOf(targetCombatant);
-      const armor = effectiveArmorOf(
+      let armor = effectiveArmorOf(
         defenderStats,
         targetCombatant.def.armorClasses,
       );
+      const pierce =
+        (defenderStats.armorByClass as Record<string, number>)["pierce"] ?? 0;
+      if (pierce > armor) armor = pierce;
       const baseDmg = Math.max(1, Math.floor(attack - armor));
       const damage =
         maxElevation > 0
@@ -1942,6 +1951,10 @@ function applyAttackMoveCommand(
         x: parsed.x,
         y: parsed.y,
         queue: data.queue === true,
+        formation:
+          typeof data.formation === "string"
+            ? parseFormation(data.formation)
+            : undefined,
       },
       {
         onIssue: releaseOrders,

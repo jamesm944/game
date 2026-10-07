@@ -42,6 +42,17 @@ import {
   type MovementComponents,
 } from "../components";
 import {
+  calculateFormationOffset,
+  clearHarmonizedSpeed,
+  getFormation,
+  getHarmonizedSpeed,
+  parseFormation,
+  setFormation,
+  setHarmonizedSpeed,
+  type FormationComponents,
+  type FormationType,
+} from "../components/formation";
+import {
   angleDelta,
   buildSinCosLut,
   detAtan2,
@@ -349,7 +360,8 @@ export interface GroupRouteOrder {
   readonly entityIds: readonly number[];
   readonly x: number;
   readonly y: number;
-  readonly queue?: boolean;
+  readonly queue?: boolean | undefined;
+  readonly formation?: FormationType | undefined;
 }
 
 /**
@@ -400,6 +412,9 @@ function parseGroupMoveData(
     x,
     y,
     queue: data.queue === true,
+    ...(typeof data.formation === "string"
+      ? { formation: parseFormation(data.formation) }
+      : {}),
   };
 }
 
@@ -445,9 +460,11 @@ function nearestPassableTile(
 export function issueGroupRoute(
   world: World,
   comps: MovementComponents &
+    Partial<Pick<BodyComponents, "bodyId">> &
     Partial<OwnerComponents> &
     Partial<BuildingComponents> &
-    Partial<CombatComponents>,
+    Partial<CombatComponents> &
+    Partial<FormationComponents>,
   diagnostics: MovementDiagnostics | undefined,
   paths: PathScheduler,
   order: GroupRouteOrder,
@@ -552,6 +569,33 @@ export function issueGroupRoute(
   // Deal slots: leader on the center slot, remaining Pops ascending.
   const ordered = [leader, ...members.filter((member) => member !== leader)];
 
+  const leaderFormationRow =
+    comps.formationId !== undefined
+      ? world.rowsByComponentId.get(comps.formationId)?.get(leader.eid)
+      : undefined;
+  const activeFormation =
+    order.formation ??
+    (leaderFormationRow ? getFormation(world, comps, leader.eid) : undefined);
+
+  if (activeFormation !== undefined && members.length > 1) {
+    let minSpeed = Infinity;
+    for (const m of members) {
+      const tagRow = world.rowsByComponentId.get(comps.unitTagId)?.get(m.eid);
+      const rawBase = tagRow ? tagRow[0]! : 2.5;
+      const impairment = injuryImpairmentOf(world, comps, m.eid).speedMult;
+      const swMult = activeFormation === "shieldWall" ? 0.8 : 1.0;
+      const spd = rawBase * impairment * swMult;
+      if (spd < minSpeed) minSpeed = spd;
+    }
+    if (minSpeed > 0 && Number.isFinite(minSpeed)) {
+      for (const m of members) {
+        if (comps.formationId !== undefined) {
+          setHarmonizedSpeed(world, comps, m.eid, minSpeed);
+        }
+      }
+    }
+  }
+
   paths.requestPath(
     {
       startX: startTileX,
@@ -582,9 +626,22 @@ export function issueGroupRoute(
           );
         }
 
+        const travelAngle = detAtan2(
+          goal.y - leader.startY,
+          goal.x - leader.startX,
+        );
+
         for (let slotIndex = 0; slotIndex < ordered.length; slotIndex++) {
           const member = ordered[slotIndex]!;
-          const offset = formationSlotOffset(slotIndex);
+          const offset =
+            activeFormation !== undefined
+              ? calculateFormationOffset(
+                  activeFormation,
+                  slotIndex,
+                  ordered.length,
+                  travelAngle,
+                )
+              : formationSlotOffset(slotIndex);
           const finalX = x + offset.dx;
           const finalY = y + offset.dy;
           const velRow = world.rowsByComponentId
@@ -636,9 +693,11 @@ export function issueGroupRoute(
 function handleGroupMove(
   world: World,
   comps: MovementComponents &
+    Partial<Pick<BodyComponents, "bodyId">> &
     Partial<OwnerComponents> &
     Partial<BuildingComponents> &
-    Partial<CombatComponents>,
+    Partial<CombatComponents> &
+    Partial<FormationComponents>,
   diagnostics: MovementDiagnostics,
   paths: PathScheduler,
   data: Readonly<Record<string, unknown>>,
@@ -646,6 +705,23 @@ function handleGroupMove(
   issueGroupRoute(world, comps, diagnostics, paths, parseGroupMoveData(data), {
     buildHead: moveActivity,
   });
+}
+
+export const SET_FORMATION_COMMAND_KIND = "setFormation";
+
+export function handleSetFormation(
+  world: World,
+  comps: { readonly formationId?: number },
+  data: Readonly<Record<string, unknown>>,
+): void {
+  const rawIds = data.entityIds ?? data.ids;
+  if (!Array.isArray(rawIds)) return;
+  const formation = parseFormation(data.formation);
+  for (const id of rawIds) {
+    if (typeof id === "number" && Number.isInteger(id) && id > 0) {
+      setFormation(world, comps, id, formation);
+    }
+  }
 }
 
 // ---- The system -------------------------------------------------------------
@@ -664,7 +740,8 @@ export function createMovementSystem(
     Partial<BuildingComponents> &
     Partial<GarrisonComponents> &
     Partial<CombatComponents> &
-    Partial<StanceComponents>,
+    Partial<StanceComponents> &
+    Partial<FormationComponents>,
   paths: PathScheduler,
   diagnostics: MovementDiagnostics = createMovementDiagnostics(),
 ): SimSystem {
@@ -712,9 +789,14 @@ export function createMovementSystem(
     // so each system dispatches on kind and skips foreign orders (the
     // gather system owns "gather" since M1-T9).
     for (const command of commands) {
-      if (command.kind !== "groupMove") continue;
-      if (!command.data) throw new Error("groupMove requires command data");
-      handleGroupMove(world, comps, diagnostics, paths, command.data);
+      if (command.kind === "groupMove") {
+        if (!command.data) throw new Error("groupMove requires command data");
+        handleGroupMove(world, comps, diagnostics, paths, command.data);
+      } else if (command.kind === "setFormation") {
+        if (!command.data)
+          throw new Error("setFormation requires command data");
+        handleSetFormation(world, comps, command.data);
+      }
     }
 
     // Collect live units in ascending-eid order with decoded queues.
@@ -1279,8 +1361,23 @@ export function createMovementSystem(
       const waypoints = move.waypoints;
       // M3-T4: leg/vital wounds drag the cruise speed (multiplier
       // exactly 1 for rowless units — legacy arithmetic untouched).
-      const baseSpeed =
-        unit.tagRow[0]! * injuryImpairmentOf(world, comps, unit.eid).speedMult;
+      const activeFormation =
+        comps.formationId !== undefined
+          ? world.rowsByComponentId.get(comps.formationId)?.get(unit.eid)
+            ? getFormation(world, comps, unit.eid)
+            : undefined
+          : undefined;
+      const shieldWallMult = activeFormation === "shieldWall" ? 0.8 : 1.0;
+      let baseSpeed =
+        unit.tagRow[0]! *
+        injuryImpairmentOf(world, comps, unit.eid).speedMult *
+        shieldWallMult;
+      if (comps.formationId !== undefined) {
+        const harmonized = getHarmonizedSpeed(world, comps, unit.eid);
+        if (harmonized > 0 && harmonized < baseSpeed) {
+          baseSpeed = harmonized;
+        }
+      }
       const turnRate = unit.tagRow[1]!;
 
       // Consume reached intermediate waypoints.
@@ -1400,6 +1497,9 @@ export function createMovementSystem(
           } else {
             unit.speed = 0;
             unit.velRow[V_SPEED] = 0;
+            if (comps.formationId !== undefined) {
+              clearHarmonizedSpeed(world, comps, unit.eid);
+            }
           }
           continue;
         }

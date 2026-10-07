@@ -243,6 +243,7 @@ import {
   issueGuard,
   issuePatrol,
   issueSetStance,
+  issueSetFormation,
   issueStop,
   issuePack,
   issueUnpack,
@@ -271,7 +272,10 @@ import {
   nextStance,
   formatStanceLabel,
   type UnitStance,
+  nextFormation,
+  formatFormationLabel,
 } from "./ui/commandPanel";
+import type { FormationType } from "./sim/components/formation";
 import { deriveUnitStats } from "./sim/combat/stats";
 import { getCivBonuses } from "./sim/core/civilization";
 import { givenNameOf } from "./sim/components/pop";
@@ -1418,6 +1422,7 @@ canvas.addEventListener("click", (event: MouseEvent) => {
         ground.x,
         ground.y,
         event.shiftKey,
+        currentFormation,
       );
       moveMarkers.spawn(ground.x, ground.y); // same-frame feedback
     }
@@ -1654,6 +1659,7 @@ wireOrderInput({
     }
     return bestEid;
   },
+  getFormation: () => currentFormation,
   onMoveOrdered: (x, y) => moveMarkers.spawn(x, y),
 });
 
@@ -1675,6 +1681,7 @@ function disarmAttackMove(): void {
 }
 
 let currentStance: UnitStance = "aggressive";
+let currentFormation: FormationType = "line";
 
 function handleStopCommand(): void {
   issueStop(world.inbox, world.tick, getSelectedEids());
@@ -1706,9 +1713,37 @@ function handleCycleStanceCommand(): void {
   currentStance = nextStance(currentStance);
   if (selectionCount() > 0) {
     issueSetStance(world.inbox, world.tick, getSelectedEids(), currentStance);
-    commandPanel.update(true, currentStance, false);
+    commandPanel.update(true, currentStance, false, currentFormation);
   }
   toast.show(formatStanceLabel(currentStance));
+}
+
+function handleCycleFormationCommand(): void {
+  currentFormation = nextFormation(currentFormation);
+  if (selectionCount() > 0) {
+    issueSetFormation(
+      world.inbox,
+      world.tick,
+      getSelectedEids(),
+      currentFormation,
+    );
+    commandPanel.update(true, currentStance, false, currentFormation);
+  }
+  toast.show(formatFormationLabel(currentFormation));
+}
+
+function handleSetFormationCommand(formation: FormationType): void {
+  currentFormation = formation;
+  if (selectionCount() > 0) {
+    issueSetFormation(
+      world.inbox,
+      world.tick,
+      getSelectedEids(),
+      currentFormation,
+    );
+    commandPanel.update(true, currentStance, false, currentFormation);
+  }
+  toast.show(formatFormationLabel(currentFormation));
 }
 
 function handleGarrisonCommand(): void {
@@ -1755,6 +1790,22 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
     handleGuardCommand();
   } else if (key === "z") {
     handleCycleStanceCommand();
+  } else if (key === "f") {
+    handleCycleFormationCommand();
+  } else if (key === "x") {
+    handleSetFormationCommand("box");
+  } else if (key === "c") {
+    handleSetFormationCommand("staggered");
+  } else if (key === "v") {
+    handleSetFormationCommand("flank");
+  } else if (key === "b") {
+    handleSetFormationCommand("shieldWall");
+  } else if (key === "n") {
+    handleSetFormationCommand("square");
+  } else if (key === "m") {
+    handleSetFormationCommand("circle");
+  } else if (key === "k") {
+    handleSetFormationCommand("wedge");
   } else if (key === "t") {
     handleGarrisonCommand();
   }
@@ -1766,6 +1817,8 @@ const commandPanel = createCommandPanel({
   onPatrol: handlePatrolCommand,
   onGuard: handleGuardCommand,
   onCycleStance: handleCycleStanceCommand,
+  onCycleFormation: handleCycleFormationCommand,
+  onSetFormation: handleSetFormationCommand,
   onGarrison: handleGarrisonCommand,
 });
 
@@ -3322,6 +3375,7 @@ function frame(
     selectedUnits.length > 0,
     currentStance,
     hasGarrisonBuilding,
+    currentFormation,
   );
 
   popCard.refresh();
