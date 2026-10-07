@@ -40,20 +40,37 @@ Relic, Knowledge, Culture, or Economic — all six are winnable against the AI.
 
 ## Controls
 
-| Input                         | Action                                                    |
-| ----------------------------- | --------------------------------------------------------- |
-| Left-drag                     | Box select                                                |
-| Click / Shift-click           | Select / add-toggle                                       |
-| Double-click                  | Select all of same type on screen                         |
-| Right-click                   | Contextual order: move, gather, deposit, attack           |
-| `A` then left-click           | Attack-move (auto-acquires targets en route)              |
-| `S`                           | Stop                                                      |
-| `Esc`                         | Cancel armed cursor / toggle pause menu (saves + replays) |
-| `Ctrl`/`⌘`+`1..4`             | Store selection as control group                          |
-| `1..4`                        | Recall group · double-tap centers camera                  |
-| `WASD` / arrows / screen edge | Pan camera                                                |
-| Mouse wheel                   | Zoom toward cursor                                        |
-| Minimap click / drag          | Jump camera                                               |
+| Input                         | Action                                                     |
+| ----------------------------- | ---------------------------------------------------------- |
+| Left-drag                     | Box select                                                 |
+| Click / Shift-click           | Select / add-toggle                                        |
+| Double-click                  | Select all of same type on screen                          |
+| Right-click                   | Contextual order: move, gather, deposit, attack            |
+| Shift + Right-click           | Queue waypoint / chain orders (heterogeneous cascading)    |
+| `A` then left-click           | Attack-move (auto-acquires targets en route)               |
+| `S`                           | Stop immediately                                           |
+| `P` then left-click           | Patrol route                                               |
+| `G` then left-click           | Guard unit or perimeter                                    |
+| `Z`                           | Cycle combat stance (Aggressive / Defensive / Stand / Off) |
+| `F` / `X` / `C` / `V`         | AoE2 Formations: Line, Box, Staggered, Flank               |
+| `B` / `N` / `M` / `K`         | Bannerlord Formations: Shield Wall, Square, Circle, Wedge  |
+| `.` / `>` / `I`               | Idle workers: cycle / select all                           |
+| `R` / `Alt+.`                 | Smart redistribution of idle workers across camps          |
+| `Esc`                         | Cancel armed cursor / toggle pause menu (saves + replays)  |
+| `Ctrl`/`⌘`+`1..4`             | Store selection as control group                           |
+| `1..4`                        | Recall group · double-tap centers camera                   |
+| `WASD` / arrows / screen edge | Pan camera                                                 |
+| Mouse wheel                   | Zoom toward cursor                                         |
+| Minimap click / drag          | Jump camera                                                |
+
+## Formations & Speed Harmonization
+
+Groups moving in tactical formations automatically harmonize their cruise speed to the slowest member in the squad, preserving cohesive rank-and-file geometry during marches:
+
+- **Shield Wall (`B`)**: Tight 0.65-tile spacing, +2 pierce armor bonus against ranged fire, with -20% cruise speed.
+- **Staggered (`C`)**: Dispersed 2-tile spacing to minimize splash damage from mangonels and catapults.
+- **Flank (`V`)**: Splits the force into twin envelopment wings.
+- **Wedge (`K`)**: Arrowhead spearhead designed for cavalry penetrations.
 
 ## Saves, replays & settings
 
