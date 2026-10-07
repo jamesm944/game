@@ -28,6 +28,8 @@
 import {
   cancelActivities,
   dequeueCurrentActivity,
+  enqueueActivity,
+  getLastQueuedDestination,
   moveActivity,
   peekActivity,
   type Activity,
@@ -347,6 +349,7 @@ export interface GroupRouteOrder {
   readonly entityIds: readonly number[];
   readonly x: number;
   readonly y: number;
+  readonly queue?: boolean;
 }
 
 /**
@@ -392,7 +395,12 @@ function parseGroupMoveData(
   ) {
     throw new Error("groupMove requires finite numeric x/y destination");
   }
-  return { entityIds, x, y };
+  return {
+    entityIds,
+    x,
+    y,
+    queue: data.queue === true,
+  };
 }
 
 /** Nearest passable tile to (tx, ty) by expanding square rings, or null. */
@@ -448,7 +456,13 @@ export function issueGroupRoute(
   const { x, y } = order;
   const size = world.layers.size;
 
-  const members: { eid: number; x: number; y: number }[] = [];
+  const members: {
+    eid: number;
+    x: number;
+    y: number;
+    startX: number;
+    startY: number;
+  }[] = [];
   for (const eid of order.entityIds) {
     const posRow = world.rowsByComponentId.get(comps.positionId)?.get(eid);
     const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
@@ -456,7 +470,15 @@ export function issueGroupRoute(
       .get(comps.activityQueueId)
       ?.get(eid);
     if (!posRow || !velRow || !queueRow) continue; // not a live unit
-    members.push({ eid, x: posRow[0]!, y: posRow[1]! });
+    let startX = posRow[0]!;
+    let startY = posRow[1]!;
+    if (order.queue) {
+      const q = readActivityQueue(world, comps, eid);
+      const dest = getLastQueuedDestination(q, startX, startY);
+      startX = dest.x;
+      startY = dest.y;
+    }
+    members.push({ eid, x: posRow[0]!, y: posRow[1]!, startX, startY });
   }
   if (members.length === 0) return;
 
@@ -465,16 +487,16 @@ export function issueGroupRoute(
   let centroidX = 0;
   let centroidY = 0;
   for (const member of members) {
-    centroidX += member.x;
-    centroidY += member.y;
+    centroidX += member.startX;
+    centroidY += member.startY;
   }
   centroidX /= members.length;
   centroidY /= members.length;
   let leader = members[0]!;
   let leaderDistanceSq = Infinity;
   for (const member of members) {
-    const dx = member.x - centroidX;
-    const dy = member.y - centroidY;
+    const dx = member.startX - centroidX;
+    const dy = member.startY - centroidY;
     const d2 = dx * dx + dy * dy;
     if (d2 < leaderDistanceSq) {
       leaderDistanceSq = d2;
@@ -482,8 +504,14 @@ export function issueGroupRoute(
     }
   }
 
-  const startTileX = Math.floor(leader.x);
-  const startTileY = Math.floor(leader.y);
+  const rawStartTileX = Math.min(
+    Math.max(Math.floor(leader.startX), 0),
+    size - 1,
+  );
+  const rawStartTileY = Math.min(
+    Math.max(Math.floor(leader.startY), 0),
+    size - 1,
+  );
   const leaderOwner =
     comps.ownerId !== undefined
       ? ownerOfUnit(world, { ownerId: comps.ownerId }, leader.eid)
@@ -502,7 +530,11 @@ export function issueGroupRoute(
           leaderOwner,
         )
       : world.layers.derivedPassability;
+
+  const startTileX = rawStartTileX;
+  const startTileY = rawStartTileY;
   if (!tileIsPassable(passability, size, startTileX, startTileY)) return;
+
   const goal = nearestPassableTile(
     passability,
     size,
@@ -511,7 +543,7 @@ export function issueGroupRoute(
   );
   if (!goal) return;
 
-  if (hooks.onIssue !== undefined) {
+  if (hooks.onIssue !== undefined && !order.queue) {
     for (const member of members) {
       hooks.onIssue(member.eid);
     }
@@ -559,8 +591,7 @@ export function issueGroupRoute(
             .get(comps.velocityId)
             ?.get(member.eid);
           if (!velRow) continue;
-          // A fresh order clears all steering-FSM bookkeeping.
-          resetSteeringBookkeeping(velRow);
+
           // String-pull per member: a clear straight line to the slot skips
           // the leader's route entirely; otherwise reuse the shared centers.
           let waypoints: number[];
@@ -569,8 +600,8 @@ export function issueGroupRoute(
             hasLineOfSight(
               passability,
               size,
-              Math.floor(member.x),
-              Math.floor(member.y),
+              Math.floor(member.startX),
+              Math.floor(member.startY),
               Math.floor(finalX),
               Math.floor(finalY),
             )
@@ -579,10 +610,19 @@ export function issueGroupRoute(
           } else {
             waypoints = [...sharedWaypoints.slice(0, -2), finalX, finalY];
           }
-          writeActivityQueue(world, comps, member.eid, [
-            hooks.buildHead(waypoints),
-          ]);
-          setMoveTarget(world, comps, member.eid, finalX, finalY);
+
+          const existingQueue = readActivityQueue(world, comps, member.eid);
+          if (order.queue && existingQueue.length > 0) {
+            enqueueActivity(existingQueue, hooks.buildHead(waypoints));
+            writeActivityQueue(world, comps, member.eid, existingQueue);
+          } else {
+            // A fresh order clears all steering-FSM bookkeeping.
+            resetSteeringBookkeeping(velRow);
+            writeActivityQueue(world, comps, member.eid, [
+              hooks.buildHead(waypoints),
+            ]);
+            setMoveTarget(world, comps, member.eid, finalX, finalY);
+          }
         }
       },
     },
@@ -1340,8 +1380,27 @@ export function createMovementSystem(
         if (isFinalLeg && dist <= FINAL_ARRIVAL_RADIUS) {
           dequeueCurrentActivity(unit.queue);
           unit.queueDirty = true;
-          unit.speed = 0;
-          unit.velRow[V_SPEED] = 0;
+          const next = peekActivity(unit.queue);
+          if (
+            next &&
+            (next.kind === "move" ||
+              next.kind === "attackMove" ||
+              next.kind === "patrol")
+          ) {
+            const nextWaypoints = next.waypoints;
+            // moveTargetId must be the FINAL destination so that any
+            // subsequent repath request repaths to the correct goal,
+            // not to an intermediate cursor waypoint.
+            const nextTargetX = nextWaypoints[nextWaypoints.length - 2]!;
+            const nextTargetY = nextWaypoints[nextWaypoints.length - 1]!;
+            world.rowsByComponentId
+              .get(comps.moveTargetId)
+              ?.set(unit.eid, [nextTargetX, nextTargetY]);
+            resetSteeringBookkeeping(unit.velRow);
+          } else {
+            unit.speed = 0;
+            unit.velRow[V_SPEED] = 0;
+          }
           continue;
         }
       }
@@ -1369,9 +1428,27 @@ export function createMovementSystem(
           // Anti-orbit grace: close enough for long enough ⇒ arrived.
           dequeueCurrentActivity(unit.queue);
           unit.queueDirty = true;
-          unit.speed = 0;
-          unit.velRow[V_CLOSE_TICKS] = 0;
-          unit.velRow[V_SPEED] = 0;
+          const next = peekActivity(unit.queue);
+          if (
+            next &&
+            (next.kind === "move" ||
+              next.kind === "attackMove" ||
+              next.kind === "patrol")
+          ) {
+            const nextWaypoints = next.waypoints;
+            // moveTargetId must be the FINAL destination so that any
+            // subsequent repath request repaths to the correct goal.
+            const nextTargetX = nextWaypoints[nextWaypoints.length - 2]!;
+            const nextTargetY = nextWaypoints[nextWaypoints.length - 1]!;
+            world.rowsByComponentId
+              .get(comps.moveTargetId)
+              ?.set(unit.eid, [nextTargetX, nextTargetY]);
+            resetSteeringBookkeeping(unit.velRow);
+          } else {
+            unit.speed = 0;
+            unit.velRow[V_CLOSE_TICKS] = 0;
+            unit.velRow[V_SPEED] = 0;
+          }
           continue;
         }
       } else {

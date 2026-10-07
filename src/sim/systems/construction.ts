@@ -142,6 +142,7 @@ export function createConstructionDiagnostics(): ConstructionDiagnostics {
 function parseBuildData(data: Readonly<Record<string, unknown>>): {
   entityIds: number[];
   siteEid: number;
+  queue: boolean;
 } {
   const rawIds = data.entityIds;
   if (!Array.isArray(rawIds) || rawIds.length === 0) {
@@ -167,7 +168,7 @@ function parseBuildData(data: Readonly<Record<string, unknown>>): {
       `build siteEid must be a positive integer, got ${String(siteEid)}`,
     );
   }
-  return { entityIds, siteEid };
+  return { entityIds, siteEid, queue: data.queue === true };
 }
 
 /**
@@ -281,15 +282,17 @@ export function createConstructionSystem(
         const tagRow = tagRows?.get(eid);
         if (!posRow || !velRow || !tagRow) continue; // not a live unit
         if (isChildOf(world, comps, eid)) continue; // children cannot work (M3-T5)
-        // Re-tasking replaces any prior job (AoE2 order semantics):
-        // without this, a gatherer keeps its AssignedNode row and the
-        // gather system re-plans chop legs against the site walk.
         clearAssignedNode(world, comps, eid);
-        const queue = readActivityQueue(world, comps, eid);
-        cancelActivities(queue);
-        writeActivityQueue(world, comps, eid, queue);
         assignSite(world, comps, eid, parsed.siteEid);
-        resetSteeringBookkeeping(velRow);
+        const queue = readActivityQueue(world, comps, eid);
+        if (parsed.queue && queue.length > 0) {
+          // Keep prior queued activities intact; when earlier activities complete,
+          // the builder will plan approach to the assigned site.
+        } else {
+          cancelActivities(queue);
+          writeActivityQueue(world, comps, eid, queue);
+          resetSteeringBookkeeping(velRow);
+        }
       }
       diagnostics.commandsApplied += 1;
     }

@@ -1937,7 +1937,12 @@ function applyAttackMoveCommand(
       comps,
       undefined, // movement diagnostics stay movement-owned
       paths,
-      { entityIds: parsed.ids, x: parsed.x, y: parsed.y },
+      {
+        entityIds: parsed.ids,
+        x: parsed.x,
+        y: parsed.y,
+        queue: data.queue === true,
+      },
       {
         onIssue: releaseOrders,
         buildHead: attackMoveActivity,
@@ -2047,19 +2052,24 @@ function applyPatrolCommand(
 
   for (const eid of ids) {
     if (!world.rowsByComponentId.get(comps.activityQueueId)?.has(eid)) continue;
-    clearAssignedNode(world, comps, eid);
-    clearAssignedSite(world, comps, eid);
     const queue = readActivityQueue(world, comps, eid);
-    cancelActivities(queue);
-    queue.push(patrolActivity(flatWaypoints, 0, 1));
-    writeActivityQueue(world, comps, eid, queue);
-    const combatRow = getCombatRow(world, comps, eid);
-    if (combatRow) combatRow[3] = 0;
-    world.rowsByComponentId
-      .get(comps.moveTargetId)
-      ?.set(eid, [flatWaypoints[0]!, flatWaypoints[1]!]);
-    const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
-    if (velRow) resetSteeringBookkeeping(velRow);
+    if (data.queue === true && queue.length > 0) {
+      queue.push(patrolActivity(flatWaypoints, 0, 1));
+      writeActivityQueue(world, comps, eid, queue);
+    } else {
+      clearAssignedNode(world, comps, eid);
+      clearAssignedSite(world, comps, eid);
+      cancelActivities(queue);
+      queue.push(patrolActivity(flatWaypoints, 0, 1));
+      writeActivityQueue(world, comps, eid, queue);
+      const combatRow = getCombatRow(world, comps, eid);
+      if (combatRow) combatRow[3] = 0;
+      world.rowsByComponentId
+        .get(comps.moveTargetId)
+        ?.set(eid, [flatWaypoints[0]!, flatWaypoints[1]!]);
+      const velRow = world.rowsByComponentId.get(comps.velocityId)?.get(eid);
+      if (velRow) resetSteeringBookkeeping(velRow);
+    }
   }
   diagnostics.patrolCommands += 1;
 }

@@ -435,6 +435,7 @@ function workSlotPositionsFor(
 function parseGatherData(data: Readonly<Record<string, unknown>>): {
   entityIds: number[];
   nodeId: number;
+  queue: boolean;
 } {
   const rawIds = data.entityIds;
   if (!Array.isArray(rawIds) || rawIds.length === 0) {
@@ -456,7 +457,7 @@ function parseGatherData(data: Readonly<Record<string, unknown>>): {
       `gather nodeId must be a positive integer, got ${String(nodeId)}`,
     );
   }
-  return { entityIds, nodeId };
+  return { entityIds, nodeId, queue: data.queue === true };
 }
 
 // ---- The system ---------------------------------------------------------------
@@ -750,11 +751,16 @@ export function createGatherSystem(
         // keep planning site walks against the new chop chain.
         clearAssignedSite(world, comps, eid);
         assignNode(world, comps, eid, parsed.nodeId);
-        // A fresh order clears any prior chain and steering bookkeeping.
         const queue = queueOf(eid);
-        cancelActivities(queue);
-        writeActivityQueue(world, comps, eid, queue);
-        resetSteeringBookkeeping(velRow);
+        if (parsed.queue && queue.length > 0) {
+          // Keep prior queued activities intact; when earlier activities complete,
+          // the worker will plan the next leg toward the assigned node.
+        } else {
+          // A fresh order clears any prior chain and steering bookkeeping.
+          cancelActivities(queue);
+          writeActivityQueue(world, comps, eid, queue);
+          resetSteeringBookkeeping(velRow);
+        }
       }
       diagnostics.commandsApplied += 1;
     };

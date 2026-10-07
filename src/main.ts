@@ -75,9 +75,11 @@ import {
   createSelectionRings,
 } from "./render/selectionRings";
 import { createRallyFlagLayer } from "./render/rallyFlag";
+import { createWaypointLayer } from "./render/waypointLine";
 import { createChimneySmokeLayer } from "./render/chimneySmoke";
 import { createAgeUpBanner, formatAgeToast } from "./ui/ageUpBanner";
 import { createToastManager } from "./ui/toasts";
+import { extractWaypointChain } from "./sim/activities";
 import {
   getAssignedSite,
   getBuildingRow,
@@ -85,6 +87,7 @@ import {
   getPosition,
   populationCapOf,
   populationOf,
+  readActivityQueue,
   readTrainQueue,
   spawnResourceNode,
   spawnUnit,
@@ -946,6 +949,7 @@ wireSelectionInput({
 // inside the right-click handler → visible the same rendered frame.
 const moveMarkers = createRingMarkerPool({ scene, layers: world.layers });
 const rallyFlagLayer = createRallyFlagLayer(scene, world.layers);
+const waypointLayer = createWaypointLayer(scene, world.layers);
 const chimneySmokeLayer = createChimneySmokeLayer(scene);
 const ageUpBanner = createAgeUpBanner();
 const toastManager = createToastManager({
@@ -1413,6 +1417,7 @@ canvas.addEventListener("click", (event: MouseEvent) => {
         getSelectedEids(),
         ground.x,
         ground.y,
+        event.shiftKey,
       );
       moveMarkers.spawn(ground.x, ground.y); // same-frame feedback
     }
@@ -1428,10 +1433,16 @@ canvas.addEventListener("click", (event: MouseEvent) => {
         ?.get(selected[0]!);
       const startX = firstPos ? firstPos[0]! : ground.x;
       const startY = firstPos ? firstPos[1]! : ground.y;
-      issuePatrol(world.inbox, world.tick, selected, [
-        { x: startX, y: startY },
-        { x: ground.x, y: ground.y },
-      ]);
+      issuePatrol(
+        world.inbox,
+        world.tick,
+        selected,
+        [
+          { x: startX, y: startY },
+          { x: ground.x, y: ground.y },
+        ],
+        event.shiftKey,
+      );
       moveMarkers.spawn(ground.x, ground.y);
       toast.show("Patrol route set");
     }
@@ -3099,6 +3110,17 @@ function frame(
     (eid) => getBuildingRow(world, comps, eid) !== undefined,
   );
   rallyFlagLayer.update(selectedBuildingEids, now / 1000);
+
+  // Waypoint routes for selected units (W1 #132)
+  const selectedUnitEids = selectedEids.filter(
+    (eid) => getBuildingRow(world, comps, eid) === undefined,
+  );
+  waypointLayer.update(selectedUnitEids, (eid) => {
+    const pos = getPosition(world, comps, eid);
+    if (!pos) return [];
+    const q = readActivityQueue(world, comps, eid);
+    return extractWaypointChain(pos.x, pos.y, q);
+  });
 
   // Chimney smoke particles (V11)
   chimneySmokeLayer.setTime(now / 1000);
