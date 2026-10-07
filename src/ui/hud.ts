@@ -242,6 +242,7 @@ export function resourceIconSvg(name: string): string {
 export function createTopbar(
   seed: number,
   idleCallbacks?: IdleWorkerBadgeCallbacks,
+  objectivesButton?: HTMLElement,
 ): TopbarHandle {
   const bar = document.createElement("div");
   bar.id = "topbar";
@@ -332,6 +333,9 @@ export function createTopbar(
       devOverlay.style.display === "none" ? "block" : "none";
   });
 
+  if (objectivesButton) {
+    rightCol.append(objectivesButton);
+  }
   rightCol.append(idleBadge, difficultyBadge, devToggle, devOverlay);
   bar.append(resources, centerCol, rightCol);
   document.body.appendChild(bar);

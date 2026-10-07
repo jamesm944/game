@@ -269,6 +269,21 @@ export function depositIntoStockpile(
   row[resourceCode + 1]! += amount;
 }
 
+/** Credit `amount` of one resource by slug to the owning player's stockpile. */
+export function creditResource(
+  world: World,
+  comps: Pick<StockpileComponents, "stockpileId">,
+  playerId: number,
+  slug: string,
+  amount: number,
+): void {
+  const code = RESOURCE_SLUGS.indexOf(slug as (typeof RESOURCE_SLUGS)[number]);
+  if (code < 0) {
+    throw new Error(`unknown resource slug: ${slug}`);
+  }
+  depositIntoStockpile(world, comps as any, playerId, code, amount);
+}
+
 /** Read-only copy of one player's amounts indexed by resource code. */
 export function stockpileAmountsOf(
   world: World,
