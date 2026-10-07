@@ -3,3 +3,4 @@ dist/
 .scratch/
 *.local
 .DS_Store
+*.zip
