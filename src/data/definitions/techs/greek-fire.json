@@ -6,6 +6,7 @@
   "ageGate": "castle",
   "techPrereqs": [],
   "researchTime": 1200,
+  "buildingId": "castle",
   "effects": [
     { "target": "unit:fire-ship", "stat": "range", "op": "add", "value": 1 }
   ]

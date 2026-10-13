@@ -350,6 +350,23 @@ export function loadDefinitions(
             );
           }
         }
+        if (def.buildingId !== undefined && !buildings.has(def.buildingId)) {
+          errors.push(
+            `tech ${def.id}: buildingId references unknown building ${JSON.stringify(def.buildingId)}`,
+          );
+        }
+        if (def.unitUpgrade !== undefined) {
+          if (!units.has(def.unitUpgrade.fromUnitId)) {
+            errors.push(
+              `tech ${def.id}: unitUpgrade references unknown fromUnitId ${JSON.stringify(def.unitUpgrade.fromUnitId)}`,
+            );
+          }
+          if (!units.has(def.unitUpgrade.toUnitId)) {
+            errors.push(
+              `tech ${def.id}: unitUpgrade references unknown toUnitId ${JSON.stringify(def.unitUpgrade.toUnitId)}`,
+            );
+          }
+        }
         break;
       }
       case "recipe": {

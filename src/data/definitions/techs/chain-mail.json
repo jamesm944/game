@@ -6,6 +6,7 @@
   "ageGate": "castle",
   "techPrereqs": ["scale-mail"],
   "researchTime": 1200,
+  "buildingId": "blacksmith",
   "effects": [
     {
       "target": "class:infantry",

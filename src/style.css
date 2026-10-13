@@ -632,6 +632,61 @@ canvas {
   background: rgb(255 255 255 / 0.18);
 }
 
+/* Research technologies section (U1 / Issue #135). */
+.panel-research-wrap {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgb(15 23 42 / 0.6);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 4px;
+}
+
+.panel-research-status {
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.panel-research-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.panel-tech-btn {
+  margin: 0;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #0284c7;
+  color: #f0f9ff;
+  border: 1px solid rgb(56 189 248 / 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.panel-tech-btn:hover:not(:disabled) {
+  background: #0369a1;
+  border-color: #38bdf8;
+}
+
+.panel-tech-btn:disabled {
+  opacity: 0.55;
+  background: rgb(255 255 255 / 0.08);
+  color: #94a3b8;
+  border-color: transparent;
+  cursor: not-allowed;
+}
+
 /* Unit selection panel — bottom HUD (V13, Part of #88, #90). */
 #unit-panel {
   position: fixed;

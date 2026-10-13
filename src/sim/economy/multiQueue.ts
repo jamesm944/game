@@ -31,6 +31,7 @@ import {
 } from "../../data/definitions";
 import type { UnitDefinition } from "../../data/schema";
 import { canEnqueueTraining } from "../systems/training";
+import { activeTrainableUnitsFor } from "../systems/upgrades";
 import { issueTrainUnit, issueTrainVillager } from "../../ui/buildingPanel";
 import type { CommandInbox } from "../core/inbox";
 import type { World } from "../core/world";
@@ -173,11 +174,12 @@ export function aggregateBuildingSelection(
     const def = buildingDefOf(buildingIdOfCode(row[1]!));
     if (!def.trainQueue) continue;
 
-    for (const t of def.trainQueue.trainable) {
-      let entry = unitMap.get(t.unitId);
+    const activeUnitIds = activeTrainableUnitsFor(world, comps, playerId, def);
+    for (const unitId of activeUnitIds) {
+      let entry = unitMap.get(unitId);
       if (!entry) {
         entry = { capableEids: [] };
-        unitMap.set(t.unitId, entry);
+        unitMap.set(unitId, entry);
       }
       entry.capableEids.push(bEid);
     }

@@ -1,0 +1,18 @@
+{
+  "id": "light-cavalry-upgrade",
+  "name": "Light Cavalry",
+  "kind": "tech",
+  "costs": {
+    "food": 150,
+    "gold": 50
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 1350,
+  "buildingId": "stable",
+  "unitUpgrade": {
+    "fromUnitId": "scout-cavalry",
+    "toUnitId": "light-cavalry"
+  },
+  "effects": []
+}

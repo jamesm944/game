@@ -61,7 +61,7 @@ function assignCanonicalCodes<T extends { id: string }>(
   return codes;
 }
 
-/** Canonical unit ids preserve u8 codes 1..8 across new additions. */
+/** Canonical unit ids preserve u8 codes 1..30 across new additions. */
 const CANONICAL_UNIT_IDS: readonly string[] = [
   "archer",
   "knight",
@@ -71,6 +71,29 @@ const CANONICAL_UNIT_IDS: readonly string[] = [
   "scout-cavalry",
   "skirmisher",
   "villager",
+  "arbalest",
+  "battering-ram",
+  "cannon-galleon",
+  "cataphract",
+  "cavalier",
+  "fire-ship",
+  "fishing-boat",
+  "galleon",
+  "galley",
+  "huskarl",
+  "light-cavalry",
+  "longbowman",
+  "longswordsman",
+  "mangonel",
+  "paladin",
+  "throwing-axeman",
+  "trade-cart",
+  "transport-ship",
+  "trebuchet",
+  "trebuchet-packed",
+  "two-handed-swordsman",
+  "war-galley",
+  "crossbowman",
 ];
 
 /** Canonical base building ids preserve u8 codes 1..25 across new additions. */
@@ -102,7 +125,7 @@ const CANONICAL_BUILDING_IDS: readonly string[] = [
   "wonder",
 ];
 
-/** Canonical tech ids preserve u8 codes 1..8 across new additions. */
+/** Canonical tech ids preserve u8 codes 1..25 across new additions. */
 const CANONICAL_TECH_IDS: readonly string[] = [
   "castle-age",
   "double-bit-axe",
@@ -112,6 +135,34 @@ const CANONICAL_TECH_IDS: readonly string[] = [
   "imperial-age",
   "scale-mail",
   "wheelbarrow",
+  "anarchy",
+  "blast-furnace",
+  "bloodlines",
+  "bodkin-arrow",
+  "bow-saw",
+  "bracer",
+  "chain-barding",
+  "chain-mail",
+  "chivalry",
+  "fletching",
+  "greek-fire",
+  "husbandry",
+  "iron-casting",
+  "plate-barding",
+  "plate-mail",
+  "scale-barding",
+  "yeomen",
+  "padded-archer-armor",
+  "leather-archer-armor",
+  "ring-archer-armor",
+  "man-at-arms-upgrade",
+  "longswordsman-upgrade",
+  "two-handed-swordsman-upgrade",
+  "crossbowman-upgrade",
+  "arbalest-upgrade",
+  "light-cavalry-upgrade",
+  "cavalier-upgrade",
+  "paladin-upgrade",
 ];
 
 export const UNIT_DEF_CODES = assignCanonicalCodes(
@@ -256,3 +307,17 @@ export function recipesForBuilding(buildingId: string): RecipeDefinition[] {
 }
 
 const RECIPES_BY_BUILDING = new Map<string, RecipeDefinition[]>();
+
+/** Techs researched at one building ascending by id — cached; content is static. */
+export function techsForBuilding(buildingId: string): TechDefinition[] {
+  let list = TECHS_BY_BUILDING.get(buildingId);
+  if (!list) {
+    list = [...REGISTRY.techs.values()]
+      .filter((tech) => tech.buildingId === buildingId)
+      .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    TECHS_BY_BUILDING.set(buildingId, list);
+  }
+  return list;
+}
+
+const TECHS_BY_BUILDING = new Map<string, TechDefinition[]>();

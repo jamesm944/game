@@ -6,6 +6,7 @@
   "ageGate": "castle",
   "techPrereqs": [],
   "researchTime": 1200,
+  "buildingId": "castle",
   "effects": [
     { "target": "class:cavalry", "stat": "speed", "op": "mult", "value": 1.1 }
   ]

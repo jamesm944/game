@@ -6,6 +6,7 @@
   "ageGate": "castle",
   "techPrereqs": [],
   "researchTime": 1200,
+  "buildingId": "castle",
   "effects": [
     { "target": "class:archer", "stat": "range", "op": "add", "value": 1 },
     {

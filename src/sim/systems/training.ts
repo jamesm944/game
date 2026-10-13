@@ -56,6 +56,7 @@ import {
 import { isDefAgeUnlocked } from "./age";
 import { effectiveCosts, payCosts } from "./costs";
 import { canPlayerTrainUnit } from "../core/civilization";
+import { isUnitTierUnlocked, resolveUpgradedUnitId } from "./upgrades";
 import {
   SET_RALLY_POINT_KIND,
   SET_MULTI_RALLY_POINT_KIND,
@@ -221,8 +222,12 @@ export function canEnqueueTraining(
   if (!row || row[0] !== playerId) return false;
   const queueConfig = buildingDefOf(buildingIdOfCode(row[1]!)).trainQueue;
   if (!queueConfig) return false;
-  const resolved = unitId ?? defaultTrainableUnitIdFor(queueConfig);
+  const rawId = unitId ?? defaultTrainableUnitIdFor(queueConfig);
+  const resolved = resolveUpgradedUnitId(world, comps, playerId, rawId);
   if (!queueConfig.trainable.some((entry) => entry.unitId === resolved)) {
+    return false;
+  }
+  if (!isUnitTierUnlocked(world, comps, playerId, resolved)) {
     return false;
   }
   if (!canPlayerTrainUnit(world, playerId, resolved)) {
@@ -265,9 +270,20 @@ function applyTrainCommand(
   const queueConfig = def.trainQueue!;
   // Membership in the trainable list keeps this data-driven: trainUnit
   // names its unit explicitly; trainVillager pins the M1 intent.
-  const unitId = parsed.unitId ?? defaultTrainableUnitIdFor(queueConfig);
+  const rawUnitId = parsed.unitId ?? defaultTrainableUnitIdFor(queueConfig);
+  const unitId = resolveUpgradedUnitId(
+    world,
+    comps,
+    target.playerId,
+    rawUnitId,
+  );
   if (!queueConfig.trainable.some((entry) => entry.unitId === unitId)) {
     throw new Error(`${def.id} does not train ${unitId}`);
+  }
+  if (!isUnitTierUnlocked(world, comps, target.playerId, unitId)) {
+    throw new Error(
+      `player ${String(target.playerId)} cannot train ${unitId}: upgrade unresearched`,
+    );
   }
   if (!canPlayerTrainUnit(world, target.playerId, unitId)) {
     throw new Error(

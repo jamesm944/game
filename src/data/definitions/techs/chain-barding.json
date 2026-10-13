@@ -6,6 +6,7 @@
   "ageGate": "castle",
   "techPrereqs": ["scale-barding"],
   "researchTime": 1200,
+  "buildingId": "blacksmith",
   "effects": [
     {
       "target": "class:cavalry",

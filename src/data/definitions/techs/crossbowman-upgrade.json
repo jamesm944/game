@@ -1,0 +1,18 @@
+{
+  "id": "crossbowman-upgrade",
+  "name": "Crossbowman",
+  "kind": "tech",
+  "costs": {
+    "food": 125,
+    "gold": 75
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "researchTime": 1050,
+  "buildingId": "archery-range",
+  "unitUpgrade": {
+    "fromUnitId": "archer",
+    "toUnitId": "crossbowman"
+  },
+  "effects": []
+}

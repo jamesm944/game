@@ -1,0 +1,18 @@
+{
+  "id": "man-at-arms-upgrade",
+  "name": "Man-at-Arms",
+  "kind": "tech",
+  "costs": {
+    "food": 100,
+    "gold": 40
+  },
+  "ageGate": "feudal",
+  "techPrereqs": [],
+  "researchTime": 1200,
+  "buildingId": "barracks",
+  "unitUpgrade": {
+    "fromUnitId": "militia",
+    "toUnitId": "man-at-arms"
+  },
+  "effects": []
+}

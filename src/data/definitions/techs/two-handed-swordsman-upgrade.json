@@ -1,0 +1,18 @@
+{
+  "id": "two-handed-swordsman-upgrade",
+  "name": "Two-Handed Swordsman",
+  "kind": "tech",
+  "costs": {
+    "food": 300,
+    "gold": 100
+  },
+  "ageGate": "imperial",
+  "techPrereqs": ["longswordsman-upgrade"],
+  "researchTime": 2250,
+  "buildingId": "barracks",
+  "unitUpgrade": {
+    "fromUnitId": "longswordsman",
+    "toUnitId": "two-handed-swordsman"
+  },
+  "effects": []
+}

@@ -117,6 +117,11 @@ import { canEnqueueTraining } from "./sim/systems/training";
 import { activeTradeCartsCountForMarket } from "./sim/systems/market";
 import { currentAgeRankOf, isDefAgeUnlocked } from "./sim/systems/age";
 import {
+  activeTrainableUnitsFor,
+  buildingActiveResearch,
+  buildingTechOptions,
+} from "./sim/systems/upgrades";
+import {
   canAfford,
   validatePlacement,
   stampFinishedBuilding,
@@ -2174,6 +2179,15 @@ const buildingPanel = createBuildingPanel({
           0)
         : undefined;
 
+    const researchOptions = buildingTechOptions(
+      world,
+      comps,
+      PLAYER_ONE,
+      eid,
+      def,
+    );
+    const activeResearch = buildingActiveResearch(world, comps, eid);
+
     if (!def.trainQueue) {
       return {
         title: def.name,
@@ -2182,20 +2196,27 @@ const buildingPanel = createBuildingPanel({
           current: populationOf(world, comps),
           cap: populationCapOf(world, comps),
         },
+        researchOptions:
+          researchOptions.length > 0 ? researchOptions : undefined,
+        activeResearch,
         garrison,
         canAutoReseed,
         autoReseedEnabled,
         farmFoodRemaining,
       };
     }
-    const trainableUnits = def.trainQueue.trainable.map((t) => {
-      const uDef = unitDefOf(t.unitId);
+    const effectiveUnits =
+      comps.researchedTechsId !== undefined
+        ? activeTrainableUnitsFor(world, comps, PLAYER_ONE, def)
+        : def.trainQueue.trainable.map((t) => t.unitId);
+    const trainableUnits = effectiveUnits.map((uId) => {
+      const uDef = unitDefOf(uId);
       const costStr = Object.entries(uDef.costs)
         .filter(([, amt]) => amt > 0)
         .map(([res, amt]) => `${String(amt)} ${res}`)
         .join(" · ");
       return {
-        unitId: t.unitId,
+        unitId: uId,
         label: `Train ${uDef.name} (${costStr})`,
         capableBuildingCount: 1,
         capableBuildingEids: [eid],
@@ -2214,6 +2235,8 @@ const buildingPanel = createBuildingPanel({
       },
       canTrain: canEnqueueTraining(world, comps, eid),
       trainableUnits,
+      researchOptions: researchOptions.length > 0 ? researchOptions : undefined,
+      activeResearch,
       isMarket: def.id === "market",
       activeTradeCarts:
         def.id === "market"

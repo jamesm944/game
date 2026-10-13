@@ -1,0 +1,18 @@
+{
+  "id": "cavalier-upgrade",
+  "name": "Cavalier",
+  "kind": "tech",
+  "costs": {
+    "food": 300,
+    "gold": 300
+  },
+  "ageGate": "imperial",
+  "techPrereqs": [],
+  "researchTime": 3000,
+  "buildingId": "stable",
+  "unitUpgrade": {
+    "fromUnitId": "knight",
+    "toUnitId": "cavalier"
+  },
+  "effects": []
+}

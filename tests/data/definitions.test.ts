@@ -39,7 +39,8 @@ describe("definition loader happy path", () => {
     // N4: galley, war-galley, galleon (24).
     // N5: fire-ship, cannon-galleon (26).
     // C1: longbowman, throwing-axeman, huskarl, cataphract (30).
-    expect(UNIT_DEFINITIONS.size).toBe(30);
+    // U1: crossbowman (31).
+    expect(UNIT_DEFINITIONS.size).toBe(31);
     // M3-T5: the §2.3 school joins the building set (17). M3-T7 adds
     // the §2.4 leisure venues tavern/brothel + the church stub (20).
     // M4-T4: the §2.11 set — grand-academy, monument, grand-monument (23).
@@ -50,7 +51,8 @@ describe("definition loader happy path", () => {
     expect(BUILDING_DEFINITIONS.size).toBe(32);
     // V8: 8 canonical + 13 branch techs (21).
     // C1: yeomen, chivalry, anarchy, greek-fire (25).
-    expect(TECH_DEFINITIONS.size).toBe(25);
+    // U1: 3 blacksmith archer armor techs + 8 unit line upgrade techs (36).
+    expect(TECH_DEFINITIONS.size).toBe(36);
     expect(RECIPE_DEFINITIONS.size).toBe(6);
     // M4-T5: the §2.11 victory-path constants are their own family.
     expect(VICTORY_PATH_DEFINITIONS.size).toBe(1);
@@ -73,6 +75,7 @@ describe("definition loader happy path", () => {
     expect(range.ageGate).toBe("feudal");
     expect(range.trainQueue?.trainable.map((entry) => entry.unitId)).toEqual([
       "archer",
+      "crossbowman",
       "skirmisher",
       "arbalest",
     ]);

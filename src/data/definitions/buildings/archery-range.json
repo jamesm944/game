@@ -17,6 +17,7 @@
     "capacity": 15,
     "trainable": [
       { "unitId": "archer" },
+      { "unitId": "crossbowman" },
       { "unitId": "skirmisher" },
       { "unitId": "arbalest" }
     ]

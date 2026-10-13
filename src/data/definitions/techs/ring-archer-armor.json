@@ -1,0 +1,24 @@
+{
+  "id": "ring-archer-armor",
+  "name": "Ring Archer Armor",
+  "kind": "tech",
+  "costs": { "food": 250, "gold": 250 },
+  "ageGate": "imperial",
+  "techPrereqs": ["leather-archer-armor"],
+  "researchTime": 2100,
+  "buildingId": "blacksmith",
+  "effects": [
+    {
+      "target": "class:archer",
+      "stat": "melee-armor",
+      "op": "add",
+      "value": 1
+    },
+    {
+      "target": "class:archer",
+      "stat": "pierce-armor",
+      "op": "add",
+      "value": 1
+    }
+  ]
+}

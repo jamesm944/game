@@ -1,0 +1,18 @@
+{
+  "id": "longswordsman-upgrade",
+  "name": "Long Swordsman",
+  "kind": "tech",
+  "costs": {
+    "food": 200,
+    "gold": 65
+  },
+  "ageGate": "castle",
+  "techPrereqs": ["man-at-arms-upgrade"],
+  "researchTime": 1350,
+  "buildingId": "barracks",
+  "unitUpgrade": {
+    "fromUnitId": "man-at-arms",
+    "toUnitId": "longswordsman"
+  },
+  "effects": []
+}

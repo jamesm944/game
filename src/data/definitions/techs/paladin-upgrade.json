@@ -1,0 +1,18 @@
+{
+  "id": "paladin-upgrade",
+  "name": "Paladin",
+  "kind": "tech",
+  "costs": {
+    "food": 1300,
+    "gold": 750
+  },
+  "ageGate": "imperial",
+  "techPrereqs": ["cavalier-upgrade"],
+  "researchTime": 5100,
+  "buildingId": "stable",
+  "unitUpgrade": {
+    "fromUnitId": "cavalier",
+    "toUnitId": "paladin"
+  },
+  "effects": []
+}

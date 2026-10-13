@@ -6,6 +6,7 @@
   "ageGate": "feudal",
   "techPrereqs": [],
   "researchTime": 1800,
+  "buildingId": "blacksmith",
   "effects": [
     {
       "target": "class:infantry",

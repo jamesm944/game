@@ -23,6 +23,25 @@ export interface BuildingPanelCandidate {
   readonly label: string;
 }
 
+export interface BuildingPanelTechOption {
+  readonly techId: string;
+  readonly name: string;
+  readonly costString: string;
+  readonly ageRequirement: string;
+  readonly isResearched: boolean;
+  readonly isResearching: boolean;
+  readonly canResearch: boolean;
+  readonly reasonDisabled?: string | undefined;
+}
+
+export interface BuildingPanelResearchStatus {
+  readonly techId: string;
+  readonly techName: string;
+  readonly remainingTicks: number;
+  readonly totalTicks: number;
+  readonly progress01: number;
+}
+
 export interface BuildingPanelData {
   /** The selected building's entity id (appointment target). */
   readonly buildingEid?: number | undefined;
@@ -60,6 +79,10 @@ export interface BuildingPanelData {
     readonly capableBuildingCount?: number | undefined;
     readonly capableBuildingEids?: readonly number[] | undefined;
   }[];
+  /** Available research technology options for this building (U1 / Issue #135). */
+  readonly researchOptions?: readonly BuildingPanelTechOption[] | undefined;
+  /** In-flight research countdown and progress for this building (U1 / Issue #135). */
+  readonly activeResearch?: BuildingPanelResearchStatus | undefined;
   /** Garrison status if building can hold units (V13 #96). */
   readonly garrison?:
     { readonly count: number; readonly capacity: number } | undefined;
@@ -85,11 +108,26 @@ export interface BuildingPanelData {
 
 const TRAIN_VILLAGER_KIND = "trainVillager";
 export const TRAIN_UNIT_KIND = "trainUnit";
+export const RESEARCH_TECH_KIND = "researchTech";
 /** M4-T1 appointment command kind — validated by systems/management.ts. */
 export const APPOINT_FOREMAN_KIND = "appointForeman";
 export const MARKET_EXCHANGE_KIND = "marketExchange";
 export const UNGARRISON_COMMAND_KIND = "ungarrison";
 export const SET_AUTO_RESEED_COMMAND_KIND = "setAutoReseed";
+
+export function issueResearchTech(
+  inbox: CommandInbox,
+  currentTick: number,
+  buildingEid: number,
+  techId: string,
+  playerId: number = 0,
+): void {
+  inbox.submit({
+    kind: RESEARCH_TECH_KIND,
+    targetTick: currentTick + 1,
+    data: { siteEid: buildingEid, techId, playerId },
+  });
+}
 
 export function issueSetAutoReseed(
   inbox: CommandInbox,
@@ -218,6 +256,22 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
   foremanEl.className = "panel-foreman";
   const appointWrap = document.createElement("div");
   appointWrap.className = "panel-appoint";
+  const researchWrap = document.createElement("div");
+  researchWrap.className = "panel-research-wrap";
+  researchWrap.style.display = "none";
+  const researchStatusEl = document.createElement("div");
+  researchStatusEl.className = "panel-research-status";
+  researchStatusEl.style.fontSize = "11px";
+  researchStatusEl.style.color = "#38bdf8";
+  researchStatusEl.style.marginTop = "4px";
+  const researchBarWrap = document.createElement("div");
+  researchBarWrap.className = "panel-bar";
+  const researchBarFill = document.createElement("div");
+  researchBarFill.className = "panel-bar-fill";
+  researchBarFill.style.background = "#38bdf8";
+  researchBarWrap.appendChild(researchBarFill);
+  researchWrap.append(researchStatusEl, researchBarWrap);
+
   const garrisonWrap = document.createElement("div");
   garrisonWrap.className = "panel-garrison-wrap";
   garrisonWrap.style.marginTop = "8px";
@@ -299,6 +353,43 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
   farmFoodEl.style.marginTop = "4px";
   reseedWrap.appendChild(farmFoodEl);
 
+  const researchActiveWrap = document.createElement("div");
+  researchActiveWrap.className = "panel-research-active";
+  researchActiveWrap.style.marginTop = "6px";
+  researchActiveWrap.style.padding = "6px 8px";
+  researchActiveWrap.style.background = "rgba(15, 23, 42, 0.7)";
+  researchActiveWrap.style.borderRadius = "4px";
+  researchActiveWrap.style.border = "1px solid rgba(240, 180, 41, 0.3)";
+  researchActiveWrap.style.display = "none";
+
+  const researchActiveHeader = document.createElement("div");
+  researchActiveHeader.style.display = "flex";
+  researchActiveHeader.style.justifyContent = "space-between";
+  researchActiveHeader.style.fontSize = "11px";
+  researchActiveHeader.style.fontWeight = "600";
+  researchActiveHeader.style.color = "#f0d9a0";
+
+  const researchActiveLabel = document.createElement("span");
+  const researchActiveTime = document.createElement("span");
+  researchActiveHeader.append(researchActiveLabel, researchActiveTime);
+
+  const researchActiveBarWrap = document.createElement("div");
+  researchActiveBarWrap.style.marginTop = "4px";
+  researchActiveBarWrap.style.height = "6px";
+  researchActiveBarWrap.style.background = "rgba(0, 0, 0, 0.4)";
+  researchActiveBarWrap.style.borderRadius = "3px";
+  researchActiveBarWrap.style.overflow = "hidden";
+
+  const researchActiveBarFill = document.createElement("div");
+  researchActiveBarFill.style.height = "100%";
+  researchActiveBarFill.style.width = "0%";
+  researchActiveBarFill.style.background =
+    "linear-gradient(90deg, #f0b429, #f59e0b)";
+  researchActiveBarFill.style.transition = "width 0.1s linear";
+  researchActiveBarWrap.appendChild(researchActiveBarFill);
+
+  researchActiveWrap.append(researchActiveHeader, researchActiveBarWrap);
+
   let lastKey = "";
 
   return {
@@ -317,15 +408,17 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
         return;
       }
       // Exclude volatile tick countdowns from structural rebuild key so DOM buttons
-      // aren't needlessly recreated every frame during training.
+      // aren't needlessly recreated every frame during training or research.
       const {
         production,
         farmFoodRemaining: _farmFoodRemaining,
         queue,
         multiQueueSummary,
+        activeResearch: _activeResearch,
         ...structuralRest
       } = data;
       void _farmFoodRemaining;
+      void _activeResearch;
       const structural = {
         ...structuralRest,
         hasQueue:
@@ -333,6 +426,8 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
           (multiQueueSummary !== undefined && multiQueueSummary.length > 0),
         queueLen: queue?.length,
         multiQueueLens: multiQueueSummary?.map((m) => m.queueCount),
+        hasActiveResearch: data.activeResearch !== undefined,
+        researchTechId: data.activeResearch?.techId,
       };
       const key = JSON.stringify(structural);
       const structuralChange = key !== lastKey;
@@ -346,6 +441,7 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
           titleEl,
           barWrap,
           metaEl,
+          researchWrap,
           queueEl,
           productionEl,
           foremanEl,
@@ -397,6 +493,77 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
             trainButton.disabled = !(data.canTrain ?? false);
             trainButton.title = "Click to train 1 · Shift-click to train 5";
           }
+        }
+
+        // U1 / Issue #135: Research technologies grid
+        if (
+          data.researchOptions !== undefined &&
+          data.researchOptions.length > 0
+        ) {
+          const researchHeading = document.createElement("div");
+          researchHeading.className = "panel-appoint-heading";
+          researchHeading.textContent = "Research Technologies";
+          researchHeading.style.marginTop = "8px";
+          panel.appendChild(researchHeading);
+
+          const techGrid = document.createElement("div");
+          techGrid.className = "panel-research-grid";
+          techGrid.style.display = "grid";
+          techGrid.style.gridTemplateColumns = "1fr 1fr";
+          techGrid.style.gap = "4px";
+          techGrid.style.marginTop = "4px";
+
+          for (const opt of data.researchOptions) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "panel-train panel-tech-btn";
+            btn.style.margin = "0";
+            btn.style.padding = "4px 6px";
+            btn.style.fontSize = "11px";
+            btn.style.textAlign = "left";
+            btn.style.whiteSpace = "nowrap";
+            btn.style.overflow = "hidden";
+            btn.style.textOverflow = "ellipsis";
+
+            if (opt.isResearched) {
+              btn.textContent = `${opt.name} ✓`;
+              btn.disabled = true;
+              btn.title = `${opt.name} — Researched`;
+              btn.style.opacity = "0.6";
+              btn.style.background = "#15803d";
+              btn.style.color = "#dcfce7";
+            } else if (opt.isResearching) {
+              btn.textContent = `${opt.name} …`;
+              btn.disabled = true;
+              btn.title = `${opt.name} — Research in progress`;
+              btn.style.background = "#0284c7";
+              btn.style.color = "#ffffff";
+            } else {
+              btn.textContent = opt.name;
+              btn.disabled = !opt.canResearch;
+              const reason = opt.reasonDisabled
+                ? ` (${opt.reasonDisabled})`
+                : "";
+              btn.title = `${opt.name} [${opt.ageRequirement}]\nCost: ${opt.costString}${reason}`;
+              btn.addEventListener("click", () => {
+                deps.onClick?.();
+                if (data.buildingEid !== undefined) {
+                  issueResearchTech(
+                    deps.inbox,
+                    deps.currentTick(),
+                    data.buildingEid,
+                    opt.techId,
+                  );
+                }
+              });
+            }
+            techGrid.appendChild(btn);
+          }
+          panel.appendChild(techGrid);
+        }
+
+        if (data.activeResearch !== undefined) {
+          panel.appendChild(researchActiveWrap);
         }
         // M4-T1 appointment section: ranked candidates, one button each
         // (best first), issuing the authoritative appointForeman command.
@@ -512,6 +679,21 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
       } else {
         barWrap.style.display = "none";
       }
+
+      // Active research countdown & progress bar repaints every frame.
+      if (data.activeResearch !== undefined) {
+        researchWrap.style.display = "block";
+        const remSec = (
+          Math.max(0, data.activeResearch.remainingTicks) / 30
+        ).toFixed(1);
+        const researchText = `Researching ${data.activeResearch.techName} (${remSec}s)`;
+        if (researchStatusEl.textContent !== researchText) {
+          researchStatusEl.textContent = researchText;
+        }
+        researchBarFill.style.width = `${Math.round(Math.min(1, Math.max(0, data.activeResearch.progress01)) * 100)}%`;
+      } else {
+        researchWrap.style.display = "none";
+      }
       const metaParts: string[] = [];
       if (data.builders !== undefined) {
         metaParts.push(
@@ -581,6 +763,20 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
         garrisonWrap.style.display = "none";
       }
 
+      if (data.activeResearch !== undefined) {
+        researchWrap.style.display = "block";
+        const remSec = (
+          Math.max(0, data.activeResearch.remainingTicks) / 30
+        ).toFixed(1);
+        const resText = `Researching ${data.activeResearch.techName}… ${remSec}s`;
+        if (researchStatusEl.textContent !== resText) {
+          researchStatusEl.textContent = resText;
+        }
+        researchBarFill.style.width = `${Math.round(Math.min(1, Math.max(0, data.activeResearch.progress01)) * 100)}%`;
+      } else {
+        researchWrap.style.display = "none";
+      }
+
       if (data.canAutoReseed) {
         currentAutoReseed = data.autoReseedEnabled ?? true;
         reseedToggleBtn.textContent = currentAutoReseed ? "ON" : "OFF";
@@ -608,6 +804,15 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
         } else {
           farmFoodEl.style.display = "none";
         }
+      }
+
+      if (data.activeResearch !== undefined) {
+        researchActiveWrap.style.display = "block";
+        researchActiveLabel.textContent = `🔬 ${data.activeResearch.techName}`;
+        researchActiveTime.textContent = `${(data.activeResearch.remainingTicks / 30).toFixed(1)}s`;
+        researchActiveBarFill.style.width = `${Math.round(data.activeResearch.progress01 * 100)}%`;
+      } else {
+        researchActiveWrap.style.display = "none";
       }
     },
   };

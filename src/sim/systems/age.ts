@@ -39,6 +39,10 @@ import {
   type AgeComponents,
 } from "../components/age";
 import { getBuildingRow } from "../components/buildings";
+import {
+  markTechResearched,
+  researchedTechCodesOf,
+} from "../components/combat";
 import type { SimComponents } from "../components";
 import {
   buildingDefOf,
@@ -50,11 +54,13 @@ import {
 import { AGE_RANK, type AgeName } from "../../data/schema";
 import { PLAYER_ONE } from "../core/stockpile";
 import { effectiveCosts, payCosts } from "./costs";
+import { applyUnitUpgrade } from "./upgrades";
 import type { SimCommand } from "../core/inbox";
 import type { SimSystem, World } from "../core/world";
 
 /** Command kind owned by this system. */
 export const RESEARCH_AGE_KIND = "researchAge";
+export const RESEARCH_TECH_KIND = "researchTech";
 
 /**
  * Finished-building minimums per TARGET age rank (AoE2 shape: advancing
@@ -337,6 +343,117 @@ function applyResearchCommand(
   diagnostics.commandsApplied += 1;
 }
 
+function parseResearchTechData(data: Readonly<Record<string, unknown>>): {
+  techId: string;
+  siteEid: number;
+  playerId: number;
+} {
+  if (typeof data.techId !== "string" || data.techId.length === 0) {
+    throw new Error("researchTech techId must be a non-empty string");
+  }
+  if (
+    typeof data.siteEid !== "number" ||
+    !Number.isInteger(data.siteEid) ||
+    data.siteEid < 1
+  ) {
+    throw new Error(
+      `researchTech siteEid must be a positive integer, got ${String(data.siteEid)}`,
+    );
+  }
+  const rawPlayer = data.playerId ?? PLAYER_ONE;
+  if (
+    typeof rawPlayer !== "number" ||
+    !Number.isInteger(rawPlayer) ||
+    rawPlayer < 0
+  ) {
+    throw new Error("researchTech playerId must be a non-negative integer");
+  }
+  return { techId: data.techId, siteEid: data.siteEid, playerId: rawPlayer };
+}
+
+function applyResearchTechCommand(
+  world: World,
+  comps: SimComponents,
+  diagnostics: AgeDiagnostics,
+  data: Readonly<Record<string, unknown>>,
+): void {
+  const parsed = parseResearchTechData(data);
+  const tech = techDefOf(parsed.techId);
+  const playerId = parsed.playerId;
+
+  // Validate building host
+  const buildingRow = getBuildingRow(world, comps, parsed.siteEid);
+  if (!buildingRow) {
+    throw new Error(
+      `researchTech targets entity ${String(parsed.siteEid)}, which is not a finished building`,
+    );
+  }
+  if (buildingRow[0] !== playerId) {
+    throw new Error(
+      `player ${String(playerId)} does not own building ${String(parsed.siteEid)}`,
+    );
+  }
+  const buildingDef = buildingDefOf(buildingIdOfCode(buildingRow[1]!));
+  if (tech.buildingId !== undefined && tech.buildingId !== buildingDef.id) {
+    throw new Error(
+      `tech ${tech.id} must be researched at ${tech.buildingId}, not ${buildingDef.id}`,
+    );
+  }
+
+  // Check if already researched
+  const researched =
+    comps.researchedTechsId !== undefined
+      ? researchedTechCodesOf(world, comps, playerId)
+      : [];
+  if (researched.includes(techCodeOf(tech.id))) {
+    throw new Error(
+      `tech ${tech.id} is already researched by player ${String(playerId)}`,
+    );
+  }
+
+  // Polite age gate check
+  if (!isDefAgeUnlocked(world, comps, playerId, tech.ageGate)) {
+    appendGateRejection(world, comps, playerId, {
+      tick: world.tick,
+      handler: GATE_HANDLER_RESEARCH,
+      defCode: techCodeOf(tech.id),
+    });
+    diagnostics.gateRejections += 1;
+    return;
+  }
+
+  // Polite prerequisite check
+  for (const prereqId of tech.techPrereqs) {
+    if (!researched.includes(techCodeOf(prereqId))) {
+      appendGateRejection(world, comps, playerId, {
+        tick: world.tick,
+        handler: GATE_HANDLER_RESEARCH,
+        defCode: techCodeOf(tech.id),
+      });
+      diagnostics.gateRejections += 1;
+      return;
+    }
+  }
+
+  // Check building already researching
+  if (getAgeResearchRow(world, comps, parsed.siteEid)) {
+    throw new Error(`${buildingDef.id} is already researching`);
+  }
+
+  // Escrow costs
+  const costs = effectiveCosts(world, playerId, tech);
+  payCosts(world, comps, playerId, costs, `researching ${tech.id}`);
+  setAgeResearchRow(
+    world,
+    comps,
+    parsed.siteEid,
+    playerId,
+    techCodeOf(tech.id),
+    tech.researchTime,
+  );
+  diagnostics.commandsApplied += 1;
+}
+
 // ---- The system -----------------------------------------------------------------
 
 /**
@@ -352,9 +469,14 @@ export function createAgeSystem(
   return (world: World, commands: readonly SimCommand[]): void => {
     // ---- 1) Commands consumed exactly on their target tick boundary.
     for (const command of commands) {
-      if (command.kind !== RESEARCH_AGE_KIND) continue;
-      if (!command.data) throw new Error("researchAge requires command data");
-      applyResearchCommand(world, comps, diagnostics, command.data);
+      if (command.kind === RESEARCH_AGE_KIND) {
+        if (!command.data) throw new Error("researchAge requires command data");
+        applyResearchCommand(world, comps, diagnostics, command.data);
+      } else if (command.kind === RESEARCH_TECH_KIND) {
+        if (!command.data)
+          throw new Error("researchTech requires command data");
+        applyResearchTechCommand(world, comps, diagnostics, command.data);
+      }
     }
 
     // ---- 2) Advance research rows ascending eid inside step(). The
@@ -374,11 +496,26 @@ export function createAgeSystem(
       const playerId = row[0]!;
       const tech = techDefOf(techIdOfCode(row[1]!));
       clearAgeResearchRow(world, comps, eid);
-      setPlayerAgeRank(world, comps, playerId, tech.ageAdvance!);
-      appendAgeAdvancedEvent(world, comps, playerId, {
-        tick: world.tick,
-        ageRank: tech.ageAdvance!,
-      });
+      if (tech.ageAdvance !== undefined) {
+        setPlayerAgeRank(world, comps, playerId, tech.ageAdvance!);
+        appendAgeAdvancedEvent(world, comps, playerId, {
+          tick: world.tick,
+          ageRank: tech.ageAdvance!,
+        });
+      } else {
+        if (comps.researchedTechsId !== undefined) {
+          markTechResearched(world, comps, playerId, row[1]!);
+        }
+        if (tech.unitUpgrade !== undefined) {
+          applyUnitUpgrade(
+            world,
+            comps,
+            playerId,
+            tech.unitUpgrade.fromUnitId,
+            tech.unitUpgrade.toUnitId,
+          );
+        }
+      }
       diagnostics.advancesCompleted += 1;
     }
   };

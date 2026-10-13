@@ -1,0 +1,35 @@
+{
+  "id": "crossbowman",
+  "name": "Crossbowman",
+  "kind": "unit",
+  "costs": {
+    "wood": 25,
+    "gold": 45
+  },
+  "ageGate": "castle",
+  "techPrereqs": [],
+  "trainTime": 810,
+  "hp": 35,
+  "speed": 0.96,
+  "carryCapacity": 0,
+  "attack": 5,
+  "range": 5,
+  "reloadTicks": 60,
+  "armorClasses": ["archer"],
+  "attackBonuses": [
+    {
+      "armorClass": "cavalry",
+      "mult": 1.5
+    }
+  ],
+  "sightRadius": 7,
+  "activityAnims": {
+    "attack": "shoot",
+    "aim": "aim",
+    "hit": "hit",
+    "idle": "idle",
+    "walk": "walk",
+    "death": "death"
+  },
+  "equipmentSlots": ["weapon", "armor"]
+}

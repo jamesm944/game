@@ -6,6 +6,7 @@
   "ageGate": "imperial",
   "techPrereqs": ["iron-casting"],
   "researchTime": 1500,
+  "buildingId": "blacksmith",
   "effects": [
     {
       "target": "class:infantry",

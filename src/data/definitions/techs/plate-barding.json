@@ -6,6 +6,7 @@
   "ageGate": "imperial",
   "techPrereqs": ["chain-barding"],
   "researchTime": 1500,
+  "buildingId": "blacksmith",
   "effects": [
     {
       "target": "class:cavalry",

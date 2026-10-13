@@ -6,6 +6,7 @@
   "ageGate": "feudal",
   "techPrereqs": [],
   "researchTime": 900,
+  "buildingId": "stable",
   "effects": [
     {
       "target": "class:cavalry",

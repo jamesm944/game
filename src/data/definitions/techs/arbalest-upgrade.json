@@ -1,0 +1,18 @@
+{
+  "id": "arbalest-upgrade",
+  "name": "Arbalest",
+  "kind": "tech",
+  "costs": {
+    "food": 350,
+    "gold": 300
+  },
+  "ageGate": "imperial",
+  "techPrereqs": ["crossbowman-upgrade"],
+  "researchTime": 1500,
+  "buildingId": "archery-range",
+  "unitUpgrade": {
+    "fromUnitId": "crossbowman",
+    "toUnitId": "arbalest"
+  },
+  "effects": []
+}

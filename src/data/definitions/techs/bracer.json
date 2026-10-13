@@ -6,6 +6,7 @@
   "ageGate": "imperial",
   "techPrereqs": ["bodkin-arrow"],
   "researchTime": 1500,
+  "buildingId": "blacksmith",
   "effects": [
     {
       "target": "class:archer",

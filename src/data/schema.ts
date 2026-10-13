@@ -324,6 +324,13 @@ export const techEffectSchema = z
 
 export type TechEffect = z.infer<typeof techEffectSchema>;
 
+export const unitUpgradeSchema = z.object({
+  fromUnitId: z.string().min(1),
+  toUnitId: z.string().min(1),
+});
+
+export type UnitUpgrade = z.infer<typeof unitUpgradeSchema>;
+
 export const techSchema = z.object({
   ...commonFields,
   kind: z.literal("tech"),
@@ -331,6 +338,10 @@ export const techSchema = z.object({
   effects: z.array(techEffectSchema).default([]),
   /** Age techs declare which age rank they grant (2=feudal…4=imperial). */
   ageAdvance: z.union([z.literal(2), z.literal(3), z.literal(4)]).optional(),
+  /** Building definition id where this tech is researched (Issue #135). */
+  buildingId: z.string().optional(),
+  /** Unit line upgrade transformation descriptor (Issue #135). */
+  unitUpgrade: unitUpgradeSchema.optional(),
 });
 
 export type TechDefinition = z.infer<typeof techSchema>;

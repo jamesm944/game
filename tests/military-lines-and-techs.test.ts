@@ -51,7 +51,12 @@ describe("V8: Military Lines & Branch Techs (Issue #79)", () => {
 
     const range = buildingDefOf("archery-range");
     const rangeUnits = range.trainQueue?.trainable.map((t) => t.unitId) ?? [];
-    expect(rangeUnits).toEqual(["archer", "skirmisher", "arbalest"]);
+    expect(rangeUnits).toEqual([
+      "archer",
+      "crossbowman",
+      "skirmisher",
+      "arbalest",
+    ]);
 
     const stable = buildingDefOf("stable");
     const stableUnits = stable.trainQueue?.trainable.map((t) => t.unitId) ?? [];
