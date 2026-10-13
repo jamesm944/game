@@ -12,25 +12,27 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-  createWorld,
-  type World,
-} from "../src/sim/core/world";
+import { createWorld, type World } from "../src/sim/core/world";
 import {
   defineSimComponents,
   spawnCombatUnit,
   type SimComponents,
 } from "../src/sim/components";
-import { createPlayerStockpile, creditResource } from "../src/sim/core/stockpile";
-import { createDiplomacyMatrix, DIPLOMACY_STANCE_ALLY, DIPLOMACY_STANCE_ENEMY } from "../src/sim/core/diplomacy";
+import {
+  createPlayerStockpile,
+  creditResource,
+} from "../src/sim/core/stockpile";
+import {
+  createDiplomacyMatrix,
+  DIPLOMACY_STANCE_ALLY,
+  DIPLOMACY_STANCE_ENEMY,
+} from "../src/sim/core/diplomacy";
 import {
   createScenarioRuntime,
   evaluateAreaEnterCondition,
   evaluateBuildingsConstructedCondition,
-  evaluateCondition,
   evaluateObjectiveStatusCondition,
   evaluateResourceThresholdCondition,
-  evaluateScenarioTriggers,
   evaluateTimerCondition,
   evaluateUnitsSlainCondition,
   executeAction,
@@ -38,16 +40,16 @@ import {
   serializeScenarioRuntime,
   type ScenarioCallbacks,
 } from "../src/sim/scenario/engine";
-import type {
-  ScenarioDefinition,
-  ScenarioObjective,
-  ScenarioRuntime,
-} from "../src/sim/scenario/types";
+import type { ScenarioObjective } from "../src/sim/scenario/types";
 import { SCENARIO_OUTPOST_SIEGE } from "../src/sim/scenario/presets";
 import { createScenarioSystem } from "../src/sim/systems/scenario";
 import { buildLayers, TERRAIN_GRASS } from "../src/sim/world/layers";
 import { stampFinishedBuilding } from "../src/sim/systems/placement";
-import { readVictoryChecks, VICTORY_STATUS_LOST, VICTORY_STATUS_WON } from "../src/sim/components/victory";
+import {
+  readVictoryChecks,
+  VICTORY_STATUS_LOST,
+  VICTORY_STATUS_WON,
+} from "../src/sim/components/victory";
 import { installSimPurityShims } from "./helpers/sim-purity-shims";
 
 installSimPurityShims();
@@ -68,9 +70,15 @@ function createTestHarness(size = 32): {
 
 describe("Scenario Condition Evaluators", () => {
   it("evaluates timer conditions with absolute tick and relative delays", () => {
-    expect(evaluateTimerCondition({ kind: "timer", tick: 50 }, 40, 0)).toBe(false);
-    expect(evaluateTimerCondition({ kind: "timer", tick: 50 }, 50, 0)).toBe(true);
-    expect(evaluateTimerCondition({ kind: "timer", tick: 50 }, 60, 0)).toBe(true);
+    expect(evaluateTimerCondition({ kind: "timer", tick: 50 }, 40, 0)).toBe(
+      false,
+    );
+    expect(evaluateTimerCondition({ kind: "timer", tick: 50 }, 50, 0)).toBe(
+      true,
+    );
+    expect(evaluateTimerCondition({ kind: "timer", tick: 50 }, 60, 0)).toBe(
+      true,
+    );
 
     // Relative delay from start tick
     expect(
@@ -192,10 +200,14 @@ describe("Scenario Condition Evaluators", () => {
       count: 1,
     };
 
-    expect(evaluateBuildingsConstructedCondition(world, comps, cond)).toBe(false);
+    expect(evaluateBuildingsConstructedCondition(world, comps, cond)).toBe(
+      false,
+    );
 
     stampFinishedBuilding(world, comps, "barracks", 8, 8, { playerId: 0 });
-    expect(evaluateBuildingsConstructedCondition(world, comps, cond)).toBe(true);
+    expect(evaluateBuildingsConstructedCondition(world, comps, cond)).toBe(
+      true,
+    );
   });
 
   it("evaluates objectiveStatus condition against objective state", () => {
@@ -507,11 +519,17 @@ describe("Scenario Save & Restore Round-Trip", () => {
 
     expect(restored.definition.id).toBe(runtime.definition.id);
     expect(restored.startTick).toBe(runtime.startTick);
-    expect(restored.lastEvaluatedCombatTick).toBe(runtime.lastEvaluatedCombatTick);
+    expect(restored.lastEvaluatedCombatTick).toBe(
+      runtime.lastEvaluatedCombatTick,
+    );
     expect(restored.objectives).toEqual(runtime.objectives);
     expect(restored.unitKills.get(1)).toBe(2);
     expect(restored.buildingDestructions.get(1)).toBe(1);
-    expect(restored.triggerStates.get("trig-stockpile-reached")?.firedCount).toBe(1);
-    expect(restored.triggerStates.get("trig-stockpile-reached")?.lastFireTick).toBe(120);
+    expect(
+      restored.triggerStates.get("trig-stockpile-reached")?.firedCount,
+    ).toBe(1);
+    expect(
+      restored.triggerStates.get("trig-stockpile-reached")?.lastFireTick,
+    ).toBe(120);
   });
 });

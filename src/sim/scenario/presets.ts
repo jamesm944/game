@@ -57,7 +57,8 @@ export const SCENARIO_OUTPOST_SIEGE: ScenarioDefinition = {
           kind: "displayObjective",
           objectiveId: "obj-barracks",
           title: "Construct a Barracks",
-          description: "Build a military Barracks to train soldiers for defense.",
+          description:
+            "Build a military Barracks to train soldiers for defense.",
           primary: true,
           status: "active",
         },
@@ -171,7 +172,8 @@ export const SCENARIO_OUTPOST_SIEGE: ScenarioDefinition = {
         {
           kind: "triggerVictory",
           player: 0,
-          reason: "The bandit raiders have been vanquished! The valley is safe.",
+          reason:
+            "The bandit raiders have been vanquished! The valley is safe.",
         },
         {
           kind: "audioCue",

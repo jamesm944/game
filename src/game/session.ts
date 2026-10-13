@@ -122,6 +122,12 @@ import {
 import { STRATEGY_IDS, type StrategyId } from "../sim/ai/buildOrder";
 import { aiDifficultyOf, type AiDifficultyId } from "../sim/ai/difficulty";
 import { scatterResourceNodes } from "../sim/mapgen/resources";
+import { createScenarioSystem } from "../sim/systems/scenario";
+import { createScenarioRuntime } from "../sim/scenario/engine";
+import type {
+  ScenarioDefinition,
+  ScenarioRuntime,
+} from "../sim/scenario/types";
 
 /** Dark-age start scale carried over from the M1-T10 dev world. */
 export const STARTING_VILLAGERS = 5;
@@ -175,6 +181,10 @@ export interface SkirmishWorldOptions {
    * preserve byte-identical golden digests. Can be boolean or number.
    */
   readonly spawnRelics?: boolean | number | undefined;
+  /**
+   * Optional scripted scenario definition or runtime (Milestone S5 / #134).
+   */
+  readonly scenario?: ScenarioDefinition | ScenarioRuntime | undefined;
 }
 
 export interface SkirmishWorld {
@@ -392,6 +402,10 @@ function wireSkirmishSystems(
       militaryMemory: persistent.militaryMemory,
     }),
   );
+
+  // S5: Scenario Scripting & Trigger Engine (#134)
+  registerSystem(world, createScenarioSystem(comps));
+
   return { aiKnowledge, aiTelemetry };
 }
 
@@ -419,6 +433,13 @@ export function createSkirmishWorld(
     pathScheduler: scheduler,
     visibility: fog.provider,
   });
+  if (options.scenario) {
+    if ("definition" in options.scenario) {
+      world.scenario = options.scenario;
+    } else {
+      world.scenario = createScenarioRuntime(options.scenario);
+    }
+  }
   const comps = defineSimComponents(world);
   fog.bindSource({
     resolve: createRowEntityResolver(world, comps),

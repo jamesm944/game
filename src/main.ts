@@ -323,6 +323,8 @@ import {
 } from "./sim/economy/multiQueue";
 import { victoryPathReadouts } from "./sim/systems/victory";
 import { createVictoryPathsPanel } from "./ui/victoryPaths";
+import { createObjectivesPanel } from "./ui/objectivesPanel";
+import { createObjectiveHud } from "./ui/objectiveHud";
 import { createToastHost } from "./ui/toast";
 import { sanitizeSlotName, createPauseMenu } from "./ui/pauseMenu";
 import {
@@ -1945,7 +1947,15 @@ const idleCallbacks: IdleWorkerBadgeCallbacks = {
   onRedistribute: handleRedistributeIdleWorkersCommand,
 };
 
-const topbar = createTopbar(world.seed, idleCallbacks);
+const objectivesPanel = createObjectivesPanel({
+  title: world.scenario?.definition.title ?? "Objectives",
+  description: world.scenario?.definition.description,
+});
+
+const topbar = createTopbar(world.seed, idleCallbacks, objectivesPanel.button);
+
+// Interactive Objective HUD Card (Milestone S5 / #134)
+const objectiveHud = createObjectiveHud();
 
 // Victory-path progress panel (M4-T4, §2.11): per-path sustained metric
 // vs threshold plus timer state, fed from the same digest-row derivation
@@ -3288,6 +3298,13 @@ function frame(
   }
   lastIdleVillagerCount = idleCount;
   victoryPathsPanel.update(victoryPathReadouts(world, comps, VIEWER));
+  if (world.scenario) {
+    objectiveHud.update(world.scenario.objectives);
+    objectivesPanel.update(
+      world.scenario.objectives,
+      world.scenario.firedEvents,
+    );
+  }
   controlGroups.refreshChips();
   buildMenu.refresh();
   buildingPanel.refresh();

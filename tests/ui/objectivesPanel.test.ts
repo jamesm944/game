@@ -9,13 +9,16 @@
  * 5. Narrative mission transcript log display.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   countActiveObjectives,
   createObjectivesPanel,
   formatObjectiveStatusPill,
 } from "../../src/ui/objectivesPanel";
-import type { ScenarioObjective, ScenarioNarrativeEvent } from "../../src/sim/scenario/types";
+import type {
+  ScenarioObjective,
+  ScenarioNarrativeEvent,
+} from "../../src/sim/scenario/types";
 
 // ---- Lightweight Mock DOM for Headless Testing -----------------------------------
 
@@ -193,7 +196,8 @@ describe("Objectives Panel DOM & Interaction", () => {
   let mockWindowListeners: Record<string, ((e?: unknown) => void)[]>;
 
   beforeEach(() => {
-    originalDocument = (globalThis as unknown as { document?: unknown }).document;
+    originalDocument = (globalThis as unknown as { document?: unknown })
+      .document;
     originalWindow = (globalThis as unknown as { window?: unknown }).window;
     mockBody = new MockElement("body");
     mockWindowListeners = {};
@@ -223,7 +227,8 @@ describe("Objectives Panel DOM & Interaction", () => {
   });
 
   afterEach(() => {
-    (globalThis as unknown as { document: unknown }).document = originalDocument;
+    (globalThis as unknown as { document: unknown }).document =
+      originalDocument;
     (globalThis as unknown as { window: unknown }).window = originalWindow;
   });
 
@@ -254,14 +259,18 @@ describe("Objectives Panel DOM & Interaction", () => {
     });
 
     expect(panel.isOpen()).toBe(false);
-    expect(panel.element.classList.contains("objectives-panel--hidden")).toBe(true);
+    expect(panel.element.classList.contains("objectives-panel--hidden")).toBe(
+      true,
+    );
 
     panel.toggle(true);
     expect(panel.isOpen()).toBe(true);
     expect(toggledState).toBe(true);
-    expect(panel.element.classList.contains("objectives-panel--hidden")).toBe(false);
+    expect(panel.element.classList.contains("objectives-panel--hidden")).toBe(
+      false,
+    );
 
-    panel.button.dispatchEvent({ type: "click" });
+    panel.button.dispatchEvent({ type: "click" } as unknown as Event);
     expect(panel.isOpen()).toBe(false);
     expect(toggledState).toBe(false);
 
@@ -273,7 +282,12 @@ describe("Objectives Panel DOM & Interaction", () => {
 
     const objectives: ScenarioObjective[] = [
       { id: "p1", title: "Build Town Center", primary: true, status: "active" },
-      { id: "p2", title: "Train 5 Militia", primary: true, status: "completed" },
+      {
+        id: "p2",
+        title: "Train 5 Militia",
+        primary: true,
+        status: "completed",
+      },
       { id: "s1", title: "Discover Relic", primary: false, status: "active" },
     ];
 
@@ -291,20 +305,24 @@ describe("Objectives Panel DOM & Interaction", () => {
 
     panel.update(objectives, narrativeEvents);
 
-    const badge = panel.button.querySelector<MockElement>("#objectives-badge")!;
+    const btnMock = panel.button as unknown as MockElement;
+    const elMock = panel.element as unknown as MockElement;
+
+    const badge = btnMock.querySelector<MockElement>("#objectives-badge")!;
     expect(badge.textContent).toBe("1"); // 1 active primary objective
     expect(badge.style.display).toBe("inline-flex");
 
-    const primaryList =
-      panel.element.querySelector<MockElement>("#objectives-primary-list")!;
+    const primaryList = elMock.querySelector<MockElement>(
+      "#objectives-primary-list",
+    )!;
     expect(primaryList.children.length).toBe(2);
 
-    const secondarySection = panel.element.querySelector<MockElement>(
+    const secondarySection = elMock.querySelector<MockElement>(
       "#objectives-secondary-section",
     )!;
     expect(secondarySection.style.display).toBe("block");
 
-    const transcriptsSection = panel.element.querySelector<MockElement>(
+    const transcriptsSection = elMock.querySelector<MockElement>(
       "#objectives-transcripts-section",
     )!;
     expect(transcriptsSection.style.display).toBe("block");

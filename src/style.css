@@ -2418,7 +2418,9 @@ canvas {
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   border: 1.5px solid rgba(245, 158, 11, 0.5);
   border-radius: 12px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.85), 0 0 20px rgba(245, 158, 11, 0.15);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.85),
+    0 0 20px rgba(245, 158, 11, 0.15);
   color: #f8fafc;
   padding: 24px;
   box-sizing: border-box;
@@ -2633,3 +2635,161 @@ canvas {
   color: #cbd5e1;
 }
 
+/* Scenario Objective HUD Card (Milestone S5 / #134) */
+#objective-hud {
+  position: fixed;
+  left: 12px;
+  top: 130px;
+  z-index: 10;
+  width: 280px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  font-family: inherit;
+  color: #e2e8f0;
+  pointer-events: auto;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+#objective-hud.objective-hud--hidden {
+  display: none;
+}
+
+.objective-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.objective-hud-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.objective-hud-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #f8fafc;
+}
+
+.objective-hud-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.objective-hud-toggle-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+}
+
+.objective-hud-content {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+#objective-hud.objective-hud--collapsed .objective-hud-content {
+  display: none;
+}
+
+#objective-hud.objective-hud--collapsed .objective-hud-header {
+  border-bottom: none;
+}
+
+.objective-hud-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.objective-hud-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.objective-hud-item.completed {
+  border-color: rgba(74, 222, 128, 0.25);
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.objective-hud-item.completed .objective-hud-item-title {
+  text-decoration: line-through;
+  color: #86efac;
+}
+
+.objective-hud-item.failed {
+  border-color: rgba(248, 113, 113, 0.25);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.objective-hud-item.failed .objective-hud-item-title {
+  color: #fca5a5;
+}
+
+.objective-hud-item-icon {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.objective-hud-item.completed .objective-hud-item-icon {
+  color: #4ade80;
+}
+
+.objective-hud-item.pending .objective-hud-item-icon {
+  color: #f59e0b;
+}
+
+.objective-hud-item.failed .objective-hud-item-icon {
+  color: #ef4444;
+}
+
+.objective-hud-item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.objective-hud-item-title {
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.objective-hud-item-desc {
+  font-size: 10px;
+  color: #94a3b8;
+}

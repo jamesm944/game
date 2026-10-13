@@ -281,7 +281,14 @@ export function creditResource(
   if (code < 0) {
     throw new Error(`unknown resource slug: ${slug}`);
   }
-  depositIntoStockpile(world, comps as any, playerId, code, amount);
+  requireResourceCode(code);
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new Error(
+      `deposit amount must be a positive integer, got ${String(amount)}`,
+    );
+  }
+  const row = requireOwnerRow(world, comps, playerId);
+  row[code + 1]! += amount;
 }
 
 /** Read-only copy of one player's amounts indexed by resource code. */

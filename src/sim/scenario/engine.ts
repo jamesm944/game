@@ -9,15 +9,10 @@
  * 4. Zero-desync save/restore serialization.
  */
 
-import {
-  buildingIdOfCode,
-  unitCodeOf,
-} from "../../data/definitions";
+import { buildingIdOfCode, unitCodeOf } from "../../data/definitions";
 import { RESOURCE_SLUGS } from "../../data/schema";
 import type { SimComponents } from "../components";
-import {
-  getBuildingRow,
-} from "../components/buildings";
+import { getBuildingRow } from "../components/buildings";
 import {
   COMBAT_EVENT_DEATH,
   COMBAT_EVENT_UNIT_DEATH,
@@ -81,7 +76,9 @@ export function createScenarioRuntime(
     });
   }
 
-  const objectives: ScenarioObjective[] = (definition.initialObjectives ?? []).map((o) => ({
+  const objectives: ScenarioObjective[] = (
+    definition.initialObjectives ?? []
+  ).map((o) => ({
     id: o.id,
     title: o.title,
     description: o.description,
@@ -173,7 +170,10 @@ export function evaluateTimerCondition(
 
 export function evaluateAreaEnterCondition(
   world: World,
-  comps: Pick<SimComponents, "positionId" | "unitTagId" | "combatId" | "ownerId">,
+  comps: Pick<
+    SimComponents,
+    "positionId" | "unitTagId" | "combatId" | "ownerId"
+  >,
   condition: AreaEnterCondition,
 ): boolean {
   const posRows = world.rowsByComponentId.get(comps.positionId);
@@ -183,7 +183,8 @@ export function evaluateAreaEnterCondition(
   const requiredCount = condition.unitCount ?? 1;
   const targetPlayer = condition.player ?? 0;
   const expectedDef = condition.unitType ?? condition.defId;
-  const expectedCode = expectedDef !== undefined ? unitCodeOf(expectedDef) : undefined;
+  const expectedCode =
+    expectedDef !== undefined ? unitCodeOf(expectedDef) : undefined;
 
   for (const [eid, pos] of posRows) {
     const px = pos[0];
@@ -308,7 +309,9 @@ export function evaluateObjectiveStatusCondition(
   condition: ObjectiveStatusCondition,
   runtime: ScenarioRuntime,
 ): boolean {
-  const objective = runtime.objectives.find((o) => o.id === condition.objectiveId);
+  const objective = runtime.objectives.find(
+    (o) => o.id === condition.objectiveId,
+  );
   return objective?.status === condition.status;
 }
 
@@ -382,7 +385,7 @@ export function executeAction(
     case "displayObjective": {
       const objId = action.objectiveId ?? action.id ?? "";
       const existing = runtime.objectives.find((o) => o.id === objId);
-      const isPrimary = action.primary ?? (action.type !== "secondary");
+      const isPrimary = action.primary ?? action.type !== "secondary";
       if (existing) {
         if (action.status !== undefined) existing.status = action.status;
         callbacks?.onObjectiveUpdate?.(existing);

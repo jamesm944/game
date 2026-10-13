@@ -9,7 +9,10 @@
  * 4. Responsive ARIA accessibility, ESC key handling, and seamless updates.
  */
 
-import type { ScenarioObjective, ScenarioNarrativeEvent } from "../sim/scenario/types";
+import type {
+  ScenarioObjective,
+  ScenarioNarrativeEvent,
+} from "../sim/scenario/types";
 
 export interface ObjectivesPanelOptions {
   readonly title?: string | undefined;
@@ -124,12 +127,21 @@ export function createObjectivesPanel(
 
   const badge = button.querySelector<HTMLElement>("#objectives-badge")!;
   const closeBtn = panel.querySelector<HTMLElement>("#objectives-close-btn")!;
-  const primaryList = panel.querySelector<HTMLElement>("#objectives-primary-list")!;
-  const secondarySection = panel.querySelector<HTMLElement>("#objectives-secondary-section")!;
-  const secondaryList = panel.querySelector<HTMLElement>("#objectives-secondary-list")!;
-  const transcriptsSection = panel.querySelector<HTMLElement>("#objectives-transcripts-section")!;
-  const transcriptsLog = panel.querySelector<HTMLElement>("#objectives-transcripts-log")!;
-  const briefing = panel.querySelector<HTMLElement>("#objectives-briefing");
+  const primaryList = panel.querySelector<HTMLElement>(
+    "#objectives-primary-list",
+  )!;
+  const secondarySection = panel.querySelector<HTMLElement>(
+    "#objectives-secondary-section",
+  )!;
+  const secondaryList = panel.querySelector<HTMLElement>(
+    "#objectives-secondary-list",
+  )!;
+  const transcriptsSection = panel.querySelector<HTMLElement>(
+    "#objectives-transcripts-section",
+  )!;
+  const transcriptsLog = panel.querySelector<HTMLElement>(
+    "#objectives-transcripts-log",
+  )!;
 
   let open = false;
 
