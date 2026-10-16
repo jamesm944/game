@@ -92,6 +92,13 @@ function stubKnowledge(parts: Partial<AiKnowledge> = {}): AiKnowledge {
     damagedAlliedBuildings: () => [],
     relicsHeldBy: () => 0,
     wonderCountOf: () => 0,
+    isTechResearched: () => false,
+    researchedTechIds: () => [],
+    isBuildingResearching: () => false,
+    canResearchTech: () => false,
+    availableTechsForBuilding: () => [],
+    researchableTechIds: () => [],
+    resolveUpgradedUnitId: (unitId: string) => unitId,
     ...parts,
   };
 }

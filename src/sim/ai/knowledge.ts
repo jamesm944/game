@@ -19,9 +19,18 @@
 import {
   buildingDefOf,
   buildingIdOfCode,
+  techCodeOf,
+  techIdOfCode,
   unitDefOf,
   unitIdOfCode,
 } from "../../data/definitions";
+import { researchedTechCodesOf } from "../components/combat";
+import {
+  activeTrainableUnitsFor,
+  buildingTechOptions,
+  resolveUpgradedUnitId,
+  type BuildingPanelTechOption,
+} from "../systems/upgrades";
 import type { CostLedger } from "../systems/costs";
 import { canAffordCosts } from "../systems/costs";
 import { canEnqueueTraining } from "../systems/training";
@@ -30,7 +39,7 @@ import {
   currentAgeRankOf,
   nextAgeTechIdOf,
 } from "../systems/age";
-import { AGE_DARK_RANK, ageRankOf } from "../components/age";
+import { AGE_DARK_RANK, ageRankOf, getAgeResearchRow } from "../components/age";
 import { getAssignedNode, getInventory } from "../components/economy";
 import {
   getAssignedSite,
@@ -110,6 +119,27 @@ export interface AiKnowledge {
   trainQueueOf(buildingEid: number): readonly string[];
   /** Unit definitions one OWN production building may train. */
   trainableUnitIds(buildingEid: number): readonly string[];
+  // ---- Technology research queries (Issue #136) ---------------------------
+  /** True when the tech has been completed by this player. */
+  isTechResearched(techId: string): boolean;
+  /** All completed tech ids for this player. */
+  researchedTechIds(): readonly string[];
+  /** True when the building is currently busy researching a tech or advancing age. */
+  isBuildingResearching(buildingEid: number): boolean;
+  /** True when buildingEid can research techId right now. */
+  canResearchTech(
+    buildingEid: number,
+    techId: string,
+    options?: { readonly ignoreCosts?: boolean },
+  ): boolean;
+  /** Available research tech options for one OWN building. */
+  availableTechsForBuilding(
+    buildingEid: number,
+  ): readonly BuildingPanelTechOption[];
+  /** Eligible technology IDs that this building can research right now (ignoring costs). */
+  researchableTechIds(buildingEid: number): readonly string[];
+  /** Resolves a unit definition id to its highest researched line upgrade tier. */
+  resolveUpgradedUnitId(unitId: string): string;
   population(): number;
   populationCap(): number;
   // ---- Own units ----------------------------------------------------------
@@ -370,11 +400,79 @@ export function createAiKnowledge(deps: AiKnowledgeDeps): AiKnowledge {
         .get(comps.buildingId)
         ?.get(buildingEid);
       if (!row || row[0] !== player) return [];
-      return (
-        buildingDefOf(buildingIdOfCode(row[1]!)).trainQueue?.trainable.map(
-          (entry) => entry.unitId,
-        ) ?? []
+      const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
+      if (!bDef.trainQueue) return [];
+      if (comps.researchedTechsId !== undefined) {
+        return activeTrainableUnitsFor(world, comps, player, bDef);
+      }
+      return bDef.trainQueue.trainable.map((entry) => entry.unitId);
+    },
+
+    isTechResearched(techId: string): boolean {
+      if (comps.researchedTechsId === undefined) return false;
+      const codes = researchedTechCodesOf(world, comps, player);
+      return codes.includes(techCodeOf(techId));
+    },
+
+    researchedTechIds(): readonly string[] {
+      if (comps.researchedTechsId === undefined) return [];
+      const codes = researchedTechCodesOf(world, comps, player);
+      return codes.map((c) => techIdOfCode(c));
+    },
+
+    availableTechsForBuilding(
+      buildingEid: number,
+    ): readonly BuildingPanelTechOption[] {
+      const row = world.rowsByComponentId
+        .get(comps.buildingId)
+        ?.get(buildingEid);
+      if (!row || row[0] !== player) return [];
+      const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
+      return buildingTechOptions(world, comps, player, buildingEid, bDef);
+    },
+
+    isBuildingResearching(buildingEid: number): boolean {
+      return getAgeResearchRow(world, comps, buildingEid) !== undefined;
+    },
+
+    canResearchTech(
+      buildingEid: number,
+      techId: string,
+      options?: { readonly ignoreCosts?: boolean },
+    ): boolean {
+      const row = world.rowsByComponentId
+        .get(comps.buildingId)
+        ?.get(buildingEid);
+      if (!row || row[0] !== player) return false;
+      const bDef = buildingDefOf(buildingIdOfCode(row[1]!));
+      const techOptions = buildingTechOptions(
+        world,
+        comps,
+        player,
+        buildingEid,
+        bDef,
       );
+      const opt = techOptions.find((o) => o.techId === techId);
+      if (!opt) return false;
+      if (options?.ignoreCosts) {
+        return (
+          opt.canResearch || opt.reasonDisabled === "Insufficient resources"
+        );
+      }
+      return opt.canResearch;
+    },
+
+    researchableTechIds(buildingEid: number): readonly string[] {
+      const opts = this.availableTechsForBuilding(buildingEid);
+      return opts
+        .filter(
+          (o) => o.canResearch || o.reasonDisabled === "Insufficient resources",
+        )
+        .map((o) => o.techId);
+    },
+
+    resolveUpgradedUnitId(unitId: string): string {
+      return resolveUpgradedUnitId(world, comps, player, unitId);
     },
 
     population: () => populationOf(world, comps, player),

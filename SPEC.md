@@ -458,6 +458,21 @@ Shipped-scope checklist (V12 / #83 sign-off):
 - [x] Q4: Tactical Unit Formations (AoE2 Quartet + Bannerlord Tactical) with Speed Harmonization and HUD command grid controls (#125)
 - [x] R1: Production Release Gate, 155 test suites green (1,135 passing tests), Vite bundle validation, and v1.0.0 tag (#126)
 
+### Wayfinder Map 5.1 — Visual Supremacy & Atmosphere ✅ (shipped, Epic #127)
+
+- [x] W1: Dynamic Water Shading & Shoreline Foam (#128)
+- [x] L1: Celestial Day/Night Cycle & Architectural Night Lighting (#129)
+- [x] P1: RTS Tone Mapping, Selective Bloom & Graphics Settings (#130)
+
+### Wayfinder Map 5.2 — Tactical Command & Strategic Depth ✅ (shipped, Epic #131)
+
+- [x] W1: Waypoint Queuing & Command Chaining (#132)
+- [x] T1: Tactical Unit Formations & Speed Harmonization (#125)
+- [x] U1: Blacksmith Research Tree & Unit Line Upgrades (#135)
+- [x] E1: Terrain Elevation & High-Ground Advantage (#107)
+- [x] S5: Scenario Scripting, Deterministic Trigger Engine & Objectives HUD (#133, #134)
+- [x] R2: v1.1.0 Release Gate, 159 test suites green (1,178 passing tests), 0 lint/typecheck errors
+
 ---
 
 ## 9. Open Risks & Mitigations

@@ -47,6 +47,7 @@ import {
   createMilitaryMemory,
   planCounterTraining,
   planDefenseRally,
+  planMilitaryTechResearch,
   planMonkConversionSingle,
   planMonkConversions,
   planOffensive,
@@ -252,6 +253,7 @@ export function createAiPlannerSystem(options: AiPlannerOptions): SimSystem {
     const buildDraft = planBuildOrder(k, strategy, budget, reserved, memory);
     if (buildDraft !== undefined) drafts.push(buildDraft);
     planCounterTraining(k, budget, militaryMemory, drafts);
+    planMilitaryTechResearch(k, budget, militaryMemory, drafts);
     planRelicDeposit(k, drafts);
     planRelicCollection(k, drafts);
     planMonkConversions(k, drafts);

@@ -35,7 +35,7 @@
  * squared tile distances) — replay-stable by construction.
  */
 
-import { buildingDefOf, unitDefOf } from "../../data/definitions";
+import { buildingDefOf, techDefOf, unitDefOf } from "../../data/definitions";
 import type { UnitDefinition } from "../../data/schema";
 import { bonusMultiplierOf } from "../combat/stats";
 import type { CommandDraft } from "./buildOrder";
@@ -768,4 +768,185 @@ export function planTributeTransfer(
       amount: TRIBUTE_PACKET_AMOUNT,
     },
   };
+}
+
+/**
+ * Dynamic Military Tech Research Planner — Issue #136 / A1.
+ *
+ * Inspects the AI's army composition, current Age, and owned production buildings
+ * to dynamically select and research military unit line upgrades and Blacksmith
+ * technologies that enhance the AI's fighting force.
+ */
+export function planMilitaryTechResearch(
+  k: AiKnowledge,
+  budget: ResourceBudget,
+  _memory: MilitaryMemory,
+  drafts: CommandDraft[],
+): void {
+  // Track buildings already receiving orders in this pass
+  const busyBuildingsInPass = new Set<number>();
+  for (const draft of drafts) {
+    if (
+      draft.kind === "researchTech" &&
+      typeof draft.data.siteEid === "number"
+    ) {
+      busyBuildingsInPass.add(draft.data.siteEid);
+    }
+  }
+
+  const army = k.armyUnits();
+  const archerUnits = army.filter(
+    (u) =>
+      u.defId === "archer" ||
+      u.defId === "crossbowman" ||
+      u.defId === "arbalest" ||
+      u.defId === "skirmisher",
+  );
+  const infantryUnits = army.filter(
+    (u) =>
+      u.defId === "militia" ||
+      u.defId === "man-at-arms" ||
+      u.defId === "longswordsman" ||
+      u.defId === "two-handed-swordsman",
+  );
+  const cavalryUnits = army.filter(
+    (u) =>
+      u.defId === "scout-cavalry" ||
+      u.defId === "light-cavalry" ||
+      u.defId === "knight" ||
+      u.defId === "cavalier" ||
+      u.defId === "paladin",
+  );
+
+  const hasBarracks = k.finishedBuildings("barracks").length > 0;
+  const hasRange = k.finishedBuildings("archery-range").length > 0;
+  const hasStable = k.finishedBuildings("stable").length > 0;
+  const hasBlacksmith = k.finishedBuildings("blacksmith").length > 0;
+
+  const candidateTechIds: string[] = [];
+
+  // 1. High priority: Unit line upgrades when possessing field units of that line
+  if (hasRange) {
+    if (archerUnits.some((u) => u.defId === "archer")) {
+      candidateTechIds.push("crossbowman-upgrade");
+    }
+    if (archerUnits.some((u) => u.defId === "crossbowman")) {
+      candidateTechIds.push("arbalest-upgrade");
+    }
+  }
+  if (hasBarracks) {
+    if (infantryUnits.some((u) => u.defId === "militia")) {
+      candidateTechIds.push("man-at-arms-upgrade");
+    }
+    if (infantryUnits.some((u) => u.defId === "man-at-arms")) {
+      candidateTechIds.push("longswordsman-upgrade");
+    }
+    if (infantryUnits.some((u) => u.defId === "longswordsman")) {
+      candidateTechIds.push("two-handed-swordsman-upgrade");
+    }
+  }
+  if (hasStable) {
+    if (cavalryUnits.some((u) => u.defId === "scout-cavalry")) {
+      candidateTechIds.push("light-cavalry-upgrade");
+    }
+    if (cavalryUnits.some((u) => u.defId === "knight")) {
+      candidateTechIds.push("cavalier-upgrade");
+    }
+    if (cavalryUnits.some((u) => u.defId === "cavalier")) {
+      candidateTechIds.push("paladin-upgrade");
+    }
+  }
+
+  // 2. Blacksmith tech upgrades aligned with dominant army composition
+  if (hasBlacksmith) {
+    const isArcherMajority =
+      archerUnits.length >= infantryUnits.length &&
+      archerUnits.length >= cavalryUnits.length &&
+      archerUnits.length > 0;
+    const isCavalryMajority =
+      cavalryUnits.length >= infantryUnits.length && cavalryUnits.length > 0;
+
+    if (isArcherMajority) {
+      candidateTechIds.push(
+        "fletching",
+        "bodkin-arrow",
+        "padded-archer-armor",
+        "leather-archer-armor",
+        "bracer",
+        "ring-archer-armor",
+        "forging",
+        "iron-casting",
+      );
+    } else if (isCavalryMajority) {
+      candidateTechIds.push(
+        "scale-barding",
+        "forging",
+        "chain-barding",
+        "iron-casting",
+        "plate-barding",
+        "blast-furnace",
+        "fletching",
+      );
+    } else if (infantryUnits.length > 0) {
+      candidateTechIds.push(
+        "forging",
+        "scale-mail",
+        "iron-casting",
+        "chain-mail",
+        "blast-furnace",
+        "plate-mail",
+        "fletching",
+      );
+    } else {
+      // General balanced / opening Blacksmith priorities
+      candidateTechIds.push(
+        "fletching",
+        "forging",
+        "scale-mail",
+        "scale-barding",
+        "padded-archer-armor",
+        "bodkin-arrow",
+        "iron-casting",
+        "chain-mail",
+        "chain-barding",
+        "leather-archer-armor",
+        "bracer",
+        "blast-furnace",
+        "plate-mail",
+        "plate-barding",
+        "ring-archer-armor",
+      );
+    }
+  }
+
+  // Evaluate candidate techs and issue order to capable building
+  for (const techId of candidateTechIds) {
+    if (k.isTechResearched(techId)) continue;
+    let tech;
+    try {
+      tech = techDefOf(techId);
+    } catch {
+      continue;
+    }
+    if (!tech.buildingId) continue;
+    if (!budget.afford(tech.costs)) continue;
+
+    const bldgs = k.finishedBuildings(tech.buildingId);
+    for (const bEid of bldgs) {
+      if (busyBuildingsInPass.has(bEid)) continue;
+      if (!k.canResearchTech(bEid, techId)) continue;
+
+      budget.debit(tech.costs);
+      busyBuildingsInPass.add(bEid);
+      drafts.push({
+        kind: "researchTech",
+        data: {
+          siteEid: bEid,
+          playerId: k.player,
+          techId,
+        },
+      });
+      break;
+    }
+  }
 }

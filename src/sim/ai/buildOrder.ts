@@ -70,7 +70,8 @@ export type CompletionCondition =
       readonly kind: "armySize";
       readonly unitId: string;
       readonly count: number;
-    };
+    }
+  | { readonly kind: "techResearched"; readonly techId: string };
 
 export interface PlaceBuildingAction {
   readonly kind: "placeBuilding";
@@ -98,7 +99,12 @@ export interface BuildStep {
     | PlaceBuildingAction
     | { readonly kind: "researchAge" }
     | { readonly kind: "trainArmy"; readonly unitId: string }
-    | { readonly kind: "attack" };
+    | { readonly kind: "attack" }
+    | {
+        readonly kind: "researchTech";
+        readonly techId: string;
+        readonly buildingDefId?: string | undefined;
+      };
   readonly complete: CompletionCondition;
   readonly gate: StepGate;
 }
@@ -274,6 +280,17 @@ const scoutsRush: Strategy = {
       gate: { minResources: { wood: 175 }, minAgeRank: 2 },
     },
     {
+      id: "bloodlines",
+      requires: ["stable"],
+      action: {
+        kind: "researchTech",
+        techId: "bloodlines",
+        buildingDefId: "stable",
+      },
+      complete: { kind: "techResearched", techId: "bloodlines" },
+      gate: { minResources: { food: 150, gold: 100 }, minAgeRank: 2 },
+    },
+    {
       id: "train-scouts",
       requires: ["feudal-up", "stable"],
       action: { kind: "trainArmy", unitId: "scout-cavalry" },
@@ -328,6 +345,29 @@ const archersPush: Strategy = {
       },
       complete: { kind: "buildingUp", defId: "archery-range", count: 1 },
       gate: { minResources: { wood: 175 }, minAgeRank: 2 },
+    },
+    {
+      id: "blacksmith",
+      requires: ["feudal-up"],
+      action: {
+        kind: "placeBuilding",
+        defId: "blacksmith",
+        minClearance: MILITARY_SITE_SEARCH.minClearance,
+        maxRadius: MILITARY_SITE_SEARCH.maxRadius,
+      },
+      complete: { kind: "buildingUp", defId: "blacksmith", count: 1 },
+      gate: { minResources: { wood: 150 }, minAgeRank: 2 },
+    },
+    {
+      id: "fletching",
+      requires: ["blacksmith"],
+      action: {
+        kind: "researchTech",
+        techId: "fletching",
+        buildingDefId: "blacksmith",
+      },
+      complete: { kind: "techResearched", techId: "fletching" },
+      gate: { minResources: { food: 100, gold: 50 }, minAgeRank: 2 },
     },
     {
       id: "train-archers",
@@ -430,6 +470,8 @@ function completionMet(
         k.armyUnits().filter((u) => u.defId === condition.unitId).length >=
         condition.count
       );
+    case "techResearched":
+      return k.isTechResearched(condition.techId);
   }
 }
 
@@ -522,16 +564,51 @@ function emitForStep(
     return { kind: "researchAge", data: { playerId: k.player } };
   }
 
+  if (action.kind === "researchTech") {
+    const tech = techDefOf(action.techId);
+    if (k.isTechResearched(action.techId)) return undefined;
+    if (!budget.afford(tech.costs)) return undefined;
+
+    const buildingDefId = action.buildingDefId ?? tech.buildingId;
+    const candidates = buildingDefId
+      ? k.finishedBuildings(buildingDefId)
+      : k.finishedBuildings();
+
+    for (const bEid of candidates) {
+      if (k.canResearchTech(bEid, action.techId)) {
+        budget.debit(tech.costs);
+        return {
+          kind: "researchTech",
+          data: {
+            siteEid: bEid,
+            playerId: k.player,
+            techId: action.techId,
+          },
+        };
+      }
+    }
+    return undefined;
+  }
+
   if (action.kind === "trainArmy") {
-    const def = unitDefOf(action.unitId);
+    const effectiveUnitId =
+      typeof k.resolveUpgradedUnitId === "function"
+        ? k.resolveUpgradedUnitId(action.unitId)
+        : action.unitId;
+    const def = unitDefOf(effectiveUnitId);
     const target = step.complete.kind === "armySize" ? step.complete.count : 0;
     // Count living units AND queued heads: the producer drains its
     // queue long after the orders were paid, so gating on alive alone
     // would overshoot the strategy target every time.
-    let current = k.armyUnits().filter((u) => u.defId === action.unitId).length;
+    let current = k
+      .armyUnits()
+      .filter(
+        (u) => u.defId === action.unitId || u.defId === effectiveUnitId,
+      ).length;
     for (const eid of k.finishedBuildings()) {
       for (const unitId of k.trainQueueOf(eid)) {
-        if (unitId === action.unitId) current += 1;
+        if (unitId === action.unitId || unitId === effectiveUnitId)
+          current += 1;
       }
     }
     if (current >= target) return undefined;
@@ -539,12 +616,12 @@ function emitForStep(
     // Lowest-eid own production building that trains this unit and can
     // enqueue it right now (age gate, housing headroom, queue space).
     for (const eid of k.finishedBuildings()) {
-      if (!k.trainableUnitIds(eid).includes(action.unitId)) continue;
-      if (!k.canTrain(eid, action.unitId)) continue;
+      if (!k.trainableUnitIds(eid).includes(effectiveUnitId)) continue;
+      if (!k.canTrain(eid, effectiveUnitId)) continue;
       budget.debit(def.costs);
       return {
         kind: "trainUnit",
-        data: { siteEid: eid, unitId: action.unitId },
+        data: { siteEid: eid, unitId: effectiveUnitId },
       };
     }
     return undefined;
