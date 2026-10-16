@@ -303,8 +303,12 @@ export function sampleMirror(
     outHead[i] = headA[i]!;
     outHp[i] = hpA[i]!;
   }
-  if (out.defCodes && a.defCodes.length >= copied) {
-    out.defCodes.set(a.defCodes.subarray(0, copied));
+  if (out.defCodes) {
+    if (a.defCodes && a.defCodes.length >= copied) {
+      out.defCodes.set(a.defCodes.subarray(0, copied));
+    } else {
+      out.defCodes.fill(8, 0, copied);
+    }
   }
   if (out.activityCodes && a.activityCodes.length >= copied) {
     out.activityCodes.set(a.activityCodes.subarray(0, copied));

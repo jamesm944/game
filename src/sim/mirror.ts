@@ -255,12 +255,9 @@ export function captureSimSnapshot(
   let hpFractions = reusable
     ? growF32(reusable.hpFractions, needed)
     : new Float32Array(needed);
-  let defCodes =
-    hasCombat || reusable?.defCodes
-      ? reusable?.defCodes
-        ? growU8(reusable.defCodes, needed)
-        : new Uint8Array(needed)
-      : undefined;
+  let defCodes = reusable?.defCodes
+    ? growU8(reusable.defCodes, needed)
+    : new Uint8Array(needed);
   let activityCodes =
     hasActivityComps || reusable?.activityCodes
       ? reusable?.activityCodes

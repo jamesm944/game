@@ -2833,7 +2833,8 @@ function frame(
         x: staging.positions[i * 2]!,
         y: staging.positions[i * 2 + 1]!,
         heading: staging.headings[i]!,
-        defCode: staging.defCodes ? staging.defCodes[i]! : 8,
+        defCode:
+          staging.defCodes && staging.defCodes[i] ? staging.defCodes[i]! : 8,
         ownerId: staging.ownerIds ? staging.ownerIds[i]! : 0,
       });
     }
@@ -2885,7 +2886,8 @@ function frame(
     barHpFractions[i] = seen ? sampleOut.hpFractions[i]! : 1;
     if (!seen) continue;
 
-    const defCode = sampleOut.defCodes ? sampleOut.defCodes[i]! : 8;
+    const defCode =
+      sampleOut.defCodes && sampleOut.defCodes[i] ? sampleOut.defCodes[i]! : 8;
     const unitId = unitIdOfCode(defCode);
     if ((NAVAL_UNIT_IDS as readonly string[]).includes(unitId)) {
       if (shipModelsLayer) {
