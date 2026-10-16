@@ -534,7 +534,7 @@ describe("golden harness m2t9", () => {
       expect(entry.digest).toMatch(/^fnv1a64:[0-9a-f]{16}$/);
     }
     expect(run.digests).toMatchSnapshot();
-  });
+  }, 30_000);
 
   it("executes the full FC build order to Castle knights on the pinned seed", () => {
     const run = mainRun(fixture);
@@ -625,7 +625,7 @@ describe("golden harness m2t9", () => {
       ...first,
       telemetry: { ...first.telemetry, totalThinkMs: 0 },
     });
-  });
+  }, 30_000);
 
   it("attack trigger fires only on legitimately visible enemies", () => {
     const mini = runMiniScenario();

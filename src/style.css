@@ -442,7 +442,7 @@ canvas {
   border-color: rgba(212, 163, 89, 0.75);
 }
 
-/* Build menu — bottom-left grid (M1-T10, §2.13). */
+/* Build menu — bottom-left grid (M1-T10, §2.13, Issue #138). */
 #build-menu {
   position: fixed;
   left: 12px;
@@ -453,18 +453,68 @@ canvas {
     12px/1.4 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.72);
-  border-radius: 6px;
+  background: rgba(16, 20, 28, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   user-select: none;
   z-index: 10;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.22s ease-out,
+    left 0.25s ease;
 }
 
-#build-menu h3 {
-  margin: 0 0 4px;
+#build-menu.hidden {
+  display: none !important;
+}
+
+#build-menu.dock-adjacent,
+body:has(#building-panel.visible) #build-menu,
+body:has(#unit-panel.visible) #build-menu,
+body.has-selection #build-menu {
+  left: 366px;
+  max-width: min(540px, calc(50vw - 190px));
+}
+
+.build-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+
+.build-menu-header h3 {
+  margin: 0;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8fa3c7;
+  color: #d4a359;
+}
+
+.build-menu-toggle-btn {
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.build-menu-toggle-btn:hover {
+  color: #fff;
+}
+
+#build-menu.collapsed .build-grid {
+  display: none;
+}
+
+#build-menu.collapsed {
+  padding-bottom: 6px;
 }
 
 .build-grid {
@@ -526,20 +576,27 @@ canvas {
   color: #8fa3c7;
 }
 
-/* Building selection panel — above the build menu (M1-T10). */
+/* Building selection panel — bottom-left primary command dock (M1-T10, Issue #138). */
 #building-panel {
   position: fixed;
   left: 12px;
-  bottom: 118px;
-  width: 320px;
-  padding: 6px 10px 10px;
+  bottom: 12px;
+  width: 330px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 8px 12px 12px;
   font:
     12px/1.5 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.72);
-  border-radius: 6px;
+  background: rgb(16 20 28 / 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
   user-select: none;
+  z-index: 20;
   transition:
     transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.22s ease-out;
@@ -687,24 +744,27 @@ canvas {
   cursor: not-allowed;
 }
 
-/* Unit selection panel — bottom HUD (V13, Part of #88, #90). */
+/* Unit selection panel — bottom HUD (V13, Part of #88, #90, Issue #138). */
 #unit-panel {
   position: fixed;
   left: 12px;
-  bottom: 118px;
+  bottom: 12px;
   width: 330px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
   padding: 8px 12px;
   font:
     12px/1.4 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.85);
+  background: rgb(16 20 28 / 0.88);
   backdrop-filter: blur(8px);
-  border: 1px solid rgb(255 255 255 / 0.12);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.3);
   border-radius: 8px;
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
   user-select: none;
-  z-index: 12;
+  z-index: 20;
   transition:
     transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.22s ease-out;
@@ -1016,20 +1076,25 @@ canvas {
   max-width: 48px;
 }
 
-/* Domain strategy sliders (M4-T1, SPEC §2.7). */
+/* Domain strategy sliders (M4-T1, SPEC §2.7, Issue #138). */
 #domain-panel {
   position: fixed;
   right: 12px;
   top: 64px;
-  width: 230px;
-  padding: 6px 10px 10px;
+  width: 250px;
+  padding: 8px 12px 12px;
   font:
     12px/1.5 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.72);
-  border-radius: 6px;
+  background: rgba(16, 20, 28, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
   user-select: none;
+  z-index: 15;
   transition:
     transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.22s ease-out;
@@ -1042,10 +1107,45 @@ canvas {
   opacity: 1;
 }
 
-#domain-panel h3 {
-  margin: 0 0 4px;
-  font-size: 12px;
+.domain-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(212, 163, 89, 0.2);
+}
+
+.domain-panel-header h3 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #d4a359;
+}
+
+.domain-panel-toggle-btn {
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.domain-panel-toggle-btn:hover {
   color: #fff;
+}
+
+#domain-panel.collapsed .domain-panel-body {
+  display: none;
+}
+
+#domain-panel.collapsed {
+  padding-bottom: 6px;
 }
 
 .domain-block {
@@ -1074,7 +1174,7 @@ canvas {
   width: 110px;
 }
 
-/* Company oversight panel (M4-T2, SPEC §2.7). */
+/* Company oversight panel (M4-T2, SPEC §2.7, Issue #138). */
 #company-panel {
   position: fixed;
   right: 12px;
@@ -1082,17 +1182,23 @@ canvas {
   width: 260px;
   max-height: 60vh;
   overflow-y: auto;
-  padding: 6px 10px 10px;
+  padding: 8px 12px 12px;
   font:
     12px/1.5 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.72);
-  border-radius: 6px;
+  background: rgba(16, 20, 28, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   user-select: none;
+  z-index: 15;
   transition:
     transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.22s ease-out;
+    opacity 0.22s ease-out,
+    right 0.25s ease;
   transform: translateX(16px);
   opacity: 0;
 }
@@ -1100,6 +1206,11 @@ canvas {
 #company-panel.visible {
   transform: translateX(0);
   opacity: 1;
+}
+
+/* Move company-panel adjacent to domain-panel when domain-panel is active (Issue #138) */
+body:has(#domain-panel.visible) #company-panel {
+  right: 274px;
 }
 
 #company-panel h3 {
@@ -1226,20 +1337,27 @@ canvas {
   flex: 1 1 120px;
 }
 
-/* Pop card — single-Pop selection sheet (M3-T9, SPEC §2.13). */
+/* Pop card — single-Pop selection sheet (M3-T9, SPEC §2.13, Issue #138). */
 #pop-card {
   position: fixed;
-  left: 354px;
-  bottom: 118px;
+  left: 366px;
+  bottom: 12px;
   width: 320px;
-  padding: 6px 10px 10px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 8px 12px 12px;
   font:
     12px/1.5 ui-monospace,
     monospace;
   color: #cfd6e4;
-  background: rgb(16 20 28 / 0.72);
-  border-radius: 6px;
+  background: rgba(16, 20, 28, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   user-select: none;
+  z-index: 20;
   transition:
     transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
     opacity 0.22s ease-out;
@@ -1427,7 +1545,31 @@ canvas {
   cursor: not-allowed;
 }
 
-/* Victory-path progress panel (M4-T4, §2.11): top-left under the
+/* Dedicated top-left HUD stack container (Issue #138). */
+#top-left-hud-stack {
+  position: fixed;
+  left: 12px;
+  top: 56px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 320px;
+}
+
+#top-left-hud-stack > * {
+  pointer-events: auto;
+}
+
+#top-left-hud-stack #victory-paths,
+#top-left-hud-stack #objective-hud {
+  position: static;
+  left: auto;
+  top: auto;
+}
+
+/* Victory-path progress panel (M4-T4, §2.11, Issue #138): top-left under the
    topbar, one line per path with the live sustain race. */
 #victory-paths {
   position: fixed;
@@ -1442,10 +1584,57 @@ canvas {
     11px/1.5 ui-monospace,
     monospace;
   color: #9aa4b8;
-  background: rgb(16 20 28 / 0.6);
-  border: 1px solid rgb(255 255 255 / 0.12);
-  border-radius: 6px;
-  pointer-events: none;
+  background: rgba(16, 20, 28, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 163, 89, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  user-select: none;
+}
+
+.victory-paths-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.victory-paths-header h4 {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #d4a359;
+}
+
+.victory-paths-toggle-btn {
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.victory-paths-toggle-btn:hover {
+  color: #fff;
+}
+
+.victory-paths-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#victory-paths.collapsed .victory-paths-content {
+  display: none;
+}
+
+#victory-paths.collapsed {
+  padding-bottom: 4px;
 }
 
 .victory-path-line[data-active="true"] {
@@ -1661,8 +1850,10 @@ canvas {
 }
 
 /* Dev-only §7 render-stats line (M5-T4 draw-call audit): sits just
-   above the minimap; turns red when calls exceed the hard cap. */
+   above the minimap; turns red when calls exceed the hard cap.
+   Hidden by default; toggled via F3 key. */
 #dev-stats {
+  display: none;
   position: fixed;
   right: 12px;
   bottom: 200px;
@@ -1675,6 +1866,7 @@ canvas {
   border-radius: 6px;
   pointer-events: none;
   user-select: none;
+  z-index: 30;
 }
 
 #dev-stats[data-over-budget="true"] {
@@ -2694,7 +2886,7 @@ canvas {
 #objective-hud {
   position: fixed;
   left: 12px;
-  top: 130px;
+  top: 160px;
   z-index: 10;
   width: 280px;
   background: rgba(15, 23, 42, 0.75);

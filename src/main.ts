@@ -534,6 +534,7 @@ sun.shadow.camera.bottom = -world.layers.size * 0.6;
 sun.shadow.mapSize.width = 2048;
 sun.shadow.mapSize.height = 2048;
 sun.shadow.bias = 0.0005;
+sun.shadow.normalBias = 0.04;
 scene.add(sun);
 if (typeof window !== "undefined" && window.__game) {
   window.__game.scene = scene;
@@ -1959,13 +1960,20 @@ const objectivesPanel = createObjectivesPanel({
 
 const topbar = createTopbar(world.seed, idleCallbacks, objectivesPanel.button);
 
-// Interactive Objective HUD Card (Milestone S5 / #134)
-const objectiveHud = createObjectiveHud();
+// Dedicated top-left HUD stack container (Issue #138) to eliminate text collisions
+const topLeftHudStack = document.createElement("div");
+topLeftHudStack.id = "top-left-hud-stack";
+document.body.appendChild(topLeftHudStack);
 
 // Victory-path progress panel (M4-T4, §2.11): per-path sustained metric
 // vs threshold plus timer state, fed from the same digest-row derivation
 // the evaluator decides on.
-const victoryPathsPanel = createVictoryPathsPanel();
+const victoryPathsPanel = createVictoryPathsPanel({
+  container: topLeftHudStack,
+});
+
+// Interactive Objective HUD Card (Milestone S5 / #134)
+const objectiveHud = createObjectiveHud({ container: topLeftHudStack });
 
 // ---- Game flow (M2-T10): surrender control + victory overlay -----------------
 //
@@ -2297,7 +2305,9 @@ const domainPanel = createDomainPanel({
   inbox: world.inbox,
   getData: (): DomainPanelData => {
     const buildingRows = world.rowsByComponentId.get(comps.buildingId);
-    const domains = DOMAIN_NAMES.map((domainSlug, domain) => {
+    const activeDomains: DomainPanelData["domains"][number][] = [];
+    for (let domain = 0; domain < DOMAIN_NAMES.length; domain++) {
+      const domainSlug = DOMAIN_NAMES[domain]!;
       const managerEid = managerOfDomain(world, comps, PLAYER_ONE, domain);
       const workplaces: number[] = [];
       if (buildingRows) {
@@ -2311,24 +2321,26 @@ const domainPanel = createDomainPanel({
           if (workplaces.length >= DOMAIN_PANEL_WORKPLACE_CAP) break;
         }
       }
-      const stored =
-        managerEid !== undefined
-          ? strategyWeightsOf(world, comps, managerEid)
-          : undefined;
-      return {
-        domainSlug,
-        managerLabel:
-          managerEid === undefined
-            ? undefined
-            : `Manager ${popNameOf(world, comps, managerEid) ?? "??"} · rating ${managementRatingOf(world, comps, managerEid, domain).toFixed(1)}`,
-        weights: workplaces.map((eid, index) => ({
-          workplaceEid: eid,
-          label: `#${String(eid)} workplace`,
-          weight: stored?.[index] ?? 1,
-        })),
-      };
-    });
-    return { domains };
+      if (managerEid !== undefined || workplaces.length > 0) {
+        const stored =
+          managerEid !== undefined
+            ? strategyWeightsOf(world, comps, managerEid)
+            : undefined;
+        activeDomains.push({
+          domainSlug,
+          managerLabel:
+            managerEid === undefined
+              ? undefined
+              : `Manager ${popNameOf(world, comps, managerEid) ?? "??"} · rating ${managementRatingOf(world, comps, managerEid, domain).toFixed(1)}`,
+          weights: workplaces.map((eid, index) => ({
+            workplaceEid: eid,
+            label: `#${String(eid)} workplace`,
+            weight: stored?.[index] ?? 1,
+          })),
+        });
+      }
+    }
+    return { domains: activeDomains };
   },
   issueStrategy: ({ domainSlug, weights }) => {
     const domain = DOMAIN_NAMES.indexOf(domainSlug);
@@ -3394,6 +3406,22 @@ function frame(
     });
   }
   unitPanel.update(selectedUnits);
+
+  // Coordinate bottom-left command dock layout (Issue #138)
+  const isArmed = buildMenu.armedDefId() !== null;
+  const isBuildingOpen = buildingPanel.isOpen();
+  const unitCount = selectedUnits.length;
+
+  if (isArmed) {
+    buildMenu.setDockMode("docked");
+    document.body.classList.remove("has-selection");
+  } else if (isBuildingOpen || unitCount > 0) {
+    buildMenu.setDockMode("adjacent");
+    document.body.classList.add("has-selection");
+  } else {
+    buildMenu.setDockMode("docked");
+    document.body.classList.remove("has-selection");
+  }
 
   // Command button grid HUD (V13, #91)
   let hasGarrisonBuilding = false;

@@ -151,17 +151,20 @@ export function injectTerrainFog(
         "#include <color_fragment>",
         `#include <color_fragment>
   vec2 d = vec2(1.5 / uFogMapSize);
-  vec2 cUv = vFogUv;
+  float halfTexel = 0.5 / uFogMapSize;
+  vec2 minUv = vec2(halfTexel);
+  vec2 maxUv = vec2(1.0 - halfTexel);
+  vec2 cUv = clamp(vFogUv, minUv, maxUv);
 
   vec4 s0 = mix(texture2D(uFogPrev, cUv), texture2D(uFogCurr, cUv), uBlend);
-  vec4 s1 = mix(texture2D(uFogPrev, cUv + vec2(d.x, d.y)), texture2D(uFogCurr, cUv + vec2(d.x, d.y)), uBlend);
-  vec4 s2 = mix(texture2D(uFogPrev, cUv + vec2(-d.x, d.y)), texture2D(uFogCurr, cUv + vec2(-d.x, d.y)), uBlend);
-  vec4 s3 = mix(texture2D(uFogPrev, cUv + vec2(d.x, -d.y)), texture2D(uFogCurr, cUv + vec2(d.x, -d.y)), uBlend);
-  vec4 s4 = mix(texture2D(uFogPrev, cUv + vec2(-d.x, -d.y)), texture2D(uFogCurr, cUv + vec2(-d.x, -d.y)), uBlend);
+  vec4 s1 = mix(texture2D(uFogPrev, clamp(cUv + vec2(d.x, d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(d.x, d.y), minUv, maxUv)), uBlend);
+  vec4 s2 = mix(texture2D(uFogPrev, clamp(cUv + vec2(-d.x, d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(-d.x, d.y), minUv, maxUv)), uBlend);
+  vec4 s3 = mix(texture2D(uFogPrev, clamp(cUv + vec2(d.x, -d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(d.x, -d.y), minUv, maxUv)), uBlend);
+  vec4 s4 = mix(texture2D(uFogPrev, clamp(cUv + vec2(-d.x, -d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(-d.x, -d.y), minUv, maxUv)), uBlend);
 
   vec2 smoothFog = (s0.rg * 2.0 + s1.rg + s2.rg + s3.rg + s4.rg) / 6.0;
-  float rawExplored = smoothFog.r * 255.0;
-  float rawVisible = smoothFog.g * 255.0;
+  float rawExplored = clamp(smoothFog.r * 255.0, 0.0, 1.0);
+  float rawVisible = clamp(smoothFog.g * 255.0, 0.0, 1.0);
 
   float exploredFactor = smoothstep(0.05, 0.95, rawExplored);
   float visibleFactor = smoothstep(0.05, 0.95, rawVisible);

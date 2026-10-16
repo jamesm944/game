@@ -75,18 +75,62 @@ export interface VictoryPathsPanelHandle {
   readonly element: HTMLElement;
 }
 
-export function createVictoryPathsPanel(): VictoryPathsPanelHandle {
+export function createVictoryPathsPanel(
+  options: { container?: HTMLElement } = {},
+): VictoryPathsPanelHandle {
   const element = document.createElement("div");
   element.id = "victory-paths";
-  document.body.appendChild(element);
+
+  const header = document.createElement("div");
+  header.className = "victory-paths-header";
+  const title = document.createElement("h4");
+  title.textContent = "Victory Paths";
+  const toggleBtn = document.createElement("button");
+  toggleBtn.className = "victory-paths-toggle-btn";
+  toggleBtn.type = "button";
+  toggleBtn.setAttribute("aria-label", "Toggle Victory Paths");
+  toggleBtn.title = "Collapse / Expand Victory Paths";
+  toggleBtn.textContent = "−";
+
+  header.append(title, toggleBtn);
+
+  const content = document.createElement("div");
+  content.className = "victory-paths-content";
+
+  element.append(header, content);
+
+  const container = options.container ?? document.body;
+  container.appendChild(element);
+
+  let isCollapsed = false;
+  const toggleCollapse = (): void => {
+    isCollapsed = !isCollapsed;
+    element.classList.toggle("collapsed", isCollapsed);
+    content.style.display = isCollapsed ? "none" : "flex";
+    toggleBtn.textContent = isCollapsed ? "+" : "−";
+  };
+
+  toggleBtn.addEventListener("click", (e) => {
+    (e as { stopPropagation?: () => void })?.stopPropagation?.();
+    toggleCollapse();
+  });
+
+  header.addEventListener("click", () => {
+    toggleCollapse();
+  });
 
   let lastText = "";
   return {
     update(readouts) {
+      if (readouts.length === 0) {
+        element.style.display = "none";
+        return;
+      }
+      element.style.display = "block";
       const next = readouts.map(formatVictoryPathLine).join("\n");
       if (next === lastText) return;
       lastText = next;
-      element.replaceChildren(
+      content.replaceChildren(
         ...readouts.map((readout) => {
           const line = document.createElement("div");
           line.className = "victory-path-line";

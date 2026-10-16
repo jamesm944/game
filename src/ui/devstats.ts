@@ -32,20 +32,69 @@ export function formatDrawStatsLine(
 export interface DevStatsHandle {
   /** Repaint the line from this frame's renderer.info numbers. */
   update(calls: number, triangles: number, playbackFps: number): void;
+  /** Toggle visibility of the dev-stats HUD. */
+  toggle(): void;
+  /** Set visibility of the dev-stats HUD. */
+  setVisible(visible: boolean): void;
+  /** Check if dev-stats HUD is currently visible. */
+  isVisible(): boolean;
 }
 
 export function createDevStatsHud(): DevStatsHandle {
   const el = document.createElement("div");
   el.id = "dev-stats";
+  // Hidden by default for AAA presentation; toggled with F3
+  el.style.display = "none";
   document.body.appendChild(el);
   let last = "";
+  let visible = false;
+
+  let lastCalls = 0;
+  let lastTris = 0;
+  let lastFps = 0;
+
+  const setVisible = (v: boolean): void => {
+    visible = v;
+    el.style.display = visible ? "block" : "none";
+    if (visible && lastCalls > 0) {
+      el.textContent = formatDrawStatsLine(lastCalls, lastTris, lastFps);
+      el.dataset.overBudget = lastCalls > 150 ? "true" : "false";
+    }
+  };
+
+  const keyHandler = (event: KeyboardEvent): void => {
+    if (
+      event.code === "F3" &&
+      !(
+        typeof HTMLInputElement !== "undefined" &&
+        (event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLTextAreaElement)
+      )
+    ) {
+      event.preventDefault();
+      setVisible(!visible);
+    }
+  };
+  window.addEventListener("keydown", keyHandler);
+
   return {
     update(calls, triangles, playbackFps): void {
+      lastCalls = calls;
+      lastTris = triangles;
+      lastFps = playbackFps;
+      if (!visible) return;
       const next = formatDrawStatsLine(calls, triangles, playbackFps);
       if (next === last) return;
       last = next;
       el.textContent = next;
       el.dataset.overBudget = calls > 150 ? "true" : "false";
+    },
+    toggle(): void {
+      setVisible(!visible);
+    },
+    setVisible,
+    isVisible(): boolean {
+      return visible;
     },
   };
 }

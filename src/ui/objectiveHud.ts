@@ -62,7 +62,8 @@ export function createObjectiveHud(
 
   const card = document.createElement("div");
   card.id = "objective-hud";
-  card.className = "objective-hud";
+  // Hidden by default until scenario objectives are loaded
+  card.className = "objective-hud objective-hud--hidden";
   if (options.initialCollapsed) {
     card.classList.add("objective-hud--collapsed");
   }

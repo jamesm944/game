@@ -114,23 +114,56 @@ export interface BuildMenuDeps {
   onClick?(): void;
 }
 
+export type BuildMenuDockMode = "docked" | "adjacent" | "hidden";
+
 export interface BuildMenuHandle {
   refresh(): void;
   armedDefId(): string | null;
   disarm(): void;
+  setDockMode(mode: BuildMenuDockMode): void;
+  toggleCollapse(): void;
+  isCollapsed(): boolean;
 }
 
 export function wireBuildMenu(deps: BuildMenuDeps): BuildMenuHandle {
   const menu = document.createElement("div");
   menu.id = "build-menu";
+
+  const header = document.createElement("div");
+  header.className = "build-menu-header";
   const title = document.createElement("h3");
-  title.textContent = "Build";
+  title.textContent = "Build (B)";
+  const toggleBtn = document.createElement("button");
+  toggleBtn.className = "build-menu-toggle-btn";
+  toggleBtn.type = "button";
+  toggleBtn.setAttribute("aria-label", "Toggle Build Menu");
+  toggleBtn.title = "Minimize / Expand Build Menu (B)";
+  toggleBtn.textContent = "−";
+
+  header.append(title, toggleBtn);
+
   const grid = document.createElement("div");
   grid.className = "build-grid";
-  menu.append(title, grid);
+  menu.append(header, grid);
   document.body.appendChild(menu);
 
   let armed: string | null = null;
+  let isCollapsed = false;
+
+  const toggleCollapse = (): void => {
+    isCollapsed = !isCollapsed;
+    menu.classList.toggle("collapsed", isCollapsed);
+    toggleBtn.textContent = isCollapsed ? "+" : "−";
+  };
+
+  toggleBtn.addEventListener("click", (e) => {
+    (e as { stopPropagation?: () => void })?.stopPropagation?.();
+    toggleCollapse();
+  });
+
+  header.addEventListener("click", () => {
+    toggleCollapse();
+  });
 
   const buttons = BUILD_MENU_IDS.map((defId) => {
     const def = BUILDING_DEFINITIONS.get(defId);
@@ -185,8 +218,29 @@ export function wireBuildMenu(deps: BuildMenuDeps): BuildMenuHandle {
       armed = null;
       deps.onArm(null);
       paint();
+    } else if (
+      event.code === "KeyB" &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      !(
+        typeof HTMLInputElement !== "undefined" &&
+        (event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLTextAreaElement)
+      )
+    ) {
+      toggleCollapse();
     }
   });
+
+  let currentMode: BuildMenuDockMode = "docked";
+
+  function setDockMode(mode: BuildMenuDockMode): void {
+    if (mode === currentMode) return;
+    currentMode = mode;
+    menu.classList.toggle("dock-adjacent", mode === "adjacent");
+    menu.classList.toggle("hidden", mode === "hidden");
+  }
 
   return {
     refresh: paint,
@@ -198,5 +252,8 @@ export function wireBuildMenu(deps: BuildMenuDeps): BuildMenuHandle {
         paint();
       }
     },
+    setDockMode,
+    toggleCollapse,
+    isCollapsed: () => isCollapsed,
   };
 }

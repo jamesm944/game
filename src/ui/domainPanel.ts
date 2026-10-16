@@ -46,83 +46,147 @@ export function createDomainPanel(deps: {
   inbox: CommandInbox;
   /** Issue the authoritative setStrategy command (main.ts owns codes). */
   issueStrategy(payload: SetStrategyPayload): void;
-}): { refresh(): void } {
+}): { refresh(): void; toggle(): void; isVisible(): boolean } {
   const panel = document.createElement("div");
   panel.id = "domain-panel";
   panel.style.display = "none";
   document.body.appendChild(panel);
 
+  const header = document.createElement("div");
+  header.className = "domain-panel-header";
+
   const titleEl = document.createElement("h3");
-  titleEl.textContent = "Domain Strategy";
+  titleEl.textContent = "Domain Strategy (M)";
+
+  const toggleBtn = document.createElement("button");
+  toggleBtn.className = "domain-panel-toggle-btn";
+  toggleBtn.type = "button";
+  toggleBtn.setAttribute("aria-label", "Toggle Domain Panel");
+  toggleBtn.textContent = "−";
+
+  header.append(titleEl, toggleBtn);
+
   const bodyEl = document.createElement("div");
   bodyEl.className = "domain-panel-body";
 
   let lastKey = "";
+  let userHidden = false;
+  let isCollapsed = false;
+
+  const hidePanel = (): void => {
+    panel.classList.remove("visible");
+    setTimeout(() => {
+      if (!panel.classList.contains("visible")) {
+        panel.style.display = "none";
+      }
+    }, 300);
+  };
+
+  const toggleCollapse = (): void => {
+    isCollapsed = !isCollapsed;
+    bodyEl.style.display = isCollapsed ? "none" : "block";
+    toggleBtn.textContent = isCollapsed ? "+" : "−";
+    panel.classList.toggle("collapsed", isCollapsed);
+  };
+
+  toggleBtn.addEventListener("click", (e) => {
+    (e as { stopPropagation?: () => void })?.stopPropagation?.();
+    toggleCollapse();
+  });
+
+  header.addEventListener("click", () => {
+    toggleCollapse();
+  });
+
+  const keyHandler = (event: KeyboardEvent): void => {
+    if (
+      event.code === "KeyM" &&
+      !(
+        typeof HTMLInputElement !== "undefined" &&
+        (event.target instanceof HTMLInputElement ||
+          event.target instanceof HTMLTextAreaElement)
+      )
+    ) {
+      userHidden = !userHidden;
+      if (userHidden) {
+        hidePanel();
+      } else {
+        refresh();
+      }
+    }
+  };
+  window.addEventListener("keydown", keyHandler);
+
+  function refresh(): void {
+    if (userHidden) return;
+    const data = deps.getData();
+    if (!data || data.domains.length === 0) {
+      if (lastKey !== "") {
+        lastKey = "";
+        hidePanel();
+      }
+      return;
+    }
+    const key = JSON.stringify(data);
+    if (key !== lastKey) {
+      lastKey = key;
+      panel.style.display = "block";
+      void panel.offsetWidth;
+      panel.classList.add("visible");
+      while (panel.firstChild) panel.firstChild.remove();
+      panel.append(header, bodyEl);
+      bodyEl.textContent = "";
+      for (const entry of data.domains) {
+        const block = document.createElement("div");
+        block.className = "domain-block";
+        const heading = document.createElement("div");
+        heading.className = "domain-heading";
+        heading.textContent =
+          entry.managerLabel !== undefined
+            ? `${entry.domainSlug} — ${entry.managerLabel}`
+            : `${entry.domainSlug} — no manager`;
+        block.appendChild(heading);
+        for (const weight of entry.weights) {
+          const line = document.createElement("label");
+          line.className = "domain-weight";
+          const label = document.createElement("span");
+          label.textContent = weight.label;
+          const input = document.createElement("input");
+          input.type = "range";
+          input.min = "0";
+          input.max = "4";
+          input.step = "0.25";
+          input.value = String(weight.weight);
+          input.addEventListener("change", () => {
+            // The whole vector rides every command; read sibling
+            // sliders so a single drag publishes a consistent brief.
+            const inputs = [
+              ...block.querySelectorAll<HTMLInputElement>(
+                'input[type="range"]',
+              ),
+            ];
+            deps.issueStrategy({
+              domainSlug: entry.domainSlug,
+              weights: inputs.map((el) => Number(el.value)),
+            });
+          });
+          line.append(label, input);
+          block.appendChild(line);
+        }
+        bodyEl.appendChild(block);
+      }
+    }
+  }
 
   return {
-    refresh(): void {
-      const data = deps.getData();
-      if (!data || data.domains.length === 0) {
-        if (lastKey !== "") {
-          lastKey = "";
-          panel.classList.remove("visible");
-          setTimeout(() => {
-            if (!panel.classList.contains("visible")) {
-              panel.style.display = "none";
-            }
-          }, 300);
-        }
-        return;
-      }
-      const key = JSON.stringify(data);
-      if (key !== lastKey) {
-        lastKey = key;
-        panel.style.display = "block";
-        void panel.offsetWidth;
-        panel.classList.add("visible");
-        while (panel.firstChild) panel.firstChild.remove();
-        panel.append(titleEl, bodyEl);
-        bodyEl.textContent = "";
-        for (const entry of data.domains) {
-          const block = document.createElement("div");
-          block.className = "domain-block";
-          const heading = document.createElement("div");
-          heading.className = "domain-heading";
-          heading.textContent =
-            entry.managerLabel !== undefined
-              ? `${entry.domainSlug} — ${entry.managerLabel}`
-              : `${entry.domainSlug} — no manager`;
-          block.appendChild(heading);
-          for (const weight of entry.weights) {
-            const line = document.createElement("label");
-            line.className = "domain-weight";
-            const label = document.createElement("span");
-            label.textContent = weight.label;
-            const input = document.createElement("input");
-            input.type = "range";
-            input.min = "0";
-            input.max = "4";
-            input.step = "0.25";
-            input.value = String(weight.weight);
-            input.addEventListener("change", () => {
-              // The whole vector rides every command; read sibling
-              // sliders so a single drag publishes a consistent brief.
-              const inputs = [
-                ...block.querySelectorAll<HTMLInputElement>(
-                  'input[type="range"]',
-                ),
-              ];
-              deps.issueStrategy({
-                domainSlug: entry.domainSlug,
-                weights: inputs.map((el) => Number(el.value)),
-              });
-            });
-            line.append(label, input);
-            block.appendChild(line);
-          }
-          bodyEl.appendChild(block);
-        }
-      }
+    refresh,
+    toggle(): void {
+      userHidden = !userHidden;
+      if (userHidden) hidePanel();
+      else refresh();
+    },
+    isVisible(): boolean {
+      return !userHidden && panel.classList.contains("visible");
     },
   };
 }

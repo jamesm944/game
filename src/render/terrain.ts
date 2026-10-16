@@ -139,7 +139,20 @@ function pushWall(
   ownY: number,
   _color?: Color,
 ): void {
+  const ownIndex = ty * layers.size + tx;
+  const ownTerrain = layers.terrainType[ownIndex]!;
+  const isOwnWater =
+    ownTerrain === TERRAIN_DEEP_WATER || ownTerrain === TERRAIN_WATER;
+
   const neighborIndex = neighbor(layers, tx, ty, dx, dy);
+  if (neighborIndex !== undefined) {
+    const neighborTerrain = layers.terrainType[neighborIndex]!;
+    const isNeighborWater =
+      neighborTerrain === TERRAIN_DEEP_WATER ||
+      neighborTerrain === TERRAIN_WATER;
+    if (isOwnWater && isNeighborWater) return;
+  }
+
   const neighborY =
     neighborIndex === undefined
       ? ownY - BORDER_SKIRT_DROP
@@ -156,10 +169,10 @@ function pushWall(
     pushQuad(
       scratch,
       [
-        [x0 + 1, neighborY, z0],
         [x0 + 1, neighborY, z0 + 1],
-        [x0 + 1, ownY, z0 + 1],
+        [x0 + 1, neighborY, z0],
         [x0 + 1, ownY, z0],
+        [x0 + 1, ownY, z0 + 1],
       ],
       [1, 0, 0],
       rockTint,
@@ -169,10 +182,10 @@ function pushWall(
     pushQuad(
       scratch,
       [
-        [x0, neighborY, z0 + 1],
         [x0, neighborY, z0],
-        [x0, ownY, z0],
+        [x0, neighborY, z0 + 1],
         [x0, ownY, z0 + 1],
+        [x0, ownY, z0],
       ],
       [-1, 0, 0],
       rockTint,
@@ -182,10 +195,10 @@ function pushWall(
     pushQuad(
       scratch,
       [
-        [x0 + 1, neighborY, z0 + 1],
         [x0, neighborY, z0 + 1],
-        [x0, ownY, z0 + 1],
+        [x0 + 1, neighborY, z0 + 1],
         [x0 + 1, ownY, z0 + 1],
+        [x0, ownY, z0 + 1],
       ],
       [0, 0, 1],
       rockTint,
@@ -195,10 +208,10 @@ function pushWall(
     pushQuad(
       scratch,
       [
-        [x0, neighborY, z0],
         [x0 + 1, neighborY, z0],
-        [x0 + 1, ownY, z0],
+        [x0, neighborY, z0],
         [x0, ownY, z0],
+        [x0 + 1, ownY, z0],
       ],
       [0, 0, -1],
       rockTint,
@@ -507,12 +520,15 @@ export function buildTerrainMesh(
       vec4 colForest = texture2D(uTexForest, uvForest);
 
       // Domain-warped splatmap sampling for natural, organic transitions
+      float halfTexel = 0.5 / uFogMapSize;
+      vec2 minUv = vec2(halfTexel);
+      vec2 maxUv = vec2(1.0 - halfTexel);
       vec2 splatUv = vWorldPos.xz / uFogMapSize;
       vec2 warp = vec2(
         sin(vWorldUv.y * 3.2 + vWorldUv.x * 1.5),
         cos(vWorldUv.x * 3.2 + vWorldUv.y * 1.5)
       ) * (0.35 / uFogMapSize);
-      vec4 splat = texture2D(uSplatMap, clamp(splatUv + warp, 0.0, 1.0));
+      vec4 splat = texture2D(uSplatMap, clamp(splatUv + warp, minUv, maxUv));
 
       float landWeight = splat.r + splat.g + splat.b + splat.a;
       vec4 w = landWeight > 0.001 ? splat / landWeight : vec4(0.0, 1.0, 0.0, 0.0);
@@ -535,7 +551,7 @@ export function buildTerrainMesh(
 ${WATER_FRAGMENT_GLSL}      }
 
       // Farm furrow pattern
-      float farmFlag = texture2D(uFarmMask, vFogUv).r;
+      float farmFlag = texture2D(uFarmMask, clamp(vFogUv, minUv, maxUv)).r;
       if (farmFlag > 0.5 && vTerrainType > 1.5 && vTerrainType < 5.5) {
         float furrow = sin(vWorldUv.x * 14.0) * 0.16;
         vec3 soil = vec3(0.40, 0.28, 0.18) + furrow;
@@ -548,17 +564,17 @@ ${WATER_FRAGMENT_GLSL}      }
       // Fog of war smooth penumbra & deep charcoal shroud (V13, #94)
       if (uFogMapSize > 0.0) {
         vec2 d = vec2(1.5 / uFogMapSize);
-        vec2 cUv = vFogUv;
+        vec2 cUv = clamp(vFogUv, minUv, maxUv);
 
         vec4 s0 = mix(texture2D(uFogPrev, cUv), texture2D(uFogCurr, cUv), uBlend);
-        vec4 s1 = mix(texture2D(uFogPrev, cUv + vec2(d.x, d.y)), texture2D(uFogCurr, cUv + vec2(d.x, d.y)), uBlend);
-        vec4 s2 = mix(texture2D(uFogPrev, cUv + vec2(-d.x, d.y)), texture2D(uFogCurr, cUv + vec2(-d.x, d.y)), uBlend);
-        vec4 s3 = mix(texture2D(uFogPrev, cUv + vec2(d.x, -d.y)), texture2D(uFogCurr, cUv + vec2(d.x, -d.y)), uBlend);
-        vec4 s4 = mix(texture2D(uFogPrev, cUv + vec2(-d.x, -d.y)), texture2D(uFogCurr, cUv + vec2(-d.x, -d.y)), uBlend);
+        vec4 s1 = mix(texture2D(uFogPrev, clamp(cUv + vec2(d.x, d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(d.x, d.y), minUv, maxUv)), uBlend);
+        vec4 s2 = mix(texture2D(uFogPrev, clamp(cUv + vec2(-d.x, d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(-d.x, d.y), minUv, maxUv)), uBlend);
+        vec4 s3 = mix(texture2D(uFogPrev, clamp(cUv + vec2(d.x, -d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(d.x, -d.y), minUv, maxUv)), uBlend);
+        vec4 s4 = mix(texture2D(uFogPrev, clamp(cUv + vec2(-d.x, -d.y), minUv, maxUv)), texture2D(uFogCurr, clamp(cUv + vec2(-d.x, -d.y), minUv, maxUv)), uBlend);
 
         vec2 smoothFog = (s0.rg * 2.0 + s1.rg + s2.rg + s3.rg + s4.rg) / 6.0;
-        float rawExplored = smoothFog.r * 255.0;
-        float rawVisible = smoothFog.g * 255.0;
+        float rawExplored = clamp(smoothFog.r * 255.0, 0.0, 1.0);
+        float rawVisible = clamp(smoothFog.g * 255.0, 0.0, 1.0);
 
         float exploredFactor = smoothstep(0.05, 0.95, rawExplored);
         float visibleFactor = smoothstep(0.05, 0.95, rawVisible);

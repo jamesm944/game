@@ -155,7 +155,8 @@ export const WATER_FRAGMENT_GLSL = /* glsl */ `
         // 2. View direction & Fresnel reflectance factor
         vec3 viewDir = normalize(cameraPosition - vWorldPos);
         float NdotV = clamp(dot(waveNormal, viewDir), 0.0, 1.0);
-        float fresnel = 0.02 + 0.98 * pow(1.0 - NdotV, 4.0);
+        float oneMinusNdotV = clamp(1.0 - NdotV, 0.0, 1.0);
+        float fresnel = 0.02 + 0.98 * (oneMinusNdotV * oneMinusNdotV * oneMinusNdotV * oneMinusNdotV);
 
         // 3. Dynamic underwater caustics
         float causticTime = uTime * 1.8;
@@ -164,7 +165,7 @@ export const WATER_FRAGMENT_GLSL = /* glsl */ `
         // 4. Depth color gradient (deep ocean vs shallow coastal turquoise)
         float depthFactor = clamp(vTerrainType, 0.0, 1.0);
         vec3 waterBase = mix(uWaterDeepColor, uWaterShallowColor, depthFactor);
-        vec3 waterColor = waterBase + vec3(0.015, 0.04, 0.06) * waveRipple + vec3(0.02, 0.05, 0.07) * caustics;
+        vec3 waterColor = max(vec3(0.0), waterBase + vec3(0.015, 0.04, 0.06) * waveRipple + vec3(0.02, 0.05, 0.07) * caustics);
 
         // 5. Sky reflection modulated by Fresnel
         vec3 reflectedSky = mix(uSkyColor, uSunColor, 0.25) * 1.15;
@@ -172,8 +173,8 @@ export const WATER_FRAGMENT_GLSL = /* glsl */ `
 
         // 6. Celestial sun specular glints (Blinn-Phong)
         vec3 halfDir = normalize(uSunDir + viewDir);
-        float NdotH = max(0.0, dot(waveNormal, halfDir));
-        float specular = pow(NdotH, 64.0) * (0.85 + 0.15 * waveRipple);
+        float NdotH = clamp(dot(waveNormal, halfDir), 0.0, 1.0);
+        float specular = NdotH > 0.001 ? pow(NdotH, 64.0) * max(0.0, 0.85 + 0.15 * waveRipple) : 0.0;
         vec3 sunGlint = uSunColor * specular * 1.6;
 
         // 7. Dynamic Coastal Foam & Surf Wash

@@ -234,6 +234,7 @@ export interface BuildingPanelDeps {
 
 export function createBuildingPanel(deps: BuildingPanelDeps): {
   refresh(): void;
+  isOpen(): boolean;
 } {
   const panel = document.createElement("div");
   panel.id = "building-panel";
@@ -814,6 +815,9 @@ export function createBuildingPanel(deps: BuildingPanelDeps): {
       } else {
         researchActiveWrap.style.display = "none";
       }
+    },
+    isOpen(): boolean {
+      return panel.classList.contains("visible");
     },
   };
 }
