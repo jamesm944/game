@@ -25,3 +25,27 @@ Rather than just a survival check, high Favor becomes a powerful strategic curre
 - **Imperial Treasury Grants:** Emergency low-interest cash infusions or debt forgiveness.
 - **Trade Charters:** Unlock high-value Imperial merchant routes that buy your goods at 2x market rates.
 - **Royal Decrees:** Overrule a blocked Town Council vote by invoking Royal Imperial Prerogative.
+
+## 2. Demographic Boons & Historical Epoch Transformation
+
+### A. Demographics as Imperial Currency
+In addition to treasury grants and military cohorts, Imperial Favor can be spent directly to acquire labor and population infusions:
+- **Antiquity & Feudal Ages (Slaves & Serfs):**
+  - Purchase enslaved captives or bonded serfs transported via Imperial galley or caravan.
+  - Cost: Low Favor cost, but immediately generates abolitionist/ethical unrest among religious clergy and lower-class free citizens.
+- **Colonial & Early Industrial Ages (Indentured Servants & Colonial Immigrants):**
+  - Subsidize immigrant ships from the homeland metropolis to solve labor shortages in factories and mines.
+- **Modern & Cold War Eras (Guest Workers, Refugees & Specialists):**
+  - Request scientific defectors, engineers, and visa quotas from the President or General Secretary.
+
+### B. Evolution of the Suzerain Across Eras
+The identity and legislative power of the central ruler transforms dynamically as the world advances through epochs (#153):
+
+| Historical Epoch | Suzerain Title | Demands & Favors Available | Legal Restraints |
+| --- | --- | --- | --- |
+| **1. Classical Antiquity** | **The Emperor / Tyrant** | Slaves, Praetorian Cohorts, Grain Ships | Absolute autocracy. Zero human rights checks. |
+| **2. Feudal Middle Ages** | **The High King** | Feudal Levies, Royal Monopolies, Indulgences | Checked by Papacy/Church tithes and feudal oaths. |
+| **3. Colonial Age of Sail** | **The Crown / Royal Charter** | Chartered Ships, Mercenaries, Convict Labor | Colonists demand home representation; mercantilist trade quotas. |
+| **4. Industrial Revolution** | **Parliament / Prime Minister** | Immigrant Quotas, Capital Subsidies | Slavery outlawed. Child labor restricted. Unions strike. |
+| **5. World Wars Era** | **The President / Dictator** | Conscription Quotas, Lend-Lease, War Bonds | Emergency Powers acts. Civil liberties suspended in war. |
+| **6. Cold War & Atomic** | **Superpower Hegemon** | Marshall Plan Aid, Nuclear Umbrella, Defectors | International treaties, human rights conventions, proxy oversight. |
