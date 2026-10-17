@@ -231,3 +231,12 @@ accumulator via lastPracticeTick.
 
 Level 0 with neutral traits is bit-identical to pre-M3-T2 behavior
 (rowless entities skip every path).
+
+---
+
+## 8. Extension: AAA Deep Simulation & Ranked Donor Inventory (Map 6, Issue #142)
+
+For the comprehensive survey of Dwarf Fortress and RimWorld systems (including health/hediffs, thought/mood & mental breaks, storyteller/director, temperature/weather, fluids, z-levels/digging, workshops/bills/stockpiles, rooms/beauty, wounds/triage, animals, caravans, and history/legends) plus the ranked donor inventory for Map 6, see:
+
+👉 [**Dwarf Fortress & RimWorld Deep Simulation Systems & Ranked Donor Inventory**](file:///Users/jamesmoss/Documents/game/docs/research/df-rimworld-donor-inventory.md) (`docs/research/df-rimworld-donor-inventory.md`).
+
