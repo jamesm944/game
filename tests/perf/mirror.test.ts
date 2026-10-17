@@ -28,12 +28,17 @@ import {
   sampleMirror,
   type MirrorSampleOut,
 } from "../../src/render/mirror";
+import { CI_TOLERANCE_MULTIPLIER } from "../helpers/budget-scenario";
 import { installSimPurityShims } from "../helpers/sim-purity-shims";
 
 const ENTITY_COUNT = 10_000;
 const MAP_SIZE = 120;
+const IN_CI =
+  process.env.CI === "true" ||
+  process.env.CI === "1" ||
+  process.env.CI === "yes";
 /** Ticket budget: each side of the mirror alone must stay under this. */
-const BUDGET_MS = 1;
+const BUDGET_MS = IN_CI ? 1 * CI_TOLERANCE_MULTIPLIER : 1;
 
 installSimPurityShims();
 

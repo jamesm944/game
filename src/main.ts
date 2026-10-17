@@ -330,8 +330,13 @@ import { victoryPathReadouts } from "./sim/systems/victory";
 import { createVictoryPathsPanel } from "./ui/victoryPaths";
 import { createObjectivesPanel } from "./ui/objectivesPanel";
 import { createObjectiveHud } from "./ui/objectiveHud";
-import { createToastHost } from "./ui/toast";
 import { sanitizeSlotName, createPauseMenu } from "./ui/pauseMenu";
+import { createTitleScreen, type SkirmishSetupOptions } from "./ui/titleScreen";
+import { setPlayerCivilization } from "./sim/core/civilization";
+import { AI_PLAYER } from "./sim/ai/bootstrap";
+import { createToastHost } from "./ui/toast";
+import { civDefOf } from "./data/definitions";
+import type { AudioClip } from "./audio/intents";
 import {
   consumeDifficulty,
   consumeStrategy,
@@ -1380,7 +1385,112 @@ const pauseMenu = createPauseMenu({
         return b.savedAt - a.savedAt;
       });
   },
+  onExitToMainMenu: () => {
+    pauseMenu.hide();
+    document.body.classList.add("in-frontend-shell");
+    titleScreen.show();
+    titleScreen.openView("main");
+  },
 });
+
+const isQuickstart =
+  typeof window !== "undefined" &&
+  (new URLSearchParams(window.location.search).get("quickstart") === "true" ||
+    window.location.search.includes("quickstart"));
+
+const titleScreen = createTitleScreen({
+  onStartMatch: (options: SkirmishSetupOptions) => {
+    document.body.classList.remove("in-frontend-shell");
+    setPlayerCivilization(world, PLAYER_ONE, options.playerCiv);
+    const candidateCivs = ["franks", "britons", "goths", "byzantines"].filter(
+      (c) => c !== options.playerCiv,
+    );
+    const aiCivId =
+      options.aiCiv === "random"
+        ? (candidateCivs[Math.floor(Math.random() * candidateCivs.length)] ??
+          "franks")
+        : (options.aiCiv ?? "franks");
+    setPlayerCivilization(world, AI_PLAYER, aiCivId);
+
+    if (options.startingAge > 1) {
+      setPlayerAgeRank(world, comps, PLAYER_ONE, options.startingAge);
+      setPlayerAgeRank(world, comps, AI_PLAYER, options.startingAge);
+    }
+
+    if (options.aiDifficulty) {
+      const diffId =
+        options.aiDifficulty === "expert"
+          ? ("extreme" as const)
+          : options.aiDifficulty;
+      stashDifficulty(window.localStorage, diffId);
+    }
+    if (options.aiStrategy) {
+      stashStrategy(window.localStorage, options.aiStrategy);
+    }
+
+    toast.show(
+      `⚔️ Match Commenced: ${civDefOf(options.playerCiv).name} vs ${civDefOf(aiCivId).name}!`,
+    );
+  },
+  onContinueMatch: () => {
+    document.body.classList.remove("in-frontend-shell");
+    titleScreen.hide();
+  },
+  hasActiveMatch: () => {
+    return world.entities.length > 0;
+  },
+  onLoadSlot: async (slotName: string) => {
+    const record = await saveStore.get(slotName);
+    if (record === undefined) throw new Error(`no such slot: ${slotName}`);
+    const bytes = new Uint8Array(await record.saveBlob.arrayBuffer());
+    decodeAgeof(bytes);
+    await saveStore.putPendingLoad(new Blob([bytes as BlobPart]));
+    window.location.reload();
+  },
+  listSlots: async () => {
+    const records = await saveStore.getAll();
+    return records
+      .map((r) => ({
+        name: r.name,
+        savedAt: r.savedAt,
+        playtimeSeconds: r.playtimeSeconds,
+      }))
+      .sort((a, b) => b.savedAt - a.savedAt);
+  },
+  onOpenSettings: () => {
+    const settingsPanel = document.getElementById("settings-panel");
+    if (settingsPanel) settingsPanel.hidden = false;
+  },
+  onAudioToggle: () => {
+    const buses = audioBusesHolder.current;
+    if (buses) {
+      const current = buses.master.gain.value;
+      const next = current > 0.05 ? 0 : 0.8;
+      setBusVolume(buses, "master", next);
+      return next > 0.05;
+    }
+    return false;
+  },
+  isAudioMuted: () => {
+    const buses = audioBusesHolder.current;
+    return buses ? buses.master.gain.value <= 0.05 : false;
+  },
+  onPreviewSound: (clip: string) => {
+    audioScheduler.push({ clip: clip as AudioClip, priority: 2 });
+  },
+});
+
+if (isQuickstart || pendingLoad !== undefined) {
+  titleScreen.hide();
+  document.body.classList.remove("in-frontend-shell");
+} else {
+  titleScreen.show();
+  document.body.classList.add("in-frontend-shell");
+}
+
+if (typeof window !== "undefined" && window.__game) {
+  window.__game.titleScreen = titleScreen;
+}
 
 /** Rolling autosave — oldest slot evicted, quiet-boundary captures. */
 async function runAutosave(): Promise<void> {
@@ -1762,6 +1872,7 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
   if (event.repeat || event.metaKey || event.ctrlKey) return;
   const key = event.key.toLowerCase();
   if (key === "escape") {
+    if (titleScreen.isOpen()) return;
     if (attackMoveArmed || patrolArmed || guardArmed) {
       disarmAttackMove();
       return;
@@ -1769,7 +1880,7 @@ window.addEventListener("keydown", (event: KeyboardEvent) => {
     if (!matchDecidedShown) pauseMenu.toggle();
     return;
   }
-  if (pauseMenu.isOpen) return; // paused chrome swallows gameplay keys
+  if (pauseMenu.isOpen || titleScreen.isOpen()) return; // paused chrome swallows gameplay keys
 
   // Idle worker management hotkeys (V15, #106) — available regardless of current selection
   if (event.key === "." || event.key === ">" || key === "i") {
@@ -2643,7 +2754,14 @@ function frame(
   requestAnimationFrame((next) => frame(next, unitLayers));
   const frameMs = Math.min(now - lastFrame, FRAME_CLAMP_MS);
   lastFrame = now;
-  const paused = pauseMenu.isOpen;
+  const paused = pauseMenu.isOpen || titleScreen.isVisible;
+  if (titleScreen.isVisible) {
+    // Gentle cinematic camera drift over the kingdom on the title screen
+    cameraRig.setCenter(
+      cameraRig.center.x + 0.5 * (frameMs / 1000),
+      cameraRig.center.y + 0.25 * (frameMs / 1000),
+    );
+  }
   if (!paused) {
     spriteTimeSec += frameMs / 1000;
     accumulator += frameMs;
