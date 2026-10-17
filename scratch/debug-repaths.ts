@@ -212,15 +212,6 @@ async function debugRepaths() {
     step(world);
   }
 
-  let losCalls = 0;
-  let losFails = 0;
-  const origLos = astar.hasLineOfSight;
-  (astar as any).hasLineOfSight = function (...args: any[]) {
-    losCalls++;
-    const res = origLos.apply(this, args as any);
-    if (!res) losFails++;
-    return res;
-  };
 
   // Stack trace sampling of requestPath
   const callers = new Map<string, number>();
@@ -229,7 +220,7 @@ async function debugRepaths() {
     world.pathScheduler.requestPath = function (req: any, opts: any) {
       const stack = new Error().stack || "";
       const lines = stack.split("\n");
-      const caller = lines[2]?.trim() || "unknown";
+      const caller = `${lines[2]?.trim()} -> ${lines[3]?.trim()}`;
       callers.set(caller, (callers.get(caller) || 0) + 1);
       return originalRequest.call(this, req, opts);
     };
@@ -240,7 +231,6 @@ async function debugRepaths() {
     step(world);
   }
 
-  console.log(`LOS calls: ${losCalls}, LOS fails: ${losFails}`);
   console.log("Callers of requestPath:");
   for (const [k, v] of callers.entries()) {
     console.log(`  ${v}x : ${k}`);
