@@ -70,7 +70,7 @@ export function createDomainPanel(deps: {
   bodyEl.className = "domain-panel-body";
 
   let lastKey = "";
-  let userHidden = false;
+  let userHidden = true;
   let isCollapsed = false;
 
   const hidePanel = (): void => {
@@ -120,14 +120,8 @@ export function createDomainPanel(deps: {
   function refresh(): void {
     if (userHidden) return;
     const data = deps.getData();
-    if (!data || data.domains.length === 0) {
-      if (lastKey !== "") {
-        lastKey = "";
-        hidePanel();
-      }
-      return;
-    }
-    const key = JSON.stringify(data);
+    const hasDomains = Boolean(data && data.domains.length > 0);
+    const key = hasDomains ? JSON.stringify(data) : "__empty__";
     if (key !== lastKey) {
       lastKey = key;
       panel.style.display = "block";
@@ -136,7 +130,15 @@ export function createDomainPanel(deps: {
       while (panel.firstChild) panel.firstChild.remove();
       panel.append(header, bodyEl);
       bodyEl.textContent = "";
-      for (const entry of data.domains) {
+      if (!hasDomains) {
+        const notice = document.createElement("div");
+        notice.className = "domain-empty-notice";
+        notice.textContent =
+          "No managed domains active. Appoint domain managers or build specialized workplaces to balance strategy.";
+        bodyEl.appendChild(notice);
+        return;
+      }
+      for (const entry of data!.domains) {
         const block = document.createElement("div");
         block.className = "domain-block";
         const heading = document.createElement("div");

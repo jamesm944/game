@@ -65,9 +65,12 @@ import {
   PLAYER_ONE,
   createCommodityStockpile,
   createPlayerStockpile,
+  depositIntoStockpile,
 } from "../sim/core/stockpile";
-import { createPlayerAgeState } from "../sim/components/age";
+import { createPlayerAgeState, setPlayerAgeRank } from "../sim/components/age";
 import { createWorld, registerSystem, type World } from "../sim/core/world";
+import { generateFourPlayerLayers } from "../sim/mapgen/fourPlayer";
+import type { WorldLayers } from "../sim/world/layers";
 import { PathScheduler, type PathTransport } from "../sim/path/scheduler";
 import { ReplayRecorder } from "../sim/replay/record";
 import { createMovementSystem } from "../sim/systems/movement";
@@ -110,7 +113,10 @@ import {
   createCompaniesSystem,
   type OutputObservers,
 } from "../sim/systems/companies";
-import { createVictorySystem } from "../sim/systems/victory";
+import {
+  createVictorySystem,
+  type VictoryPathEvaluator,
+} from "../sim/systems/victory";
 import { buildingRectOf } from "../sim/components/buildings";
 import { AI_PLAYER, mirrorOrigin, setupAiOpponent } from "../sim/ai/bootstrap";
 import { createAiKnowledge, type AiKnowledge } from "../sim/ai/knowledge";
@@ -185,6 +191,27 @@ export interface SkirmishWorldOptions {
    * Optional scripted scenario definition or runtime (Milestone S5 / #134).
    */
   readonly scenario?: ScenarioDefinition | ScenarioRuntime | undefined;
+  /**
+   * Asymmetric civilizations assigned per player (Milestone C1 / #118, F1 / #139).
+   */
+  readonly civilizations?:
+    ReadonlyMap<number, string> | Readonly<Record<number, string>> | undefined;
+  /**
+   * Starting age rank (1 = Dark, 2 = Feudal, 3 = Castle, 4 = Imperial). Defaults to 1 (Dark Age).
+   */
+  readonly startingAge?: number | undefined;
+  /**
+   * Explicit pre-generated tile layers (e.g. from a custom generator).
+   */
+  readonly layers?: WorldLayers | undefined;
+  /**
+   * Battlefield biome/preset: "continental" | "coastal" | "archipelago".
+   */
+  readonly biome?: "continental" | "coastal" | "archipelago" | undefined;
+  /**
+   * Active victory path evaluators (defaults to DEFAULT_VICTORY_PATHS).
+   */
+  readonly victoryPaths?: readonly VictoryPathEvaluator[] | undefined;
 }
 
 export interface SkirmishWorld {
@@ -244,6 +271,7 @@ function wireSkirmishSystems(
   difficulty: ReturnType<typeof aiDifficultyOf>,
   persistent: SkirmishPersistentStates,
   strategy: StrategyId = "fast-castle-knights",
+  victoryPaths?: readonly VictoryPathEvaluator[] | undefined,
 ): { aiKnowledge: AiKnowledge; aiTelemetry: PlannerTelemetry } {
   // M4-T2: the companies ledger observes every output credit event, so
   // its observer wires into gather + production BEFORE they register;
@@ -282,7 +310,13 @@ function wireSkirmishSystems(
   // observes this tick's practice stamps.
   registerSystem(world, createSkillsSystem(comps));
   registerSystem(world, createEquipmentSystem(comps));
-  registerSystem(world, createVictorySystem(comps));
+  registerSystem(
+    world,
+    createVictorySystem(
+      comps,
+      victoryPaths ? { paths: victoryPaths } : undefined,
+    ),
+  );
   // M3-T3: needs decay/eating runs after the labor planners so an
   // emergency hunger release sticks until the next tick; the IAUS pop
   // brain serves the HUMAN side's idle Pops only — the AI opponent
@@ -428,10 +462,17 @@ export function createSkirmishWorld(
   const scheduler = new PathScheduler(options.createTransport());
   const size = options.size ?? 120;
   const fog = createFogVisibility(size, 2);
+  const layers =
+    options.layers ??
+    (options.biome
+      ? generateFourPlayerLayers(seed, size, options.biome)
+      : undefined);
   const world = createWorld(seed, {
     size,
+    layers,
     pathScheduler: scheduler,
     visibility: fog.provider,
+    civilizations: options.civilizations,
   });
   if (options.scenario) {
     if ("definition" in options.scenario) {
@@ -461,6 +502,7 @@ export function createSkirmishWorld(
     difficulty,
     persistent,
     chosenStrategy,
+    options.victoryPaths,
   );
 
   // ---- Human start: ledger + age ladder + central TC + villagers ------
@@ -515,6 +557,26 @@ export function createSkirmishWorld(
         morale: true,
       });
       spawned += 1;
+    }
+  }
+
+  if (options.startingAge !== undefined && options.startingAge > 1) {
+    setPlayerAgeRank(world, comps, PLAYER_ONE, options.startingAge);
+    setPlayerAgeRank(world, comps, AI_PLAYER, options.startingAge);
+    const bonusMap: Record<number, number[]> = {
+      2: [500, 300, 200, 0], // Feudal bonus: food, wood, gold
+      3: [1000, 800, 500, 300], // Castle bonus: food, wood, gold, stone
+      4: [2000, 1500, 1200, 800], // Imperial bonus
+    };
+    const bonus = bonusMap[options.startingAge];
+    if (bonus) {
+      for (let r = 0; r < bonus.length; r++) {
+        const amt = bonus[r]!;
+        if (amt > 0) {
+          depositIntoStockpile(world, comps, PLAYER_ONE, r, amt);
+          depositIntoStockpile(world, comps, AI_PLAYER, r, amt);
+        }
+      }
     }
   }
 

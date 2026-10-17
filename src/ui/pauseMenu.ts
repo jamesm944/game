@@ -42,6 +42,8 @@ export interface PauseMenuCallbacks {
   onImportReplay(file: File): Promise<void>;
   /** Fresh slot list for the rows table (called before each paint). */
   listSlots(): Promise<readonly SaveSlotRow[]>;
+  /** Return to title screen / main menu (Milestone F1 / Issue #139). */
+  onExitToMainMenu?(): void;
 }
 
 export interface PauseMenuHandle {
@@ -93,6 +95,9 @@ export function createPauseMenu(
         <button id="pause-export-replay">Export replay</button>
         <button id="pause-import-replay">Import replay…</button>
         <input id="pause-import-replay-file" type="file" accept=".ageofreplay,application/json" hidden />
+      </div>
+      <div class="pause-actions pause-nav-actions">
+        <button id="pause-main-menu">Return to Main Menu</button>
       </div>
       <p id="save-note" hidden></p>
       <h3>Saves</h3>
@@ -222,6 +227,14 @@ export function createPauseMenu(
     replayImportInput.value = "";
     if (file !== undefined) void guarded(() => callbacks.onImportReplay(file));
   });
+
+  const mainMenuBtn = root.querySelector("#pause-main-menu");
+  if (mainMenuBtn) {
+    mainMenuBtn.addEventListener("click", () => {
+      hide();
+      callbacks.onExitToMainMenu?.();
+    });
+  }
 
   return {
     root,
