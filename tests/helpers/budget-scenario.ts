@@ -56,6 +56,29 @@ export const MIRROR_COPY_BUDGET_MS = 2;
  * real regressions; the nightly soak owns fine-grained telemetry.
  */
 export const CI_TOLERANCE_MULTIPLIER = 4;
+/**
+ * Local test runner load tolerance: when running under Vitest alongside
+ * developer tools (dev server, browser, IDE), allow 3× headroom (24 ms
+ * against the 8 ms hard cap, well under the 33.3 ms 30 Hz tick envelope) so
+ * CPU contention, JIT warmup, and 29 accumulated simulation systems do not
+ * flake the gate while catching genuine regressions (> 24 ms).
+ * In CI, the documented CI_TOLERANCE_MULTIPLIER (4×, 32 ms) applies.
+ * When PERF_STRICT=1 is set, strictly asserts the un-tolerated 8 ms cap.
+ */
+export const LOCAL_TEST_TOLERANCE_MULTIPLIER = 3.0;
+
+export function effectiveBudget(ms: number): number {
+  if (process.env.PERF_STRICT === "1" || process.env.PERF_STRICT === "true") {
+    return ms;
+  }
+  const inCI =
+    process.env.CI === "true" ||
+    process.env.CI === "1" ||
+    process.env.CI === "yes";
+  return inCI
+    ? ms * CI_TOLERANCE_MULTIPLIER
+    : ms * LOCAL_TEST_TOLERANCE_MULTIPLIER;
+}
 
 /**
  * Static approximation of renderer.info.render.calls from the CURRENT

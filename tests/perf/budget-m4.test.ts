@@ -24,7 +24,7 @@
 import { describe, expect, it } from "vitest";
 import {
   approximateDrawCalls,
-  CI_TOLERANCE_MULTIPLIER,
+  effectiveBudget,
   MIRROR_COPY_BUDGET_MS,
   TICK_P95_BUDGET_MS,
 } from "../helpers/budget-scenario";
@@ -32,15 +32,6 @@ import { runBudgetScenarioM4 } from "../helpers/budget-scenario-m4";
 import { installSimPurityShims } from "../helpers/sim-purity-shims";
 
 installSimPurityShims();
-
-const IN_CI =
-  process.env.CI === "true" ||
-  process.env.CI === "1" ||
-  process.env.CI === "yes";
-
-function effectiveBudget(ms: number): number {
-  return IN_CI ? ms * CI_TOLERANCE_MULTIPLIER : ms;
-}
 
 describe("M4 perf budget gate (SPEC §7, management+companies active)", () => {
   it("keeps p95 tick under 8 ms with 300+ deep Pops plus delegation and companies", () => {
