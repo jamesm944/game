@@ -2,7 +2,7 @@
 
 Question: does a continuous coastline and closer town-first framing establish the intended premium direction at default zoom?
 
-**Awaiting James's visual verdict.** No approved visual decision or production implementation is implied.
+**James requests all three camera views (feedback after review).** Retain tactical overview, closer settlement, and coastal panorama as modes; do not choose a single winner. Default framing/transitions and the broader terrain/asset quality verdict remain open. No production implementation is implied.
 
 ## Run
 
@@ -27,7 +27,7 @@ Arrows cycle the URL's `variant` parameter. Drag to orbit, right-drag to pan, wh
 - Existing Quaternius buildings/trees/farms and ambientCG grass are reused under their existing repository licences. No new asset dependencies. Pops are 32 capsule scale stand-ins.
 - Synthetic scene, no sim integration, gameplay HUD, fog of war, collision or authoritative passability. The tile-grid ADR is unchanged. No Steam/Tauri integration or threading claims.
 - No throughput/FPS acceptance, crowd rendering claim, full art bible, animation or browser compatibility matrix. The deliberately sparse layout and stand-ins do not establish AAA quality.
-- No approved answer yet: choose a camera direction, request a combination, or reject all three. Any production renderer migration remains separate implementation work.
+- Camera-mode answer: retain all three. The broader visual quality question and default/transition details remain open. Any production renderer migration remains separate implementation work.
 
 ## Verification
 
