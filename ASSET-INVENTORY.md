@@ -224,3 +224,12 @@ stand-in rig only):
   vendored).
 - ambientCG API v3 (`/api/v3/assets?include=downloads`) → `/get?file=<ID>_1K-JPG.zip`;
   Poly Haven API (`api.polyhaven.com/files/leafy_grass`) → dl.polyhaven.org.
+
+---
+
+## AAA Extension: 31 Units, 4 Ages, PBR Terrain, UI, Audio & AI Pipeline (Map 6 · Issue #144)
+
+For the complete expanded inventory and technical pipeline specification (covering all 31 unit definitions, 32 building definitions across 4 ages and civilizational aesthetics, ambientCG/Poly Haven PBR terrain, Game-icons.net UI, Soniss GDC 150GB+ audio archive, the Recraft V3 / Flux AI pipeline with palette locking, and the billboard sprite vs VAT animation architecture evaluation), see:
+
+👉 [**AAA-Quality Medieval Assets & AI Generation Pipeline**](file:///Users/jamesmoss/Documents/game/docs/research/asset-sourcing-aaa.md) (`docs/research/asset-sourcing-aaa.md`).
+
