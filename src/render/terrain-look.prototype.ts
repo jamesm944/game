@@ -13,6 +13,7 @@ import {
   FogExp2,
   Group,
   HemisphereLight,
+  InstancedMesh,
   Mesh,
   MeshStandardMaterial,
   OrthographicCamera,
@@ -70,6 +71,7 @@ const variants = [
   },
 ];
 const params = new URLSearchParams(location.search);
+const useRust = params.get("backend") === "rust";
 let active = Math.max(
   0,
   variants.findIndex((v) => v.key === params.get("variant")),
@@ -77,14 +79,20 @@ let active = Math.max(
 const scene = new Scene();
 scene.background = new Color("#a9bec5");
 scene.fog = new FogExp2("#a9bec5", 0.0035);
+const benchmark = params.get("benchmark") === "1";
+const renderWidth = benchmark ? 1600 : innerWidth;
+const renderHeight = benchmark ? 1000 : innerHeight;
 const renderer = new WebGPURenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(benchmark ? 1 : Math.min(devicePixelRatio, 1.5));
+renderer.setSize(renderWidth, renderHeight);
 renderer.toneMapping = ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.25;
 renderer.shadowMap.enabled = true;
 document.body.style.margin = "0";
 document.body.append(renderer.domElement);
+if (benchmark)
+  renderer.domElement.style.cssText =
+    "width:100vw;height:100vh;object-fit:contain";
 
 const style = document.createElement("style");
 style.textContent = `
@@ -98,7 +106,7 @@ button{cursor:pointer;border:1px solid #d5c19755;background:#26383a;color:#fff4d
 `;
 document.head.append(style);
 const ui = document.createElement("div");
-ui.innerHTML = `<header class="panel"><small>AGEOFWIND / LOOK DEVELOPMENT</small><h1>A living coastline</h1><p>Continuous land. Soft shores. A town worth getting closer to.</p><p>Throwaway visual study · no live simulation</p></header><aside id="stats" class="panel"></aside><div id="help">Drag to orbit · right-drag to pan · wheel to zoom<br>← → compare views · R restore framing</div><nav class="panel"><button id="prev" aria-label="Previous variant">←</button><div id="label"></div><button id="next" aria-label="Next variant">→</button><button id="reset">Reset view</button></nav><div id="status">Preparing terrain…</div>`;
+ui.innerHTML = `<header class="panel"><small>AGEOFWIND / LOOK DEVELOPMENT</small><h1>A living coastline</h1><p>Continuous land. Soft shores. A town worth getting closer to.</p><p>${useRust ? "Live Rust movement / needs / deliveries slice" : "Throwaway visual study · no live simulation"}</p></header><aside id="stats" class="panel"></aside><div id="help">Drag to orbit · right-drag to pan · wheel to zoom<br>← → compare views · R restore framing</div><nav class="panel"><button id="prev" aria-label="Previous variant">←</button><div id="label"></div><button id="next" aria-label="Next variant">→</button><button id="reset">Reset view</button></nav><div id="status">Preparing terrain…</div>`;
 document.body.append(ui);
 
 const sun = new DirectionalLight("#fff1d1", 3.2);
@@ -235,8 +243,66 @@ function plant(source: Group, x: number, z: number, rotation = 0) {
   scene.add(obj);
   return obj;
 }
+type RustFrame = {
+  tick: number;
+  pops: { x: number; z: number }[];
+  workers: number;
+  threads_observed: number;
+  digest: string;
+  sim_ms: number;
+  stock: number;
+  ack: number;
+};
+let rustFrame: RustFrame | null = null;
+let previousRust: RustFrame | null = null;
+let rustReceived = 0;
+let pollBusy = false;
+let commandSequence = Date.now();
+if (useRust) {
+  setInterval(async () => {
+    if (pollBusy) return;
+    pollBusy = true;
+    try {
+      const frame = (await (
+        await fetch("http://127.0.0.1:4189/snapshot")
+      ).json()) as RustFrame;
+      if (frame.tick !== rustFrame?.tick) {
+        previousRust = rustFrame;
+        rustFrame = frame;
+        rustReceived = performance.now();
+      }
+    } finally {
+      pollBusy = false;
+    }
+  }, 33);
+  const actions = document.createElement("div");
+  actions.className = "panel";
+  actions.style.cssText =
+    "position:fixed;left:28px;bottom:140px;padding:8px;z-index:9";
+  for (const [name, kind] of [
+    ["Move group", "move"],
+    ["Resume work", "work"],
+    ["Pause", "pause"],
+  ]) {
+    const button = document.createElement("button");
+    button.textContent = name!;
+    button.onclick = () => {
+      void fetch("http://127.0.0.1:4189/command", {
+        method: "POST",
+        body: JSON.stringify({
+          kind,
+          seq: ++commandSequence,
+          x: -10000,
+          z: 12000,
+        }),
+      });
+    };
+    actions.append(button);
+  }
+  document.body.append(actions);
+}
 const walkers: Mesh[] = [];
-for (let i = 0; i < 32; i++) {
+for (let i = 0; i < (useRust ? 500 : 32); i++) {
   const pop = new Mesh(
     new CapsuleGeometry(0.19, 0.42, 3, 6),
     new MeshStandardMaterial({
@@ -245,8 +311,21 @@ for (let i = 0; i < 32; i++) {
     }),
   );
   pop.castShadow = true;
-  actors.add(pop);
+  if (!useRust) actors.add(pop);
   walkers.push(pop);
+}
+let popBatch: InstancedMesh | null = null;
+if (useRust) {
+  popBatch = new InstancedMesh(
+    walkers[0]!.geometry,
+    new MeshStandardMaterial({ color: 0xffffff, roughness: 0.85 }),
+    walkers.length,
+  );
+  popBatch.castShadow = true;
+  walkers.forEach((_, i) =>
+    popBatch!.setColorAt(i, new Color(i % 3 ? "#3f6f9d" : "#a85d41")),
+  );
+  actors.add(popBatch);
 }
 // Wharf gives a hard man-made silhouette against the soft organic shore.
 for (let i = 0; i < 22; i++) {
@@ -267,12 +346,12 @@ function showState() {
   document.querySelector("#label")!.innerHTML =
     `<b>${v.key} · ${v.name}</b><span>${v.description}</span>`;
   document.querySelector("#stats")!.innerHTML =
-    `RENDERER &nbsp; ${backend}<br>SCENE &nbsp; fixed coastal settlement<br>CAMERA &nbsp; ${camera instanceof OrthographicCamera ? "orthographic" : "perspective"}<br>ZOOM &nbsp; ${camera instanceof OrthographicCamera ? camera.zoom.toFixed(2) + "×" : Math.round(camera.position.distanceTo(controls.target)) + " units"}<br>POPS &nbsp; 32 scale stand-ins<br>LAND &nbsp; continuous heightfield`;
+    `RENDERER &nbsp; ${backend}<br>SCENE &nbsp; fixed coastal settlement<br>CAMERA &nbsp; ${camera instanceof OrthographicCamera ? "orthographic" : "perspective"}<br>ZOOM &nbsp; ${camera instanceof OrthographicCamera ? camera.zoom.toFixed(2) + "×" : Math.round(camera.position.distanceTo(controls.target)) + " units"}<br>POPS &nbsp; ${useRust ? 500 : 32} scale stand-ins<br>LAND &nbsp; continuous heightfield${rustFrame ? `<br>RUST &nbsp; tick ${rustFrame.tick} · ${rustFrame.workers} workers<br>Threads observed &nbsp; ${rustFrame.threads_observed}<br>sim &nbsp; ${rustFrame.sim_ms.toFixed(3)} ms · ack ${rustFrame.ack}<br>stock &nbsp; ${rustFrame.stock}<br>digest &nbsp; ${rustFrame.digest}` : ""}`;
 }
 function choose(index: number) {
   active = (index + variants.length) % variants.length;
   const v = variants[active]!;
-  const aspect = innerWidth / innerHeight;
+  const aspect = renderWidth / renderHeight;
   controls?.dispose();
   camera =
     active === 0
@@ -317,7 +396,8 @@ window.addEventListener("keydown", (e) => {
   if (e.key.toLowerCase() === "r") choose(active);
 });
 window.addEventListener("resize", () => {
-  renderer.setSize(innerWidth, innerHeight);
+  if (benchmark) return;
+  renderer.setSize(renderWidth, renderHeight);
   if (camera instanceof PerspectiveCamera)
     camera.aspect = innerWidth / innerHeight;
   else {
@@ -367,15 +447,74 @@ async function boot() {
   document.querySelector("#status")!.remove();
   const start = performance.now();
   let frames = 0;
+  let lastFrame = performance.now();
+  const intervals: number[] = [];
+  const metrics = document.createElement("output");
+  metrics.id = "hybrid-metrics";
+  metrics.style.cssText =
+    "position:fixed;bottom:0;left:0;background:#142225;color:white;font:10px monospace;z-index:10";
+  if (benchmark) document.body.append(metrics);
+
   renderer.setAnimationLoop(() => {
-    const elapsed = (performance.now() - start) / 1000;
+    const now = performance.now();
+    const elapsed = (now - start) / 1000;
+    if (benchmark && elapsed > 3 && intervals.length < 600)
+      intervals.push(now - lastFrame);
+    lastFrame = now;
+    if (benchmark && intervals.length === 600 && metrics.textContent === "") {
+      intervals.sort((a, b) => a - b);
+      metrics.textContent = JSON.stringify({
+        engine: "three.js WebGPU",
+        view: variants[active]!.key,
+        p50_frame_ms: intervals[300],
+        p95_frame_ms: intervals[570],
+        frames: 600,
+        pops: walkers.length,
+        tick: rustFrame?.tick,
+        digest: rustFrame?.digest,
+        width: renderWidth,
+        height: renderHeight,
+        dpr: 1,
+      });
+      const capture = document.createElement("a");
+      capture.textContent = "Download canvas screenshot";
+      capture.id = "download-frame";
+      capture.download = "three-" + variants[active]!.key + ".png";
+      capture.href = renderer.domElement.toDataURL("image/png");
+      capture.style.cssText =
+        "position:fixed;right:20px;bottom:120px;background:#142225;color:white;z-index:20;padding:12px";
+      document.body.append(capture);
+    }
+
     walkers.forEach((pop, i) => {
-      const x = -8 + ((i * 2.4 + elapsed * 0.35) % 27);
-      const z = Math.sin(i * 2.1) * 1.3;
+      let x = -8 + ((i * 2.4 + elapsed * 0.35) % 27),
+        z = Math.sin(i * 2.1) * 1.3;
+      const p = rustFrame?.pops[i];
+      const old = previousRust?.pops[i];
+      if (p) {
+        const alpha = Math.min(1, (performance.now() - rustReceived) / 33);
+        x = (old ? old.x + (p.x - old.x) * alpha : p.x) / 1000;
+        z = (old ? old.z + (p.z - old.z) * alpha : p.z) / 1000;
+      }
       pop.position.set(x, height(x, z) + 0.5, z);
+      if (popBatch) {
+        pop.updateMatrix();
+        popBatch.setMatrixAt(i, pop.matrix);
+      }
     });
+    if (popBatch) popBatch.instanceMatrix.needsUpdate = true;
     controls.update();
     renderer.render(scene, camera);
+    window.dispatchEvent(
+      new CustomEvent("hybrid-frame", {
+        detail: {
+          tick: rustFrame?.tick,
+          pops: walkers.length,
+          backend,
+          variant: variants[active]!.key,
+        },
+      }),
+    );
     if (++frames % 30 === 0) showState();
   });
 }

@@ -1,0 +1,8 @@
+{
+  "tcp_move_ack": true,
+  "tcp_work_ack": true,
+  "paused_tick_stable": true,
+  "tick": 12636,
+  "pops": 500,
+  "digest": "68c9dc948474e127"
+}

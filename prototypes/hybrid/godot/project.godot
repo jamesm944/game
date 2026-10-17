@@ -1,0 +1,14 @@
+config_version=5
+[application]
+config/name="Ageofwind — Hybrid prototype (Godot + Rust)"
+run/main_scene="res://main.tscn"
+[display]
+window/stretch/mode="viewport"
+window/size/viewport_width=1600
+window/size/viewport_height=1000
+window/size/window_width_override=1200
+window/size/window_height_override=750
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.55,0.68,0.73,1)

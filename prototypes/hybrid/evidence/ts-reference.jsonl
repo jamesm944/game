@@ -1,0 +1,3 @@
+{"engine":"TypeScript reference","pops":500,"ticks":360,"digest":"1844f38335ac9b58","p50_ms":0.02266700000001265,"p95_ms":0.1273329999999646,"workload":"equivalent prototype integer movement+needs+deliveries, not full RTS"}
+{"engine":"TypeScript reference","pops":2000,"ticks":360,"digest":"11e6c4c02a90c7c2","p50_ms":0.0637079999999628,"p95_ms":0.2662920000000213,"workload":"equivalent prototype integer movement+needs+deliveries, not full RTS"}
+{"engine":"TypeScript reference","pops":10000,"ticks":360,"digest":"6190dcfa8c8424b3","p50_ms":0.40800000000001546,"p95_ms":2.7403339999999616,"workload":"equivalent prototype integer movement+needs+deliveries, not full RTS"}
