@@ -195,6 +195,27 @@ describe("deterministic given-name generator", () => {
       list[NAME_LIST_SIZE - 1],
     );
   });
+
+  it("keeps naming Pops past NAME_LIST_SIZE with unique, replayable names", () => {
+    const count = NAME_LIST_SIZE * 2 + 50;
+    const build = (): readonly string[] => {
+      const { world, comps } = grassWorld(20260824);
+      return seedPopulation(world, comps, count).map((p) => p.name);
+    };
+    const first = build();
+    expect(first).toHaveLength(count);
+    // Every Pop of the world has a distinct display name...
+    expect(new Set(first).size).toBe(count);
+    // ...the first NAME_LIST_SIZE keep their plain list names...
+    expect(
+      first.slice(0, NAME_LIST_SIZE).every((n) => /^[A-Z][a-z]+$/.test(n)),
+    ).toBe(true);
+    // ...overflow carries a roman generation suffix...
+    expect(first[NAME_LIST_SIZE]).toMatch(/^[A-Z][a-z]+ II$/);
+    expect(first[NAME_LIST_SIZE * 2]).toMatch(/^[A-Z][a-z]+ III$/);
+    // ...and a second independent build reproduces every name.
+    expect(build()).toEqual(first);
+  });
 });
 
 // ---- World wiring -------------------------------------------------------------------

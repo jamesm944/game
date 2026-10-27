@@ -188,9 +188,54 @@ export function nameListFor(seed: number): readonly string[] {
   return list;
 }
 
-/** Given name behind one Identity row's nameIdx. */
+/** Roman numeral for a generation ≥ 2 (falls back to digits past 3999). */
+function romanGeneration(n: number): string {
+  if (n >= 4000) return String(n);
+  const table: readonly (readonly [number, string])[] = [
+    [1000, "M"],
+    [900, "CM"],
+    [500, "D"],
+    [400, "CD"],
+    [100, "C"],
+    [90, "XC"],
+    [50, "L"],
+    [40, "XL"],
+    [10, "X"],
+    [9, "IX"],
+    [5, "V"],
+    [4, "IV"],
+    [1, "I"],
+  ];
+  let rest = n;
+  let out = "";
+  for (const [value, glyph] of table) {
+    while (rest >= value) {
+      out += glyph;
+      rest -= value;
+    }
+  }
+  return out;
+}
+
+/**
+ * Given name behind one Identity row's nameIdx. Indexes inside the
+ * seed-derived list resolve to that exact entry (unchanged, so existing
+ * digests and fixtures hold). Indexes at or past the list length are
+ * overflow allocations (worlds with more than NAME_LIST_SIZE named Pops
+ * ever spawned): they reuse a list entry with a roman generation suffix
+ * ("Aldric II"), so every index still names a distinct Pop.
+ */
 export function givenNameOf(world: World, nameIdx: number): string {
   const list = nameListFor(world.seed);
+  if (nameIdx >= list.length) {
+    const base = list[nameIdx % list.length];
+    if (base === undefined) {
+      throw new Error(
+        `nameIdx ${String(nameIdx)} out of range for seed ${String(world.seed)}`,
+      );
+    }
+    return `${base} ${romanGeneration(Math.floor(nameIdx / list.length) + 1)}`;
+  }
   const name = list[nameIdx];
   if (name === undefined) {
     throw new Error(
@@ -231,9 +276,11 @@ function allocateNameIndex(world: World, eid: number): number {
       return idx;
     }
   }
-  throw new Error(
-    `given-name list exhausted for world seed ${String(world.seed)}`,
-  );
+  // List full: overflow indices continue sequentially past the list
+  // (deterministic under replay: spawn order fixes used.size).
+  const overflow = used.size;
+  used.add(overflow);
+  return overflow;
 }
 
 // ---- Trait rolls ---------------------------------------------------------------

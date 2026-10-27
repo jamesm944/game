@@ -39,7 +39,8 @@ Mean cost per Pop by top system (ms per tick):
 4. **Hard population ceilings exist in the current code, below the 5k target:**
    - `NAME_LIST_SIZE = 2048` in [`pop.ts`](../../src/sim/components/pop.ts): a world throws `given-name list exhausted` once 2,048 named Pops have ever existed. Dead names stay retired, so births plus deaths exhaust it even faster.
    - The syllable generator cannot produce more than about 2,772 unique names for this seed (`given-name syllable space exhausted at 2772/40000`). Raising the constant alone does not fix it.
-   - The probe's 3,000 and 4,900 runs used a **temporary, reverted** name-wrap patch to measure past those ceilings. Any 5k–20k plan needs a name scheme that allows repeats, or given name plus family or epithet.
+   - The probe's 3,000 and 4,900 runs used a **temporary** name-wrap patch to measure past those ceilings.
+   - **Fixed afterwards:** `allocateNameIndex` now continues past the list with overflow indices, and `givenNameOf` renders them as a list name plus a roman generation ("Aldric II"). Indices inside the list resolve exactly as before, so no digest or fixture changed. Regression test in `tests/pop.test.ts`; the full `tests/` suite (1,204 tests, perf gates excluded) passes.
 5. **Mirror snapshot copy is not a bottleneck.** It is 1.4 ms at 4,905 Pops in this probe. This figure comes from the best of 5 copies, and the probe counted Pops, not rendered instances.
 
 ### Caveats
@@ -92,4 +93,4 @@ Each workload runs at T0/T1/T2/T3 where feasible, under worker counts **1, 2, 4 
 
 - The data supports a parallel or native sim for the 5,000-Pop target. The TS sim has already lost its p95 budget by 2,000 Pops, even allowing for load.
 - Parallelising only movement would leave the superlinear PopBrain, which must be partitioned or tiered. A faster language alone would not fix an n^1.85 cost.
-- Fix the name-pool ceiling before any scale work, in whichever language.
+- The name-pool ceiling is fixed (see finding 4), so scale work is unblocked.
