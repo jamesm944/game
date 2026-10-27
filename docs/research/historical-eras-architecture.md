@@ -1,20 +1,9 @@
-# Historical Epochs & Eras Progression Architecture
+> [!IMPORTANT]
+> **Superseded by ADR-0007 and Issue #163:**
+> The initial 6-epoch sketch below has been officially expanded into the **8 Master Epochs × 3 Sub-Ages (24 discrete sequential ranks)** system.
+> For the authoritative content, unit, building, and donor integration matrix, see [`docs/research/era-ranks-content-and-donor-matrix.md`](./era-ranks-content-and-donor-matrix.md) and [`docs/adr/0007-historical-epochs-and-eras-progression.md`](../adr/0007-historical-epochs-and-eras-progression.md).
 
-Comprehensive technical and gameplay design for expanding the 4-tier AoE2 age system into a multi-epoch historical saga spanning Antiquity to the Atomic Age.
+## Historical Evolution
 
-## 1. The 6 Historical Epochs
+The early 6-epoch draft bridged the transition between the legacy 4-tier AoE2 model and the full 24-tier human civilization simulation ladder. The final 8-epoch model restored the Ancient/Bronze Age (Epoch 1, Ranks 1–3) and added the modern Information & Digital Age (Epoch 8, Ranks 22–24).
 
-| Epoch | Key Technologies & Concepts | Unit Lines | Architectural & Visual Kit |
-| --- | --- | --- | --- |
-| **1. Classical Antiquity** | Phalanx, Triremes, Philosophy, Masonry, Coinage | Hoplite, Peltast, Chariot, Trireme | White marble columns, amphitheatres, aqueducts |
-| **2. Feudal Middle Ages** | Castles, Heavy Stirrups, Manorialism, Watermills | Man-at-Arms, Knight, Crossbow, Longship | Timber & thatch, stone keeps, fortified gates |
-| **3. Colonial Age of Sail** | Compass, Caravel, Matchlocks, Mercantilism | Muskeeter, Pikeman, Galleon, Sloop | Half-timbered merchant houses, stone bastions, brick docks |
-| **4. Industrial Revolution** | Steam Engine, Metallurgy, Railways, Factories | Rifleman, Gatling Gun, Ironclad, Steam Train | Brick chimneys, iron bridges, cobbled streets, gas lamps |
-| **5. World Wars Era** | Internal Combustion, Trench Warfare, Radio, Armor | Trench Infantry, Tank, Biplane, Dreadnought | Concrete bunkers, barbed wire, asphalt, factory complexes |
-| **6. Cold War & Atomic Era** | Radar, Jet Propulsion, Nuclear Fission, Computers | Mechanized Infantry, Main Battle Tank, Jet, Submarine | Concrete brutalism, radar domes, missile silos, highways |
-
-## 2. Technical Sim Migration (from `src/sim/systems/age.ts`)
-
-- Extend `AgeState` rank from `1..4` to `1..6`.
-- Add Era-specific transition requirements beyond simple resource escrow (e.g., Industrial requires Coal & Iron infrastructure standing; Atomic requires Uranium / Research Reactor).
-- Dynamic definition filtering (`activeTrainableUnitsFor`, `availableBuildingsForAge`) extended cleanly across all 6 epochs.
