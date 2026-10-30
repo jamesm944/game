@@ -26,8 +26,9 @@ public class HybridPrototype:MonoBehaviour {
   var args=Environment.GetCommandLineArgs();int initial=0;
   foreach(var a in args){if(a.StartsWith("--view="))initial=int.Parse(a.Substring(7));if(a.StartsWith("--capture="))capturePath=a.Substring(10);}
   cameraRig=new GameObject("Camera").AddComponent<Camera>();cameraRig.nearClipPlane=.1f;cameraRig.farClipPlane=700;cameraRig.backgroundColor=new Color(.66f,.75f,.77f);cameraRig.clearFlags=CameraClearFlags.SolidColor;
-  renderTarget=new RenderTexture(1600,1000,24,RenderTextureFormat.ARGB32,RenderTextureReadWrite.sRGB);renderTarget.Create();cameraRig.targetTexture=renderTarget;
-  RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Flat;RenderSettings.ambientLight=new Color(.55f,.65f,.68f);
+  renderTarget=new RenderTexture(1600,1000,24,RenderTextureFormat.ARGB32,RenderTextureReadWrite.sRGB);renderTarget.antiAliasing=4;renderTarget.Create();cameraRig.targetTexture=renderTarget;
+  RenderSettings.ambientMode=UnityEngine.Rendering.AmbientMode.Flat;RenderSettings.ambientLight=new Color(.62f,.70f,.72f);
+  RenderSettings.fog=true;RenderSettings.fogMode=FogMode.Linear;RenderSettings.fogColor=new Color(.66f,.75f,.77f);RenderSettings.fogStartDistance=90;RenderSettings.fogEndDistance=350;
   var sun=new GameObject("Sun").AddComponent<Light>();sun.type=LightType.Directional;sun.intensity=1.5f;sun.color=new Color(1,.94f,.82f);sun.transform.rotation=Quaternion.LookRotation(new Vector3(25,-65,35));sun.shadows=LightShadows.Soft;
   Terrain();Water();SetView(initial);
   var capsule=GameObject.CreatePrimitive(PrimitiveType.Capsule);popMesh=Instantiate(capsule.GetComponent<MeshFilter>().sharedMesh);Destroy(capsule);
@@ -44,7 +45,7 @@ public class HybridPrototype:MonoBehaviour {
   int cursor=0;for(int j=0;j<res;j++)for(int i=0;i<res;i++){int a=j*(res+1)+i,b=a+res+1;foreach(int v in new[]{a,a+1,b,a+1,b+1,b})triangles[cursor++]=v;}
   var mesh=new Mesh();mesh.indexFormat=UnityEngine.Rendering.IndexFormat.UInt32;mesh.vertices=vertices;mesh.triangles=triangles;mesh.colors=colors;mesh.RecalculateNormals();
   var go=new GameObject("Continuous terrain");go.AddComponent<MeshFilter>().sharedMesh=mesh;var material=new Material(Shader.Find("Prototype/Terrain"));
-  var tex=new Texture2D(2,2);tex.LoadImage(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath,"Imported/grass.jpg")));tex.wrapMode=TextureWrapMode.Repeat;material.SetTexture("_Grass",tex);go.AddComponent<MeshRenderer>().sharedMaterial=material;
+  var tex=new Texture2D(2,2);tex.LoadImage(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath,"Imported/grass.jpg")));tex.wrapMode=TextureWrapMode.Repeat;tex.anisoLevel=8;material.SetTexture("_Grass",tex);go.AddComponent<MeshRenderer>().sharedMaterial=material;
  }
  void Water(){var go=GameObject.CreatePrimitive(PrimitiveType.Plane);go.name="Water";go.transform.localScale=new Vector3(32,1,32);go.transform.position=new Vector3(0,-.02f,0);go.GetComponent<MeshRenderer>().material=new Material(Shader.Find("Prototype/Water"));Destroy(go.GetComponent<Collider>());}
  async Task<GameObject> Model(string name,float width){
@@ -82,6 +83,10 @@ public class HybridPrototype:MonoBehaviour {
   if(Input.GetMouseButton(1)){var offset=(-cameraRig.transform.right*Input.GetAxis("Mouse X")-cameraRig.transform.up*Input.GetAxis("Mouse Y"))*.3f;cameraRig.transform.position+=offset;target+=offset;}
   if(Input.GetMouseButton(0)&&Input.mousePosition.y<Screen.height-240){cameraRig.transform.RotateAround(target,Vector3.up,Input.GetAxis("Mouse X")*2);}
   if(latest!=null&&popMesh&&popMaterial){
+   // NOTE: RenderMeshInstanced drew nothing in the player build (runtime-created Lit
+   // material: instancing shader variant stripped). Pooled MeshRenderers + SRP Batcher
+   // measured the same p95 at 500 Pops; keep the proven path.
+   popMaterial.enableInstancing=false;redMaterial.enableInstancing=false;
    if(popObjects.Count!=latest.pops.Length){foreach(var old in popObjects)Destroy(old.gameObject);popObjects.Clear();for(int i=0;i<latest.pops.Length;i++){var go=new GameObject("Pop "+i);go.AddComponent<MeshFilter>().sharedMesh=popMesh;go.AddComponent<MeshRenderer>().sharedMaterial=i%3==0?redMaterial:popMaterial;go.transform.localScale=new Vector3(.38f,.4f,.38f);popObjects.Add(go.transform);}}
    float alpha=Mathf.Clamp01((Time.unscaledTime-receivedAt)/.033f);
    for(int i=0;i<latest.pops.Length;i++){var p=latest.pops[i];float x=p.x/1000f,z=p.z/1000f;if(previous!=null&&previous.pops.Length==latest.pops.Length){x=Mathf.Lerp(previous.pops[i].x/1000f,x,alpha);z=Mathf.Lerp(previous.pops[i].z/1000f,z,alpha);}
