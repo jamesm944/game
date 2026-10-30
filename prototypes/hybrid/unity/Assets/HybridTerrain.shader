@@ -16,13 +16,13 @@ Shader "Prototype/Terrain" {
  half4 frag(Varyings i):SV_Target {
   float d=i.world.x+18-sin(-i.world.z*.1)*4-sin(-i.world.z*.27)*1.4;
   float3 grass=SAMPLE_TEXTURE2D(_Grass,sampler_Grass,i.world.xz*.28).rgb*i.color;
-  grass=lerp(grass,float3(.34,.52,.18),.35);
-  float3 albedo=lerp(float3(.76,.63,.40),grass,smoothstep(1,5,d));
+  grass=lerp(grass,float3(.26,.40,.14),.18);
+  float3 albedo=lerp(float3(.64,.51,.31),grass,smoothstep(1,5,d));
   Light light=GetMainLight(TransformWorldToShadowCoord(i.world));
   float ndl=saturate(dot(normalize(i.normal),light.direction));
-  float3 col=albedo*(SampleSH(normalize(i.normal))+.22+light.color*ndl*light.shadowAttenuation);
+  float3 col=albedo*(SampleSH(normalize(i.normal))+.08+light.color*ndl*light.shadowAttenuation);
   float fog=saturate((distance(_WorldSpaceCameraPos,i.world)-90.0)/260.0);
-  return half4(lerp(col,float3(.66,.75,.77),fog*fog*.85),1);
+  return half4(lerp(col,float3(.55,.64,.67),fog*fog*.85),1);
  }
  ENDHLSL
  }}
