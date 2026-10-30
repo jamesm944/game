@@ -1,0 +1,77 @@
+{
+  "schema": "wayfinder-168-replay-equivalence-v1",
+  "generatedAt": "2026-10-25T20:21:54.038Z",
+  "comparison": "logicalBenchmarkString plus explicit finalFullStateHash; Chrome A* versus preserved Node A* only",
+  "referencePath": "/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/results/mixed-destinations-120-p1000-sync.json",
+  "referenceFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+  "sampleCount": 5,
+  "allLogicalEqual": true,
+  "allFinalFullStateHashesEqual": true,
+  "comparisons": [
+    {
+      "sample": 1,
+      "file": "chrome-mixed-p1000-t3600-sample-01.json",
+      "candidate": "astar",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4370,
+      "browserBlockedFrames": 770,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "sample": 2,
+      "file": "chrome-mixed-p1000-t3600-sample-02.json",
+      "candidate": "astar",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4467,
+      "browserBlockedFrames": 867,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "sample": 3,
+      "file": "chrome-mixed-p1000-t3600-sample-03.json",
+      "candidate": "astar",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4343,
+      "browserBlockedFrames": 743,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "sample": 4,
+      "file": "chrome-mixed-p1000-t3600-sample-04.json",
+      "candidate": "astar",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4347,
+      "browserBlockedFrames": 747,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "sample": 5,
+      "file": "chrome-mixed-p1000-t3600-sample-05.json",
+      "candidate": "astar",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4306,
+      "browserBlockedFrames": 706,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    }
+  ]
+}

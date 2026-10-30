@@ -1,0 +1,221 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - main:
+      - generic [ref=f6e3]:
+        - generic [ref=f6e4]:
+          - generic [ref=f6e9]:
+            - generic [ref=f6e10]: House of Aldric
+            - generic [ref=f6e11]: Britons · By Iron and Oath
+          - generic [ref=f6e12]:
+            - generic [ref=f6e13]:
+              - generic [ref=f6e18]: Food
+              - generic [ref=f6e19]: 1,240
+              - generic [ref=f6e20]: "+18"
+            - generic [ref=f6e21]:
+              - generic [ref=f6e24]: Wood
+              - generic [ref=f6e25]: "860"
+              - generic [ref=f6e26]: "+12"
+            - generic [ref=f6e27]:
+              - generic [ref=f6e32]: Gold
+              - generic [ref=f6e33]: "415"
+              - generic [ref=f6e34]: "+6"
+            - generic [ref=f6e35]:
+              - generic [ref=f6e39]: Stone
+              - generic [ref=f6e40]: "210"
+              - generic [ref=f6e41]: "+2"
+            - generic [ref=f6e42]:
+              - generic [ref=f6e45]: Iron
+              - generic [ref=f6e46]: "96"
+              - generic [ref=f6e47]: "+1"
+            - generic [ref=f6e48]:
+              - generic [ref=f6e52]: Coal
+              - generic [ref=f6e53]: "40"
+            - generic [ref=f6e54]:
+              - generic [ref=f6e58]: Clay
+              - generic [ref=f6e59]: "180"
+              - generic [ref=f6e60]: "+3"
+            - generic [ref=f6e61]:
+              - generic [ref=f6e66]: Pop
+              - generic [ref=f6e67]: 47 / 60
+          - generic [ref=f6e68]:
+            - generic [ref=f6e69]: "7"
+            - generic [ref=f6e71]:
+              - generic [ref=f6e72]: Epoch III · High Middle Ages
+              - generic [ref=f6e73]: Rank 7 of 24 · Epoch IV · Late Medieval
+          - generic [ref=f6e74]:
+            - button "3" [ref=f6e75] [cursor=pointer]
+            - button "4" [ref=f6e80] [cursor=pointer]
+            - button "Pause / settings" [ref=f6e85] [cursor=pointer]
+            - button "Settings" [ref=f6e89] [cursor=pointer]
+        - generic [ref=f6e93]:
+          - generic [ref=f6e94]:
+            - generic [ref=f6e95]:
+              - heading "Royal Objectives" [level=3] [ref=f6e96]
+              - generic [ref=f6e97]: 2 active
+            - generic [ref=f6e98]:
+              - generic [ref=f6e99]:
+                - generic [ref=f6e100]: ○
+                - generic [ref=f6e101]:
+                  - generic [ref=f6e102]: Hold the river crossing
+                  - generic [ref=f6e103]: Keep 2 keeps standing for 5 minutes
+              - generic [ref=f6e104]:
+                - generic [ref=f6e105]: ✓
+                - generic [ref=f6e106]:
+                  - generic [ref=f6e107]: Raise a market
+                  - generic [ref=f6e108]: Build a Market in the lower ward
+              - generic [ref=f6e109]:
+                - generic [ref=f6e110]: ○
+                - generic [ref=f6e111]:
+                  - generic [ref=f6e112]: Collect 3 relics
+                  - generic [ref=f6e113]: 1 of 3 recovered
+          - generic [ref=f6e114]:
+            - generic [ref=f6e115]:
+              - heading "Victory Paths" [level=3] [ref=f6e116]
+              - generic [ref=f6e117]: Conquest lead
+            - generic [ref=f6e118]:
+              - generic [ref=f6e119]:
+                - generic [ref=f6e120]: Conquest
+                - generic [ref=f6e123]: 2 / 3 keeps
+              - generic [ref=f6e124]:
+                - generic [ref=f6e125]: Knowledge
+                - generic [ref=f6e128]: 18 / 40
+              - generic [ref=f6e129]:
+                - generic [ref=f6e130]: Culture
+                - generic [ref=f6e133]: 12 / 40
+              - generic [ref=f6e134]:
+                - generic [ref=f6e135]: Wonder
+                - generic [ref=f6e137]: 0 / 3
+              - generic [ref=f6e138]:
+                - generic [ref=f6e139]: Relic
+                - generic [ref=f6e142]: 1 / 3
+              - generic [ref=f6e143]:
+                - generic [ref=f6e144]: Economic
+                - generic [ref=f6e147]: 22 / 40
+          - generic [ref=f6e148]:
+            - generic [ref=f6e154]:
+              - generic [ref=f6e155]: Houses needed
+              - generic [ref=f6e156]: Population at cap — build 2 houses.
+            - generic [ref=f6e161]:
+              - generic [ref=f6e162]: Research complete
+              - generic [ref=f6e163]: Chain Mail is now available.
+        - generic [ref=f6e164]:
+          - generic [ref=f6e165]:
+            - generic [ref=f6e166]: River Ward
+            - generic [ref=f6e177]:
+              - generic [ref=f6e178]: River Ward
+              - generic [ref=f6e179]: 192² · Fog on
+          - generic [ref=f6e180]:
+            - generic [ref=f6e181]:
+              - generic [ref=f6e187]:
+                - generic [ref=f6e188]: Town Center
+                - generic [ref=f6e189]: Level 3 · 12 / 15 population
+              - generic [ref=f6e190]:
+                - generic [ref=f6e191]:
+                  - text: Villager
+                  - generic [ref=f6e192]: 0:12
+                - generic [ref=f6e193]:
+                  - text: Villager
+                  - generic [ref=f6e194]: 0:24
+                - generic [ref=f6e195]:
+                  - text: Chain Mail
+                  - generic [ref=f6e196]: 1:08
+            - generic [ref=f6e197]:
+              - button "Build B" [ref=f6e198] [cursor=pointer]:
+                - generic [ref=f6e202]: Build
+                - generic [ref=f6e203]: B
+              - button "Train 50 food T" [ref=f6e204] [cursor=pointer]:
+                - generic [ref=f6e208]: Train
+                - generic [ref=f6e209]: 50 food
+                - generic [ref=f6e210]: T
+              - button "Research 100 gold R" [ref=f6e211] [cursor=pointer]:
+                - generic [ref=f6e215]: Research
+                - generic [ref=f6e216]: 100 gold
+                - generic [ref=f6e217]: R
+              - button "Advance 800 food A" [ref=f6e218] [cursor=pointer]:
+                - generic [ref=f6e222]: Advance
+                - generic [ref=f6e223]: 800 food
+                - generic [ref=f6e224]: A
+              - button "House 30 wood H" [ref=f6e225] [cursor=pointer]:
+                - generic [ref=f6e228]: House
+                - generic [ref=f6e229]: 30 wood
+                - generic [ref=f6e230]: H
+              - button "Farm 60 wood F" [ref=f6e231] [cursor=pointer]:
+                - generic [ref=f6e234]: Farm
+                - generic [ref=f6e235]: 60 wood
+                - generic [ref=f6e236]: F
+              - button "Market 175 wood M" [ref=f6e237] [cursor=pointer]:
+                - generic [ref=f6e240]: Market
+                - generic [ref=f6e241]: 175 wood
+                - generic [ref=f6e242]: M
+              - button "Wall 2 wood W" [ref=f6e243] [cursor=pointer]:
+                - generic [ref=f6e247]: Wall
+                - generic [ref=f6e248]: 2 wood
+                - generic [ref=f6e249]: W
+              - button "Tower 100 stone O" [ref=f6e250] [cursor=pointer]:
+                - generic [ref=f6e254]: Tower
+                - generic [ref=f6e255]: 100 stone
+                - generic [ref=f6e256]: O
+              - button "Castle 650 stone C" [ref=f6e257] [cursor=pointer]:
+                - generic [ref=f6e261]: Castle
+                - generic [ref=f6e262]: 650 stone
+                - generic [ref=f6e263]: C
+              - button "Repair — E" [ref=f6e264] [cursor=pointer]:
+                - generic [ref=f6e267]: Repair
+                - generic [ref=f6e268]: —
+                - generic [ref=f6e269]: E
+              - button "Rally — Y" [ref=f6e270] [cursor=pointer]:
+                - generic [ref=f6e273]: Rally
+                - generic [ref=f6e274]: —
+                - generic [ref=f6e275]: "Y"
+          - complementary [ref=f6e276]:
+            - generic [ref=f6e283]:
+              - generic [ref=f6e284]: Town Center
+              - generic [ref=f6e285]: Level 3 · 12 / 15 population
+              - generic [ref=f6e286]: Content
+            - generic [ref=f6e290]:
+              - generic [ref=f6e291]:
+                - generic [ref=f6e292]: HP
+                - generic [ref=f6e295]: "100"
+              - generic [ref=f6e296]:
+                - generic [ref=f6e297]: Mood
+                - generic [ref=f6e300]: "72"
+              - generic [ref=f6e301]:
+                - generic [ref=f6e302]: Health
+                - generic [ref=f6e305]: "94"
+              - generic [ref=f6e306]:
+                - generic [ref=f6e307]: Food
+                - generic [ref=f6e310]: "82"
+              - generic [ref=f6e311]:
+                - generic [ref=f6e312]: Rest
+                - generic [ref=f6e315]: "64"
+              - generic [ref=f6e316]:
+                - generic [ref=f6e317]: Social
+                - generic [ref=f6e320]: "71"
+            - generic [ref=f6e321]:
+              - generic [ref=f6e322]:
+                - generic [ref=f6e323]: Garrison
+                - generic [ref=f6e324]: 8 / 15
+              - generic [ref=f6e325]:
+                - generic [ref=f6e326]: Armor
+                - generic [ref=f6e327]: "6"
+              - generic [ref=f6e328]:
+                - generic [ref=f6e329]: Attack
+                - generic [ref=f6e330]: "8"
+              - generic [ref=f6e331]:
+                - generic [ref=f6e332]: Range
+                - generic [ref=f6e333]: —
+            - generic [ref=f6e334]: Training villagers · researching Chain Mail
+            - generic [ref=f6e338]: Tax 12% · Unrest 18%
+        - generic [ref=f6e342]:
+          - button "1" [ref=f6e343] [cursor=pointer]
+          - button "2" [ref=f6e344] [cursor=pointer]
+          - button "3" [ref=f6e345] [cursor=pointer]
+          - button "4" [ref=f6e346] [cursor=pointer]
+          - button "5" [ref=f6e347] [cursor=pointer]
+          - button "6" [ref=f6e348] [cursor=pointer]
+  - generic "Prototype variant switcher" [ref=f6e349]:
+    - generic [ref=f6e350]: Prototype
+    - button "Previous variant" [ref=f6e351] [cursor=pointer]: ‹
+    - generic [ref=f6e352]: A · Royal Command
+    - button "Next variant" [ref=f6e353] [cursor=pointer]: ›
+    - generic [ref=f6e354]: ← → · ?variant=A/B/C

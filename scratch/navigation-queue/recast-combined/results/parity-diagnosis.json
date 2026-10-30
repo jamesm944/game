@@ -1,0 +1,1411 @@
+{
+  "compared": 201,
+  "mismatches": [
+    {
+      "id": 5,
+      "revision": 6,
+      "start": [
+        47,
+        43
+      ],
+      "goal": [
+        80,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 41794,
+        "waypoints": [
+          47,
+          43,
+          55,
+          49,
+          59,
+          59,
+          80,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 42281,
+        "waypoints": [
+          47,
+          43,
+          56,
+          49,
+          59,
+          59,
+          80,
+          60
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "revision": 6,
+      "start": [
+        72,
+        43
+      ],
+      "goal": [
+        39,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 42463,
+        "waypoints": [
+          72,
+          43,
+          64,
+          49,
+          61,
+          59,
+          39,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43037,
+        "waypoints": [
+          72,
+          43,
+          63,
+          49,
+          61,
+          59,
+          39,
+          60
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "revision": 6,
+      "start": [
+        47,
+        43
+      ],
+      "goal": [
+        80,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 41794,
+        "waypoints": [
+          47,
+          43,
+          55,
+          49,
+          59,
+          59,
+          80,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 42281,
+        "waypoints": [
+          47,
+          43,
+          56,
+          49,
+          59,
+          59,
+          80,
+          60
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "revision": 6,
+      "start": [
+        72,
+        43
+      ],
+      "goal": [
+        39,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 42463,
+        "waypoints": [
+          72,
+          43,
+          64,
+          49,
+          61,
+          59,
+          39,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43037,
+        "waypoints": [
+          72,
+          43,
+          63,
+          49,
+          61,
+          59,
+          39,
+          60
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "revision": 6,
+      "start": [
+        42,
+        42
+      ],
+      "goal": [
+        79,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 45560,
+        "waypoints": [
+          42,
+          42,
+          55,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 46118,
+        "waypoints": [
+          42,
+          42,
+          56,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "revision": 6,
+      "start": [
+        42,
+        42
+      ],
+      "goal": [
+        79,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 45560,
+        "waypoints": [
+          42,
+          42,
+          55,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 46118,
+        "waypoints": [
+          42,
+          42,
+          56,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "revision": 6,
+      "start": [
+        77,
+        42
+      ],
+      "goal": [
+        38,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 48292,
+        "waypoints": [
+          77,
+          42,
+          64,
+          49,
+          61,
+          59,
+          38,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44775,
+        "waypoints": [
+          77,
+          42,
+          68,
+          52,
+          38,
+          61
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "revision": 6,
+      "start": [
+        77,
+        42
+      ],
+      "goal": [
+        38,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 48292,
+        "waypoints": [
+          77,
+          42,
+          64,
+          49,
+          61,
+          59,
+          38,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44775,
+        "waypoints": [
+          77,
+          42,
+          68,
+          52,
+          38,
+          61
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "revision": 6,
+      "start": [
+        47,
+        43
+      ],
+      "goal": [
+        82,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 43792,
+        "waypoints": [
+          47,
+          43,
+          55,
+          49,
+          59,
+          59,
+          82,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44279,
+        "waypoints": [
+          47,
+          43,
+          56,
+          49,
+          59,
+          59,
+          82,
+          60
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "revision": 6,
+      "start": [
+        47,
+        43
+      ],
+      "goal": [
+        82,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 43792,
+        "waypoints": [
+          47,
+          43,
+          55,
+          49,
+          59,
+          59,
+          82,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44279,
+        "waypoints": [
+          47,
+          43,
+          56,
+          49,
+          59,
+          59,
+          82,
+          60
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "revision": 6,
+      "start": [
+        72,
+        43
+      ],
+      "goal": [
+        41,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 40540,
+        "waypoints": [
+          72,
+          43,
+          64,
+          49,
+          61,
+          59,
+          41,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 41114,
+        "waypoints": [
+          72,
+          43,
+          63,
+          49,
+          61,
+          59,
+          41,
+          61
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "revision": 6,
+      "start": [
+        43,
+        41
+      ],
+      "goal": [
+        79,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 45218,
+        "waypoints": [
+          43,
+          41,
+          55,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 45730,
+        "waypoints": [
+          43,
+          41,
+          56,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "revision": 6,
+      "start": [
+        44,
+        43
+      ],
+      "goal": [
+        80,
+        59
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 44300,
+        "waypoints": [
+          44,
+          43,
+          55,
+          49,
+          59,
+          59,
+          80,
+          59
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44857,
+        "waypoints": [
+          44,
+          43,
+          56,
+          49,
+          59,
+          59,
+          80,
+          59
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "revision": 6,
+      "start": [
+        45,
+        43
+      ],
+      "goal": [
+        80,
+        59
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 43432,
+        "waypoints": [
+          45,
+          43,
+          55,
+          49,
+          59,
+          59,
+          80,
+          59
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43970,
+        "waypoints": [
+          45,
+          43,
+          56,
+          49,
+          59,
+          59,
+          80,
+          59
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "revision": 6,
+      "start": [
+        74,
+        43
+      ],
+      "goal": [
+        40,
+        62
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 43315,
+        "waypoints": [
+          74,
+          43,
+          64,
+          49,
+          61,
+          59,
+          40,
+          62
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43941,
+        "waypoints": [
+          74,
+          43,
+          63,
+          49,
+          61,
+          59,
+          40,
+          62
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "revision": 6,
+      "start": [
+        75,
+        41
+      ],
+      "goal": [
+        39,
+        62
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 46245,
+        "waypoints": [
+          75,
+          41,
+          64,
+          49,
+          61,
+          59,
+          39,
+          62
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 46824,
+        "waypoints": [
+          75,
+          41,
+          63,
+          49,
+          61,
+          59,
+          39,
+          62
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "revision": 6,
+      "start": [
+        76,
+        41
+      ],
+      "goal": [
+        38,
+        62
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 48057,
+        "waypoints": [
+          76,
+          41,
+          64,
+          49,
+          61,
+          59,
+          38,
+          62
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 45224,
+        "waypoints": [
+          76,
+          41,
+          68,
+          52,
+          38,
+          62
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "revision": 6,
+      "start": [
+        72,
+        43
+      ],
+      "goal": [
+        41,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 40540,
+        "waypoints": [
+          72,
+          43,
+          64,
+          49,
+          61,
+          59,
+          41,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 41114,
+        "waypoints": [
+          72,
+          43,
+          63,
+          49,
+          61,
+          59,
+          41,
+          61
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "revision": 6,
+      "start": [
+        42,
+        42
+      ],
+      "goal": [
+        79,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 45560,
+        "waypoints": [
+          42,
+          42,
+          55,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 46118,
+        "waypoints": [
+          42,
+          42,
+          56,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      }
+    },
+    {
+      "id": 52,
+      "revision": 6,
+      "start": [
+        47,
+        43
+      ],
+      "goal": [
+        82,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 43792,
+        "waypoints": [
+          47,
+          43,
+          55,
+          49,
+          59,
+          59,
+          82,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44279,
+        "waypoints": [
+          47,
+          43,
+          56,
+          49,
+          59,
+          59,
+          82,
+          60
+        ]
+      }
+    },
+    {
+      "id": 53,
+      "revision": 6,
+      "start": [
+        48,
+        44
+      ],
+      "goal": [
+        80,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 40396,
+        "waypoints": [
+          48,
+          44,
+          55,
+          49,
+          59,
+          59,
+          80,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 40898,
+        "waypoints": [
+          48,
+          44,
+          56,
+          49,
+          59,
+          59,
+          80,
+          60
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "revision": 6,
+      "start": [
+        71,
+        44
+      ],
+      "goal": [
+        39,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 41065,
+        "waypoints": [
+          71,
+          44,
+          64,
+          49,
+          61,
+          59,
+          39,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 41655,
+        "waypoints": [
+          71,
+          44,
+          63,
+          49,
+          61,
+          59,
+          39,
+          60
+        ]
+      }
+    },
+    {
+      "id": 55,
+      "revision": 6,
+      "start": [
+        73,
+        43
+      ],
+      "goal": [
+        41,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 41357,
+        "waypoints": [
+          73,
+          43,
+          64,
+          49,
+          61,
+          59,
+          41,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 41960,
+        "waypoints": [
+          73,
+          43,
+          63,
+          49,
+          61,
+          59,
+          41,
+          61
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "revision": 6,
+      "start": [
+        77,
+        42
+      ],
+      "goal": [
+        38,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 48292,
+        "waypoints": [
+          77,
+          42,
+          64,
+          49,
+          61,
+          59,
+          38,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44775,
+        "waypoints": [
+          77,
+          42,
+          68,
+          52,
+          38,
+          61
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "revision": 6,
+      "start": [
+        46,
+        42
+      ],
+      "goal": [
+        81,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 44195,
+        "waypoints": [
+          46,
+          42,
+          55,
+          49,
+          59,
+          59,
+          81,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44670,
+        "waypoints": [
+          46,
+          42,
+          56,
+          49,
+          59,
+          59,
+          81,
+          60
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "revision": 6,
+      "start": [
+        73,
+        42
+      ],
+      "goal": [
+        40,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 42937,
+        "waypoints": [
+          73,
+          42,
+          64,
+          49,
+          61,
+          59,
+          40,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43500,
+        "waypoints": [
+          73,
+          42,
+          63,
+          49,
+          61,
+          59,
+          40,
+          61
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "revision": 6,
+      "start": [
+        46,
+        42
+      ],
+      "goal": [
+        81,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 44195,
+        "waypoints": [
+          46,
+          42,
+          55,
+          49,
+          59,
+          59,
+          81,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 44670,
+        "waypoints": [
+          46,
+          42,
+          56,
+          49,
+          59,
+          59,
+          81,
+          60
+        ]
+      }
+    },
+    {
+      "id": 60,
+      "revision": 6,
+      "start": [
+        73,
+        42
+      ],
+      "goal": [
+        40,
+        61
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 42937,
+        "waypoints": [
+          73,
+          42,
+          64,
+          49,
+          61,
+          59,
+          40,
+          61
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43500,
+        "waypoints": [
+          73,
+          42,
+          63,
+          49,
+          61,
+          59,
+          40,
+          61
+        ]
+      }
+    },
+    {
+      "id": 61,
+      "revision": 6,
+      "start": [
+        77,
+        42
+      ],
+      "goal": [
+        37,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 49226,
+        "waypoints": [
+          77,
+          42,
+          64,
+          49,
+          61,
+          59,
+          37,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 45469,
+        "waypoints": [
+          77,
+          42,
+          68,
+          52,
+          37,
+          60
+        ]
+      }
+    },
+    {
+      "id": 62,
+      "revision": 6,
+      "start": [
+        77,
+        42
+      ],
+      "goal": [
+        37,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 49226,
+        "waypoints": [
+          77,
+          42,
+          64,
+          49,
+          61,
+          59,
+          37,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 45469,
+        "waypoints": [
+          77,
+          42,
+          68,
+          52,
+          37,
+          60
+        ]
+      }
+    },
+    {
+      "id": 63,
+      "revision": 6,
+      "start": [
+        71,
+        44
+      ],
+      "goal": [
+        41,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 39068,
+        "waypoints": [
+          71,
+          44,
+          64,
+          49,
+          61,
+          59,
+          41,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 39657,
+        "waypoints": [
+          71,
+          44,
+          63,
+          49,
+          61,
+          59,
+          41,
+          60
+        ]
+      }
+    },
+    {
+      "id": 67,
+      "revision": 6,
+      "start": [
+        45,
+        42
+      ],
+      "goal": [
+        79,
+        60
+      ],
+      "actual": {
+        "ok": true,
+        "cost": 43002,
+        "waypoints": [
+          45,
+          42,
+          55,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      },
+      "expected": {
+        "ok": true,
+        "cost": 43504,
+        "waypoints": [
+          45,
+          42,
+          56,
+          49,
+          59,
+          59,
+          79,
+          60
+        ]
+      }
+    }
+  ],
+  "incrementalMetrics": {
+    "integration": "detour-corridor-supercover-cs0.25-incremental-tilecache-revision-barriers",
+    "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+    "generationCellSize": 0.25,
+    "generationMaxSimplificationError": 0.25,
+    "recastNavigationVersion": "0.43.0",
+    "generationWalkableRadius": 0,
+    "revisionCacheEntries": 0,
+    "revisionCacheCapacity": 2,
+    "snapshotCacheBytes": 0,
+    "liveObstacles": 0,
+    "tileCacheObstacleMapSize": 0,
+    "visibleRevision": -1,
+    "incrementalBaseRevision": -1,
+    "incrementalBaseActive": false,
+    "maxObstacles": 512,
+    "isolatedCrowdAgentCapacity": 2000,
+    "crowdModel": "none-production-activity-steering-collision",
+    "mutationStrategy": "exact-blocked-rectangle-cover-add-remove-drain-ack-with-guarded-full-rebuild",
+    "exactEndpointTolerance": 0.05,
+    "mockInFlight": 0,
+    "revisionBuilds": 1,
+    "mutationRebuilds": 0,
+    "revisionCacheHits": 199,
+    "revisionCacheMisses": 2,
+    "revisionCacheEvictions": 0,
+    "peakRevisionCacheEntries": 1,
+    "revisionCacheCapacityFailures": 0,
+    "snapshotMismatches": 0,
+    "ephemeralSnapshotBuilds": 0,
+    "navmeshGenerationFailures": 0,
+    "totalRevisionBuildMs": 149.20212499999997,
+    "totalMutationRebuildMs": 0,
+    "maxRevisionBuildMs": 149.20212499999997,
+    "maxMutationRebuildMs": 0,
+    "lastRevisionBuildMs": 149.20212499999997,
+    "changedTilesObserved": 14416,
+    "mutationChangedTiles": 16,
+    "maxChangedTilesPerBuild": 14400,
+    "incrementalRevisions": 1,
+    "revisionBarriersCompleted": 2,
+    "revisionVisibilityChanges": 2,
+    "revisionVisibilityFailures": 0,
+    "lastAcknowledgedRevision": 6,
+    "totalIncrementalUpdateMs": 2.265374999999949,
+    "maxIncrementalUpdateMs": 2.291417000000024,
+    "navTilesTouchedRequested": 4,
+    "maxNavTilesTouchedPerRevision": 4,
+    "tileCacheUpdateCalls": 4,
+    "maxUpdateCallsPerRevision": 4,
+    "queueDrains": 1,
+    "obstacleRequestBatches": 1,
+    "peakObstacleRequestQueueDepth": 4,
+    "obstacleRectanglesAdded": 4,
+    "obstacleRectanglesRemoved": 0,
+    "dynamicObstacleRemoves": 0,
+    "peakLiveObstacles": 4,
+    "guardedFallbacks": 0,
+    "routeFailureFallbacks": 0,
+    "geometryFallbacks": 0,
+    "confirmedIncrementalNoPaths": 0,
+    "capacityFallbacks": 0,
+    "updateFailureFallbacks": 0,
+    "nonIncrementalBaseFallbacks": 0,
+    "outOfOrderRebuilds": 0,
+    "snapshotMismatchRebuilds": 0,
+    "pathQueries": 201,
+    "pathCapacityFailures": 0,
+    "totalPathQueryMs": 7.309921000000713,
+    "maxPathQueryMs": 1.3187920000000304,
+    "routeConversions": 201,
+    "totalRouteConversionMs": 3.054130000000441,
+    "maxRouteConversionMs": 0.6459590000000617,
+    "responseWaypointBytes": 2696,
+    "unreachableRoutes": 0,
+    "partialPathsRejected": 0,
+    "endpointProjectionsRejected": 0,
+    "geometryRejections": 0,
+    "nativeQueryFailures": 0,
+    "dynamicObstacleAdds": 4,
+    "obstacleCapacityFailures": 0,
+    "tileCacheUpdateFailures": 0,
+    "crowdAgentsCreated": 0,
+    "agentCapacityFailures": 0
+  },
+  "fullMetrics": {
+    "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+    "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+    "generationCellSize": 0.25,
+    "generationMaxSimplificationError": 0.25,
+    "recastNavigationVersion": "0.43.0",
+    "generationWalkableRadius": 0,
+    "revisionCacheEntries": 0,
+    "revisionCacheCapacity": 8,
+    "maxObstacles": 512,
+    "isolatedCrowdAgentCapacity": 2000,
+    "crowdModel": "none-production-activity-steering-collision",
+    "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+    "exactEndpointTolerance": 0.05,
+    "mockInFlight": 0,
+    "revisionBuilds": 2,
+    "mutationRebuilds": 1,
+    "revisionCacheHits": 199,
+    "revisionCacheMisses": 2,
+    "revisionCacheEvictions": 0,
+    "peakRevisionCacheEntries": 2,
+    "revisionCacheCapacityFailures": 0,
+    "snapshotMismatches": 0,
+    "ephemeralSnapshotBuilds": 0,
+    "navmeshGenerationFailures": 0,
+    "totalRevisionBuildMs": 0,
+    "totalMutationRebuildMs": 0,
+    "maxRevisionBuildMs": 0,
+    "maxMutationRebuildMs": 0,
+    "lastRevisionBuildMs": 0,
+    "changedTilesObserved": 14416,
+    "mutationChangedTiles": 16,
+    "maxChangedTilesPerBuild": 14400,
+    "pathQueries": 201,
+    "pathCapacityFailures": 0,
+    "totalPathQueryMs": 0,
+    "maxPathQueryMs": 0,
+    "routeConversions": 201,
+    "totalRouteConversionMs": 0,
+    "maxRouteConversionMs": 0,
+    "responseWaypointBytes": 2632,
+    "unreachableRoutes": 0,
+    "partialPathsRejected": 0,
+    "endpointProjectionsRejected": 0,
+    "geometryRejections": 0,
+    "nativeQueryFailures": 0,
+    "dynamicObstacleAdds": 0,
+    "obstacleCapacityFailures": 0,
+    "tileCacheUpdateFailures": 0,
+    "crowdAgentsCreated": 0,
+    "agentCapacityFailures": 0
+  },
+  "finalFullStateHash": "3de9c3046b020f77c1b1acb7bd3957bebf32555d7b9060fcd5872eaaa0d26f15"
+}

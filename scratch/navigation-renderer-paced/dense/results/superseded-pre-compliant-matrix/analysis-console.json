@@ -1,0 +1,189 @@
+{
+  "sampleCounts": {
+    "fifo": 2,
+    "batch-32": 1
+  },
+  "comparisons": [
+    {
+      "iteration": 2,
+      "leaderP95DeltaMs": -15.0,
+      "repathP95DeltaMs": -5.399999976158142,
+      "repathP50DeltaMs": 2.0,
+      "blockedFrameDelta": -20,
+      "wallDeltaMs": -627.3999999761581
+    }
+  ],
+  "pooled": {
+    "fifo": {
+      "samples": 2,
+      "leaderResponse": {
+        "n": 46,
+        "p50": 6.299999952316284,
+        "p95": 10.800000071525574,
+        "max": 40.300000071525574,
+        "mean": 7.656521750533062
+      },
+      "repathResponse": {
+        "n": 251670,
+        "p50": 4.100000023841858,
+        "p95": 42.89999997615814,
+        "max": 297.90000009536743,
+        "mean": 10.269073787166862
+      },
+      "leaderQueue": {
+        "n": 46,
+        "p50": 0.39990234375,
+        "p95": 32.599853515625,
+        "max": 36.2998046875,
+        "mean": 3.3694059952445654
+      },
+      "repathQueue": {
+        "n": 251670,
+        "p50": 0.599853515625,
+        "p95": 51.39990234375,
+        "max": 297.599853515625,
+        "mean": 8.559673482698077
+      },
+      "leaderCompute": {
+        "n": 46,
+        "p50": 0.10000002384185791,
+        "p95": 0.30000007152557373,
+        "max": 0.3999999761581421,
+        "mean": 0.12608694511911142
+      },
+      "repathCompute": {
+        "n": 251670,
+        "p50": 0,
+        "p95": 0.2999999523162842,
+        "max": 50.5,
+        "mean": 0.07248857623275463
+      },
+      "frameInterval": {
+        "n": 14528,
+        "p50": 16.69999999999709,
+        "p95": 16.70000000001164,
+        "max": 300,
+        "mean": 16.739420429515416
+      },
+      "renderCpu": {
+        "n": 14530,
+        "p50": 0.7000000476837158,
+        "p95": 1.4000000953674316,
+        "max": 299.1999999284744,
+        "mean": 0.8549965586895296
+      },
+      "wallClockMs": {
+        "n": 2,
+        "p50": 121127.60000002384,
+        "p95": 122152.29999995232,
+        "max": 122152.29999995232,
+        "mean": 121639.94999998808
+      },
+      "blockedFrames": 84,
+      "blockedTicks": 87
+    },
+    "batch-32": {
+      "samples": 1,
+      "leaderResponse": {
+        "n": 23,
+        "p50": 8.900000095367432,
+        "p95": 21.100000023841858,
+        "max": 21.299999952316284,
+        "mean": 10.608695667722952
+      },
+      "repathResponse": {
+        "n": 125835,
+        "p50": 5.899999976158142,
+        "p95": 46.60000002384186,
+        "max": 241.70000004768372,
+        "mean": 12.707132356424612
+      },
+      "leaderQueue": {
+        "n": 23,
+        "p50": 0.999755859375,
+        "p95": 5.5,
+        "max": 5.5,
+        "mean": 1.5477347995923914
+      },
+      "repathQueue": {
+        "n": 125835,
+        "p50": 0.599853515625,
+        "p95": 31.800048828125,
+        "max": 232.499755859375,
+        "mean": 6.358294952995242
+      },
+      "leaderCompute": {
+        "n": 23,
+        "p50": 0.10000002384185791,
+        "p95": 0.9000000953674316,
+        "max": 1,
+        "mean": 0.2304347909015158
+      },
+      "repathCompute": {
+        "n": 125835,
+        "p50": 0,
+        "p95": 0.2999999523162842,
+        "max": 33,
+        "mean": 0.07042396786756035
+      },
+      "frameInterval": {
+        "n": 7260,
+        "p50": 16.69999999999709,
+        "p95": 16.70000000001164,
+        "max": 333.3000000000002,
+        "mean": 16.73257575757576
+      },
+      "renderCpu": {
+        "n": 7261,
+        "p50": 0.8000000715255737,
+        "p95": 1.600000023841858,
+        "max": 344.60000002384186,
+        "mean": 0.9887343331188427
+      },
+      "wallClockMs": {
+        "n": 1,
+        "p50": 121524.89999997616,
+        "p95": 121524.89999997616,
+        "max": 121524.89999997616,
+        "mean": 121524.89999997616
+      },
+      "blockedFrames": 38,
+      "blockedTicks": 39
+    }
+  },
+  "replay": [
+    {
+      "policy": "fifo",
+      "iteration": 1,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "fifo",
+      "iteration": 2,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 2,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    }
+  ]
+}

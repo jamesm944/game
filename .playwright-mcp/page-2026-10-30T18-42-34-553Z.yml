@@ -1,0 +1,131 @@
+- generic [active] [ref=f55e1]:
+  - generic [ref=f55e2]:
+    - main:
+      - generic [ref=f55e3]:
+        - generic [ref=f55e4]:
+          - generic [ref=f55e8]:
+            - generic [ref=f55e9]:
+              - generic [ref=f55e14]: 1,240
+              - generic [ref=f55e15]: "+18"
+            - generic [ref=f55e16]:
+              - generic [ref=f55e19]: "860"
+              - generic [ref=f55e20]: "+12"
+            - generic [ref=f55e21]:
+              - generic [ref=f55e26]: "415"
+              - generic [ref=f55e27]: "+6"
+            - generic [ref=f55e28]:
+              - generic [ref=f55e32]: "210"
+              - generic [ref=f55e33]: "+2"
+            - generic [ref=f55e34]:
+              - generic [ref=f55e37]: "96"
+              - generic [ref=f55e38]: "+1"
+            - generic [ref=f55e39]: "40"
+            - generic [ref=f55e44]:
+              - generic [ref=f55e48]: "180"
+              - generic [ref=f55e49]: "+3"
+            - generic [ref=f55e50]: 58 / 60
+          - generic [ref=f55e56]:
+            - generic [ref=f55e57]: Epoch III
+            - generic [ref=f55e58]: Rank 7/24
+        - generic [ref=f55e59]:
+          - generic [ref=f55e60]:
+            - heading "Royal Commission" [level=2] [ref=f55e61]
+            - generic [ref=f55e62]: III
+          - generic [ref=f55e63]:
+            - generic [ref=f55e64]: ○
+            - generic [ref=f55e65]:
+              - generic [ref=f55e66]: Hold the river crossing
+              - generic [ref=f55e67]: Keep 2 keeps standing for 5 minutes
+          - generic [ref=f55e68]:
+            - generic [ref=f55e69]: ✓
+            - generic [ref=f55e70]:
+              - generic [ref=f55e71]: Raise a market
+              - generic [ref=f55e72]: Build a Market in the lower ward
+          - generic [ref=f55e73]:
+            - generic [ref=f55e74]: ○
+            - generic [ref=f55e75]:
+              - generic [ref=f55e76]: Collect 3 relics
+              - generic [ref=f55e77]: 1 of 3 recovered
+        - generic [ref=f55e78]:
+          - button "4" [ref=f55e79] [cursor=pointer]
+          - button "Pause" [ref=f55e84] [cursor=pointer]
+          - button "Settings" [ref=f55e88] [cursor=pointer]
+        - generic [ref=f55e92]:
+          - generic [ref=f55e93]:
+            - generic [ref=f55e98]: Houses needed
+            - generic [ref=f55e99]: Population at cap — build 2 houses.
+          - generic [ref=f55e100]:
+            - generic [ref=f55e104]: Research complete
+            - generic [ref=f55e105]: Chain Mail is now available.
+          - generic [ref=f55e106]:
+            - generic [ref=f55e111]: Idle villagers
+            - generic [ref=f55e112]: 3 villagers are idle near the mill.
+        - generic [ref=f55e113]:
+          - generic [ref=f55e114]:
+            - generic [ref=f55e119]: Conquest
+            - generic [ref=f55e120]: 2 / 3
+          - generic [ref=f55e121]:
+            - generic [ref=f55e126]: Knowledge
+            - generic [ref=f55e127]: 18 / 40
+          - generic [ref=f55e128]:
+            - generic [ref=f55e132]: Culture
+            - generic [ref=f55e133]: 12 / 40
+          - generic [ref=f55e134]:
+            - generic [ref=f55e139]: Wonder
+            - generic [ref=f55e140]: 0 / 3
+          - generic [ref=f55e141]:
+            - generic [ref=f55e146]: Relic
+            - generic [ref=f55e147]: 1 / 3
+          - generic [ref=f55e148]:
+            - generic [ref=f55e152]: Economic
+            - generic [ref=f55e153]: 22 / 40
+        - generic [ref=f55e154]: River Ward · 192²
+        - generic [ref=f55e166]:
+          - generic [ref=f55e167]:
+            - generic [ref=f55e173]: Town Center
+            - generic [ref=f55e174]: 12 / 15 pop
+          - button "Build" [ref=f55e175] [cursor=pointer]
+          - button "Train" [ref=f55e180] [cursor=pointer]
+          - button "Research" [ref=f55e185] [cursor=pointer]
+          - button "Advance" [ref=f55e190] [cursor=pointer]
+          - button "House" [ref=f55e195] [cursor=pointer]
+          - button "Farm" [ref=f55e199] [cursor=pointer]
+          - button "Market" [ref=f55e203] [cursor=pointer]
+          - button "Wall" [ref=f55e207] [cursor=pointer]
+        - complementary [ref=f55e212]:
+          - generic [ref=f55e213]:
+            - heading "Council of the Ward" [level=2] [ref=f55e214]
+            - generic [ref=f55e215]: Tax 12%
+          - generic [ref=f55e216]:
+            - generic [ref=f55e217]:
+              - generic [ref=f55e218]: Mood
+              - generic [ref=f55e221]: "72"
+            - generic [ref=f55e222]:
+              - generic [ref=f55e223]: Health
+              - generic [ref=f55e226]: "94"
+            - generic [ref=f55e227]:
+              - generic [ref=f55e228]: Unrest
+              - generic [ref=f55e231]: "18"
+          - generic [ref=f55e232]:
+            - generic [ref=f55e233]:
+              - generic [ref=f55e234]: M
+              - generic [ref=f55e235]: Merchants
+              - generic [ref=f55e236]: 62%
+            - generic [ref=f55e237]:
+              - generic [ref=f55e238]: C
+              - generic [ref=f55e239]: Clergy
+              - generic [ref=f55e240]: 48%
+            - generic [ref=f55e241]:
+              - generic [ref=f55e242]: "N"
+              - generic [ref=f55e243]: Nobility
+              - generic [ref=f55e244]: 71%
+            - generic [ref=f55e245]:
+              - generic [ref=f55e246]: C
+              - generic [ref=f55e247]: Commons
+              - generic [ref=f55e248]: 39%
+  - generic "Prototype variant switcher" [ref=f55e249]:
+    - generic [ref=f55e250]: Prototype
+    - button "Previous variant" [ref=f55e251] [cursor=pointer]: ‹
+    - generic [ref=f55e252]: C · War Table
+    - button "Next variant" [ref=f55e253] [cursor=pointer]: ›
+    - generic [ref=f55e254]: ← → · 1–4 · Esc

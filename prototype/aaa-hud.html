@@ -1,0 +1,5818 @@
+<!--
+  THROWAWAY PROTOTYPE — AAA HUD exploration for issue #149.
+  Question: which HUD structure should the AAA build adopt?
+  Run: npm run dev, open /prototype/aaa-hud.html (D is the default)
+  Variants: A Royal Command, B Chronicle, C War Table, D Crown & Chronicle.
+  Not production code. No app imports, no persistence.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AAA HUD prototype — Age of Wind</title>
+    <link rel="icon" href="data:," />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #090b0f;
+        --panel: #141922;
+        --panel-2: #1b2230;
+        --line: rgba(214, 178, 94, 0.28);
+        --line-soft: rgba(255, 255, 255, 0.08);
+        --gold: #d6b25e;
+        --gold-2: #f0d9a0;
+        --parchment: #e9ddc4;
+        --parchment-2: #d8c6a2;
+        --text: #e9e4d7;
+        --muted: #9aa4b8;
+        --green: #7ec46f;
+        --red: #e06c5a;
+        --blue: #6aa6d8;
+        --amber: #f0b429;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+        --serif: "Cinzel", Georgia, "Times New Roman", serif;
+        --sans: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: var(--ink);
+        color: var(--text);
+        font-family: var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button {
+        font: inherit;
+        color: inherit;
+      }
+
+      #stage {
+        position: fixed;
+        inset: 0;
+        min-width: 0;
+        min-height: 700px;
+        overflow: hidden;
+      }
+
+      .world-bg,
+      .vignette,
+      .grain {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .world-bg {
+        /* Crop into the world view so the old screenshot's baked-in HUD
+           (top ribbon, build menu, minimap) does not compete with the
+           prototype chrome. */
+        background: url("../docs/screenshots/dawn-village.png") 50% 42% / 190%
+          no-repeat;
+        filter: saturate(0.72) brightness(0.52) contrast(1.12);
+      }
+
+      .vignette {
+        background:
+          radial-gradient(
+            ellipse at 50% 44%,
+            transparent 16%,
+            rgba(0, 0, 0, 0.22) 44%,
+            rgba(0, 0, 0, 0.8) 100%
+          ),
+          linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.7) 0%,
+            transparent 14%,
+            transparent 70%,
+            rgba(0, 0, 0, 0.78) 100%
+          );
+      }
+
+      .grain {
+        opacity: 0.05;
+        background-image: repeating-radial-gradient(
+          circle at 17% 32%,
+          #fff 0 1px,
+          transparent 1px 3px
+        );
+        mix-blend-mode: overlay;
+      }
+
+      /* ---------- shared primitives ---------- */
+      .ico {
+        width: 18px;
+        height: 18px;
+        display: block;
+        flex: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .serif {
+        font-family: var(--serif);
+      }
+
+      .panel {
+        background: linear-gradient(
+          180deg,
+          rgba(22, 27, 37, 0.95),
+          rgba(11, 14, 20, 0.93)
+        );
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(12px);
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.16);
+      }
+
+      .panel-title {
+        margin: 0;
+        font: 700 10px/1 var(--serif);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      .panel-sub {
+        font: 500 9px/1.3 var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .panel-body {
+        padding: 10px 12px 12px;
+      }
+
+      .bar {
+        height: 6px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .bar > i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #a77f2e, #f3df9a);
+      }
+
+      .bar.green > i {
+        background: linear-gradient(90deg, #3f8250, #8fd18a);
+      }
+
+      .bar.red > i {
+        background: linear-gradient(90deg, #8c3029, #e06c5a);
+      }
+
+      .bar.blue > i {
+        background: linear-gradient(90deg, #345f88, #6aa6d8);
+      }
+
+      .bar.parchment {
+        background: rgba(43, 33, 24, 0.18);
+        box-shadow: inset 0 1px 2px rgba(43, 33, 24, 0.3);
+      }
+
+      .bar.parchment > i {
+        background: linear-gradient(90deg, #7a5a2a, #b8893f);
+      }
+
+      .res-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-wrap: nowrap;
+      }
+
+      .res {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+      }
+
+      .res .ico {
+        width: 15px;
+        height: 15px;
+        color: var(--gold-2);
+      }
+
+      .res span {
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .res b {
+        font-size: 11px;
+        font-weight: 700;
+        color: #f5f0e4;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .res small {
+        font-size: 9px;
+        font-weight: 600;
+        color: var(--green);
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 7px;
+        border-radius: 999px;
+        border: 1px solid var(--line-soft);
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .chip.gold {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.35);
+        background: rgba(214, 178, 94, 0.1);
+      }
+
+      .chip.green {
+        color: #a9e2a3;
+        border-color: rgba(126, 196, 111, 0.35);
+        background: rgba(126, 196, 111, 0.1);
+      }
+
+      .chip.red {
+        color: #f0a79e;
+        border-color: rgba(224, 108, 90, 0.4);
+        background: rgba(224, 108, 90, 0.12);
+      }
+
+      .portrait {
+        position: relative;
+        width: var(--size, 72px);
+        height: var(--size, 72px);
+        flex: none;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid rgba(214, 178, 94, 0.8);
+        background:
+          radial-gradient(circle at 35% 25%, #3a465c, #0c1017 70%),
+          #0c1017;
+        box-shadow:
+          0 0 0 3px rgba(0, 0, 0, 0.35),
+          inset 0 0 20px rgba(0, 0, 0, 0.6);
+      }
+
+      .portrait .sprite {
+        position: absolute;
+        inset: 0;
+        background-image: var(--sprite);
+        background-repeat: no-repeat;
+        background-size: var(--sprite-size);
+        background-position: var(--sprite-pos, 0 0);
+        filter: sepia(1) saturate(1.35) hue-rotate(-12deg) brightness(0.92)
+          contrast(1.1);
+        opacity: 0.92;
+        transform: scale(1.05);
+      }
+
+      .portrait .portrait-fallback {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        color: var(--gold-2);
+      }
+
+      .portrait .portrait-fallback .ico {
+        width: 52%;
+        height: 52%;
+      }
+
+      .portrait-ring {
+        position: absolute;
+        inset: -4px;
+        border-radius: 50%;
+        border: 1px solid rgba(240, 217, 160, 0.35);
+        pointer-events: none;
+      }
+
+      .tiny-label {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px 10px;
+      }
+
+      .stat {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 10px;
+        color: var(--muted);
+        border-bottom: 1px dotted rgba(255, 255, 255, 0.08);
+        padding-bottom: 3px;
+      }
+
+      .stat b {
+        color: var(--text);
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .meter-row {
+        display: grid;
+        grid-template-columns: 52px 1fr 30px;
+        align-items: center;
+        gap: 7px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .meter-row b {
+        text-align: right;
+        color: var(--text);
+        font-size: 9px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .divider {
+        height: 1px;
+        margin: 9px 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(214, 178, 94, 0.25),
+          transparent
+        );
+      }
+
+      .objective-row {
+        display: flex;
+        gap: 8px;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+      }
+
+      .objective-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .objective-mark {
+        width: 17px;
+        height: 17px;
+        flex: none;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        margin-top: 1px;
+        border: 1px solid rgba(214, 178, 94, 0.45);
+        color: var(--gold-2);
+        font-size: 9px;
+        font-weight: 800;
+      }
+
+      .objective-row.done .objective-mark {
+        border-color: rgba(126, 196, 111, 0.6);
+        color: #b8efb1;
+        background: rgba(126, 196, 111, 0.12);
+      }
+
+      .objective-row.failed .objective-mark {
+        border-color: rgba(224, 108, 90, 0.6);
+        color: #f3b0a7;
+        background: rgba(224, 108, 90, 0.12);
+      }
+
+      .objective-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1.25;
+      }
+
+      .objective-desc {
+        margin-top: 2px;
+        font-size: 9px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .victory-row {
+        display: grid;
+        grid-template-columns: 66px 1fr 42px;
+        align-items: center;
+        gap: 7px;
+        padding: 4px 0;
+        font-size: 9px;
+      }
+
+      .victory-row .vname {
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      .victory-row .vval {
+        text-align: right;
+        color: var(--text);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .victory-row.active .vname {
+        color: var(--gold-2);
+      }
+
+      .victory-row.active .bar > i {
+        background: linear-gradient(90deg, #b08a34, #f6e3a8);
+        box-shadow: 0 0 8px rgba(240, 217, 160, 0.45);
+      }
+
+      .toast {
+        display: flex;
+        gap: 9px;
+        padding: 8px 10px;
+        border-radius: 7px;
+        background: rgba(10, 13, 18, 0.9);
+        border: 1px solid var(--line-soft);
+        border-left: 2px solid var(--gold);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      }
+
+      .toast.warning {
+        border-left-color: var(--amber);
+      }
+
+      .toast.danger {
+        border-left-color: var(--red);
+      }
+
+      .toast.success {
+        border-left-color: var(--green);
+      }
+
+      .toast .t-icon {
+        color: var(--gold-2);
+        margin-top: 1px;
+      }
+
+      .toast.warning .t-icon {
+        color: var(--amber);
+      }
+
+      .toast.danger .t-icon {
+        color: var(--red);
+      }
+
+      .toast.success .t-icon {
+        color: var(--green);
+      }
+
+      .toast .t-title {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .toast .t-body {
+        margin-top: 1px;
+        font-size: 9px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .mini-map {
+        position: relative;
+        border: 2px solid rgba(214, 178, 94, 0.45);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #0b1118;
+        box-shadow:
+          0 8px 24px rgba(0, 0, 0, 0.55),
+          inset 0 0 18px rgba(0, 0, 0, 0.6);
+      }
+
+      .mini-map .map-art {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 48% 46%,
+            rgba(84, 120, 62, 0.95) 0 22%,
+            transparent 23%
+          ),
+          radial-gradient(
+            ellipse at 68% 62%,
+            rgba(59, 91, 47, 0.9) 0 14%,
+            transparent 15%
+          ),
+          radial-gradient(
+            ellipse at 30% 68%,
+            rgba(74, 102, 54, 0.85) 0 12%,
+            transparent 13%
+          ),
+          linear-gradient(145deg, #1b3a56, #0d1b28 65%);
+      }
+
+      .mini-map .map-art::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 12px 12px;
+        opacity: 0.5;
+      }
+
+      .mini-map .map-dot {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #f0d9a0;
+        box-shadow: 0 0 6px rgba(240, 217, 160, 0.8);
+      }
+
+      .mini-map .map-dot.red {
+        background: #e06c5a;
+        box-shadow: 0 0 6px rgba(224, 108, 90, 0.8);
+      }
+
+      .mini-map .map-dot.blue {
+        background: #6aa6d8;
+        box-shadow: 0 0 6px rgba(106, 166, 216, 0.8);
+      }
+
+      .mini-map .map-viewport {
+        position: absolute;
+        left: 31%;
+        top: 34%;
+        width: 28%;
+        height: 24%;
+        border: 1px solid rgba(240, 217, 160, 0.8);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+      }
+
+      .mini-map .map-label {
+        position: absolute;
+        left: 6px;
+        bottom: 4px;
+        font: 700 8px/1 var(--sans);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(240, 217, 160, 0.8);
+        text-shadow: 0 1px 2px #000;
+      }
+
+      .command-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-width: 0;
+        padding: 7px 4px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(
+          180deg,
+          rgba(48, 59, 78, 0.9),
+          rgba(25, 31, 42, 0.92)
+        );
+        cursor: pointer;
+        position: relative;
+        transition:
+          border-color 120ms ease,
+          transform 120ms ease,
+          background 120ms ease;
+      }
+
+      .command-btn:hover {
+        border-color: rgba(240, 217, 160, 0.65);
+        background: linear-gradient(
+          180deg,
+          rgba(62, 75, 96, 0.95),
+          rgba(30, 37, 50, 0.95)
+        );
+        transform: translateY(-1px);
+      }
+
+      .command-btn .ico {
+        width: 21px;
+        height: 21px;
+        color: var(--gold-2);
+      }
+
+      .command-btn .cmd-name {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text);
+        white-space: nowrap;
+      }
+
+      .command-btn .cmd-cost {
+        font-size: 7px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .command-btn .hotkey {
+        position: absolute;
+        top: 2px;
+        right: 3px;
+        font-size: 7px;
+        font-weight: 700;
+        color: rgba(240, 217, 160, 0.55);
+      }
+
+      .command-btn.locked {
+        opacity: 0.45;
+      }
+
+      .command-btn.primary {
+        border-color: rgba(214, 178, 94, 0.55);
+        background: linear-gradient(
+          180deg,
+          rgba(91, 70, 29, 0.85),
+          rgba(45, 34, 14, 0.92)
+        );
+      }
+
+      /* =====================================================================
+         VARIANT A — Royal Command
+         Classic RTS command deck, refined: full-width top ribbon, left
+         objectives, right victory paths, bottom three-zone command deck.
+         ===================================================================== */
+      .va {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-rows: 60px 1fr 280px;
+      }
+
+      .va-topbar {
+        position: relative;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: 220px 1fr auto auto;
+        align-items: center;
+        gap: 14px;
+        padding: 0 16px;
+        background: linear-gradient(
+          180deg,
+          rgba(19, 23, 32, 0.97),
+          rgba(9, 12, 17, 0.94)
+        );
+        border-bottom: 1px solid rgba(214, 178, 94, 0.35);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .va-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .va-crest {
+        width: 38px;
+        height: 38px;
+        flex: none;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 35% 30%, #6e5724, #211708 70%),
+          #211708;
+        border: 1px solid rgba(240, 217, 160, 0.65);
+        box-shadow:
+          0 0 0 2px rgba(0, 0, 0, 0.4),
+          0 0 14px rgba(214, 178, 94, 0.18);
+        color: var(--gold-2);
+      }
+
+      .va-crest .ico {
+        width: 22px;
+        height: 22px;
+      }
+
+      .va-house {
+        min-width: 0;
+      }
+
+      .va-house b {
+        display: block;
+        font: 700 12px/1.1 var(--serif);
+        letter-spacing: 0.05em;
+        color: var(--gold-2);
+        white-space: nowrap;
+      }
+
+      .va-house span {
+        display: block;
+        margin-top: 2px;
+        font-size: 8px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .va-resources {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        overflow: hidden;
+      }
+
+      .va-age {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 4px 12px 4px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(214, 178, 94, 0.4);
+        background: linear-gradient(
+          180deg,
+          rgba(80, 61, 25, 0.55),
+          rgba(28, 21, 9, 0.8)
+        );
+        white-space: nowrap;
+      }
+
+      .va-age-ring {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background:
+          conic-gradient(
+            var(--gold) 0 62%,
+            rgba(255, 255, 255, 0.08) 62% 100%
+          ),
+          #10141c;
+        position: relative;
+      }
+
+      .va-age-ring::before {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: #11151d;
+      }
+
+      .va-age-ring span {
+        position: relative;
+        z-index: 1;
+        font: 800 10px/1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .va-age-copy b {
+        display: block;
+        font: 700 10px/1 var(--serif);
+        letter-spacing: 0.08em;
+        color: var(--gold-2);
+      }
+
+      .va-age-copy span {
+        display: block;
+        margin-top: 2px;
+        font-size: 8px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+
+      .va-utility {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .va-icon-btn {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.25);
+        color: var(--muted);
+        cursor: pointer;
+        position: relative;
+      }
+
+      .va-icon-btn:hover {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.4);
+      }
+
+      .va-icon-btn .ico {
+        width: 16px;
+        height: 16px;
+      }
+
+      .va-icon-btn .badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 3px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--red);
+        color: #fff;
+        font-size: 8px;
+        font-weight: 800;
+        border: 1px solid #2a0d0a;
+      }
+
+      .va-main {
+        position: relative;
+        z-index: 4;
+      }
+
+      .va-objectives {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        width: 300px;
+      }
+
+      .va-victory {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 280px;
+      }
+
+      .va-toasts {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        width: 310px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .va-deck {
+        position: relative;
+        z-index: 6;
+        display: grid;
+        grid-template-columns: 214px 1fr 330px;
+        gap: 10px;
+        align-items: stretch;
+        padding: 0 16px 48px;
+      }
+
+      .va-minimap-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .va-minimap-wrap .mini-map {
+        flex: 1;
+        min-height: 0;
+      }
+
+      .va-minimap-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .va-command {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .va-selection-strip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: rgba(10, 13, 18, 0.86);
+        border: 1px solid rgba(214, 178, 94, 0.22);
+      }
+
+      .va-selection-strip .portrait {
+        --size: 38px;
+      }
+
+      .va-selection-strip .sel-copy {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .va-selection-strip .sel-copy b {
+        display: block;
+        font: 700 11px/1.1 var(--serif);
+        color: var(--gold-2);
+        letter-spacing: 0.04em;
+      }
+
+      .va-selection-strip .sel-copy span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .va-queue {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .va-queue .q {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 6px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 8px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .va-queue .q b {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .va-command-grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        gap: 5px;
+      }
+
+      .va-command-grid .command-btn {
+        min-height: 52px;
+      }
+
+      .va-inspector {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 8px 10px;
+        overflow: hidden;
+      }
+
+      .va-inspector-head {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .va-inspector-head .portrait {
+        --size: 48px;
+      }
+
+      .va-inspector-copy {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .va-inspector-copy b {
+        display: block;
+        font: 700 13px/1.1 var(--serif);
+        color: var(--gold-2);
+        letter-spacing: 0.04em;
+      }
+
+      .va-inspector-copy span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .va-inspector-copy .chip {
+        margin-top: 4px;
+      }
+
+      .va-meters {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .va-inspector .stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 3px 10px;
+      }
+
+      .va-inspector .stat-grid + .va-activity {
+        margin-top: 2px;
+      }
+
+      .va-inspector .stat {
+        padding-bottom: 2px;
+      }
+
+      .va-activity {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .va-activity .ico {
+        width: 13px;
+        height: 13px;
+        color: var(--gold-2);
+      }
+
+      /* =====================================================================
+         VARIANT B — Chronicle
+         Sim-first sidebar + inspector, slim command bar, map dominant.
+         ===================================================================== */
+      .vb {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-columns: 300px 1fr 306px;
+        grid-template-rows: 44px 1fr 92px;
+      }
+
+      .vb-topstrip {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        z-index: 6;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 12px;
+        background: rgba(10, 13, 18, 0.92);
+        border-bottom: 1px solid rgba(214, 178, 94, 0.25);
+        backdrop-filter: blur(10px);
+      }
+
+      .vb-brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-right: 10px;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        white-space: nowrap;
+      }
+
+      .vb-brand > div {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .vb-brand b,
+      .vb-brand span {
+        display: block;
+      }
+
+      .vb-brand .ico {
+        width: 18px;
+        height: 18px;
+        color: var(--gold-2);
+      }
+
+      .vb-brand b {
+        font: 700 10px/1 var(--serif);
+        letter-spacing: 0.08em;
+        color: var(--gold-2);
+      }
+
+      .vb-brand span {
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vb-topstrip .res-row {
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .vb-topstrip .res {
+        padding: 2px 6px;
+      }
+
+      .vb-topstrip .res span {
+        display: none;
+      }
+
+      .vb-topstrip .res .ico {
+        width: 13px;
+        height: 13px;
+      }
+
+      .vb-age {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding-left: 10px;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        white-space: nowrap;
+      }
+
+      .vb-age b {
+        font: 700 9px/1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vb-age span {
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vb-sidebar {
+        grid-column: 1;
+        grid-row: 2;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(15, 19, 26, 0.97),
+          rgba(9, 12, 17, 0.95)
+        );
+        border-right: 1px solid rgba(214, 178, 94, 0.22);
+        box-shadow: 8px 0 30px rgba(0, 0, 0, 0.35);
+      }
+
+      .vb-sidebar-head {
+        padding: 10px 12px 8px;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.16);
+      }
+
+      .vb-sidebar-head h2 {
+        margin: 0;
+        font: 700 12px/1.1 var(--serif);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      .vb-sidebar-head p {
+        margin: 3px 0 0;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vb-tabs {
+        display: flex;
+        gap: 2px;
+        padding: 7px 8px 0;
+      }
+
+      .vb-tab {
+        flex: 1;
+        padding: 5px 3px;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .vb-tab.active {
+        color: var(--gold-2);
+        border-bottom-color: var(--gold);
+      }
+
+      .vb-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 8px 10px 10px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(214, 178, 94, 0.35) transparent;
+      }
+
+      .vb-mood-card {
+        padding: 8px 9px;
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .vb-mood-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 5px;
+      }
+
+      .vb-mood-top b {
+        font: 700 18px/1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vb-mood-top span {
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vb-people {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .vb-person {
+        display: grid;
+        grid-template-columns: 24px 1fr auto;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 6px;
+        border-radius: 5px;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+
+      .vb-person:hover {
+        background: rgba(255, 255, 255, 0.045);
+        border-color: rgba(255, 255, 255, 0.06);
+      }
+
+      .vb-person.selected {
+        background: rgba(214, 178, 94, 0.09);
+        border-color: rgba(214, 178, 94, 0.25);
+      }
+
+      .vb-person .p-dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 35% 30%, #46536a, #151b26 70%);
+        border: 1px solid rgba(214, 178, 94, 0.3);
+        color: var(--gold-2);
+        font: 700 9px/1 var(--serif);
+      }
+
+      .vb-person .p-copy {
+        min-width: 0;
+      }
+
+      .vb-person .p-copy b {
+        display: block;
+        font-size: 9px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .vb-person .p-copy span {
+        display: block;
+        margin-top: 1px;
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vb-person .p-bars {
+        width: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .vb-person .p-bars .bar {
+        height: 3px;
+      }
+
+      .vb-section-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 10px 0 5px;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vb-section-label span {
+        color: var(--gold-2);
+      }
+
+      .vb-factions {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .vb-faction {
+        display: grid;
+        grid-template-columns: 64px 1fr 28px;
+        align-items: center;
+        gap: 6px;
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vb-faction b {
+        text-align: right;
+        font-size: 8px;
+        color: var(--text);
+      }
+
+      .vb-victory-mini {
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(214, 178, 94, 0.14);
+      }
+
+      .vb-victory-mini .victory-row {
+        grid-template-columns: 58px 1fr 34px;
+        padding: 3px 0;
+      }
+
+      .vb-map {
+        grid-column: 2;
+        grid-row: 2;
+        position: relative;
+        z-index: 3;
+      }
+
+      .vb-objectives {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        width: 310px;
+        z-index: 5;
+      }
+
+      .vb-feed {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        z-index: 5;
+      }
+
+      .vb-inspector {
+        grid-column: 3;
+        grid-row: 2;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(15, 19, 26, 0.97),
+          rgba(9, 12, 17, 0.95)
+        );
+        border-left: 1px solid rgba(214, 178, 94, 0.22);
+        box-shadow: -8px 0 30px rgba(0, 0, 0, 0.35);
+      }
+
+      .vb-inspector-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 12px 10px;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.16);
+      }
+
+      .vb-inspector-head .portrait {
+        --size: 64px;
+      }
+
+      .vb-inspector-copy {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .vb-inspector-copy b {
+        display: block;
+        font: 700 13px/1.1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vb-inspector-copy span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vb-inspector-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 10px 12px 12px;
+      }
+
+      .vb-inspector-body .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vb-inspector-body .stat {
+        font-size: 9px;
+      }
+
+      .vb-needs {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .vb-commandbar {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        z-index: 7;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: 0 12px 34px;
+        background: linear-gradient(
+          180deg,
+          rgba(15, 19, 26, 0.94),
+          rgba(8, 10, 14, 0.98)
+        );
+        border-top: 1px solid rgba(214, 178, 94, 0.22);
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+      }
+
+      .vb-commandbar .cmd-group {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+
+      .vb-commandbar .cmd-group.right {
+        justify-content: flex-end;
+      }
+
+      .vb-commandbar .command-btn {
+        flex-direction: row;
+        gap: 6px;
+        padding: 6px 9px;
+        min-height: 36px;
+      }
+
+      .vb-commandbar .command-btn .ico {
+        width: 16px;
+        height: 16px;
+      }
+
+      .vb-commandbar .command-btn .cmd-name {
+        font-size: 8px;
+      }
+
+      .vb-commandbar .command-btn .cmd-cost,
+      .vb-commandbar .command-btn .hotkey {
+        display: none;
+      }
+
+      .vb-commandbar .selected-commands {
+        display: flex;
+        gap: 5px;
+        padding: 0 10px;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* =====================================================================
+         VARIANT C — War Table
+         Diegetic parchment, radial command ring, council drawer.
+         ===================================================================== */
+      .vc {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+      }
+
+      .vc-top-ribbon {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(940px, 68vw);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(36, 30, 20, 0.97),
+            rgba(18, 15, 10, 0.97)
+          ),
+          #1b1610;
+        border: 1px solid rgba(214, 178, 94, 0.55);
+        box-shadow:
+          0 12px 40px rgba(0, 0, 0, 0.6),
+          inset 0 1px 0 rgba(240, 217, 160, 0.18);
+      }
+
+      .vc-top-ribbon .va-crest {
+        width: 34px;
+        height: 34px;
+      }
+
+      .vc-top-ribbon .res-row {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .vc-top-ribbon .res {
+        background: rgba(0, 0, 0, 0.24);
+        border-color: rgba(214, 178, 94, 0.12);
+      }
+
+      .vc-top-ribbon .res span {
+        color: rgba(233, 221, 196, 0.65);
+      }
+
+      .vc-top-ribbon .res b {
+        color: #f6edd9;
+      }
+
+      .vc-age-seal {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding-left: 10px;
+        border-left: 1px solid rgba(214, 178, 94, 0.25);
+        white-space: nowrap;
+      }
+
+      .vc-age-seal b {
+        font: 700 9px/1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vc-age-seal span {
+        font-size: 8px;
+        color: rgba(233, 221, 196, 0.55);
+      }
+
+      .vc-objective-scroll {
+        position: absolute;
+        top: 22px;
+        left: 22px;
+        width: 304px;
+        transform: rotate(-1.1deg);
+        padding: 14px 16px 15px;
+        color: #2b2118;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.16),
+            transparent 30%
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(90, 62, 28, 0.04) 0 1px,
+            transparent 1px 4px
+          ),
+          var(--parchment);
+        border: 1px solid #8b6a3f;
+        border-radius: 4px;
+        box-shadow:
+          0 18px 40px rgba(0, 0, 0, 0.5),
+          inset 0 0 30px rgba(120, 86, 42, 0.18);
+      }
+
+      .vc-objective-scroll::before,
+      .vc-objective-scroll::after {
+        content: "";
+        position: absolute;
+        left: -6px;
+        right: -6px;
+        height: 8px;
+        background: linear-gradient(180deg, #d8c6a2, #b79d72);
+        border: 1px solid #8b6a3f;
+        border-radius: 3px;
+      }
+
+      .vc-objective-scroll::before {
+        top: -5px;
+      }
+
+      .vc-objective-scroll::after {
+        bottom: -5px;
+      }
+
+      .vc-scroll-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid rgba(90, 62, 28, 0.35);
+      }
+
+      .vc-scroll-title h2 {
+        margin: 0;
+        font: 700 12px/1 var(--serif);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .vc-wax {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 35% 30%, #a33a2a, #5d160f 70%);
+        border: 1px solid #3d0d08;
+        box-shadow:
+          0 2px 4px rgba(0, 0, 0, 0.35),
+          inset 0 0 6px rgba(255, 180, 150, 0.25);
+        color: #f3c9a8;
+        font: 800 8px/1 var(--serif);
+      }
+
+      .vc-objective-scroll .objective-row {
+        border-bottom-color: rgba(90, 62, 28, 0.22);
+      }
+
+      .vc-objective-scroll .objective-title {
+        color: #2b2118;
+      }
+
+      .vc-objective-scroll .objective-desc {
+        color: rgba(43, 33, 24, 0.68);
+      }
+
+      .vc-objective-scroll .objective-mark {
+        border-color: rgba(90, 62, 28, 0.45);
+        color: #6b4c24;
+      }
+
+      .vc-objective-scroll .objective-row.done .objective-mark {
+        border-color: #4f7a3f;
+        color: #2f5a26;
+        background: rgba(79, 122, 63, 0.12);
+      }
+
+      .vc-notifications {
+        position: absolute;
+        top: 22px;
+        right: 22px;
+        width: 306px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .vc-letter {
+        position: relative;
+        padding: 9px 11px 9px 34px;
+        color: #2b2118;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgba(90, 62, 28, 0.035) 0 1px,
+            transparent 1px 4px
+          ),
+          var(--parchment);
+        border: 1px solid #9a7a4c;
+        border-radius: 3px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+        transform: rotate(0.6deg);
+      }
+
+      .vc-letter:nth-child(2) {
+        transform: rotate(-0.4deg);
+      }
+
+      .vc-letter:nth-child(3) {
+        transform: rotate(0.3deg);
+      }
+
+      .vc-letter .l-icon {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        color: #7a4e1e;
+      }
+
+      .vc-letter .l-icon .ico {
+        width: 15px;
+        height: 15px;
+      }
+
+      .vc-letter .t-title {
+        font: 700 10px/1.2 var(--serif);
+        color: #2b2118;
+      }
+
+      .vc-letter .t-body {
+        margin-top: 2px;
+        font-size: 9px;
+        line-height: 1.35;
+        color: rgba(43, 33, 24, 0.7);
+      }
+
+      .vc-victory-banners {
+        position: absolute;
+        top: 84px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 5;
+      }
+
+      .vc-banner {
+        width: 92px;
+        padding: 7px 6px 6px;
+        text-align: center;
+        background: linear-gradient(
+          180deg,
+          rgba(34, 29, 20, 0.94),
+          rgba(18, 15, 10, 0.94)
+        );
+        border: 1px solid rgba(214, 178, 94, 0.35);
+        border-radius: 3px 3px 8px 8px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+        position: relative;
+      }
+
+      .vc-banner::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      }
+
+      .vc-banner .b-icon {
+        color: var(--gold-2);
+        display: grid;
+        place-items: center;
+        margin-bottom: 3px;
+      }
+
+      .vc-banner .b-icon .ico {
+        width: 17px;
+        height: 17px;
+      }
+
+      .vc-banner .b-name {
+        font: 700 7px/1.2 var(--sans);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vc-banner .b-val {
+        margin-top: 2px;
+        font-size: 8px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .vc-banner.active {
+        border-color: rgba(240, 217, 160, 0.7);
+        box-shadow:
+          0 8px 18px rgba(0, 0, 0, 0.4),
+          0 0 18px rgba(214, 178, 94, 0.18);
+      }
+
+      .vc-banner.active .b-name {
+        color: var(--gold-2);
+      }
+
+      .vc-minimap {
+        position: absolute;
+        left: 22px;
+        bottom: 56px;
+        width: 196px;
+        height: 196px;
+        padding: 6px;
+        background:
+          linear-gradient(180deg, rgba(45, 37, 24, 0.98), rgba(24, 19, 12, 0.98)),
+          #1b1610;
+        border: 1px solid rgba(214, 178, 94, 0.55);
+        border-radius: 6px;
+        box-shadow:
+          0 16px 40px rgba(0, 0, 0, 0.55),
+          inset 0 1px 0 rgba(240, 217, 160, 0.15);
+      }
+
+      .vc-minimap .mini-map {
+        width: 100%;
+        height: 100%;
+        border-color: rgba(214, 178, 94, 0.35);
+      }
+
+      .vc-minimap-label {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        font: 700 7px/1 var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(240, 217, 160, 0.7);
+        text-shadow: 0 1px 2px #000;
+      }
+
+      .vc-command-ring {
+        position: absolute;
+        left: 50%;
+        bottom: 52px;
+        transform: translateX(-50%);
+        width: 390px;
+        height: 390px;
+        z-index: 6;
+      }
+
+      .vc-command-ring::before {
+        content: "";
+        position: absolute;
+        inset: 26px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(10, 13, 18, 0.82) 0 32%,
+          rgba(10, 13, 18, 0.45) 48%,
+          transparent 70%
+        );
+        border: 1px solid rgba(214, 178, 94, 0.16);
+      }
+
+      .vc-ring-center {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 132px;
+        height: 132px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        background:
+          radial-gradient(circle at 40% 30%, #3a3020, #100d08 72%),
+          #100d08;
+        border: 1px solid rgba(240, 217, 160, 0.65);
+        box-shadow:
+          0 0 0 4px rgba(0, 0, 0, 0.35),
+          0 0 30px rgba(214, 178, 94, 0.18);
+        text-align: center;
+        z-index: 2;
+      }
+
+      .vc-ring-center .portrait {
+        --size: 54px;
+        border-width: 1px;
+      }
+
+      .vc-ring-center b {
+        font: 700 9px/1.1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vc-ring-center span {
+        font-size: 7px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .vc-ring-btn {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 66px;
+        height: 66px;
+        margin: -33px 0 0 -33px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        background: linear-gradient(
+          180deg,
+          rgba(46, 38, 25, 0.97),
+          rgba(20, 16, 10, 0.97)
+        );
+        border: 1px solid rgba(214, 178, 94, 0.5);
+        box-shadow:
+          0 8px 20px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(240, 217, 160, 0.15);
+        color: var(--gold-2);
+        cursor: pointer;
+        transform: rotate(var(--a)) translate(150px) rotate(calc(-1 * var(--a)));
+        transition:
+          border-color 120ms ease,
+          box-shadow 120ms ease;
+      }
+
+      .vc-ring-btn:hover {
+        border-color: rgba(240, 217, 160, 0.9);
+        box-shadow:
+          0 8px 20px rgba(0, 0, 0, 0.5),
+          0 0 18px rgba(214, 178, 94, 0.28);
+      }
+
+      .vc-ring-btn .ico {
+        width: 19px;
+        height: 19px;
+      }
+
+      .vc-ring-btn .r-name {
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #f0e5cf;
+        white-space: nowrap;
+      }
+
+      .vc-council {
+        position: absolute;
+        right: 22px;
+        bottom: 56px;
+        width: 300px;
+        padding: 12px 13px 13px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(26, 33, 27, 0.97),
+            rgba(10, 14, 11, 0.97)
+          ),
+          #10140f;
+        border: 1px solid rgba(214, 178, 94, 0.45);
+        border-radius: 8px;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+      }
+
+      .vc-council-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.2);
+      }
+
+      .vc-council-head h2 {
+        margin: 0;
+        font: 700 11px/1 var(--serif);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      .vc-council-head span {
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vc-council-meters {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-top: 8px;
+      }
+
+      .vc-council-meters .meter-row {
+        grid-template-columns: 46px 1fr 28px;
+      }
+
+      .vc-faction-medallions {
+        display: flex;
+        gap: 5px;
+        margin-top: 9px;
+      }
+
+      .vc-faction {
+        flex: 1;
+        text-align: center;
+        padding: 5px 3px 4px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .vc-faction .f-seal {
+        width: 24px;
+        height: 24px;
+        margin: 0 auto 3px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 35% 30%, #5e4a24, #1b1408 70%);
+        border: 1px solid rgba(214, 178, 94, 0.4);
+        color: var(--gold-2);
+        font: 700 8px/1 var(--serif);
+      }
+
+      .vc-faction .f-name {
+        display: block;
+        font-size: 7px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .vc-faction .f-loyalty {
+        display: block;
+        margin-top: 1px;
+        font-size: 8px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .vc-pause {
+        position: absolute;
+        top: 208px;
+        right: 22px;
+        display: flex;
+        gap: 6px;
+        z-index: 7;
+      }
+
+      .vc-pause .va-icon-btn {
+        background: rgba(26, 21, 14, 0.92);
+        border-color: rgba(214, 178, 94, 0.35);
+      }
+
+      /* =====================================================================
+         VARIANT D — Crown & Chronicle
+         AoE4-inspired: one resource bar, one tabbed info panel, one
+         bottom-anchored command deck. The map stays open. Iron and gold
+         frames, 11px base type, large command tiles.
+         ===================================================================== */
+      .vh {
+        position: absolute;
+        inset: 0;
+        font-size: 11px;
+      }
+
+      .vh button {
+        font-family: var(--sans);
+      }
+
+      .vh .ico {
+        display: block;
+      }
+
+      /* ---------- top bar ---------- */
+      .vh-top {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        z-index: 30;
+        height: 60px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 12px;
+        padding: 0 14px;
+        background:
+          repeating-linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.012) 0 1px,
+            transparent 1px 4px
+          ),
+          linear-gradient(180deg, rgba(31, 34, 39, 0.99), rgba(9, 11, 14, 0.995));
+        border-bottom: 1px solid #6b5527;
+        box-shadow:
+          0 1px 0 #000,
+          0 10px 28px rgba(0, 0, 0, 0.6),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .vh-top::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -3px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(214, 178, 94, 0.55) 20%,
+          rgba(214, 178, 94, 0.55) 80%,
+          transparent
+        );
+        pointer-events: none;
+      }
+
+      .vh-civ {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .vh-crest {
+        width: 40px;
+        height: 40px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        color: var(--gold-2);
+        background:
+          radial-gradient(circle at 35% 28%, #7a5f28, #1d1407 72%),
+          #1d1407;
+        border: 1px solid rgba(240, 217, 160, 0.7);
+        box-shadow:
+          inset 0 0 0 2px rgba(0, 0, 0, 0.55),
+          inset 0 0 0 3px rgba(214, 178, 94, 0.28),
+          0 0 16px rgba(214, 178, 94, 0.16);
+        border-radius: 50%;
+      }
+
+      .vh-crest .ico {
+        width: 22px;
+        height: 22px;
+      }
+
+      .vh-civ-copy b {
+        display: block;
+        font: 700 14px/1 var(--serif);
+        letter-spacing: 0.06em;
+        color: var(--gold-2);
+        white-space: nowrap;
+      }
+
+      .vh-civ-copy span {
+        display: block;
+        margin-top: 3px;
+        font-size: 8.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .vh-res {
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: 0;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .vh-res .res {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 8px;
+        border-left: 1px solid rgba(255, 255, 255, 0.055);
+        white-space: nowrap;
+      }
+
+      .vh-res .res:first-child {
+        border-left: 0;
+      }
+
+      .vh-res .res .ico {
+        width: 17px;
+        height: 17px;
+        flex: none;
+        color: var(--gold);
+      }
+
+      .vh-res .res span {
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-res .res b {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-res .res small {
+        font-size: 8.5px;
+        font-weight: 600;
+        color: var(--green);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-res .res.warn {
+        background: linear-gradient(
+          180deg,
+          rgba(240, 180, 41, 0.14),
+          rgba(240, 180, 41, 0.04)
+        );
+      }
+
+      .vh-res .res.warn .ico,
+      .vh-res .res.warn b {
+        color: #ffd98a;
+      }
+
+      .vh-res .res.minor {
+        gap: 5px;
+        padding: 5px 7px;
+      }
+
+      .vh-res .res.minor .ico {
+        width: 14px;
+        height: 14px;
+        opacity: 0.75;
+      }
+
+      .vh-res .res.minor b {
+        font-size: 11px;
+        color: #c8c2b4;
+      }
+
+      .vh-res .res-divider {
+        width: 1px;
+        margin: 8px 6px;
+        background: rgba(214, 178, 94, 0.25);
+      }
+
+      .vh-age {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 4px 12px 4px 4px;
+        border: 1px solid rgba(214, 178, 94, 0.38);
+        background:
+          linear-gradient(180deg, rgba(80, 61, 25, 0.42), rgba(20, 16, 8, 0.85)),
+          #14100a;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+      }
+
+      .vh-age-ring {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        position: relative;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background:
+          conic-gradient(var(--gold) 0 62%, rgba(255, 255, 255, 0.09) 62% 100%),
+          #10141c;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+      }
+
+      .vh-age-ring::before {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: #11151d;
+      }
+
+      .vh-age-ring span {
+        position: relative;
+        z-index: 1;
+        font: 800 11px/1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vh-age-copy b {
+        display: block;
+        font: 700 10.5px/1 var(--serif);
+        letter-spacing: 0.06em;
+        color: var(--gold-2);
+      }
+
+      .vh-age-copy span {
+        display: block;
+        margin-top: 3px;
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vh-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .vh-speed {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+        padding: 2px;
+        margin-right: 3px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: rgba(0, 0, 0, 0.35);
+      }
+
+      .vh-speed button {
+        width: 24px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .vh-speed button:hover {
+        color: var(--gold-2);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .vh-speed button.active {
+        color: #1a1206;
+        background: linear-gradient(180deg, #f0d9a0, #c9a24a);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      }
+
+      .vh-icon {
+        width: 32px;
+        height: 32px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        background: linear-gradient(180deg, #23262c, #13161b);
+        color: var(--muted);
+        cursor: pointer;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      .vh-icon:hover {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.55);
+        background: linear-gradient(180deg, #2c2a20, #17150e);
+      }
+
+      .vh-icon .ico {
+        width: 17px;
+        height: 17px;
+      }
+
+      .vh-icon .badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        min-width: 14px;
+        height: 14px;
+        display: grid;
+        place-items: center;
+        padding: 0 3px;
+        border-radius: 7px;
+        background: #b4352b;
+        color: #fff;
+        font-size: 8px;
+        font-weight: 800;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+      }
+
+      /* ---------- shared frame ---------- */
+      .vh-frame {
+        position: relative;
+        border: 1px solid #6b5527;
+        background:
+          repeating-linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.012) 0 1px,
+            transparent 1px 5px
+          ),
+          radial-gradient(
+            ellipse at 50% -10%,
+            rgba(214, 178, 94, 0.07),
+            transparent 55%
+          ),
+          linear-gradient(180deg, rgba(30, 33, 38, 0.985), rgba(11, 13, 17, 0.985));
+        box-shadow:
+          0 18px 44px rgba(0, 0, 0, 0.6),
+          inset 0 0 0 1px #080a0d,
+          inset 0 0 0 2px rgba(214, 178, 94, 0.13),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .vh-corners::before {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        z-index: 1;
+        pointer-events: none;
+        background-image:
+          linear-gradient(#c9a24a, #c9a24a), linear-gradient(#c9a24a, #c9a24a),
+          linear-gradient(#c9a24a, #c9a24a), linear-gradient(#c9a24a, #c9a24a),
+          linear-gradient(#c9a24a, #c9a24a), linear-gradient(#c9a24a, #c9a24a),
+          linear-gradient(#c9a24a, #c9a24a), linear-gradient(#c9a24a, #c9a24a);
+        background-size:
+          12px 1px,
+          1px 12px,
+          12px 1px,
+          1px 12px,
+          12px 1px,
+          1px 12px,
+          12px 1px,
+          1px 12px;
+        background-position:
+          0 0,
+          0 0,
+          100% 0,
+          100% 0,
+          0 100%,
+          0 100%,
+          100% 100%,
+          100% 100%;
+        background-repeat: no-repeat;
+        opacity: 0.45;
+      }
+
+      /* ---------- info panel ---------- */
+      .vh-panel {
+        position: absolute;
+        left: 12px;
+        top: 72px;
+        z-index: 14;
+        width: 340px;
+        max-height: calc(100vh - 380px);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .vh-panel-tabs {
+        display: flex;
+        flex: none;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.28);
+        background: linear-gradient(180deg, #2b2618, #17191e);
+      }
+
+      .vh-panel-tab {
+        flex: 1;
+        padding: 10px 4px 9px;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .vh-panel-tab:hover {
+        color: var(--text);
+      }
+
+      .vh-panel-tab.active {
+        color: var(--gold-2);
+        border-bottom-color: var(--gold);
+        background: rgba(214, 178, 94, 0.08);
+      }
+
+      .vh-panel-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 4px 12px 8px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(214, 178, 94, 0.3) transparent;
+      }
+
+      .vh-panel-body::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .vh-panel-body::-webkit-scrollbar-thumb {
+        background: rgba(214, 178, 94, 0.28);
+      }
+
+      .vh-panel .objective-row {
+        gap: 9px;
+        padding: 9px 0;
+      }
+
+      .vh-panel .objective-title {
+        font-size: 12px;
+        color: var(--text);
+      }
+
+      .vh-panel .objective-desc {
+        margin-top: 2px;
+        font-size: 10.5px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .vh-panel .objective-mark {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+      }
+
+      .vh-panel-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px 0 2px;
+        border-top: 1px solid rgba(214, 178, 94, 0.18);
+        font-size: 9.5px;
+        color: var(--muted);
+      }
+
+      .vh-panel-foot b {
+        color: var(--gold-2);
+        font-weight: 700;
+      }
+
+      .vh-victory-row {
+        display: grid;
+        grid-template-columns: 18px 70px 1fr 40px;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .vh-victory-row:last-of-type {
+        border-bottom: 0;
+      }
+
+      .vh-victory-row .v-icon {
+        color: var(--gold);
+      }
+
+      .vh-victory-row .v-icon .ico {
+        width: 15px;
+        height: 15px;
+      }
+
+      .vh-victory-row .vname {
+        font-weight: 600;
+        color: #cfc9ba;
+      }
+
+      .vh-victory-row b {
+        text-align: right;
+        font-size: 10px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-victory-row.active {
+        background: linear-gradient(
+          90deg,
+          rgba(214, 178, 94, 0.12),
+          transparent 70%
+        );
+        box-shadow: inset 2px 0 0 var(--gold);
+        padding-left: 6px;
+      }
+
+      .vh-victory-row.active .vname {
+        color: var(--gold-2);
+      }
+
+      .vh-victory-row.active .bar > i {
+        background: linear-gradient(90deg, #b08a34, #f6e3a8);
+      }
+
+      .vh-person {
+        display: grid;
+        grid-template-columns: 34px 1fr 60px;
+        align-items: center;
+        gap: 9px;
+        padding: 7px 4px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+      }
+
+      .vh-person:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .vh-person.selected {
+        background: rgba(214, 178, 94, 0.1);
+        box-shadow: inset 2px 0 0 var(--gold);
+      }
+
+      .vh-person .p-dot {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--gold-2);
+        background: radial-gradient(circle at 35% 28%, #46536a, #121722 72%);
+        border: 1px solid rgba(214, 178, 94, 0.4);
+        font: 700 12px/1 var(--serif);
+      }
+
+      .vh-person .p-copy b {
+        display: block;
+        font-size: 11px;
+        color: var(--text);
+      }
+
+      .vh-person .p-copy span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-person .p-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .vh-person .p-bars .bar {
+        height: 3px;
+      }
+
+      .vh-council {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 12px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(214, 178, 94, 0.18);
+      }
+
+      .vh-council-row {
+        display: grid;
+        grid-template-columns: 14px 1fr auto;
+        align-items: center;
+        gap: 4px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-council-row .f-seal {
+        width: 14px;
+        height: 14px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(214, 178, 94, 0.35);
+        background: #1a1509;
+        color: var(--gold-2);
+        font: 700 6px/1 var(--serif);
+      }
+
+      .vh-council-row b {
+        color: var(--text);
+        font-size: 9px;
+      }
+
+      .vh-council-row .bar {
+        grid-column: 1 / -1;
+        height: 2px;
+        margin-top: -1px;
+      }
+
+      /* ---------- settlement footer ---------- */
+      .vh-settle {
+        flex: none;
+        display: grid;
+        grid-template-columns: 58px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-top: 1px solid rgba(214, 178, 94, 0.28);
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.24),
+          rgba(0, 0, 0, 0.42)
+        );
+      }
+
+      .vh-mood b {
+        display: block;
+        font: 700 26px/1 var(--serif);
+        color: var(--gold-2);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-mood span {
+        display: block;
+        margin-top: 1px;
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--green);
+        white-space: nowrap;
+      }
+
+      .vh-settle-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .vh-settle-stat span {
+        display: block;
+        font-size: 7.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-settle-stat b {
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-settle-stat b.danger {
+        color: #f0a79e;
+      }
+
+      .vh-settle-stat b.warn {
+        color: #ffd98a;
+      }
+
+      .vh-people-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 9px;
+        border: 1px solid rgba(214, 178, 94, 0.4);
+        background: linear-gradient(180deg, rgba(214, 178, 94, 0.16), rgba(214, 178, 94, 0.05));
+        color: var(--gold-2);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .vh-people-btn:hover {
+        border-color: rgba(240, 217, 160, 0.7);
+        background: rgba(214, 178, 94, 0.22);
+      }
+
+      /* ---------- field reports ---------- */
+      .vh-toasts {
+        position: absolute;
+        top: 72px;
+        right: 12px;
+        z-index: 13;
+        width: 304px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        pointer-events: none;
+      }
+
+      .vh-toast {
+        display: grid;
+        grid-template-columns: 26px 1fr auto;
+        align-items: start;
+        gap: 8px;
+        padding: 9px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-left: 2px solid var(--amber);
+        background: linear-gradient(180deg, rgba(26, 29, 34, 0.97), rgba(10, 12, 16, 0.95));
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+      }
+
+      .vh-toast .r-icon {
+        margin-top: 1px;
+        color: var(--amber);
+      }
+
+      .vh-toast .r-icon .ico {
+        width: 18px;
+        height: 18px;
+      }
+
+      .vh-toast b {
+        display: block;
+        font-size: 11px;
+        color: var(--text);
+      }
+
+      .vh-toast span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9.5px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .vh-toast time {
+        font-size: 8px;
+        color: rgba(154, 164, 184, 0.6);
+      }
+
+      .vh-toast.success {
+        border-left-color: var(--green);
+      }
+
+      .vh-toast.success .r-icon {
+        color: var(--green);
+      }
+
+      .vh-toast.danger {
+        border-left-color: var(--red);
+      }
+
+      .vh-toast.danger .r-icon {
+        color: var(--red);
+      }
+
+      /* ---------- map ---------- */
+      .vh-map {
+        position: absolute;
+        inset: 60px 0 292px 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      .vh-marker {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 9px 5px 7px;
+        border: 1px solid rgba(214, 178, 94, 0.45);
+        background: linear-gradient(180deg, rgba(18, 21, 26, 0.88), rgba(8, 10, 14, 0.82));
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+      }
+
+      .vh-marker .m-diamond {
+        width: 9px;
+        height: 9px;
+        flex: none;
+        transform: rotate(45deg);
+        background: var(--gold);
+        box-shadow: 0 0 10px rgba(240, 217, 160, 0.55);
+      }
+
+      .vh-marker b {
+        display: block;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: var(--gold-2);
+      }
+
+      .vh-marker span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9px;
+        color: rgba(233, 228, 215, 0.72);
+      }
+
+      .vh-marker.red {
+        border-color: rgba(224, 108, 90, 0.45);
+      }
+
+      .vh-marker.red .m-diamond {
+        background: var(--red);
+        box-shadow: 0 0 10px rgba(224, 108, 90, 0.55);
+      }
+
+      .vh-marker.red b {
+        color: #f3b0a7;
+      }
+
+      .vh-marker-crossing {
+        left: 33%;
+        top: 28%;
+      }
+
+      .vh-marker-raid {
+        left: 69%;
+        top: 58%;
+      }
+
+      .vh-select-ring {
+        position: absolute;
+        width: 128px;
+        height: 94px;
+        transform: translate(-50%, -50%) rotate(-3deg);
+        border: 1px dashed rgba(240, 217, 160, 0.6);
+        border-radius: 50%;
+        box-shadow:
+          0 0 0 3px rgba(0, 0, 0, 0.14),
+          inset 0 0 24px rgba(240, 217, 160, 0.08);
+      }
+
+      .vh-select-ring::after {
+        content: "RIVER KEEP · SELECTED";
+        position: absolute;
+        left: 50%;
+        bottom: -18px;
+        transform: translateX(-50%);
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: rgba(240, 217, 160, 0.8);
+        text-shadow: 0 1px 3px #000;
+        white-space: nowrap;
+      }
+
+      /* ---------- deck ---------- */
+      .vh-deck {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        height: 292px;
+        display: grid;
+        grid-template-columns: 236px minmax(0, 1fr) 206px 340px;
+        gap: 10px;
+        padding: 9px 12px 46px;
+        background:
+          repeating-linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.01) 0 1px,
+            transparent 1px 4px
+          ),
+          linear-gradient(180deg, rgba(15, 17, 21, 0.97), rgba(5, 7, 10, 0.995));
+        border-top: 1px solid #6b5527;
+        box-shadow:
+          0 -1px 0 #000,
+          0 -16px 44px rgba(0, 0, 0, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .vh-deck::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 2px;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(214, 178, 94, 0.4) 20%,
+          rgba(214, 178, 94, 0.4) 80%,
+          transparent
+        );
+      }
+
+      .vh-mini-col {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 0;
+      }
+
+      .vh-mini-frame {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        padding: 3px;
+        border: 1px solid #6b5527;
+        background: #080a0d;
+        box-shadow:
+          inset 0 0 0 1px #000,
+          0 6px 18px rgba(0, 0, 0, 0.5);
+      }
+
+      .vh-mini-frame .mini-map {
+        height: 100%;
+        border: 1px solid rgba(214, 178, 94, 0.2);
+        border-radius: 0;
+      }
+
+      .vh-mini-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 8px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-groups {
+        display: flex;
+        gap: 3px;
+      }
+
+      .vh-group {
+        flex: 1;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(180deg, #1d2026, #0d0f13);
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .vh-group:hover {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.45);
+      }
+
+      .vh-group.active {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.55);
+        background: linear-gradient(180deg, #3a2f16, #17130a);
+      }
+
+      .vh-cmd-col {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .vh-selection {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px;
+        border: 1px solid rgba(214, 178, 94, 0.3);
+        background: linear-gradient(180deg, rgba(34, 37, 42, 0.95), rgba(13, 15, 19, 0.95));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.05),
+          0 6px 16px rgba(0, 0, 0, 0.3);
+      }
+
+      .vh-selection .portrait {
+        --size: 44px;
+      }
+
+      .vh-selection .portrait .sprite,
+      .vh-insp-head .portrait .sprite {
+        background-size: calc(var(--size) * 32) calc(var(--size) * 64);
+        background-position: calc(var(--size) * -0.5) 0;
+        transform: none;
+      }
+
+      .vh-sel-copy {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .vh-sel-copy b {
+        display: block;
+        font: 700 15px/1.1 var(--serif);
+        letter-spacing: 0.04em;
+        color: var(--gold-2);
+      }
+
+      .vh-sel-copy span {
+        display: block;
+        margin-top: 3px;
+        font-size: 9.5px;
+        color: var(--muted);
+      }
+
+      .vh-hp {
+        width: 132px;
+        flex: none;
+      }
+
+      .vh-hp .tiny-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 3px;
+        font-size: 8.5px;
+      }
+
+      .vh-hp .bar {
+        height: 8px;
+      }
+
+      .vh-queue {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 4px;
+        max-width: 250px;
+      }
+
+      .vh-queue .q {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        background: rgba(255, 255, 255, 0.045);
+        font-size: 8.5px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .vh-queue .q b {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .vh-cmd-tabs {
+        flex: none;
+        display: flex;
+        gap: 3px;
+      }
+
+      .vh-cmd-tab {
+        flex: 0 0 auto;
+        min-width: 108px;
+        height: 28px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(180deg, #1c1f24, #101216);
+        color: var(--muted);
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .vh-cmd-tab:hover {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.4);
+      }
+
+      .vh-cmd-tab.active {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.6);
+        background: linear-gradient(180deg, #3a2f16, #17130a);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      .vh-cmd-tab .hk {
+        font-size: 8px;
+        color: rgba(240, 217, 160, 0.55);
+      }
+
+      .vh-cmd-grid {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        gap: 5px;
+      }
+
+      .vh-cmd-grid .command-btn {
+        min-height: 0;
+        padding: 5px 4px 4px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 42%),
+          linear-gradient(180deg, #23262c, #111318);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 3px 8px rgba(0, 0, 0, 0.35);
+        position: relative;
+      }
+
+      .vh-cmd-grid .command-btn:hover {
+        border-color: rgba(240, 217, 160, 0.75);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%),
+          linear-gradient(180deg, #33302a, #17140e);
+        transform: translateY(-1px);
+      }
+
+      .vh-cmd-grid .command-btn.primary {
+        border-color: rgba(240, 217, 160, 0.75);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%),
+          linear-gradient(180deg, #4a3a1b, #1c160a);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 0 16px rgba(214, 178, 94, 0.12);
+      }
+
+      .vh-cmd-grid .command-btn .ico {
+        width: 24px;
+        height: 24px;
+        margin: 0 auto;
+      }
+
+      .vh-cmd-grid .command-btn .cmd-name {
+        margin-top: 4px;
+        font-size: 10.5px;
+        color: #ddd6c6;
+      }
+
+      .vh-cmd-grid .command-btn .cmd-cost {
+        margin-top: 1px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-cmd-grid .command-btn .hotkey {
+        top: 3px;
+        left: 5px;
+        font-size: 8.5px;
+        color: rgba(240, 217, 160, 0.55);
+      }
+
+      .vh-cmd-grid .command-btn.locked {
+        opacity: 0.45;
+      }
+
+      .vh-cmd-grid .command-btn.done {
+        opacity: 0.65;
+        border-color: rgba(126, 196, 111, 0.35);
+      }
+
+      .vh-age-panel {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 92px 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 18px;
+        border: 1px solid rgba(214, 178, 94, 0.4);
+        background:
+          radial-gradient(
+            ellipse at 12% 50%,
+            rgba(214, 178, 94, 0.14),
+            transparent 55%
+          ),
+          linear-gradient(135deg, rgba(80, 61, 25, 0.28), rgba(10, 13, 19, 0.94));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .vh-age-panel .ring {
+        width: 82px;
+        height: 82px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background:
+          conic-gradient(var(--gold) 0 62%, rgba(255, 255, 255, 0.08) 62% 100%),
+          #10141c;
+      }
+
+      .vh-age-panel .ring::before {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 50%;
+        background: #10141c;
+      }
+
+      .vh-age-panel .ring span {
+        position: relative;
+        z-index: 1;
+        font: 800 20px/1 var(--serif);
+        color: var(--gold-2);
+      }
+
+      .vh-age-panel h4 {
+        margin: 0;
+        font: 700 16px/1.1 var(--serif);
+        letter-spacing: 0.04em;
+        color: var(--gold-2);
+      }
+
+      .vh-age-panel p {
+        margin: 5px 0 0;
+        font-size: 10px;
+        color: var(--muted);
+      }
+
+      .vh-reqs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 8px;
+      }
+
+      .vh-req {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 7px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 9px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .vh-req.done {
+        color: #a9e2a3;
+        border-color: rgba(126, 196, 111, 0.28);
+        background: rgba(126, 196, 111, 0.08);
+      }
+
+      .vh-req .ico {
+        width: 11px;
+        height: 11px;
+      }
+
+      .vh-advance {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 11px 16px;
+        border: 1px solid rgba(240, 217, 160, 0.8);
+        background: linear-gradient(180deg, #f0d9a0, #c9a24a);
+        color: #1a1206;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      }
+
+      .vh-advance:hover {
+        filter: brightness(1.08);
+      }
+
+      .vh-advance .ico {
+        width: 15px;
+        height: 15px;
+      }
+
+      .vh-cmd-hint {
+        margin-left: auto;
+        padding-right: 4px;
+        align-self: center;
+        font-size: 9px;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .vh-cmd-hint b {
+        color: var(--gold-2);
+        font-weight: 600;
+      }
+
+      /* ---------- training queue ---------- */
+      .vh-queue-col {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-height: 0;
+      }
+
+      .vh-queue-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px;
+        padding: 0 2px;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-queue-head b {
+        color: var(--gold-2);
+        font-size: 9px;
+      }
+
+      .vh-queue-list {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .vh-qitem {
+        display: grid;
+        grid-template-columns: 26px 1fr auto;
+        align-items: center;
+        gap: 3px 8px;
+        padding: 6px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(180deg, rgba(34, 37, 42, 0.9), rgba(12, 14, 18, 0.9));
+      }
+
+      .vh-qitem .q-icon {
+        grid-row: 1 / 3;
+        color: var(--gold-2);
+      }
+
+      .vh-qitem .q-icon .ico {
+        width: 20px;
+        height: 20px;
+      }
+
+      .vh-qitem b {
+        font-size: 10px;
+        color: var(--text);
+      }
+
+      .vh-qitem span {
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .vh-qitem time {
+        font-size: 9px;
+        color: var(--gold-2);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-qitem .bar {
+        grid-column: 2 / -1;
+        height: 3px;
+        margin-top: 2px;
+      }
+
+      .vh-queue-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        padding: 6px 2px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        font-size: 8px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-queue-foot b {
+        color: var(--gold-2);
+        font-weight: 600;
+      }
+
+      /* ---------- inspector ---------- */
+      .vh-inspector {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .vh-insp-tabs {
+        flex: none;
+        display: flex;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.28);
+        background: linear-gradient(180deg, #2b2618, #17191e);
+      }
+
+      .vh-insp-tab {
+        flex: 1;
+        padding: 10px 4px 9px;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .vh-insp-tab:hover {
+        color: var(--text);
+      }
+
+      .vh-insp-tab.active {
+        color: var(--gold-2);
+        border-bottom-color: var(--gold);
+        background: rgba(214, 178, 94, 0.08);
+      }
+
+      .vh-insp-body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 7px 12px 8px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(214, 178, 94, 0.3) transparent;
+      }
+
+      .vh-insp-body::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .vh-insp-body::-webkit-scrollbar-thumb {
+        background: rgba(214, 178, 94, 0.28);
+      }
+
+      .vh-insp-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .vh-insp-head .portrait {
+        --size: 50px;
+      }
+
+      .vh-insp-copy {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .vh-insp-copy b {
+        display: block;
+        font: 700 14px/1.1 var(--serif);
+        letter-spacing: 0.04em;
+        color: var(--gold-2);
+      }
+
+      .vh-insp-copy span {
+        display: block;
+        margin-top: 3px;
+        font-size: 9.5px;
+        color: var(--muted);
+      }
+
+      .vh-insp-copy .chip {
+        display: inline-flex;
+        width: max-content;
+        font-size: 8.5px;
+        padding: 2px 5px;
+      }
+
+      .vh-insp-name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .vh-insp-name b {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .vh-insp-hp {
+        margin-top: 8px;
+      }
+
+      .vh-insp-hp .tiny-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 3px;
+        font-size: 9px;
+      }
+
+      .vh-stat-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px 12px;
+        margin-top: 6px;
+      }
+
+      .vh-stat {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 3px 0;
+        border-bottom: 1px dotted rgba(255, 255, 255, 0.08);
+        font-size: 9.5px;
+        color: var(--muted);
+      }
+
+      .vh-stat b {
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-insp-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 6px 0 3px;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-insp-label span {
+        color: var(--gold-2);
+      }
+
+      .vh-vitals {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 3px 10px;
+      }
+
+      .vh-vital {
+        display: grid;
+        grid-template-columns: 32px 1fr 18px;
+        align-items: center;
+        gap: 4px;
+        font-size: 8.5px;
+        color: var(--muted);
+      }
+
+      .vh-vital b {
+        text-align: right;
+        font-size: 8.5px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-skill {
+        display: grid;
+        grid-template-columns: 62px 1fr 22px;
+        align-items: center;
+        gap: 6px;
+        padding: 1px 0;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-skill b {
+        text-align: right;
+        font-size: 9px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-skill-bar {
+        display: flex;
+        height: 6px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.07);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .vh-skill-bar .theory {
+        height: 100%;
+        background: rgba(214, 178, 94, 0.35);
+      }
+
+      .vh-skill-bar .practice {
+        height: 100%;
+        background: linear-gradient(90deg, #a77f2e, #f3df9a);
+      }
+
+      .vh-civic {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 3px;
+      }
+
+      .vh-civic .chip {
+        padding: 2px 5px;
+        font-size: 8.5px;
+      }
+
+      .vh-civic .chip .ico {
+        width: 10px;
+        height: 10px;
+      }
+
+      .vh-activity {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 3px;
+        font-size: 9.5px;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .vh-activity .ico {
+        width: 13px;
+        height: 13px;
+        flex: none;
+        color: var(--gold-2);
+      }
+
+      /* ---------- responsive ---------- */
+      @media (max-width: 1440px) {
+        .vh-deck {
+          height: 276px;
+          grid-template-columns: 220px minmax(0, 1fr) 320px;
+        }
+        .vh-queue-col {
+          display: none;
+        }
+        .vh-cmd-tab {
+          min-width: 92px;
+          height: 26px;
+          padding: 0 12px;
+        }
+        .vh-selection {
+          padding: 4px 9px;
+        }
+        .vh-selection .portrait {
+          --size: 40px;
+        }
+        .vh-cmd-col {
+          gap: 5px;
+        }
+        .vh-res .res {
+          padding: 5px 6px;
+        }
+        .vh-res .res span {
+          display: none;
+        }
+        .vh-res .res b {
+          font-size: 13px;
+        }
+        .vh-civ-copy span {
+          display: none;
+        }
+        .vh-sel-copy b {
+          font-size: 13px;
+        }
+        .vh-hp {
+          width: 120px;
+        }
+        .vh-queue {
+          max-width: 210px;
+        }
+      }
+
+      @media (max-width: 1240px) {
+        .vh-panel {
+          width: 318px;
+        }
+        .vh-deck {
+          height: 266px;
+          grid-template-columns: 212px minmax(0, 1fr) 304px;
+          gap: 8px;
+        }
+        .vh-cmd-grid .command-btn .cmd-cost {
+          display: none;
+        }
+        .vh-queue {
+          max-width: 160px;
+        }
+        .vh-toasts {
+          width: 272px;
+        }
+      }
+
+      @media (max-width: 1320px) {
+        .vh-res .res.minor,
+        .vh-res .res-divider {
+          display: none;
+        }
+      }
+
+      @media (max-width: 1100px) {
+        .vh-top {
+          gap: 8px;
+          padding: 0 10px;
+        }
+        .vh-civ {
+          gap: 8px;
+        }
+        .vh-civ-copy b {
+          font-size: 12px;
+        }
+        .vh-res .res.minor,
+        .vh-res .res-divider {
+          display: none;
+        }
+        .vh-res .res {
+          padding: 5px 6px;
+          gap: 4px;
+        }
+        .vh-res .res .ico {
+          width: 15px;
+          height: 15px;
+        }
+        .vh-res .res b {
+          font-size: 12px;
+        }
+        .vh-age {
+          padding: 4px 8px 4px 4px;
+          gap: 6px;
+        }
+        .vh-age-copy b {
+          font-size: 9.5px;
+        }
+        .vh-age-copy span {
+          display: none;
+        }
+        .vh-speed {
+          display: none;
+        }
+        .vh-icon {
+          width: 28px;
+          height: 28px;
+        }
+        .vh-icon .ico {
+          width: 15px;
+          height: 15px;
+        }
+
+        .vh-deck {
+          grid-template-columns: 200px minmax(0, 1fr) 292px;
+          gap: 8px;
+          padding: 9px 10px 46px;
+        }
+        .vh-cmd-tab {
+          flex: 1;
+          min-width: 0;
+          padding: 0 6px;
+        }
+        .vh-cmd-hint {
+          display: none;
+        }
+        .vh-queue {
+          display: none;
+        }
+        .vh-selection {
+          gap: 8px;
+          padding: 5px 8px;
+        }
+        .vh-selection .portrait {
+          --size: 38px;
+        }
+        .vh-sel-copy b {
+          font-size: 12px;
+        }
+        .vh-hp {
+          width: 110px;
+        }
+        .vh-cmd-grid {
+          gap: 4px;
+        }
+        .vh-cmd-grid .command-btn {
+          padding: 4px 3px 3px;
+        }
+        .vh-cmd-grid .command-btn .ico {
+          width: 20px;
+          height: 20px;
+        }
+        .vh-cmd-grid .command-btn .cmd-name {
+          font-size: 9px;
+          line-height: 1.15;
+        }
+        .vh-cmd-grid .command-btn .cmd-cost {
+          display: none;
+        }
+        .vh-insp-body {
+          padding: 6px 9px 7px;
+        }
+        .vh-insp-label {
+          margin: 4px 0 2px;
+        }
+        .vh-activity {
+          margin-top: 2px;
+        }
+        .vh-age-panel h4 {
+          font-size: 14px;
+        }
+        .vh-marker-crossing {
+          left: 42%;
+          top: 26%;
+        }
+        .vh-marker-raid {
+          left: 66%;
+          top: 60%;
+        }
+      }
+
+      @media (max-height: 840px) {
+        .vh-panel {
+          max-height: calc(100vh - 348px);
+        }
+        .vh-insp-copy-pop > span,
+        .vh-civic-pop {
+          display: none;
+        }
+        .vh-insp-label {
+          margin: 5px 0 2px;
+        }
+        .vh-settle {
+          padding: 6px 12px;
+        }
+        .vh-mood b {
+          font-size: 22px;
+        }
+        .vh-panel .objective-row {
+          padding: 7px 0;
+        }
+        .vh-toasts .vh-toast:nth-child(3) {
+          display: none;
+        }
+      }
+
+      /* ---------- pause / settings overlay ---------- */
+      #pause-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 300;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(3, 5, 8, 0.72);
+        backdrop-filter: blur(9px);
+      }
+
+      #pause-overlay[hidden] {
+        display: none;
+      }
+
+      .pause-card {
+        width: min(860px, 94vw);
+        max-height: 88vh;
+        overflow: auto;
+        border: 1px solid rgba(214, 178, 94, 0.55);
+        border-radius: 12px;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.025),
+            transparent 30%
+          ),
+          linear-gradient(180deg, rgba(24, 29, 39, 0.995), rgba(8, 11, 16, 0.995));
+        box-shadow:
+          0 40px 100px rgba(0, 0, 0, 0.75),
+          inset 0 1px 0 rgba(240, 217, 160, 0.12);
+        scrollbar-width: thin;
+        scrollbar-color: rgba(214, 178, 94, 0.35) transparent;
+      }
+
+      .pause-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 18px;
+        border-bottom: 1px solid rgba(214, 178, 94, 0.2);
+        background: linear-gradient(
+          180deg,
+          rgba(80, 61, 25, 0.2),
+          transparent
+        );
+      }
+
+      .pause-head .vh-crest {
+        width: 42px;
+        height: 42px;
+      }
+
+      .pause-head h2 {
+        margin: 0;
+        font: 700 20px/1 var(--serif);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      .pause-head p {
+        margin: 4px 0 0;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .pause-close {
+        margin-left: auto;
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.25);
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .pause-close:hover {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.4);
+      }
+
+      .pause-close:focus-visible,
+      .pause-menu-btn:focus-visible,
+      .vh-insp-tab:focus-visible,
+      .vh-cmd-tab:focus-visible,
+      .vh-person:focus-visible,
+      .vh-advance:focus-visible,
+      .vh-panel-tab:focus-visible,
+      .vh-icon:focus-visible {
+        outline: 2px solid rgba(240, 217, 160, 0.85);
+        outline-offset: 2px;
+      }
+
+      .pause-close .ico {
+        width: 15px;
+        height: 15px;
+      }
+
+      .pause-grid {
+        display: grid;
+        grid-template-columns: 214px 1fr;
+      }
+
+      .pause-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px;
+        border-right: 1px solid rgba(214, 178, 94, 0.14);
+      }
+
+      .pause-menu-btn {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 9px 10px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 10px;
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .pause-menu-btn:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .pause-menu-btn .ico {
+        width: 16px;
+        height: 16px;
+      }
+
+      .pause-menu-btn .hk {
+        margin-left: auto;
+        font-size: 8px;
+        opacity: 0.6;
+      }
+
+      .pause-menu-btn.primary {
+        color: #1a1206;
+        font-weight: 800;
+        border-color: rgba(240, 217, 160, 0.8);
+        background: linear-gradient(180deg, #f0d9a0, #c9a24a);
+      }
+
+      .pause-menu-btn.primary:hover {
+        color: #1a1206;
+        filter: brightness(1.06);
+      }
+
+      .pause-menu-btn.active {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.28);
+        background: rgba(214, 178, 94, 0.08);
+      }
+
+      .pause-menu-btn.danger {
+        color: #f0a79e;
+      }
+
+      .pause-body {
+        padding: 14px 18px 16px;
+      }
+
+      .pause-body-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .pause-body-head h3 {
+        margin: 0;
+        font: 700 10px/1 var(--serif);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      .pause-body-head span {
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .pause-panel[hidden] {
+        display: none;
+      }
+
+      .pause-section {
+        margin-bottom: 12px;
+      }
+
+      .pause-section h4 {
+        margin: 0 0 6px;
+        font: 700 8px/1 var(--sans);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      .pause-row {
+        display: grid;
+        grid-template-columns: 104px 1fr 38px;
+        align-items: center;
+        gap: 10px;
+        padding: 3px 0;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .pause-row input[type="range"] {
+        width: 100%;
+        accent-color: #d6b25e;
+      }
+
+      .pause-row b {
+        text-align: right;
+        font-size: 8px;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .pause-toggles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px 14px;
+      }
+
+      .pause-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 9px;
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .pause-toggle input {
+        appearance: none;
+        width: 28px;
+        height: 15px;
+        flex: none;
+        position: relative;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.12);
+        cursor: pointer;
+      }
+
+      .pause-toggle input::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #9aa4b8;
+        transition:
+          left 120ms ease,
+          background 120ms ease;
+      }
+
+      .pause-toggle input:checked {
+        border-color: rgba(214, 178, 94, 0.6);
+        background: rgba(214, 178, 94, 0.35);
+      }
+
+      .pause-toggle input:checked::after {
+        left: 15px;
+        background: #f0d9a0;
+      }
+
+      .pause-objectives {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .pause-objectives .objective-row {
+        padding: 7px 0;
+      }
+
+      .pause-objectives .objective-title {
+        font-size: 11px;
+      }
+
+      .pause-objectives .objective-desc {
+        font-size: 9px;
+      }
+
+      .pause-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 18px;
+        border-top: 1px solid rgba(214, 178, 94, 0.14);
+        font-size: 8px;
+        color: var(--muted);
+      }
+
+      .pause-foot b {
+        color: var(--gold-2);
+      }
+
+      @media (max-width: 760px) {
+        .pause-grid {
+          grid-template-columns: 1fr;
+        }
+        .pause-menu {
+          flex-direction: row;
+          flex-wrap: wrap;
+          border-right: 0;
+          border-bottom: 1px solid rgba(214, 178, 94, 0.14);
+        }
+        .pause-menu-btn {
+          width: auto;
+        }
+      }
+
+      /* ---------- prototype switcher ---------- */
+      #proto-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 8px;
+        transform: translateX(-50%);
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(6, 8, 12, 0.94);
+        border: 1px solid rgba(214, 178, 94, 0.5);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+        font: 10px/1 var(--sans);
+        color: var(--muted);
+        user-select: none;
+      }
+
+      #proto-bar .proto-note {
+        padding: 0 4px;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold-2);
+      }
+
+      #proto-bar button {
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+      }
+
+      #proto-bar button:hover {
+        border-color: rgba(214, 178, 94, 0.5);
+        color: var(--gold-2);
+      }
+
+      #proto-bar .proto-label {
+        min-width: 168px;
+        text-align: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      #proto-bar .proto-label b {
+        color: var(--gold-2);
+      }
+
+      #proto-bar .proto-hint {
+        padding-left: 6px;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 8px;
+        color: rgba(154, 164, 184, 0.75);
+      }
+
+      /* The shared span rules above make these inline chips stretch; keep
+         them hugging their content. */
+      .va-inspector-copy .chip,
+      .vb-inspector-copy .chip {
+        display: inline-flex;
+        width: max-content;
+      }
+
+      /* narrow screens: keep the prototype legible rather than pixel-perfect */
+      @media (max-width: 1320px) {
+        .va-resources .res span,
+        .vb-topstrip .res span,
+        .vc-top-ribbon .res span {
+          display: none;
+        }
+        .vc-top-ribbon {
+          width: 62vw;
+        }
+        .vc-objective-scroll {
+          top: 88px;
+        }
+        .vc-notifications {
+          top: 88px;
+        }
+        .vc-pause {
+          top: 270px;
+        }
+        .vc-victory-banners {
+          top: 80px;
+          gap: 4px;
+        }
+        .vc-banner {
+          width: 78px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <div class="world-bg"></div>
+      <div class="vignette"></div>
+      <div class="grain"></div>
+      <main id="variant-root"></main>
+    </div>
+    <div id="proto-bar" aria-label="Prototype variant switcher">
+      <span class="proto-note">Prototype</span>
+      <button id="prev" type="button" aria-label="Previous variant">‹</button>
+      <span class="proto-label" id="proto-label"></span>
+      <button id="next" type="button" aria-label="Next variant">›</button>
+      <span class="proto-hint">← → · 1–4 · Esc</span>
+    </div>
+    <div id="pause-slot"></div>
+    <script>
+      const DATA = {
+        house: "House of Aldric",
+        civ: "Britons",
+        motto: "By Iron and Oath",
+        souls: 58,
+        age: {
+          epoch: "Epoch III",
+          name: "High Middle Ages",
+          rank: 7,
+          total: 24,
+          progress: 0.62,
+          next: "Epoch IV · Late Medieval",
+        },
+        resources: [
+          { id: "food", label: "Food", value: "1,240", delta: "+18" },
+          { id: "wood", label: "Wood", value: "860", delta: "+12" },
+          { id: "gold", label: "Gold", value: "415", delta: "+6" },
+          { id: "stone", label: "Stone", value: "210", delta: "+2" },
+          { id: "iron", label: "Iron", value: "96", delta: "+1" },
+          { id: "coal", label: "Coal", value: "40", delta: "—" },
+          { id: "clay", label: "Clay", value: "180", delta: "+3" },
+          { id: "pop", label: "Pop", value: "58 / 60", delta: "" },
+        ],
+        objectives: [
+          {
+            primary: true,
+            title: "Hold the river crossing",
+            desc: "Keep 2 keeps standing for 5 minutes",
+            status: "active",
+          },
+          {
+            primary: true,
+            title: "Raise a market",
+            desc: "Build a Market in the lower ward",
+            status: "completed",
+          },
+          {
+            primary: false,
+            title: "Collect 3 relics",
+            desc: "1 of 3 recovered",
+            status: "active",
+          },
+        ],
+        victory: [
+          { id: "conquest", label: "Conquest", value: "2 / 3", pct: 0.66, active: true },
+          { id: "knowledge", label: "Knowledge", value: "18 / 40", pct: 0.45 },
+          { id: "culture", label: "Culture", value: "12 / 40", pct: 0.3 },
+          { id: "wonder", label: "Wonder", value: "0 / 3", pct: 0.0 },
+          { id: "relic", label: "Relic", value: "1 / 3", pct: 0.33 },
+          { id: "economic", label: "Economic", value: "22 / 40", pct: 0.55 },
+        ],
+        selected: {
+          kind: "building",
+          name: "Town Center",
+          subtitle: "Level 3 · 12 / 15 population",
+          portrait: "town",
+          hp: 2400,
+          maxHp: 2400,
+          queue: [
+            { name: "Villager", remaining: "0:12" },
+            { name: "Villager", remaining: "0:24" },
+            { name: "Chain Mail", remaining: "1:08" },
+          ],
+          stats: [
+            ["Garrison", "8 / 15"],
+            ["Armor", "6"],
+            ["Attack", "8"],
+            ["Range", "—"],
+          ],
+          mood: 72,
+          health: 94,
+          needs: [
+            ["Food", 0.82],
+            ["Rest", 0.64],
+            ["Social", 0.71],
+          ],
+          tax: 12,
+          unrest: 18,
+          activity: "Training villagers · researching Chain Mail",
+        },
+        keep: {
+          kind: "building",
+          name: "River Keep",
+          subtitle: "Castle · Level 3 · 8 / 15 garrison",
+          portrait: "town",
+          hp: 3200,
+          maxHp: 3200,
+          queue: [
+            { name: "Knight", remaining: "0:18" },
+            { name: "Crossbow", remaining: "0:24" },
+            { name: "Pikeman", remaining: "0:31" },
+          ],
+          stats: [
+            ["Garrison", "8 / 15"],
+            ["Armor", "8"],
+            ["Attack", "12"],
+            ["Range", "9"],
+            ["Sight", "11"],
+            ["Work rate", "—"],
+          ],
+          upgrades: [
+            ["Chain Mail", true],
+            ["Bodkin Arrow", false],
+            ["Ballistics", false],
+          ],
+          activity: "Mustering the river guard · 3 in queue",
+        },
+        pops: [
+          {
+            name: "Aldric",
+            role: "Steward",
+            mood: 82,
+            health: 96,
+            needs: [88, 64, 76],
+            status: "Content",
+            initial: "A",
+            skills: [
+              ["Gathering", 74, 25],
+              ["Stewardship", 58, 35],
+              ["Diplomacy", 41, 50],
+            ],
+            activity: "Managing the town ledger · +2 knowledge/hr",
+          },
+          {
+            name: "Maud",
+            role: "Farmer",
+            mood: 64,
+            health: 88,
+            needs: [72, 48, 61],
+            status: "Hungry",
+            initial: "M",
+            skills: [
+              ["Gathering", 81, 30],
+              ["Farming", 66, 40],
+              ["Husbandry", 44, 20],
+            ],
+            activity: "Harvesting the south field · +3 food/hr",
+          },
+          {
+            name: "Osric",
+            role: "Foreman",
+            mood: 71,
+            health: 91,
+            needs: [80, 70, 66],
+            status: "Working",
+            initial: "O",
+            skills: [
+              ["Building", 72, 28],
+              ["Masonry", 59, 45],
+              ["Leadership", 38, 30],
+            ],
+            activity: "Laying the market foundation",
+          },
+          {
+            name: "Edith",
+            role: "Scholar",
+            mood: 88,
+            health: 84,
+            needs: [90, 72, 80],
+            status: "Inspired",
+            initial: "E",
+            skills: [
+              ["Research", 84, 60],
+              ["Medicine", 57, 40],
+              ["Diplomacy", 49, 35],
+            ],
+            activity: "Copying the chronicle · +2 knowledge/hr",
+          },
+          {
+            name: "Godwin",
+            role: "Miner",
+            mood: 41,
+            health: 73,
+            needs: [58, 39, 44],
+            status: "Unrest",
+            initial: "G",
+            skills: [
+              ["Mining", 77, 22],
+              ["Masonry", 45, 30],
+              ["Gathering", 52, 25],
+            ],
+            activity: "Working the iron seam · unrest rising",
+          },
+          {
+            name: "Aethel",
+            role: "Guard",
+            mood: 76,
+            health: 99,
+            needs: [84, 76, 70],
+            status: "On duty",
+            initial: "A",
+            skills: [
+              ["Combat", 79, 50],
+              ["Patrol", 68, 40],
+              ["Leadership", 41, 25],
+            ],
+            activity: "Patrolling the north ford",
+          },
+        ],
+        notifications: [
+          { kind: "warning", title: "Houses needed", body: "Population at cap — build 2 houses." },
+          { kind: "success", title: "Research complete", body: "Chain Mail is now available." },
+          { kind: "info", title: "Idle villagers", body: "3 villagers are idle near the mill." },
+          { kind: "danger", title: "Raid sighted", body: "Enemy scouts near the north ford." },
+        ],
+        factions: [
+          { name: "Merchants", loyalty: 62, initial: "M" },
+          { name: "Clergy", loyalty: 48, initial: "C" },
+          { name: "Nobility", loyalty: 71, initial: "N" },
+          { name: "Commons", loyalty: 39, initial: "C" },
+        ],
+        council: {
+          mood: 72,
+          health: 94,
+          tax: 12,
+          unrest: 18,
+        },
+      };
+
+      const ICONS = {
+        food: `
+          <path d="M12 22V9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 9c-3 0-5-2-5-5 3 0 5 2 5 5zm0 0c3 0 5-2 5-5-3 0-5 2-5 5z" fill="currentColor"/>
+          <path d="M12 14c-3 0-5-2-5-5 3 0 5 2 5 5zm0 0c3 0 5-2 5-5-3 0-5 2-5 5z" fill="currentColor"/>
+          <path d="M12 19c-3 0-5-2-5-5 3 0 5 2 5 5zm0 0c3 0 5-2 5-5-3 0-5 2-5 5z" fill="currentColor"/>`,
+        wood: `
+          <path d="M12 2l6 8h-3l4 6H5l4-6H6l6-8z" fill="currentColor"/>
+          <path d="M12 16v6" fill="none" stroke="currentColor" stroke-width="2"/>`,
+        gold: `
+          <ellipse cx="12" cy="7" rx="7" ry="3" fill="currentColor" opacity=".9"/>
+          <path d="M5 7v4c0 1.7 3.1 3 7 3s7-1.3 7-3V7" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M5 12v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4" fill="none" stroke="currentColor" stroke-width="1.6"/>`,
+        stone: `
+          <path d="M3 8l4-4h10l4 4-2 12H5L3 8z" fill="currentColor" opacity=".85"/>
+          <path d="M3 8h18M8 4l-2 16M16 4l2 16" fill="none" stroke="#0b0d12" stroke-width="1"/>`,
+        iron: `
+          <path d="M3 8h16l2 3h-5v3c2 2 3 3 5 4v2H3v-2c2-1 3-2 5-4v-3H6L3 8z" fill="currentColor"/>`,
+        coal: `
+          <path d="M12 2l8 6-3 12H7L4 8l8-6z" fill="currentColor" opacity=".9"/>
+          <path d="M4 8l8 5 8-5M12 13v7" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        clay: `
+          <path d="M8 3h8v3H8zM6 8c0-1 1-2 2-2h8c1 0 2 1 2 2 0 4-1 9-3 11H9C7 17 6 12 6 8z" fill="currentColor"/>
+          <path d="M5 9c-2 0-3 1-3 3s1 3 3 3M19 9c2 0 3 1 3 3s-1 3-3 3" fill="none" stroke="currentColor" stroke-width="1.6"/>`,
+        pop: `
+          <path d="M12 2a6 6 0 0 0-6 6v3h12V8a6 6 0 0 0-6-6z" fill="currentColor"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7H4z" fill="currentColor" opacity=".8"/>
+          <path d="M9 11v3M15 11v3" fill="none" stroke="#0b0d12" stroke-width="1.4"/>`,
+        build: `
+          <path d="M14 3l7 7-3 3-7-7 3-3z" fill="currentColor"/>
+          <path d="M11 8l-8 8 5 5 8-8" fill="none" stroke="currentColor" stroke-width="2"/>`,
+        train: `
+          <path d="M4 20l12-12 4-4-1 5-11 11H4z" fill="currentColor"/>
+          <path d="M14 6l4 4M3 21l4-1" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        research: `
+          <path d="M4 4h7v16H4zM13 4h7v16h-7z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M11 6h2v12h-2z" fill="currentColor"/>`,
+        age: `
+          <path d="M3 8l4 4 5-7 5 7 4-4v10H3V8z" fill="currentColor"/>
+          <circle cx="12" cy="15" r="1.5" fill="#0b0d12"/>`,
+        house: `
+          <path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9z" fill="currentColor"/>`,
+        farm: `
+          <path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        market: `
+          <path d="M12 3v18M5 7h14M7 7l-3 6h6L7 7zM17 7l-3 6h6l-3-6z" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        wall: `
+          <path d="M3 21V7h4v3h3V7h4v3h3V7h4v14H3z" fill="currentColor"/>
+          <path d="M3 12h18M3 17h18" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        tower: `
+          <path d="M6 21V8l6-5 6 5v13H6z" fill="currentColor"/>
+          <path d="M9 21v-5h6v5M9 8h6" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        castle: `
+          <path d="M3 21V9h4V6h3v3h4V6h3v3h4v12H3z" fill="currentColor"/>
+          <path d="M9 21v-6h6v6" fill="none" stroke="#0b0d12" stroke-width="1.4"/>`,
+        repair: `
+          <path d="M14 4a5 5 0 0 0-6 6L3 15l6 6 5-5a5 5 0 0 0 6-6l-3 3-4-4 3-3z" fill="currentColor"/>`,
+        rally: `
+          <path d="M5 21V3h14l-3 5 3 5H5" fill="currentColor"/>`,
+        stop: `<rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/>`,
+        attack: `
+          <path d="M4 20L18 6l2-4-4 2L2 18l2 2zM14 6l4 4" fill="currentColor"/>
+          <path d="M20 20L6 6 4 2l4 2 14 14-2 2z" fill="currentColor" opacity=".7"/>`,
+        patrol: `
+          <path d="M3 8h14l-3-3m3 3l-3 3M21 16H7l3-3m-3 3l3 3" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        guard: `
+          <path d="M12 2l8 3v6c0 5-4 9-8 11-4-2-8-6-8-11V5l8-3z" fill="currentColor"/>
+          <path d="M12 7v7M9 10h6" fill="none" stroke="#0b0d12" stroke-width="1.4"/>`,
+        stance: `
+          <path d="M20 12a8 8 0 1 1-2.3-5.7M20 3v5h-5" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        garrison: `
+          <path d="M6 21V8l6-5 6 5v13H6z" fill="currentColor"/>
+          <path d="M12 21v-7M9 17l3-3 3 3" fill="none" stroke="#0b0d12" stroke-width="1.4"/>`,
+        settings: `
+          <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        bell: `
+          <path d="M6 17h12l-2-3V9a4 4 0 0 0-8 0v5l-2 3z" fill="currentColor"/>
+          <path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        pause: `
+          <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+          <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>`,
+        idle: `
+          <circle cx="12" cy="7" r="3" fill="currentColor"/>
+          <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7H5z" fill="currentColor" opacity=".8"/>`,
+        mood: `
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M8 14c1 1.5 2.3 2.3 4 2.3s3-.8 4-2.3M9 9h.01M15 9h.01" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        health: `
+          <path d="M12 20s-8-4.7-8-10.2A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 8 3.8C20 15.3 12 20 12 20z" fill="currentColor"/>`,
+        needs: `
+          <path d="M4 12h16c0 4-3.6 7-8 7s-8-3-8-7z" fill="currentColor"/>
+          <path d="M8 12c0-2 1.8-4 4-4s4 2 4 4" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        tax: `
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M8 15l8-6M9 8h.01M15 16h.01" fill="none" stroke="currentColor" stroke-width="2"/>`,
+        unrest: `
+          <path d="M12 2c2 4-2 5-2 8 0 1.5 1 2 2 2s2-.7 2-2c0-1.2-.6-2-.6-2 3 2 4 4.5 4 7a6 6 0 0 1-12 0c0-4 3-7 6.6-13z" fill="currentColor"/>`,
+        council: `
+          <path d="M12 3l3 5 6 1-4.5 4.2L18 20l-6-3.2L6 20l1.5-6.8L3 9l6-1 3-5z" fill="currentColor"/>`,
+        crown: `
+          <path d="M3 18h18l-2-9-4 4-3-7-3 7-4-4-2 9z" fill="currentColor"/>
+          <path d="M4 21h16" fill="none" stroke="currentColor" stroke-width="2"/>`,
+        bow: `
+          <path d="M6 3c6 2 9 5 11 11M6 3l3 1M17 14l1 3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M4 20L20 4M15 4h5v5" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        spear: `
+          <path d="M4 20L18 6" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M15 3l6 6-3 1-4-4 1-3z" fill="currentColor"/>`,
+        horse: `
+          <path d="M6 21v-8a6 6 0 0 1 12 0v8h-3v-8a3 3 0 0 0-6 0v8H6z" fill="currentColor"/>
+          <path d="M7 9h2M15 9h2M7 13h2M15 13h2" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        monk: `
+          <path d="M12 2a5 5 0 0 0-5 5v3h10V7a5 5 0 0 0-5-5z" fill="currentColor"/>
+          <path d="M5 21c0-4 3.1-7 7-7s7 3 7 7H5z" fill="currentColor" opacity=".8"/>
+          <path d="M12 9v5M10 11h4" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        ram: `
+          <path d="M3 12l3-6h12l3 6v3H3v-3z" fill="currentColor"/>
+          <path d="M6 15v4M18 15v4" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="7" cy="19" r="2" fill="currentColor"/>
+          <circle cx="17" cy="19" r="2" fill="currentColor"/>
+          <path d="M8 9h8M6 12h12" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        scroll: `
+          <path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 0 2 2H8a2 2 0 0 1-2-2V3z" fill="currentColor"/>
+          <path d="M6 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2V3H6z" fill="currentColor" opacity=".7"/>
+          <path d="M9 8h7M9 12h7M9 16h4" fill="none" stroke="#0b0d12" stroke-width="1.2"/>`,
+        play: `<path d="M7 4l13 8-13 8V4z" fill="currentColor"/>`,
+        save: `
+          <path d="M4 3h13l3 3v15H4V3z" fill="currentColor"/>
+          <path d="M8 3v6h7V3M8 14h8v7H8v-7z" fill="#0b0d12" opacity=".55"/>`,
+        exit: `
+          <path d="M10 4H5v16h5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M10 12h10M16 8l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8"/>`,
+        check: `<path d="M4 12l5 5L20 6" fill="none" stroke="currentColor" stroke-width="2.4"/>`,
+        x: `<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2"/>`,
+        dot: `<circle cx="12" cy="12" r="4" fill="currentColor"/>`,
+        chevron: `<path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2"/>`,
+      };
+
+      const icon = (name, cls = "") =>
+        `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.dot}</svg>`;
+
+      const bar = (pct, cls = "") =>
+        `<div class="bar ${cls}"><i style="width:${Math.round(Math.max(0, Math.min(1, pct)) * 100)}%"></i></div>`;
+
+      const portrait = (kind, size = 72) => {
+        if (kind === "town") {
+          return `<div class="portrait" style="--size:${size}px"><div class="portrait-fallback">${icon("castle")}</div><span class="portrait-ring"></span></div>`;
+        }
+        if (kind === "knight") {
+          return `<div class="portrait" style="--size:${size}px"><div class="sprite" style="--sprite:url('../src/assets/atlas/knight.png');--sprite-size:1536px 1536px;--sprite-pos:0 0"></div><span class="portrait-ring"></span></div>`;
+        }
+        return `<div class="portrait" style="--size:${size}px"><div class="sprite" style="--sprite:url('../src/assets/atlas/villager.png');--sprite-size:1536px 3072px;--sprite-pos:0 0"></div><span class="portrait-ring"></span></div>`;
+      };
+
+      const resChips = (short = false) =>
+        DATA.resources
+          .map(
+            (r) => `<div class="res">${icon(r.id)}${short ? "" : `<span>${r.label}</span>`}<b>${r.value}</b>${r.delta && r.delta !== "—" ? `<small>${r.delta}</small>` : ""}</div>`,
+          )
+          .join("");
+
+      const objectiveRows = () =>
+        DATA.objectives
+          .map((o) => {
+            const mark = o.status === "completed" ? "✓" : o.status === "failed" ? "✕" : "○";
+            return `<div class="objective-row ${o.status === "completed" ? "done" : o.status === "failed" ? "failed" : ""}">
+              <span class="objective-mark">${mark}</span>
+              <div><div class="objective-title">${o.title}</div><div class="objective-desc">${o.desc}</div></div>
+            </div>`;
+          })
+          .join("");
+
+      const victoryRows = (compact = false) =>
+        DATA.victory
+          .map(
+            (v) => `<div class="victory-row ${v.active ? "active" : ""}">
+              <span class="vname">${v.label}</span>
+              ${bar(v.pct, compact ? "" : "")}
+              <span class="vval">${v.value}</span>
+            </div>`,
+          )
+          .join("");
+
+      const toast = (n) => {
+        const iconName =
+          n.kind === "warning" ? "bell" : n.kind === "success" ? "check" : n.kind === "danger" ? "unrest" : "idle";
+        return `<div class="toast ${n.kind}"><span class="t-icon">${icon(iconName)}</span><div><div class="t-title">${n.title}</div><div class="t-body">${n.body}</div></div></div>`;
+      };
+
+      const commandButton = (iconName, name, hotkey, cost = "", extra = "") =>
+        `<button class="command-btn ${extra}" type="button">${icon(iconName)}<span class="cmd-name">${name}</span>${cost ? `<span class="cmd-cost">${cost}</span>` : ""}<span class="hotkey">${hotkey}</span></button>`;
+
+      const meter = (label, pct, cls = "") =>
+        `<div class="meter-row"><span>${label}</span>${bar(pct, cls)}<b>${Math.round(pct * 100)}</b></div>`;
+
+      const minimap = () => `
+        <div class="mini-map">
+          <div class="map-art"></div>
+          <span class="map-dot" style="left:38%;top:44%"></span>
+          <span class="map-dot" style="left:44%;top:39%"></span>
+          <span class="map-dot" style="left:35%;top:51%"></span>
+          <span class="map-dot blue" style="left:62%;top:58%"></span>
+          <span class="map-dot blue" style="left:66%;top:54%"></span>
+          <span class="map-dot red" style="left:70%;top:33%"></span>
+          <span class="map-dot red" style="left:74%;top:37%"></span>
+          <span class="map-viewport"></span>
+        </div>`;
+
+      /* ---------------------------------------------------------------------
+         Variant A — Royal Command
+         --------------------------------------------------------------------- */
+      const variantA = () => `
+        <div class="va">
+          <header class="va-topbar">
+            <div class="va-brand">
+              <div class="va-crest">${icon("council")}</div>
+              <div class="va-house"><b>${DATA.house}</b><span>${DATA.civ} · ${DATA.motto}</span></div>
+            </div>
+            <div class="va-resources res-row">${resChips()}</div>
+            <div class="va-age">
+              <div class="va-age-ring"><span>${DATA.age.rank}</span></div>
+              <div class="va-age-copy"><b>${DATA.age.epoch} · ${DATA.age.name}</b><span>Rank ${DATA.age.rank} of ${DATA.age.total} · ${DATA.age.next}</span></div>
+            </div>
+            <div class="va-utility">
+              <button class="va-icon-btn" type="button" title="Idle villagers">${icon("idle")}<span class="badge">3</span></button>
+              <button class="va-icon-btn" type="button" title="Notifications">${icon("bell")}<span class="badge">4</span></button>
+              <button class="va-icon-btn" type="button" title="Pause / settings" data-action="pause">${icon("pause")}</button>
+              <button class="va-icon-btn" type="button" title="Settings" data-action="settings">${icon("settings")}</button>
+            </div>
+          </header>
+
+          <div class="va-main">
+            <section class="va-objectives panel">
+              <div class="panel-head"><h3 class="panel-title">Royal Objectives</h3><span class="panel-sub">2 active</span></div>
+              <div class="panel-body">${objectiveRows()}</div>
+            </section>
+
+            <section class="va-victory panel">
+              <div class="panel-head"><h3 class="panel-title">Victory Paths</h3><span class="panel-sub">Conquest lead</span></div>
+              <div class="panel-body">${victoryRows()}</div>
+            </section>
+
+            <div class="va-toasts">${DATA.notifications.slice(0, 2).map(toast).join("")}</div>
+          </div>
+
+          <section class="va-deck">
+            <div class="va-minimap-wrap">
+              ${minimap()}
+              <div class="va-minimap-meta"><span>River Ward</span><span>192² · Fog on</span></div>
+            </div>
+
+            <div class="va-command">
+              <div class="va-selection-strip">
+                ${portrait("town", 38)}
+                <div class="sel-copy"><b>${DATA.selected.name}</b><span>${DATA.selected.subtitle}</span></div>
+                <div class="va-queue">
+                  ${DATA.selected.queue.map((q) => `<span class="q">${q.name} <b>${q.remaining}</b></span>`).join("")}
+                </div>
+              </div>
+              <div class="va-command-grid">
+                ${commandButton("build", "Build", "B", "", "primary")}
+                ${commandButton("train", "Train", "T", "50 food")}
+                ${commandButton("research", "Research", "R", "100 gold")}
+                ${commandButton("age", "Advance", "A", "800 food")}
+                ${commandButton("house", "House", "H", "30 wood")}
+                ${commandButton("farm", "Farm", "F", "60 wood")}
+                ${commandButton("market", "Market", "M", "175 wood")}
+                ${commandButton("wall", "Wall", "W", "2 wood")}
+                ${commandButton("tower", "Tower", "O", "100 stone")}
+                ${commandButton("castle", "Castle", "C", "650 stone", "locked")}
+                ${commandButton("repair", "Repair", "E", "—")}
+                ${commandButton("rally", "Rally", "Y", "—")}
+              </div>
+            </div>
+
+            <aside class="va-inspector panel">
+              <div class="va-inspector-head">
+                ${portrait("town", 58)}
+                <div class="va-inspector-copy">
+                  <b>${DATA.selected.name}</b>
+                  <span>${DATA.selected.subtitle}</span>
+                  <span class="chip gold">${icon("mood")} Content</span>
+                </div>
+              </div>
+              <div class="va-meters">
+                ${meter("HP", DATA.selected.hp / DATA.selected.maxHp, "green")}
+                ${meter("Mood", DATA.selected.mood / 100, "")}
+                ${meter("Health", DATA.selected.health / 100, "green")}
+                ${DATA.selected.needs.map(([label, pct]) => meter(label, pct, "blue")).join("")}
+              </div>
+              <div class="stat-grid">
+                ${DATA.selected.stats.map(([label, value]) => `<div class="stat"><span>${label}</span><b>${value}</b></div>`).join("")}
+              </div>
+              <div class="va-activity">${icon("train")} ${DATA.selected.activity}</div>
+              <div class="va-activity">${icon("tax")} Tax ${DATA.selected.tax}% · Unrest ${DATA.selected.unrest}%</div>
+            </aside>
+          </section>
+        </div>`;
+
+      /* ---------------------------------------------------------------------
+         Variant B — Chronicle
+         --------------------------------------------------------------------- */
+      const variantB = () => `
+        <div class="vb">
+          <header class="vb-topstrip">
+            <div class="vb-brand">${icon("council")}<div><b>${DATA.house}</b><span>${DATA.civ}</span></div></div>
+            <div class="res-row">${resChips(true)}</div>
+            <div class="vb-age"><b>${DATA.age.epoch}</b><span>Rank ${DATA.age.rank}/${DATA.age.total}</span></div>
+            <button class="va-icon-btn" type="button" title="Pause" data-action="pause">${icon("pause")}</button>
+            <button class="va-icon-btn" type="button" title="Settings" data-action="settings">${icon("settings")}</button>
+          </header>
+
+          <aside class="vb-sidebar">
+            <div class="vb-sidebar-head">
+              <h2>Settlement Chronicle</h2>
+              <p>River Ward · 47 souls · 12 households</p>
+            </div>
+            <div class="vb-tabs">
+              <button class="vb-tab active" type="button">People</button>
+              <button class="vb-tab" type="button">Mood</button>
+              <button class="vb-tab" type="button">Needs</button>
+              <button class="vb-tab" type="button">Politics</button>
+            </div>
+            <div class="vb-scroll">
+              <div class="vb-mood-card">
+                <div class="vb-mood-top"><b>${DATA.council.mood}</b><span>Settlement mood</span></div>
+                ${bar(DATA.council.mood / 100, "")}
+                <div class="meter-row" style="margin-top:6px"><span>Unrest</span>${bar(DATA.council.unrest / 100, "red")}<b>${DATA.council.unrest}%</b></div>
+              </div>
+
+              <div class="vb-section-label">Named Pops <span>47</span></div>
+              <div class="vb-people">
+                ${DATA.pops
+                  .map(
+                    (p, i) => `<div class="vb-person ${i === 0 ? "selected" : ""}">
+                      <span class="p-dot">${p.initial}</span>
+                      <div class="p-copy"><b>${p.name} · ${p.role}</b><span>${p.status} · mood ${p.mood}</span></div>
+                      <div class="p-bars">${bar(p.health / 100, "green")}${bar(p.mood / 100, "")}${bar(p.needs[0] / 100, "blue")}</div>
+                    </div>`,
+                  )
+                  .join("")}
+              </div>
+
+              <div class="vb-section-label">Factions <span>Council</span></div>
+              <div class="vb-factions">
+                ${DATA.factions
+                  .map(
+                    (f) => `<div class="vb-faction"><span>${f.name}</span>${bar(f.loyalty / 100, f.loyalty < 45 ? "red" : "")}<b>${f.loyalty}%</b></div>`,
+                  )
+                  .join("")}
+              </div>
+
+              <div class="vb-victory-mini">
+                <div class="vb-section-label">Paths to Victory <span>2 active</span></div>
+                ${victoryRows(true)}
+              </div>
+            </div>
+          </aside>
+
+          <div class="vb-map">
+            <section class="vb-objectives panel">
+              <div class="panel-head"><h3 class="panel-title">Active Contracts</h3><span class="panel-sub">2 active</span></div>
+              <div class="panel-body">${objectiveRows()}</div>
+            </section>
+            <div class="vb-feed">${DATA.notifications.slice(0, 3).map(toast).join("")}</div>
+          </div>
+
+          <aside class="vb-inspector">
+            <div class="vb-inspector-head">
+              ${portrait("villager", 64)}
+              <div class="vb-inspector-copy"><b>Aldric · Steward</b><span>Adult · born here · House of Aldric</span><span class="chip gold">Content</span></div>
+            </div>
+            <div class="vb-inspector-body">
+              <div class="vb-section-label">Vitals <span>Live</span></div>
+              <div class="vb-needs">
+                ${meter("HP", 0.96, "green")}
+                ${meter("Mood", 0.82, "")}
+                ${meter("Health", 0.96, "green")}
+                ${meter("Food", 0.88, "blue")}
+                ${meter("Rest", 0.64, "blue")}
+                ${meter("Social", 0.76, "blue")}
+              </div>
+
+              <div class="vb-section-label">Skills <span>Practice / theory</span></div>
+              <div class="vb-needs">
+                ${meter("Gathering", 0.74, "")}
+                ${meter("Stewardship", 0.58, "")}
+                ${meter("Diplomacy", 0.41, "")}
+              </div>
+
+              <div class="vb-section-label">Current activity <span>Working</span></div>
+              <div class="vb-mood-card" style="font-size:9px;color:var(--muted)">Managing the town ledger · +2 knowledge this hour</div>
+
+              <div class="vb-section-label">Civic <span>Tax 12%</span></div>
+              <div class="vb-needs">
+                ${meter("Unrest", DATA.council.unrest / 100, "red")}
+                ${meter("Loyalty", 0.61, "")}
+                ${meter("Faith", 0.54, "blue")}
+              </div>
+            </div>
+          </aside>
+
+          <footer class="vb-commandbar">
+            <div class="cmd-group">
+              ${commandButton("build", "Build", "B", "", "primary")}
+              ${commandButton("train", "Train", "T")}
+              ${commandButton("research", "Research", "R")}
+              ${commandButton("age", "Advance", "A")}
+            </div>
+            <div class="selected-commands">
+              ${commandButton("stop", "Stop", "S")}
+              ${commandButton("attack", "Attack", "A")}
+              ${commandButton("patrol", "Patrol", "P")}
+              ${commandButton("guard", "Guard", "G")}
+              ${commandButton("stance", "Stance", "Z")}
+              ${commandButton("garrison", "Garrison", "T")}
+            </div>
+            <div class="cmd-group right">
+              <span class="chip">1 · 2 · 3 · 4</span>
+              <button class="va-icon-btn" type="button" title="Notifications">${icon("bell")}<span class="badge">4</span></button>
+              <button class="va-icon-btn" type="button" title="Pause" data-action="pause">${icon("pause")}</button>
+              <button class="va-icon-btn" type="button" title="Settings" data-action="settings">${icon("settings")}</button>
+            </div>
+          </footer>
+        </div>`;
+
+      /* ---------------------------------------------------------------------
+         Variant C — War Table
+         --------------------------------------------------------------------- */
+      const ringButton = (angle, iconName, name) =>
+        `<button class="vc-ring-btn" type="button" style="--a:${angle}deg">${icon(iconName)}<span class="r-name">${name}</span></button>`;
+
+      const variantC = () => `
+        <div class="vc">
+          <header class="vc-top-ribbon">
+            <div class="va-crest">${icon("council")}</div>
+            <div class="res-row">${resChips()}</div>
+            <div class="vc-age-seal"><b>${DATA.age.epoch}</b><span>Rank ${DATA.age.rank}/${DATA.age.total}</span></div>
+          </header>
+
+          <section class="vc-objective-scroll">
+            <div class="vc-scroll-title"><h2>Royal Commission</h2><span class="vc-wax">III</span></div>
+            ${objectiveRows()}
+          </section>
+
+          <div class="vc-pause">
+            <button class="va-icon-btn" type="button" title="Notifications">${icon("bell")}<span class="badge">4</span></button>
+            <button class="va-icon-btn" type="button" title="Pause" data-action="pause">${icon("pause")}</button>
+            <button class="va-icon-btn" type="button" title="Settings" data-action="settings">${icon("settings")}</button>
+          </div>
+
+          <div class="vc-notifications">${DATA.notifications.slice(0, 3).map((n) => `
+            <div class="vc-letter">
+              <span class="l-icon">${icon(n.kind === "warning" ? "bell" : n.kind === "success" ? "check" : n.kind === "danger" ? "unrest" : "idle")}</span>
+              <div class="t-title">${n.title}</div><div class="t-body">${n.body}</div>
+            </div>`).join("")}</div>
+
+          <div class="vc-victory-banners">
+            ${DATA.victory
+              .map(
+                (v) => `<div class="vc-banner ${v.active ? "active" : ""}">
+                  <div class="b-icon">${icon(v.id === "conquest" ? "attack" : v.id === "knowledge" ? "research" : v.id === "culture" ? "council" : v.id === "wonder" ? "castle" : v.id === "relic" ? "guard" : "market")}</div>
+                  <div class="b-name">${v.label}</div><div class="b-val">${v.value}</div>
+                </div>`,
+              )
+              .join("")}
+          </div>
+
+          <div class="vc-minimap">
+            ${minimap()}
+            <span class="vc-minimap-label">River Ward · 192²</span>
+          </div>
+
+          <div class="vc-command-ring">
+            <div class="vc-ring-center">
+              ${portrait("town", 54)}
+              <b>Town Center</b>
+              <span>12 / 15 pop</span>
+            </div>
+            ${ringButton(0, "build", "Build")}
+            ${ringButton(45, "train", "Train")}
+            ${ringButton(90, "research", "Research")}
+            ${ringButton(135, "age", "Advance")}
+            ${ringButton(180, "house", "House")}
+            ${ringButton(225, "farm", "Farm")}
+            ${ringButton(270, "market", "Market")}
+            ${ringButton(315, "wall", "Wall")}
+          </div>
+
+          <aside class="vc-council">
+            <div class="vc-council-head"><h2>Council of the Ward</h2><span>Tax ${DATA.council.tax}%</span></div>
+            <div class="vc-council-meters">
+              ${meter("Mood", DATA.council.mood / 100, "")}
+              ${meter("Health", DATA.council.health / 100, "green")}
+              ${meter("Unrest", DATA.council.unrest / 100, "red")}
+            </div>
+            <div class="vc-faction-medallions">
+              ${DATA.factions
+                .map(
+                  (f) => `<div class="vc-faction"><span class="f-seal">${f.initial}</span><span class="f-name">${f.name}</span><span class="f-loyalty">${f.loyalty}%</span></div>`,
+                )
+                .join("")}
+            </div>
+          </aside>
+        </div>`;
+
+      /* ---------------------------------------------------------------------
+         Variant D — Crown & Chronicle
+         AoE4-inspired information architecture: one tabbed info panel, one
+         bottom command deck, contextual inspector. The map stays open.
+         --------------------------------------------------------------------- */
+      const dState = {
+        inspector: "building",
+        commandTab: "train",
+        pop: "aldric",
+        panelTab: "commission",
+      };
+
+      const getPop = () =>
+        DATA.pops.find((p) => p.name.toLowerCase() === dState.pop) ||
+        DATA.pops[0];
+
+      const resChipsD = () => {
+        const chip = (r, minor = false) =>
+          `<div class="res ${r.id === "pop" ? "warn" : ""} ${minor ? "minor" : ""}" title="${r.label}">
+            ${icon(r.id)}${minor ? "" : `<span>${r.label}</span>`}<b>${r.value}</b>${
+              !minor && r.delta && r.delta !== "—" ? `<small>${r.delta}</small>` : ""
+            }
+          </div>`;
+        const primary = ["food", "wood", "gold", "stone", "pop"];
+        const minor = ["iron", "coal", "clay"];
+        return (
+          DATA.resources
+            .filter((r) => primary.includes(r.id))
+            .map((r) => chip(r))
+            .join("") +
+          `<span class="res-divider"></span>` +
+          DATA.resources
+            .filter((r) => minor.includes(r.id))
+            .map((r) => chip(r, true))
+            .join("")
+        );
+      };
+
+      const VICTORY_ICONS = {
+        conquest: "attack",
+        knowledge: "research",
+        culture: "council",
+        wonder: "castle",
+        relic: "guard",
+        economic: "market",
+      };
+
+      const victoryRowsD = () =>
+        DATA.victory
+          .map(
+            (v) => `<div class="vh-victory-row ${v.active ? "active" : ""}">
+              <span class="v-icon">${icon(VICTORY_ICONS[v.id] || "dot")}</span>
+              <span class="vname">${v.label}</span>
+              ${bar(v.pct)}
+              <b>${v.value}</b>
+            </div>`,
+          )
+          .join("");
+
+      const reportIcons = {
+        warning: "bell",
+        success: "check",
+        danger: "unrest",
+        info: "idle",
+      };
+
+      const reportRowsD = () => {
+        const reports = [
+          [DATA.notifications[0], "2m"],
+          [DATA.notifications[1], "6m"],
+          [DATA.notifications[3], "9m"],
+        ];
+        return reports
+          .map(
+            ([n, time]) => `<div class="vh-toast ${n.kind}">
+              <span class="r-icon">${icon(reportIcons[n.kind] || "idle")}</span>
+              <div><b>${n.title}</b><span>${n.body}</span></div>
+              <time>${time}</time>
+            </div>`,
+          )
+          .join("");
+      };
+
+      const COMMANDS = {
+        train: [
+          ["attack", "Knight", "K", "60f 75g", "primary"],
+          ["bow", "Crossbow", "C", "25w 45g"],
+          ["spear", "Pikeman", "P", "35f 25w"],
+          ["guard", "Man-at-Arms", "M", "60f 20g"],
+          ["ram", "Battering Ram", "R", "160w 75g"],
+          ["monk", "Monk", "O", "100g"],
+          ["horse", "Scout", "S", "80f"],
+          ["spear", "Spearman", "E", "35f 25w"],
+          ["bow", "Archer", "A", "25w 45g"],
+          ["patrol", "Skirmisher", "J", "25f 35w"],
+          ["build", "Siege Engineer", "G", "100w 50g"],
+          ["x", "Cancel", "X", ""],
+        ],
+        build: [
+          ["build", "Build", "B", "", "primary"],
+          ["house", "House", "H", "30w"],
+          ["farm", "Farm", "F", "60w"],
+          ["market", "Market", "M", "175w"],
+          ["wall", "Wall", "W", "2w"],
+          ["tower", "Tower", "O", "100s"],
+          ["castle", "Castle", "C", "650s", "locked"],
+          ["barracks", "Barracks", "K", "175w"],
+          ["stable", "Stable", "L", "175w"],
+          ["repair", "Repair", "E", "—"],
+          ["rally", "Rally", "Y", "—"],
+          ["x", "Cancel", "X", ""],
+        ],
+        research: [
+          ["research", "Chain Mail", "C", "Done", "done"],
+          ["bow", "Bodkin Arrow", "B", "100g"],
+          ["attack", "Iron Casting", "I", "150g"],
+          ["patrol", "Ballistics", "L", "175g"],
+          ["castle", "Murder Holes", "M", "200g"],
+          ["health", "Herbal Medicine", "H", "150g"],
+          ["wall", "Masonry", "Y", "150g"],
+          ["idle", "Town Watch", "T", "75f"],
+          ["farm", "Wheelbarrow", "W", "175w 50f"],
+          ["horse", "Hand Cart", "D", "200w 100f"],
+          ["monk", "Sanctity", "S", "120g"],
+          ["council", "Fervor", "F", "140g"],
+        ],
+        orders: [
+          ["patrol", "Move", "M", ""],
+          ["food", "Gather", "G", ""],
+          ["build", "Build", "B", ""],
+          ["repair", "Repair", "R", ""],
+          ["stop", "Stop", "S", ""],
+          ["attack", "Attack", "A", ""],
+          ["patrol", "Patrol", "P", ""],
+          ["guard", "Guard", "G", ""],
+          ["garrison", "Garrison", "T", ""],
+          ["idle", "Drop Off", "D", ""],
+          ["chevron", "Follow", "F", ""],
+          ["house", "Return", "E", ""],
+        ],
+      };
+
+      const commandGridD = () =>
+        (COMMANDS[dState.commandTab] || COMMANDS.train)
+          .map((cmd) => commandButton(...cmd))
+          .join("");
+
+      const vitalD = (label, pct, cls = "") =>
+        `<div class="vh-vital"><span>${label}</span>${bar(pct, cls)}<b>${Math.round(pct * 100)}</b></div>`;
+
+      const dTabs = () => {
+        if (dState.inspector === "pop") {
+          return `<button class="vh-cmd-tab active" type="button">Villager Orders <span class="hk">O</span></button><button class="vh-cmd-tab" type="button" data-d-select="building">← Back to Keep</button>`;
+        }
+        return [
+          ["train", "Train", "T"],
+          ["build", "Build", "B"],
+          ["research", "Research", "R"],
+          ["age", "Age", "A"],
+        ]
+          .map(
+            ([id, label, hk]) => `<button class="vh-cmd-tab ${dState.commandTab === id ? "active" : ""}" type="button" data-d-cmdtab="${id}">${label} <span class="hk">${hk}</span></button>`,
+          )
+          .join("");
+      };
+
+      const selectionD = () => {
+        if (dState.inspector === "pop") {
+          const p = getPop();
+          return `${portrait("villager", 52)}
+            <div class="vh-sel-copy"><b>${p.name} · ${p.role}</b><span>${p.status} · ${p.activity || "Working the ward"}</span></div>
+            <div class="vh-queue"><span class="q">Mood <b>${p.mood}</b></span><span class="q">Health <b>${p.health}</b></span><span class="q">Needs <b>${Math.round(p.needs[0])}</b></span></div>`;
+        }
+        const k = DATA.keep;
+        return `${portrait("town", 44)}
+          <div class="vh-sel-copy"><b>${k.name}</b><span>${k.subtitle}</span></div>
+          <div class="vh-hp"><div class="tiny-label"><span>HP</span><b>${k.hp} / ${k.maxHp}</b></div>${bar(k.hp / k.maxHp, "green")}</div>
+          <div class="vh-queue"><span class="q">Next <b>${k.queue[0].name} ${k.queue[0].remaining}</b></span></div>`;
+      };
+
+      const cmdHintD = () => {
+        if (dState.inspector === "pop") return "Villager orders · 12 actions";
+        if (dState.commandTab === "age") return "Advance requirements";
+        if (dState.commandTab === "build") return "30 wood · 4 houses free";
+        if (dState.commandTab === "research") return "1 done · 2 available";
+        return "3 in queue · 8 / 15 garrison";
+      };
+
+      const queueColD = () => {
+        const k = DATA.keep;
+        const pcts = [0.62, 0.28, 0.08];
+        return `<div class="vh-queue-head"><span>Training Queue</span><b>${k.queue.length}</b></div>
+          <div class="vh-queue-list">
+            ${k.queue
+              .map(
+                (q, i) => `<div class="vh-qitem">
+                  <span class="q-icon">${icon(i === 0 ? "attack" : i === 1 ? "bow" : "spear")}</span>
+                  <b>${q.name}</b><time>${q.remaining}</time>
+                  <span>${i === 0 ? "Training" : "Queued"} · River Keep</span>
+                  ${bar(pcts[i])}
+                </div>`,
+              )
+              .join("")}
+          </div>
+          <div class="vh-queue-foot"><span>Rally</span><b>River Keep</b></div>`;
+      };
+
+      const agePanelD = () => `
+        <div class="vh-age-panel">
+          <div class="ring"><span>${DATA.age.rank}</span></div>
+          <div>
+            <h4>${DATA.age.next}</h4>
+            <p>Rank ${DATA.age.rank} → ${DATA.age.rank + 1} of ${DATA.age.total} · ${Math.round(DATA.age.progress * 100)}% complete</p>
+            <div class="vh-reqs">
+              <span class="vh-req done">${icon("check")} 800 food</span>
+              <span class="vh-req done">${icon("check")} 200 gold</span>
+              <span class="vh-req">${icon("dot")} 2 keeps</span>
+            </div>
+          </div>
+          <button class="vh-advance" type="button">${icon("age")} Advance</button>
+        </div>`;
+
+      const inspectorD = () => {
+        if (dState.inspector === "pop") {
+          const p = getPop();
+          const skills = p.skills || DATA.pops[0].skills;
+          return `<div class="vh-insp-head">
+              ${portrait("villager", 50)}
+              <div class="vh-insp-copy vh-insp-copy-pop"><div class="vh-insp-name"><b>${p.name} · ${p.role}</b><span class="chip gold">${p.status}</span></div><span>Adult · born here · House of Aldric</span></div>
+            </div>
+            <div class="vh-insp-label">Vitals <span>Live</span></div>
+            <div class="vh-vitals">
+              ${vitalD("HP", p.health / 100, "green")}
+              ${vitalD("Mood", p.mood / 100)}
+              ${vitalD("Health", p.health / 100, "green")}
+              ${vitalD("Food", p.needs[0] / 100, "blue")}
+              ${vitalD("Rest", p.needs[1] / 100, "blue")}
+              ${vitalD("Social", p.needs[2] / 100, "blue")}
+            </div>
+            <div class="vh-insp-label">Skills <span>Practice / theory</span></div>
+            ${skills
+              .map(
+                ([name, value, theory]) => `<div class="vh-skill"><span>${name}</span><div class="vh-skill-bar"><span class="theory" style="width:${theory}%"></span><span class="practice" style="width:${Math.max(0, value - theory)}%"></span></div><b>${value}</b></div>`,
+              )
+              .join("")}
+            <div class="vh-activity">${icon("scroll")} ${p.activity || "Working the ward"}</div>
+            <div class="vh-civic vh-civic-pop"><span class="chip">Unrest ${DATA.council.unrest}</span><span class="chip">Loyalty 61</span><span class="chip">Faith 54</span></div>`;
+        }
+        const k = DATA.keep;
+        return `<div class="vh-insp-head">
+            ${portrait("town", 50)}
+            <div class="vh-insp-copy"><b>${k.name}</b><span>${k.subtitle}</span><span class="chip gold">Holding</span></div>
+          </div>
+          <div class="vh-stat-grid">${k.stats.map(([label, value]) => `<div class="vh-stat"><span>${label}</span><b>${value}</b></div>`).join("")}</div>
+          <div class="vh-insp-label">Upgrades <span>1 / 3</span></div>
+          <div class="vh-civic">${k.upgrades.map(([name, done]) => `<span class="chip ${done ? "green" : ""}">${done ? icon("check") : ""} ${name}</span>`).join("")}</div>
+          <div class="vh-activity">${icon("train")} ${k.activity}</div>`;
+      };
+
+      const commissionD = () => `
+        ${objectiveRows()}
+        <div class="vh-panel-foot"><span>Commission reward</span><b>250 gold · 1 favor</b></div>`;
+
+      const victoryPanelD = () => `
+        ${victoryRowsD()}
+        <div class="vh-panel-foot"><span>2 active · Conquest leads</span><b>6 paths</b></div>`;
+
+      const peoplePanelD = () => {
+        const rows = [...DATA.pops]
+          .sort((a, b) => a.mood - b.mood)
+          .slice(0, 4)
+          .map(
+            (p) => `<div class="vh-person ${p.name === getPop().name && dState.inspector === "pop" ? "selected" : ""}" data-d-pop="${p.name.toLowerCase()}" title="Open ${p.name}'s card">
+              <span class="p-dot">${p.initial}</span>
+              <div class="p-copy"><b>${p.name} · ${p.role}</b><span>${p.status} · mood ${p.mood}</span></div>
+              <div class="p-bars">${bar(p.health / 100, "green")}${bar(p.mood / 100)}${bar(p.needs[0] / 100, "blue")}</div>
+            </div>`,
+          )
+          .join("");
+        const council = DATA.factions
+          .map(
+            (f) => `<div class="vh-council-row"><span class="f-seal">${f.initial}</span><span>${f.name}</span><b>${f.loyalty}%</b>${bar(f.loyalty / 100, f.loyalty < 45 ? "red" : "")}</div>`,
+          )
+          .join("");
+        return `<div class="vh-insp-label">Named Pops <span>Sorted by mood</span></div>
+          ${rows}
+          <div class="vh-insp-label">Council loyalty <span>4 factions</span></div>
+          <div class="vh-council">${council}</div>
+          <div class="vh-panel-foot"><span>6 named · 58 souls</span><b>View all →</b></div>`;
+      };
+
+      const variantD = () => {
+        const isPop = dState.inspector === "pop";
+        return `
+        <div class="vh">
+          <header class="vh-top">
+            <div class="vh-civ">
+              <div class="vh-crest">${icon("crown")}</div>
+              <div class="vh-civ-copy"><b>${DATA.house}</b><span>${DATA.civ} · ${DATA.motto}</span></div>
+            </div>
+            <div class="vh-res">${resChipsD()}</div>
+            <div class="vh-age">
+              <div class="vh-age-ring"><span>${DATA.age.rank}</span></div>
+              <div class="vh-age-copy"><b>${DATA.age.epoch} · ${DATA.age.name}</b><span>Rank ${DATA.age.rank} of ${DATA.age.total} · ${Math.round(DATA.age.progress * 100)}% to ${DATA.age.next}</span></div>
+            </div>
+            <div class="vh-actions">
+              <div class="vh-speed" aria-label="Game speed">
+                <button type="button" title="Pause">II</button>
+                <button type="button" class="active" title="Normal speed">1×</button>
+                <button type="button" title="Fast">2×</button>
+                <button type="button" title="Fastest">3×</button>
+              </div>
+              <button class="vh-icon" type="button" title="Idle villagers">${icon("idle")}<span class="badge">3</span></button>
+              <button class="vh-icon" type="button" title="Field reports">${icon("bell")}<span class="badge">4</span></button>
+              <button class="vh-icon" type="button" title="Pause / settings" data-action="pause">${icon("pause")}</button>
+              <button class="vh-icon" type="button" title="Settings" data-action="settings">${icon("settings")}</button>
+            </div>
+          </header>
+
+          <section class="vh-panel vh-frame vh-corners">
+            <div class="vh-panel-tabs">
+              ${[
+                ["commission", "Commission"],
+                ["victory", "Victory"],
+                ["people", "People"],
+              ]
+                .map(
+                  ([id, label]) => `<button class="vh-panel-tab ${dState.panelTab === id ? "active" : ""}" type="button" data-d-paneltab="${id}">${label}</button>`,
+                )
+                .join("")}
+            </div>
+            <div class="vh-panel-body">
+              ${dState.panelTab === "victory" ? victoryPanelD() : dState.panelTab === "people" ? peoplePanelD() : commissionD()}
+            </div>
+            <footer class="vh-settle">
+              <div class="vh-mood"><b>${DATA.council.mood}</b><span>Content · +3</span></div>
+              <div class="vh-settle-stats">
+                <div class="vh-settle-stat"><span>Health</span><b>${DATA.council.health}</b></div>
+                <div class="vh-settle-stat"><span>Unrest</span><b class="danger">${DATA.council.unrest}</b></div>
+                <div class="vh-settle-stat"><span>Tax</span><b class="warn">${DATA.council.tax}%</b></div>
+              </div>
+              <button class="vh-people-btn" type="button" data-d-paneltab="people">People ${DATA.souls} →</button>
+            </footer>
+          </section>
+
+          <div class="vh-toasts">${reportRowsD()}</div>
+
+          <div class="vh-map">
+            <div class="vh-select-ring" style="left:45%;top:46%"></div>
+            <div class="vh-marker vh-marker-crossing">
+              <span class="m-diamond"></span>
+              <div><b>RIVER CROSSING</b><span>Contested · 2 keeps</span></div>
+            </div>
+            <div class="vh-marker red vh-marker-raid">
+              <span class="m-diamond"></span>
+              <div><b>RAID</b><span>3 scouts · north ford</span></div>
+            </div>
+          </div>
+
+          <section class="vh-deck">
+            <div class="vh-mini-col">
+              <div class="vh-mini-frame vh-corners">${minimap()}</div>
+              <div class="vh-mini-meta"><span>River Ward</span><span>192² · Fog on</span></div>
+              <div class="vh-groups">${[1, 2, 3, 4, 5, 6].map((n) => `<button class="vh-group ${n === 1 ? "active" : ""}" type="button">${n}</button>`).join("")}</div>
+            </div>
+
+            <div class="vh-cmd-col">
+              <div class="vh-selection">${selectionD()}</div>
+              <div class="vh-cmd-tabs">${dTabs()}<span class="vh-cmd-hint">${cmdHintD()}</span></div>
+              ${!isPop && dState.commandTab === "age" ? agePanelD() : `<div class="vh-cmd-grid">${commandGridD()}</div>`}
+            </div>
+
+            <aside class="vh-queue-col">${queueColD()}</aside>
+
+            <aside class="vh-inspector vh-frame vh-corners">
+              <div class="vh-insp-tabs">
+                <button class="vh-insp-tab ${isPop ? "" : "active"}" type="button" data-d-select="building">River Keep</button>
+                <button class="vh-insp-tab ${isPop ? "active" : ""}" type="button" data-d-select="pop">People</button>
+              </div>
+              <div class="vh-insp-body">${inspectorD()}</div>
+            </aside>
+          </section>
+        </div>`;
+      };
+
+      /* ---------------------------------------------------------------------
+         Pause / settings surface (shared by every variant)
+         --------------------------------------------------------------------- */
+      const pauseOverlay = () => `
+        <div id="pause-overlay" hidden>
+          <div class="pause-card" role="dialog" aria-modal="true" aria-label="Paused">
+            <header class="pause-head">
+              <div class="vh-crest">${icon("crown")}</div>
+              <div><h2>Paused</h2><p>${DATA.house} · River Ward · Day 42 · ${DATA.age.epoch}</p></div>
+              <button class="pause-close" type="button" data-action="close-pause" aria-label="Resume">${icon("x")}</button>
+            </header>
+            <div class="pause-grid">
+              <nav class="pause-menu" aria-label="Pause menu">
+                <button class="pause-menu-btn primary" type="button" data-action="resume">${icon("play")} Resume <span class="hk">Esc</span></button>
+                <button class="pause-menu-btn active" type="button" data-pause-tab="settings">${icon("settings")} Settings</button>
+                <button class="pause-menu-btn" type="button" data-pause-tab="objectives">${icon("scroll")} Objectives</button>
+                <button class="pause-menu-btn" type="button" data-action="save-exit">${icon("save")} Save &amp; Exit</button>
+                <button class="pause-menu-btn danger" type="button" data-action="surrender">${icon("rally")} Surrender</button>
+              </nav>
+              <div class="pause-body">
+                <div class="pause-body-head"><h3 id="pause-panel-title">Settings</h3><span>Changes apply immediately</span></div>
+                <div class="pause-panel" data-pause-panel="settings">
+                  <div class="pause-section">
+                    <h4>Audio</h4>
+                    <div class="pause-row"><span>Master volume</span><input type="range" min="0" max="100" value="80" aria-label="Master volume"><b>80%</b></div>
+                    <div class="pause-row"><span>Music</span><input type="range" min="0" max="100" value="55" aria-label="Music volume"><b>55%</b></div>
+                    <div class="pause-row"><span>Effects</span><input type="range" min="0" max="100" value="70" aria-label="Effects volume"><b>70%</b></div>
+                  </div>
+                  <div class="pause-section">
+                    <h4>Video</h4>
+                    <div class="pause-row"><span>UI scale</span><input type="range" min="80" max="120" value="100" aria-label="UI scale"><b>100%</b></div>
+                    <div class="pause-row"><span>Brightness</span><input type="range" min="30" max="100" value="60" aria-label="Brightness"><b>60%</b></div>
+                    <div class="pause-toggles">
+                      <label class="pause-toggle"><input type="checkbox" checked> V-Sync</label>
+                      <label class="pause-toggle"><input type="checkbox"> Show FPS</label>
+                    </div>
+                  </div>
+                  <div class="pause-section">
+                    <h4>Gameplay</h4>
+                    <div class="pause-toggles">
+                      <label class="pause-toggle"><input type="checkbox" checked> Screen shake</label>
+                      <label class="pause-toggle"><input type="checkbox" checked> Damage numbers</label>
+                      <label class="pause-toggle"><input type="checkbox" checked> Build grid</label>
+                      <label class="pause-toggle"><input type="checkbox" checked> Tooltips</label>
+                    </div>
+                  </div>
+                  <div class="pause-section">
+                    <h4>Accessibility</h4>
+                    <div class="pause-toggles">
+                      <label class="pause-toggle"><input type="checkbox"> Reduced motion</label>
+                      <label class="pause-toggle"><input type="checkbox"> Colorblind mode</label>
+                      <label class="pause-toggle"><input type="checkbox"> Larger cursor</label>
+                      <label class="pause-toggle"><input type="checkbox"> Subtitles</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="pause-panel" data-pause-panel="objectives" hidden>
+                  <div class="pause-objectives">${objectiveRows()}</div>
+                  <div class="vh-panel-foot" style="margin-top:10px;border-top-color:rgba(255,255,255,.08)"><span>Commission reward</span><b>250 gold · 1 favor</b></div>
+                </div>
+              </div>
+            </div>
+            <footer class="pause-foot"><span id="pause-note">Prototype — settings are inert. Esc or Resume returns to the game.</span><span><b>Esc</b> resume</span></footer>
+          </div>
+        </div>`;
+
+      const VARIANTS = {
+        A: { name: "Royal Command", render: variantA },
+        B: { name: "Chronicle", render: variantB },
+        C: { name: "War Table", render: variantC },
+        D: { name: "Crown & Chronicle", render: variantD },
+      };
+      const ORDER = ["A", "B", "C", "D"];
+
+      const params = new URLSearchParams(window.location.search);
+      let current = (params.get("variant") || "D").toUpperCase();
+      if (!VARIANTS[current]) current = "D";
+
+      const root = document.getElementById("variant-root");
+      const label = document.getElementById("proto-label");
+
+      function render() {
+        root.innerHTML = VARIANTS[current].render();
+        label.innerHTML = `<b>${current}</b> · ${VARIANTS[current].name}`;
+        document.title = `AAA HUD prototype — ${current} ${VARIANTS[current].name}`;
+        const url = new URL(window.location.href);
+        url.searchParams.set("variant", current);
+        window.history.replaceState({}, "", url);
+      }
+
+      function cycle(step) {
+        const i = ORDER.indexOf(current);
+        current = ORDER[(i + step + ORDER.length) % ORDER.length];
+        render();
+      }
+
+      /* ---------- pause / settings ---------- */
+      document.getElementById("pause-slot").innerHTML = pauseOverlay();
+      const pauseEl = document.getElementById("pause-overlay");
+      let pauseReturnFocus = null;
+
+      function setPauseTab(tab) {
+        pauseEl.querySelectorAll("[data-pause-tab]").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.pauseTab === tab);
+        });
+        pauseEl.querySelectorAll("[data-pause-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.pausePanel !== tab;
+        });
+        const title = document.getElementById("pause-panel-title");
+        if (title) title.textContent = tab === "objectives" ? "Objectives" : "Settings";
+        const meta = pauseEl.querySelector(".pause-body-head > span");
+        if (meta) {
+          meta.textContent =
+            tab === "objectives"
+              ? "3 active · 1 complete"
+              : "Changes apply immediately";
+        }
+      }
+
+      function openPause(tab = "settings") {
+        pauseReturnFocus = document.activeElement;
+        pauseEl.hidden = false;
+        setPauseTab(tab);
+        pauseEl.querySelector(".pause-close")?.focus();
+      }
+
+      function closePause() {
+        if (pauseEl.hidden) return;
+        pauseEl.hidden = true;
+        if (pauseReturnFocus && document.contains(pauseReturnFocus)) {
+          pauseReturnFocus.focus();
+        }
+      }
+
+      function pauseNote(text) {
+        const note = document.getElementById("pause-note");
+        if (note) note.textContent = text;
+      }
+
+      pauseEl.addEventListener("input", (e) => {
+        const input = e.target;
+        if (input.type === "range") {
+          const out = input.parentElement.querySelector("b");
+          if (out) out.textContent = `${input.value}%`;
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.target === pauseEl) {
+          closePause();
+          return;
+        }
+
+        const actionEl = e.target.closest("[data-action]");
+        if (actionEl) {
+          const action = actionEl.dataset.action;
+          if (action === "pause" || action === "settings") return openPause("settings");
+          if (action === "close-pause" || action === "resume") return closePause();
+          if (action === "save-exit") {
+            return pauseNote("Prototype — Save & Exit is inert; nothing was written.");
+          }
+          if (action === "surrender") {
+            return pauseNote("Prototype — Surrender would end the run and open the chronicle.");
+          }
+        }
+
+        const pauseTab = e.target.closest("[data-pause-tab]");
+        if (pauseTab) return setPauseTab(pauseTab.dataset.pauseTab);
+
+        if (current !== "D") return;
+
+        const panelTab = e.target.closest("[data-d-paneltab]");
+        if (panelTab) {
+          dState.panelTab = panelTab.dataset.dPaneltab;
+          render();
+          return;
+        }
+
+        const select = e.target.closest("[data-d-select]");
+        if (select) {
+          dState.inspector = select.dataset.dSelect;
+          dState.commandTab =
+            dState.inspector === "pop" ? "orders" : "train";
+          render();
+          return;
+        }
+
+        const cmdTab = e.target.closest("[data-d-cmdtab]");
+        if (cmdTab) {
+          dState.commandTab = cmdTab.dataset.dCmdtab;
+          render();
+          return;
+        }
+
+        const pop = e.target.closest("[data-d-pop]");
+        if (pop) {
+          dState.pop = pop.dataset.dPop;
+          dState.inspector = "pop";
+          dState.commandTab = "orders";
+          dState.panelTab = "people";
+          render();
+        }
+      });
+
+      document.getElementById("prev").addEventListener("click", () => cycle(-1));
+      document.getElementById("next").addEventListener("click", () => cycle(1));
+      window.addEventListener("keydown", (e) => {
+        const tag = document.activeElement?.tagName;
+        const typing =
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          document.activeElement?.isContentEditable;
+
+        if (e.key === "Escape") {
+          e.preventDefault();
+          if (pauseEl.hidden) openPause("settings");
+          else closePause();
+          return;
+        }
+
+        if (typing || !pauseEl.hidden) return;
+
+        if (e.key === "ArrowLeft") { e.preventDefault(); cycle(-1); }
+        if (e.key === "ArrowRight") { e.preventDefault(); cycle(1); }
+        if (["1", "2", "3", "4"].includes(e.key)) {
+          current = ORDER[Number(e.key) - 1];
+          render();
+          return;
+        }
+
+        if (current === "D") {
+          const tabs = { t: "train", b: "build", r: "research", a: "age" };
+          const key = e.key.toLowerCase();
+          if (tabs[key]) {
+            dState.inspector = "building";
+            dState.commandTab = tabs[key];
+            render();
+          }
+          if (key === "p") {
+            dState.inspector = "pop";
+            dState.commandTab = "orders";
+            dState.panelTab = "people";
+            render();
+          }
+        }
+      });
+
+      render();
+    </script>
+  </body>
+</html>

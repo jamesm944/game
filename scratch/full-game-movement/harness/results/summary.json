@@ -1,0 +1,731 @@
+[
+  {
+    "scenario": "dense-open-120",
+    "population": 1000,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 3600,
+    "frames": 3600,
+    "wallClockMs": 24339.761167,
+    "simulatedSeconds": 120,
+    "completionOutcomes": {
+      "active-at-cutoff": 472,
+      "completed": 528
+    },
+    "completionTicks": {
+      "count": 528,
+      "min": 1111,
+      "p50": 2171,
+      "p95": 3223,
+      "max": 3577
+    },
+    "crowdStates": {
+      "completed": 528,
+      "moving": 26,
+      "stalled": 435,
+      "propagatedParked": 11,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "applied": 46287,
+      "pending": 2
+    },
+    "issueToApplyTicks": {
+      "count": 46287,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 46289,
+      "min": 0.0004580000004352769,
+      "p50": 0.05562499999996362,
+      "p95": 0.18045799999981682,
+      "max": 15.380165999999917
+    },
+    "pathApplyCostMs": {
+      "count": 46287,
+      "min": 0.000249999999141437,
+      "p50": 0.0006250000005820766,
+      "p95": 0.004750000000058208,
+      "max": 2.2115420000000086
+    },
+    "timing": {
+      "meanTickMs": 6.134326988055589,
+      "p95TickMs": 9.460125000000062,
+      "maxTickMs": 210.794625,
+      "totalApplyCostMs": 67.29076000009479,
+      "maxApplyCostMs": 2.2115420000000086
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 2,
+      "maxQueueDepth": 1000,
+      "meanQueueDepth": 25.715833333333332
+    },
+    "movementDiagnostics": {
+      "sidesteps": 46288,
+      "repaths": 46288,
+      "groupMoves": 1
+    },
+    "mutations": [],
+    "initialMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalWorldDigest": "fnv1a64:22fc672398a210b6",
+    "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038"
+  },
+  {
+    "scenario": "dense-open-120",
+    "population": 2000,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 3600,
+    "frames": 3600,
+    "wallClockMs": 51967.510167,
+    "simulatedSeconds": 120,
+    "completionOutcomes": {
+      "active-at-cutoff": 1027,
+      "completed": 973
+    },
+    "completionTicks": {
+      "count": 973,
+      "min": 730,
+      "p50": 2148,
+      "p95": 3190,
+      "max": 3569
+    },
+    "crowdStates": {
+      "completed": 973,
+      "moving": 51,
+      "stalled": 925,
+      "propagatedParked": 51,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "applied": 90891,
+      "pending": 13
+    },
+    "issueToApplyTicks": {
+      "count": 90891,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 90904,
+      "min": 0.0004579999986162875,
+      "p50": 0.054083999999420485,
+      "p95": 0.1689169999999649,
+      "max": 23.505542000002606
+    },
+    "pathApplyCostMs": {
+      "count": 90891,
+      "min": 0.0002499999973224476,
+      "p50": 0.0006659999999101274,
+      "p95": 0.003541999998560641,
+      "max": 3.059499999999389
+    },
+    "timing": {
+      "meanTickMs": 13.167003882500024,
+      "p95TickMs": 18.83837499999936,
+      "maxTickMs": 379.30270900000005,
+      "totalApplyCostMs": 146.65009399991754,
+      "maxApplyCostMs": 3.059499999999389
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 13,
+      "maxQueueDepth": 2000,
+      "meanQueueDepth": 50.50083333333333
+    },
+    "movementDiagnostics": {
+      "sidesteps": 90903,
+      "repaths": 90903,
+      "groupMoves": 1
+    },
+    "mutations": [],
+    "initialMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalWorldDigest": "fnv1a64:41f35df02dbc381c",
+    "finalFullStateHash": "7d52151e8e80a62979850a0c9de865b36be07694be4b3203a2806d06ea47c915"
+  },
+  {
+    "scenario": "mixed-destinations-120",
+    "population": 1000,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 3600,
+    "frames": 3600,
+    "wallClockMs": 19256.531458,
+    "simulatedSeconds": 120,
+    "completionOutcomes": {
+      "active-at-cutoff": 429,
+      "completed": 571
+    },
+    "completionTicks": {
+      "count": 571,
+      "min": 1207,
+      "p50": 2023,
+      "p95": 2931,
+      "max": 3551
+    },
+    "crowdStates": {
+      "completed": 571,
+      "moving": 15,
+      "stalled": 398,
+      "propagatedParked": 16,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "applied": 46802,
+      "pending": 5
+    },
+    "issueToApplyTicks": {
+      "count": 46802,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 46807,
+      "min": 0.0005420000015874393,
+      "p50": 0.0547500000011496,
+      "p95": 0.1577079999997295,
+      "max": 13.177375000000211
+    },
+    "pathApplyCostMs": {
+      "count": 46802,
+      "min": 0.00020799999947485048,
+      "p50": 0.0005419999999958236,
+      "p95": 0.0031669999989389908,
+      "max": 2.7588749999995343
+    },
+    "timing": {
+      "meanTickMs": 4.782611096111112,
+      "p95TickMs": 7.486499999999069,
+      "maxTickMs": 187.18395900000002,
+      "totalApplyCostMs": 65.10168699995342,
+      "maxApplyCostMs": 2.7588749999995343
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 5,
+      "maxQueueDepth": 1000,
+      "meanQueueDepth": 26.003333333333334
+    },
+    "movementDiagnostics": {
+      "sidesteps": 46799,
+      "repaths": 46799,
+      "groupMoves": 8
+    },
+    "mutations": [],
+    "initialMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalWorldDigest": "fnv1a64:028736e422116157",
+    "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb"
+  },
+  {
+    "scenario": "narrow-mutation-120",
+    "population": 100,
+    "candidate": "current-integer-astar-delayed-mock",
+    "evidenceClass": "node-mock-transport",
+    "finalTick": 600,
+    "frames": 816,
+    "wallClockMs": 304.73687500000005,
+    "simulatedSeconds": 20,
+    "completionOutcomes": {
+      "stale-cancelled": 100,
+      "active-at-cutoff": 100
+    },
+    "completionTicks": {
+      "count": 0,
+      "min": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    "crowdStates": {
+      "completed": 0,
+      "moving": 3,
+      "stalled": 97,
+      "propagatedParked": 0,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "stale-discarded": 2,
+      "applied": 1051,
+      "pending": 16
+    },
+    "issueToApplyTicks": {
+      "count": 1053,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 1055,
+      "min": 0.059708999999998014,
+      "p50": 1.7521249999999782,
+      "p95": 12.718082999999979,
+      "max": 20.00954200000001
+    },
+    "pathApplyCostMs": {
+      "count": 1051,
+      "min": 0.0004160000000297259,
+      "p50": 0.0012079999999627944,
+      "p95": 0.005916000000013355,
+      "max": 0.7130420000000015
+    },
+    "timing": {
+      "meanTickMs": 0.21474316053921477,
+      "p95TickMs": 0.6122080000000096,
+      "maxTickMs": 3.9818329999999946,
+      "totalApplyCostMs": 3.4182150000017657,
+      "maxApplyCostMs": 0.7130420000000015
+    },
+    "scheduler": {
+      "blockedTicks": 216,
+      "finalQueueDepth": 16,
+      "maxQueueDepth": 95,
+      "meanQueueDepth": 6.158088235294118
+    },
+    "movementDiagnostics": {
+      "sidesteps": 893,
+      "repaths": 1065,
+      "groupMoves": 2
+    },
+    "mutations": [
+      {
+        "tick": 2,
+        "kind": "terrain",
+        "revisionBefore": 0,
+        "revisionAfter": 1,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 2,
+        "kind": "building",
+        "revisionBefore": 1,
+        "revisionAfter": 5,
+        "changedTiles": 16,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 120,
+        "kind": "terrain",
+        "revisionBefore": 5,
+        "revisionAfter": 6,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      }
+    ],
+    "initialMapHash": "fnv1a64:4a650b4d807841e5",
+    "finalMapHash": "fnv1a64:0b953a55d8cf5de5",
+    "finalWorldDigest": "fnv1a64:3a2d663560395410",
+    "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7"
+  },
+  {
+    "scenario": "narrow-mutation-120",
+    "population": 100,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 600,
+    "frames": 600,
+    "wallClockMs": 336.19995900000004,
+    "simulatedSeconds": 20,
+    "completionOutcomes": {
+      "stale-cancelled": 100,
+      "active-at-cutoff": 100
+    },
+    "completionTicks": {
+      "count": 0,
+      "min": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    "crowdStates": {
+      "completed": 0,
+      "moving": 3,
+      "stalled": 97,
+      "propagatedParked": 0,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "stale-discarded": 2,
+      "applied": 1051,
+      "pending": 16
+    },
+    "issueToApplyTicks": {
+      "count": 1053,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 1069,
+      "min": 0.0005830000000059954,
+      "p50": 0.06033300000001418,
+      "p95": 0.17695800000001327,
+      "max": 2.7404579999999896
+    },
+    "pathApplyCostMs": {
+      "count": 1051,
+      "min": 0.0003749999999627107,
+      "p50": 0.001082999999994172,
+      "p95": 0.00591700000001083,
+      "max": 1.0797079999999823
+    },
+    "timing": {
+      "meanTickMs": 0.48459986000000055,
+      "p95TickMs": 1.2757080000000087,
+      "maxTickMs": 24.464292,
+      "totalApplyCostMs": 3.618473999999651,
+      "maxApplyCostMs": 1.0797079999999823
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 16,
+      "maxQueueDepth": 95,
+      "meanQueueDepth": 3.558333333333333
+    },
+    "movementDiagnostics": {
+      "sidesteps": 893,
+      "repaths": 1065,
+      "groupMoves": 2
+    },
+    "mutations": [
+      {
+        "tick": 2,
+        "kind": "terrain",
+        "revisionBefore": 0,
+        "revisionAfter": 1,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 2,
+        "kind": "building",
+        "revisionBefore": 1,
+        "revisionAfter": 5,
+        "changedTiles": 16,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 120,
+        "kind": "terrain",
+        "revisionBefore": 5,
+        "revisionAfter": 6,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      }
+    ],
+    "initialMapHash": "fnv1a64:4a650b4d807841e5",
+    "finalMapHash": "fnv1a64:0b953a55d8cf5de5",
+    "finalWorldDigest": "fnv1a64:3a2d663560395410",
+    "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7"
+  },
+  {
+    "scenario": "narrow-mutation-120",
+    "population": 100,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 600,
+    "frames": 600,
+    "wallClockMs": 284.80729099999996,
+    "simulatedSeconds": 20,
+    "completionOutcomes": {
+      "stale-cancelled": 100,
+      "active-at-cutoff": 100
+    },
+    "completionTicks": {
+      "count": 0,
+      "min": null,
+      "p50": null,
+      "p95": null,
+      "max": null
+    },
+    "crowdStates": {
+      "completed": 0,
+      "moving": 3,
+      "stalled": 97,
+      "propagatedParked": 0,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "stale-discarded": 2,
+      "applied": 1051,
+      "pending": 16
+    },
+    "issueToApplyTicks": {
+      "count": 1053,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 1069,
+      "min": 0.0006250000000136424,
+      "p50": 0.057749999999998636,
+      "p95": 0.17170899999996436,
+      "max": 2.463291999999967
+    },
+    "pathApplyCostMs": {
+      "count": 1051,
+      "min": 0.0003749999999627107,
+      "p50": 0.0009999999999763531,
+      "p95": 0.004458999999997104,
+      "max": 0.5727920000000495
+    },
+    "timing": {
+      "meanTickMs": 0.4042763850000004,
+      "p95TickMs": 1.2995840000000385,
+      "maxTickMs": 18.593458999999996,
+      "totalApplyCostMs": 2.712998000000141,
+      "maxApplyCostMs": 0.5727920000000495
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 16,
+      "maxQueueDepth": 95,
+      "meanQueueDepth": 3.558333333333333
+    },
+    "movementDiagnostics": {
+      "sidesteps": 893,
+      "repaths": 1065,
+      "groupMoves": 2
+    },
+    "mutations": [
+      {
+        "tick": 2,
+        "kind": "terrain",
+        "revisionBefore": 0,
+        "revisionAfter": 1,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 2,
+        "kind": "building",
+        "revisionBefore": 1,
+        "revisionAfter": 5,
+        "changedTiles": 16,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 120,
+        "kind": "terrain",
+        "revisionBefore": 5,
+        "revisionAfter": 6,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      }
+    ],
+    "initialMapHash": "fnv1a64:4a650b4d807841e5",
+    "finalMapHash": "fnv1a64:0b953a55d8cf5de5",
+    "finalWorldDigest": "fnv1a64:3a2d663560395410",
+    "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7"
+  },
+  {
+    "scenario": "narrow-mutation-120",
+    "population": 1000,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 3600,
+    "frames": 3600,
+    "wallClockMs": 24964.907958,
+    "simulatedSeconds": 120,
+    "completionOutcomes": {
+      "stale-cancelled": 1000,
+      "active-at-cutoff": 513,
+      "completed": 487
+    },
+    "completionTicks": {
+      "count": 487,
+      "min": 184,
+      "p50": 1883,
+      "p95": 3314,
+      "max": 3596
+    },
+    "crowdStates": {
+      "completed": 487,
+      "moving": 16,
+      "stalled": 490,
+      "propagatedParked": 7,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "stale-discarded": 2,
+      "applied": 53697,
+      "pending": 10
+    },
+    "issueToApplyTicks": {
+      "count": 53699,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 53709,
+      "min": 0.0005409999994299142,
+      "p50": 0.04645899999923131,
+      "p95": 0.12370800000098825,
+      "max": 12.698750000000473
+    },
+    "pathApplyCostMs": {
+      "count": 53697,
+      "min": 0.0002500000009604264,
+      "p50": 0.0010000000002037268,
+      "p95": 0.005499999999301508,
+      "max": 2.6073750000014115
+    },
+    "timing": {
+      "meanTickMs": 6.323562204166702,
+      "p95TickMs": 12.184957999999824,
+      "maxTickMs": 255.02041699999995,
+      "totalApplyCostMs": 114.270125000176,
+      "maxApplyCostMs": 2.6073750000014115
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 10,
+      "maxQueueDepth": 915,
+      "meanQueueDepth": 29.836944444444445
+    },
+    "movementDiagnostics": {
+      "sidesteps": 49115,
+      "repaths": 53705,
+      "groupMoves": 2
+    },
+    "mutations": [
+      {
+        "tick": 2,
+        "kind": "terrain",
+        "revisionBefore": 0,
+        "revisionAfter": 1,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 2,
+        "kind": "building",
+        "revisionBefore": 1,
+        "revisionAfter": 5,
+        "changedTiles": 16,
+        "firstRecoveryApplyTick": 182
+      },
+      {
+        "tick": 120,
+        "kind": "terrain",
+        "revisionBefore": 5,
+        "revisionAfter": 6,
+        "changedTiles": 4,
+        "firstRecoveryApplyTick": 182
+      }
+    ],
+    "initialMapHash": "fnv1a64:4a650b4d807841e5",
+    "finalMapHash": "fnv1a64:0b953a55d8cf5de5",
+    "finalWorldDigest": "fnv1a64:2010a1b5a025f47a",
+    "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966"
+  },
+  {
+    "scenario": "opposing-open-120",
+    "population": 1000,
+    "candidate": "current-integer-astar",
+    "evidenceClass": "node-inline",
+    "finalTick": 3600,
+    "frames": 3600,
+    "wallClockMs": 20458.154375000002,
+    "simulatedSeconds": 120,
+    "completionOutcomes": {
+      "active-at-cutoff": 467,
+      "completed": 533
+    },
+    "completionTicks": {
+      "count": 533,
+      "min": 1346,
+      "p50": 2256,
+      "p95": 3114,
+      "max": 3587
+    },
+    "crowdStates": {
+      "completed": 533,
+      "moving": 19,
+      "stalled": 428,
+      "propagatedParked": 20,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    },
+    "pathOutcomes": {
+      "applied": 51027,
+      "pending": 4
+    },
+    "issueToApplyTicks": {
+      "count": 51027,
+      "min": 2,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "issueToResponseMsNonBrowser": {
+      "count": 51031,
+      "min": 0.0005000000001018634,
+      "p50": 0.05483300000014424,
+      "p95": 0.2141660000002048,
+      "max": 11.286458999999923
+    },
+    "pathApplyCostMs": {
+      "count": 51027,
+      "min": 0.0002080000012938399,
+      "p50": 0.0006250000001273293,
+      "p95": 0.0027090000003227033,
+      "max": 1.4812499999999886
+    },
+    "timing": {
+      "meanTickMs": 5.125974990833326,
+      "p95TickMs": 7.315916999999899,
+      "maxTickMs": 314.2168750000001,
+      "totalApplyCostMs": 62.46495499977914,
+      "maxApplyCostMs": 1.4812499999999886
+    },
+    "scheduler": {
+      "blockedTicks": 0,
+      "finalQueueDepth": 4,
+      "maxQueueDepth": 1000,
+      "meanQueueDepth": 28.350555555555555
+    },
+    "movementDiagnostics": {
+      "sidesteps": 51029,
+      "repaths": 51029,
+      "groupMoves": 2
+    },
+    "mutations": [],
+    "initialMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalMapHash": "fnv1a64:7e485b06ec4fd0a5",
+    "finalWorldDigest": "fnv1a64:2367d18f8b4705e0",
+    "finalFullStateHash": "d3d0fa3a7f8a7ed1024bd1f22fdb7e258a762fb41abb1d4367c032530493aa9e"
+  }
+]

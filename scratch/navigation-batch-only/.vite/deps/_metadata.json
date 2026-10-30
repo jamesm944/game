@@ -1,0 +1,91 @@
+{
+  "hash": "3faefdb0",
+  "configHash": "063e320c",
+  "lockfileHash": "7bc3ddde",
+  "browserHash": "7fc6964e",
+  "optimized": {
+    "@recast-navigation/core": {
+      "src": "../../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/core/dist/index.mjs",
+      "file": "@recast-navigation_core.js",
+      "fileHash": "f01c6cd9",
+      "needsInterop": false
+    },
+    "@recast-navigation/wasm": {
+      "src": "../../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/wasm/dist/recast-navigation.wasm-compat.js",
+      "file": "@recast-navigation_wasm.js",
+      "fileHash": "5ab99725",
+      "needsInterop": false
+    },
+    "fflate": {
+      "src": "../../../../node_modules/fflate/esm/browser.js",
+      "file": "fflate.js",
+      "fileHash": "97675a84",
+      "needsInterop": false
+    },
+    "idb": {
+      "src": "../../../../node_modules/idb/build/index.js",
+      "file": "idb.js",
+      "fileHash": "838452fe",
+      "needsInterop": false
+    },
+    "simplex-noise": {
+      "src": "../../../../node_modules/simplex-noise/dist/esm/simplex-noise.js",
+      "file": "simplex-noise.js",
+      "fileHash": "99b410e6",
+      "needsInterop": false
+    },
+    "three": {
+      "src": "../../../donor-audit/browser/voidstrike/node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "beaa397b",
+      "needsInterop": false
+    },
+    "three/addons/controls/OrbitControls.js": {
+      "src": "../../../donor-audit/browser/voidstrike/node_modules/three/examples/jsm/controls/OrbitControls.js",
+      "file": "three_addons_controls_OrbitControls__js.js",
+      "fileHash": "478d12be",
+      "needsInterop": false
+    },
+    "three/addons/loaders/DRACOLoader.js": {
+      "src": "../../../donor-audit/browser/voidstrike/node_modules/three/examples/jsm/loaders/DRACOLoader.js",
+      "file": "three_addons_loaders_DRACOLoader__js.js",
+      "fileHash": "b4e440b7",
+      "needsInterop": false
+    },
+    "three/addons/loaders/GLTFLoader.js": {
+      "src": "../../../donor-audit/browser/voidstrike/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_addons_loaders_GLTFLoader__js.js",
+      "fileHash": "ebf69118",
+      "needsInterop": false
+    },
+    "three/examples/jsm/loaders/GLTFLoader.js": {
+      "src": "../../../../node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_examples_jsm_loaders_GLTFLoader__js.js",
+      "fileHash": "4ba94732",
+      "needsInterop": false
+    },
+    "three/examples/jsm/utils/BufferGeometryUtils.js": {
+      "src": "../../../../node_modules/three/examples/jsm/utils/BufferGeometryUtils.js",
+      "file": "three_examples_jsm_utils_BufferGeometryUtils__js.js",
+      "fileHash": "33625ccd",
+      "needsInterop": false
+    },
+    "zod": {
+      "src": "../../../../node_modules/zod/index.js",
+      "file": "zod.js",
+      "fileHash": "821269f0",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-MOIS7FPT": {
+      "file": "chunk-MOIS7FPT.js"
+    },
+    "chunk-6HIIVIHS": {
+      "file": "chunk-6HIIVIHS.js"
+    },
+    "chunk-PZ5AY32C": {
+      "file": "chunk-PZ5AY32C.js"
+    }
+  }
+}

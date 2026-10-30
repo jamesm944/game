@@ -1,0 +1,21 @@
+# ninja log v7
+1	15	1792947816217302545	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-mkdir	e022443e5383f6f1
+1	15	1792947816217302545	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-mkdir	e022443e5383f6f1
+15	1827	1792947818026852494	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-download	ed74c9c64ca81621
+15	1827	1792947818026852494	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-download	ed74c9c64ca81621
+1827	1892	1792947818030022298	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-update	5e1337ee3fa04412
+1827	1892	1792947818030022298	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-update	5e1337ee3fa04412
+1893	1907	1792947818108974875	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-patch	10113280310f33ac
+1893	1907	1792947818108974875	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-patch	10113280310f33ac
+1907	1922	1792947818124345711	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-configure	31f098f22d6d47f5
+1907	1922	1792947818124345711	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-configure	31f098f22d6d47f5
+1922	1938	1792947818140335149	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-build	868b49432e85ee3c
+1922	1938	1792947818140335149	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-build	868b49432e85ee3c
+1938	1952	1792947818154761207	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-install	9feeb044fa5b4a92
+1938	1952	1792947818154761207	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-install	9feeb044fa5b4a92
+1952	1966	1792947818168691166	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-test	773222728b21c956
+1952	1966	1792947818168691166	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-test	773222728b21c956
+1966	1987	1792947818189477206	CMakeFiles/fmt-populate-complete	c0f993fdaa8fec73
+1966	1987	1792947818189477206	fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-done	c0f993fdaa8fec73
+1966	1987	1792947818189477206	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/CMakeFiles/fmt-populate-complete	c0f993fdaa8fec73
+1966	1987	1792947818189477206	/Users/jamesmoss/Documents/game/scratch/donor-audit/city/build/dfhack-initial/_deps/fmt-subbuild/fmt-populate-prefix/src/fmt-populate-stamp/fmt-populate-done	c0f993fdaa8fec73

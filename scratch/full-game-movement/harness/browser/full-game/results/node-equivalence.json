@@ -1,0 +1,129 @@
+{
+  "scope": "same-candidate-real-Chrome-worker-versus-preserved-Node-inline-logical-results",
+  "crossArchitectureHashEqualityRequired": false,
+  "comparisons": [
+    {
+      "candidate": "astar",
+      "scenario": "dense-open-120-p1000",
+      "browser": "chrome",
+      "node": "dense-open-120-p1000-sync.json",
+      "browserVersion": "156.0.8078.47",
+      "browserSamples": 1,
+      "logicalEqualPerSample": [
+        true
+      ],
+      "finalFullStateHashEqualPerSample": [
+        true
+      ],
+      "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+      "browserFrames": [
+        4316
+      ],
+      "nodeFrames": 3600,
+      "browserBlockedTicks": [
+        716
+      ],
+      "nodeBlockedTicks": 0
+    },
+    {
+      "candidate": "astar",
+      "scenario": "mixed-destinations-120-p1000",
+      "browser": "chrome",
+      "node": "mixed-destinations-120-p1000-sync.json",
+      "browserVersion": "156.0.8078.47",
+      "browserSamples": 1,
+      "logicalEqualPerSample": [
+        true
+      ],
+      "finalFullStateHashEqualPerSample": [
+        true
+      ],
+      "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": [
+        4344
+      ],
+      "nodeFrames": 3600,
+      "browserBlockedTicks": [
+        744
+      ],
+      "nodeBlockedTicks": 0
+    },
+    {
+      "candidate": "flow",
+      "scenario": "dense-open-120-p1000",
+      "browser": "chrome",
+      "node": "dense-open-120-p1000-flow.json",
+      "browserVersion": "156.0.8078.47",
+      "browserSamples": 1,
+      "logicalEqualPerSample": [
+        true
+      ],
+      "finalFullStateHashEqualPerSample": [
+        true
+      ],
+      "finalFullStateHash": "bc865f77b348b98869e53f68709601043e05fc3eda22631ec405afc1c89d3848",
+      "browserFrames": [
+        26252
+      ],
+      "nodeFrames": 3600,
+      "browserBlockedTicks": [
+        22652
+      ],
+      "nodeBlockedTicks": 0
+    },
+    {
+      "candidate": "astar",
+      "scenario": "narrow-mutation-120-p100-t600",
+      "browser": "chrome",
+      "node": "narrow-mutation-120-p100-t600-sync-a.json",
+      "browserVersion": "156.0.8078.47",
+      "browserSamples": 2,
+      "logicalEqualPerSample": [
+        true,
+        true
+      ],
+      "finalFullStateHashEqualPerSample": [
+        true,
+        true
+      ],
+      "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+      "browserFrames": [
+        614,
+        603
+      ],
+      "nodeFrames": 600,
+      "browserBlockedTicks": [
+        14,
+        3
+      ],
+      "nodeBlockedTicks": 0
+    },
+    {
+      "candidate": "flow",
+      "scenario": "narrow-mutation-120-p100-t600",
+      "browser": "chrome",
+      "node": "narrow-mutation-120-p100-t600-flow-a.json",
+      "browserVersion": "156.0.8078.47",
+      "browserSamples": 2,
+      "logicalEqualPerSample": [
+        true,
+        true
+      ],
+      "finalFullStateHashEqualPerSample": [
+        true,
+        true
+      ],
+      "finalFullStateHash": "1845a6adaf54bb6f23715875ae7ef1509d221a7e0daa312492c8e4807156f264",
+      "browserFrames": [
+        982,
+        1006
+      ],
+      "nodeFrames": 600,
+      "browserBlockedTicks": [
+        382,
+        406
+      ],
+      "nodeBlockedTicks": 0
+    }
+  ]
+}

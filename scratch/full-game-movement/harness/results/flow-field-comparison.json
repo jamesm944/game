@@ -1,0 +1,763 @@
+{
+  "evidenceClass": "node-inline-single-run-per-large-configuration",
+  "rawResultsUnmodified": true,
+  "comparisons": [
+    {
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "finalTick": 3600,
+      "astar": {
+        "candidate": "current-integer-astar",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 24339.761167,
+        "completionOutcomes": {
+          "active-at-cutoff": 472,
+          "completed": 528
+        },
+        "completionTicks": {
+          "count": 528,
+          "p50": 2171,
+          "p95": 3223,
+          "max": 3577
+        },
+        "crowdStates": {
+          "completed": 528,
+          "moving": 26,
+          "stalled": 435,
+          "propagatedParked": 11,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 46289,
+        "pathOutcomes": {
+          "applied": 46287,
+          "pending": 2
+        },
+        "issueToApplyTicks": {
+          "count": 46287,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 46289,
+          "p50": 0.05562499999996362,
+          "p95": 0.18045799999981682,
+          "max": 15.380165999999917
+        },
+        "pathApplyCostMs": {
+          "count": 46287,
+          "p50": 0.0006250000005820766,
+          "p95": 0.004750000000058208,
+          "max": 2.2115420000000086
+        },
+        "timing": {
+          "meanTickMs": 6.134326988055589,
+          "p95TickMs": 9.460125000000062,
+          "maxTickMs": 210.794625,
+          "totalApplyCostMs": 67.29076000009479,
+          "maxApplyCostMs": 2.2115420000000086
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 2,
+          "maxQueueDepth": 1000,
+          "meanQueueDepth": 25.715833333333332
+        },
+        "movementDiagnostics": {
+          "sidesteps": 46288,
+          "repaths": 46288,
+          "groupMoves": 1
+        },
+        "mutations": [],
+        "candidateMetrics": {},
+        "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038"
+      },
+      "flow": {
+        "candidate": "flow-field-shared-destination",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 159465.104625,
+        "completionOutcomes": {
+          "active-at-cutoff": 576,
+          "completed": 424
+        },
+        "completionTicks": {
+          "count": 424,
+          "p50": 2206,
+          "p95": 3354,
+          "max": 3588
+        },
+        "crowdStates": {
+          "completed": 424,
+          "moving": 23,
+          "stalled": 529,
+          "propagatedParked": 24,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 51293,
+        "pathOutcomes": {
+          "applied": 51292,
+          "pending": 1
+        },
+        "issueToApplyTicks": {
+          "count": 51292,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 51293,
+          "p50": 2.8520409999982803,
+          "p95": 5.435583000013139,
+          "max": 166.14104100000986
+        },
+        "pathApplyCostMs": {
+          "count": 51292,
+          "p50": 0.0024170000106096268,
+          "p95": 0.007083999998940271,
+          "max": 8.063665999998193
+        },
+        "timing": {
+          "meanTickMs": 43.06981337583332,
+          "p95TickMs": 19.80466600001091,
+          "maxTickMs": 2904.912707999989,
+          "totalApplyCostMs": 197.61828500041804,
+          "maxApplyCostMs": 8.063665999998193
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 1,
+          "maxQueueDepth": 1000,
+          "meanQueueDepth": 28.496111111111112
+        },
+        "movementDiagnostics": {
+          "sidesteps": 51292,
+          "repaths": 51292,
+          "groupMoves": 1
+        },
+        "mutations": [],
+        "candidateMetrics": {
+          "integration": "shared-destination-field-to-raw-tile-route",
+          "fieldsBuilt": 40358,
+          "cacheHits": 10935,
+          "cacheMisses": 40358,
+          "staleSnapshotBuilds": 0,
+          "cacheInvalidations": 0,
+          "routesTraced": 51293,
+          "unreachableRoutes": 0,
+          "routeTiles": 1488275,
+          "totalFieldBuildMs": 134938.16965699955,
+          "maxFieldBuildMs": 166.1267499999958,
+          "totalRouteTraceMs": 292.0709639990473,
+          "maxRouteTraceMs": 3.400375000004715,
+          "responseWaypointBytes": 5953100,
+          "peakCachedFields": 32,
+          "peakCachedFieldBytes": 2304000,
+          "cachedFields": 32,
+          "cachedFieldBytes": 2304000,
+          "fieldBytesPer120x120": 72000,
+          "fieldTransferBytes": 0,
+          "transferModel": "route-waypoints-only-no-browser-structured-clone",
+          "mockInFlight": 0
+        },
+        "finalFullStateHash": "bc865f77b348b98869e53f68709601043e05fc3eda22631ec405afc1c89d3848"
+      },
+      "flowMinusAstar": {
+        "completed": -104,
+        "activeAtCutoff": 104,
+        "repaths": 5004,
+        "pathRequests": 5004,
+        "wallClockMs": 135125.34345800002,
+        "wallClockRatio": 6.551629801577667,
+        "meanTickMs": 36.93548638777773,
+        "p95TickMs": 10.34454100001085
+      }
+    },
+    {
+      "scenario": "opposing-open-120",
+      "population": 1000,
+      "finalTick": 3600,
+      "astar": {
+        "candidate": "current-integer-astar",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 20458.154375000002,
+        "completionOutcomes": {
+          "active-at-cutoff": 467,
+          "completed": 533
+        },
+        "completionTicks": {
+          "count": 533,
+          "p50": 2256,
+          "p95": 3114,
+          "max": 3587
+        },
+        "crowdStates": {
+          "completed": 533,
+          "moving": 19,
+          "stalled": 428,
+          "propagatedParked": 20,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 51031,
+        "pathOutcomes": {
+          "applied": 51027,
+          "pending": 4
+        },
+        "issueToApplyTicks": {
+          "count": 51027,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 51031,
+          "p50": 0.05483300000014424,
+          "p95": 0.2141660000002048,
+          "max": 11.286458999999923
+        },
+        "pathApplyCostMs": {
+          "count": 51027,
+          "p50": 0.0006250000001273293,
+          "p95": 0.0027090000003227033,
+          "max": 1.4812499999999886
+        },
+        "timing": {
+          "meanTickMs": 5.125974990833326,
+          "p95TickMs": 7.315916999999899,
+          "maxTickMs": 314.2168750000001,
+          "totalApplyCostMs": 62.46495499977914,
+          "maxApplyCostMs": 1.4812499999999886
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 4,
+          "maxQueueDepth": 1000,
+          "meanQueueDepth": 28.350555555555555
+        },
+        "movementDiagnostics": {
+          "sidesteps": 51029,
+          "repaths": 51029,
+          "groupMoves": 2
+        },
+        "mutations": [],
+        "candidateMetrics": {},
+        "finalFullStateHash": "d3d0fa3a7f8a7ed1024bd1f22fdb7e258a762fb41abb1d4367c032530493aa9e"
+      },
+      "flow": {
+        "candidate": "flow-field-shared-destination",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 176137.640958,
+        "completionOutcomes": {
+          "active-at-cutoff": 557,
+          "completed": 443
+        },
+        "completionTicks": {
+          "count": 443,
+          "p50": 2413,
+          "p95": 3344,
+          "max": 3577
+        },
+        "crowdStates": {
+          "completed": 443,
+          "moving": 24,
+          "stalled": 515,
+          "propagatedParked": 18,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 55552,
+        "pathOutcomes": {
+          "applied": 55551,
+          "pending": 1
+        },
+        "issueToApplyTicks": {
+          "count": 55551,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 55552,
+          "p50": 2.9162500000093132,
+          "p95": 5.652083000000857,
+          "max": 176.81462499999907
+        },
+        "pathApplyCostMs": {
+          "count": 55551,
+          "p50": 0.00245800000266172,
+          "p95": 0.005917000002227724,
+          "max": 5.21470800000003
+        },
+        "timing": {
+          "meanTickMs": 47.6437728780556,
+          "p95TickMs": 18.541333000001032,
+          "maxTickMs": 3137.5682499999966,
+          "totalApplyCostMs": 202.15551200221887,
+          "maxApplyCostMs": 5.21470800000003
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 1,
+          "maxQueueDepth": 1000,
+          "meanQueueDepth": 30.862222222222222
+        },
+        "movementDiagnostics": {
+          "sidesteps": 55550,
+          "repaths": 55550,
+          "groupMoves": 2
+        },
+        "mutations": [],
+        "candidateMetrics": {
+          "integration": "shared-destination-field-to-raw-tile-route",
+          "fieldsBuilt": 43880,
+          "cacheHits": 11672,
+          "cacheMisses": 43880,
+          "staleSnapshotBuilds": 0,
+          "cacheInvalidations": 0,
+          "routesTraced": 55552,
+          "unreachableRoutes": 0,
+          "routeTiles": 1663863,
+          "totalFieldBuildMs": 152032.6266759991,
+          "maxFieldBuildMs": 176.79383300000336,
+          "totalRouteTraceMs": 316.1284870001537,
+          "maxRouteTraceMs": 3.8670839999977034,
+          "responseWaypointBytes": 6655452,
+          "peakCachedFields": 32,
+          "peakCachedFieldBytes": 2304000,
+          "cachedFields": 32,
+          "cachedFieldBytes": 2304000,
+          "fieldBytesPer120x120": 72000,
+          "fieldTransferBytes": 0,
+          "transferModel": "route-waypoints-only-no-browser-structured-clone",
+          "mockInFlight": 0
+        },
+        "finalFullStateHash": "0d25d1af455d8b928060fe5820c97dcb140896fb97012aa983edc56732a8b23b"
+      },
+      "flowMinusAstar": {
+        "completed": -90,
+        "activeAtCutoff": 90,
+        "repaths": 4521,
+        "pathRequests": 4521,
+        "wallClockMs": 155679.486583,
+        "wallClockRatio": 8.609654503987972,
+        "meanTickMs": 42.51779788722227,
+        "p95TickMs": 11.225416000001132
+      }
+    },
+    {
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "finalTick": 3600,
+      "astar": {
+        "candidate": "current-integer-astar",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 19256.531458,
+        "completionOutcomes": {
+          "active-at-cutoff": 429,
+          "completed": 571
+        },
+        "completionTicks": {
+          "count": 571,
+          "p50": 2023,
+          "p95": 2931,
+          "max": 3551
+        },
+        "crowdStates": {
+          "completed": 571,
+          "moving": 15,
+          "stalled": 398,
+          "propagatedParked": 16,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 46807,
+        "pathOutcomes": {
+          "applied": 46802,
+          "pending": 5
+        },
+        "issueToApplyTicks": {
+          "count": 46802,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 46807,
+          "p50": 0.0547500000011496,
+          "p95": 0.1577079999997295,
+          "max": 13.177375000000211
+        },
+        "pathApplyCostMs": {
+          "count": 46802,
+          "p50": 0.0005419999999958236,
+          "p95": 0.0031669999989389908,
+          "max": 2.7588749999995343
+        },
+        "timing": {
+          "meanTickMs": 4.782611096111112,
+          "p95TickMs": 7.486499999999069,
+          "maxTickMs": 187.18395900000002,
+          "totalApplyCostMs": 65.10168699995342,
+          "maxApplyCostMs": 2.7588749999995343
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 5,
+          "maxQueueDepth": 1000,
+          "meanQueueDepth": 26.003333333333334
+        },
+        "movementDiagnostics": {
+          "sidesteps": 46799,
+          "repaths": 46799,
+          "groupMoves": 8
+        },
+        "mutations": [],
+        "candidateMetrics": {},
+        "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb"
+      },
+      "flow": {
+        "candidate": "flow-field-shared-destination",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 124402.633209,
+        "completionOutcomes": {
+          "active-at-cutoff": 506,
+          "completed": 494
+        },
+        "completionTicks": {
+          "count": 494,
+          "p50": 2289,
+          "p95": 3110,
+          "max": 3583
+        },
+        "crowdStates": {
+          "completed": 494,
+          "moving": 23,
+          "stalled": 467,
+          "propagatedParked": 16,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 51439,
+        "pathOutcomes": {
+          "applied": 51435,
+          "pending": 4
+        },
+        "issueToApplyTicks": {
+          "count": 51435,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 51439,
+          "p50": 2.4542079999991984,
+          "p95": 4.853707999995095,
+          "max": 277.6354590000119
+        },
+        "pathApplyCostMs": {
+          "count": 51435,
+          "p50": 0.002125000006344635,
+          "p95": 0.0076249999983701855,
+          "max": 5.032082999998238
+        },
+        "timing": {
+          "meanTickMs": 33.27560940916673,
+          "p95TickMs": 17.61737500000163,
+          "maxTickMs": 2588.904290999999,
+          "totalApplyCostMs": 197.76405200089602,
+          "maxApplyCostMs": 5.032082999998238
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 4,
+          "maxQueueDepth": 1000,
+          "meanQueueDepth": 28.577222222222222
+        },
+        "movementDiagnostics": {
+          "sidesteps": 51431,
+          "repaths": 51431,
+          "groupMoves": 8
+        },
+        "mutations": [],
+        "candidateMetrics": {
+          "integration": "shared-destination-field-to-raw-tile-route",
+          "fieldsBuilt": 32879,
+          "cacheHits": 18560,
+          "cacheMisses": 32879,
+          "staleSnapshotBuilds": 0,
+          "cacheInvalidations": 0,
+          "routesTraced": 51439,
+          "unreachableRoutes": 0,
+          "routeTiles": 1666911,
+          "totalFieldBuildMs": 101551.75955200056,
+          "maxFieldBuildMs": 277.599332999991,
+          "totalRouteTraceMs": 242.36633299890883,
+          "maxRouteTraceMs": 4.364916999998968,
+          "responseWaypointBytes": 6667644,
+          "peakCachedFields": 32,
+          "peakCachedFieldBytes": 2304000,
+          "cachedFields": 32,
+          "cachedFieldBytes": 2304000,
+          "fieldBytesPer120x120": 72000,
+          "fieldTransferBytes": 0,
+          "transferModel": "route-waypoints-only-no-browser-structured-clone",
+          "mockInFlight": 0
+        },
+        "finalFullStateHash": "f20d02b67bd80cc9ec0d5a5f87eee3b9933f4e5631fd2463bb0935362bbe7e73"
+      },
+      "flowMinusAstar": {
+        "completed": -77,
+        "activeAtCutoff": 77,
+        "repaths": 4632,
+        "pathRequests": 4632,
+        "wallClockMs": 105146.10175100001,
+        "wallClockRatio": 6.460282501048118,
+        "meanTickMs": 28.492998313055615,
+        "p95TickMs": 10.130875000002561
+      }
+    },
+    {
+      "scenario": "narrow-mutation-120",
+      "population": 1000,
+      "finalTick": 3600,
+      "astar": {
+        "candidate": "current-integer-astar",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 24964.907958,
+        "completionOutcomes": {
+          "stale-cancelled": 1000,
+          "active-at-cutoff": 513,
+          "completed": 487
+        },
+        "completionTicks": {
+          "count": 487,
+          "p50": 1883,
+          "p95": 3314,
+          "max": 3596
+        },
+        "crowdStates": {
+          "completed": 487,
+          "moving": 16,
+          "stalled": 490,
+          "propagatedParked": 7,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 53709,
+        "pathOutcomes": {
+          "stale-discarded": 2,
+          "applied": 53697,
+          "pending": 10
+        },
+        "issueToApplyTicks": {
+          "count": 53699,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 53709,
+          "p50": 0.04645899999923131,
+          "p95": 0.12370800000098825,
+          "max": 12.698750000000473
+        },
+        "pathApplyCostMs": {
+          "count": 53697,
+          "p50": 0.0010000000002037268,
+          "p95": 0.005499999999301508,
+          "max": 2.6073750000014115
+        },
+        "timing": {
+          "meanTickMs": 6.323562204166702,
+          "p95TickMs": 12.184957999999824,
+          "maxTickMs": 255.02041699999995,
+          "totalApplyCostMs": 114.270125000176,
+          "maxApplyCostMs": 2.6073750000014115
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 10,
+          "maxQueueDepth": 915,
+          "meanQueueDepth": 29.836944444444445
+        },
+        "movementDiagnostics": {
+          "sidesteps": 49115,
+          "repaths": 53705,
+          "groupMoves": 2
+        },
+        "mutations": [
+          {
+            "tick": 2,
+            "kind": "terrain",
+            "revisionBefore": 0,
+            "revisionAfter": 1,
+            "changedTiles": 4,
+            "firstRecoveryApplyTick": 182
+          },
+          {
+            "tick": 2,
+            "kind": "building",
+            "revisionBefore": 1,
+            "revisionAfter": 5,
+            "changedTiles": 16,
+            "firstRecoveryApplyTick": 182
+          },
+          {
+            "tick": 120,
+            "kind": "terrain",
+            "revisionBefore": 5,
+            "revisionAfter": 6,
+            "changedTiles": 4,
+            "firstRecoveryApplyTick": 182
+          }
+        ],
+        "candidateMetrics": {},
+        "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966"
+      },
+      "flow": {
+        "candidate": "flow-field-shared-destination",
+        "evidenceClass": "node-inline",
+        "wallClockMs": 178586.592167,
+        "completionOutcomes": {
+          "stale-cancelled": 1000,
+          "active-at-cutoff": 653,
+          "completed": 347
+        },
+        "completionTicks": {
+          "count": 347,
+          "p50": 2098,
+          "p95": 3168,
+          "max": 3569
+        },
+        "crowdStates": {
+          "completed": 347,
+          "moving": 13,
+          "stalled": 626,
+          "propagatedParked": 14,
+          "parkedNoActivity": 0,
+          "awaitingGroupPath": 0,
+          "otherActivity": 0
+        },
+        "pathRequests": 54195,
+        "pathOutcomes": {
+          "stale-discarded": 2,
+          "applied": 54190,
+          "pending": 3
+        },
+        "issueToApplyTicks": {
+          "count": 54192,
+          "p50": 2,
+          "p95": 2,
+          "max": 2
+        },
+        "issueToResponseMsNonBrowser": {
+          "count": 54195,
+          "p50": 2.8470419999939622,
+          "p95": 5.4385829999810085,
+          "max": 202.52658299999894
+        },
+        "pathApplyCostMs": {
+          "count": 54190,
+          "p50": 0.0013750000071013346,
+          "p95": 0.007041000004392117,
+          "max": 1.3764170000000604
+        },
+        "timing": {
+          "meanTickMs": 48.63206157222253,
+          "p95TickMs": 121.28612499998417,
+          "maxTickMs": 2574.010917,
+          "totalApplyCostMs": 140.94606599939652,
+          "maxApplyCostMs": 1.3764170000000604
+        },
+        "scheduler": {
+          "blockedTicks": 0,
+          "finalQueueDepth": 3,
+          "maxQueueDepth": 920,
+          "meanQueueDepth": 30.108333333333334
+        },
+        "movementDiagnostics": {
+          "sidesteps": 53718,
+          "repaths": 54191,
+          "groupMoves": 2
+        },
+        "mutations": [
+          {
+            "tick": 2,
+            "kind": "terrain",
+            "revisionBefore": 0,
+            "revisionAfter": 1,
+            "changedTiles": 4,
+            "firstRecoveryApplyTick": 182
+          },
+          {
+            "tick": 2,
+            "kind": "building",
+            "revisionBefore": 1,
+            "revisionAfter": 5,
+            "changedTiles": 16,
+            "firstRecoveryApplyTick": 182
+          },
+          {
+            "tick": 120,
+            "kind": "terrain",
+            "revisionBefore": 5,
+            "revisionAfter": 6,
+            "changedTiles": 4,
+            "firstRecoveryApplyTick": 182
+          }
+        ],
+        "candidateMetrics": {
+          "integration": "shared-destination-field-to-raw-tile-route",
+          "fieldsBuilt": 45812,
+          "cacheHits": 8383,
+          "cacheMisses": 45812,
+          "staleSnapshotBuilds": 0,
+          "cacheInvalidations": 1,
+          "routesTraced": 54195,
+          "unreachableRoutes": 16,
+          "routeTiles": 1251331,
+          "totalFieldBuildMs": 151483.81589100073,
+          "maxFieldBuildMs": 202.4985830000005,
+          "totalRouteTraceMs": 325.2898509997101,
+          "maxRouteTraceMs": 4.979542000000947,
+          "responseWaypointBytes": 5005324,
+          "peakCachedFields": 32,
+          "peakCachedFieldBytes": 2304000,
+          "cachedFields": 32,
+          "cachedFieldBytes": 2304000,
+          "fieldBytesPer120x120": 72000,
+          "fieldTransferBytes": 0,
+          "transferModel": "route-waypoints-only-no-browser-structured-clone",
+          "mockInFlight": 0
+        },
+        "finalFullStateHash": "8cb940d27685389f6622c88bd8ec2bf4dfdd078ffbfe59d660b96af7f537d774"
+      },
+      "flowMinusAstar": {
+        "completed": -140,
+        "activeAtCutoff": 140,
+        "repaths": 486,
+        "pathRequests": 486,
+        "wallClockMs": 153621.684209,
+        "wallClockRatio": 7.15350493049873,
+        "meanTickMs": 42.308499368055834,
+        "p95TickMs": 109.10116699998434
+      }
+    }
+  ],
+  "unmeasured": [
+    {
+      "scenario": "dense-open-120",
+      "population": 2000,
+      "candidate": "flow-field-shared-destination"
+    }
+  ]
+}

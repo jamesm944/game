@@ -1,0 +1,91 @@
+{
+  "hash": "3faefdb0",
+  "configHash": "063e320c",
+  "lockfileHash": "7bc3ddde",
+  "browserHash": "7fc6964e",
+  "optimized": {
+    "@recast-navigation/core": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/core/dist/index.mjs",
+      "file": "@recast-navigation_core.js",
+      "fileHash": "3b183c55",
+      "needsInterop": false
+    },
+    "@recast-navigation/wasm": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/wasm/dist/recast-navigation.wasm-compat.js",
+      "file": "@recast-navigation_wasm.js",
+      "fileHash": "da50487f",
+      "needsInterop": false
+    },
+    "fflate": {
+      "src": "../../../../../node_modules/fflate/esm/browser.js",
+      "file": "fflate.js",
+      "fileHash": "4aed3b54",
+      "needsInterop": false
+    },
+    "idb": {
+      "src": "../../../../../node_modules/idb/build/index.js",
+      "file": "idb.js",
+      "fileHash": "5807e0e3",
+      "needsInterop": false
+    },
+    "simplex-noise": {
+      "src": "../../../../../node_modules/simplex-noise/dist/esm/simplex-noise.js",
+      "file": "simplex-noise.js",
+      "fileHash": "a8a54826",
+      "needsInterop": false
+    },
+    "three": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/three/build/three.module.js",
+      "file": "three.js",
+      "fileHash": "df0e277d",
+      "needsInterop": false
+    },
+    "three/addons/controls/OrbitControls.js": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/three/examples/jsm/controls/OrbitControls.js",
+      "file": "three_addons_controls_OrbitControls__js.js",
+      "fileHash": "9d0d46f3",
+      "needsInterop": false
+    },
+    "three/addons/loaders/DRACOLoader.js": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/three/examples/jsm/loaders/DRACOLoader.js",
+      "file": "three_addons_loaders_DRACOLoader__js.js",
+      "fileHash": "352b6dd5",
+      "needsInterop": false
+    },
+    "three/addons/loaders/GLTFLoader.js": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_addons_loaders_GLTFLoader__js.js",
+      "fileHash": "ee8d0b3f",
+      "needsInterop": false
+    },
+    "three/examples/jsm/loaders/GLTFLoader.js": {
+      "src": "../../../../../node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "file": "three_examples_jsm_loaders_GLTFLoader__js.js",
+      "fileHash": "001efede",
+      "needsInterop": false
+    },
+    "three/examples/jsm/utils/BufferGeometryUtils.js": {
+      "src": "../../../../../node_modules/three/examples/jsm/utils/BufferGeometryUtils.js",
+      "file": "three_examples_jsm_utils_BufferGeometryUtils__js.js",
+      "fileHash": "65830cbd",
+      "needsInterop": false
+    },
+    "zod": {
+      "src": "../../../../../node_modules/zod/index.js",
+      "file": "zod.js",
+      "fileHash": "f3b222ee",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-GPFZ7DVD": {
+      "file": "chunk-GPFZ7DVD.js"
+    },
+    "chunk-WJKOU7QE": {
+      "file": "chunk-WJKOU7QE.js"
+    },
+    "chunk-PZ5AY32C": {
+      "file": "chunk-PZ5AY32C.js"
+    }
+  }
+}

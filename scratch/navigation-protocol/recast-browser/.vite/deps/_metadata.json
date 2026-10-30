@@ -1,0 +1,43 @@
+{
+  "hash": "4d0da3ce",
+  "configHash": "984c7975",
+  "lockfileHash": "7bc3ddde",
+  "browserHash": "9e96a809",
+  "optimized": {
+    "simplex-noise": {
+      "src": "../../../../../node_modules/simplex-noise/dist/esm/simplex-noise.js",
+      "file": "simplex-noise.js",
+      "fileHash": "c0aa740e",
+      "needsInterop": false
+    },
+    "zod": {
+      "src": "../../../../../node_modules/zod/index.js",
+      "file": "zod.js",
+      "fileHash": "bf20a564",
+      "needsInterop": false
+    },
+    "@recast-navigation/core": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/core/dist/index.mjs",
+      "file": "@recast-navigation_core.js",
+      "fileHash": "d987c7c9",
+      "needsInterop": false
+    },
+    "@recast-navigation/generators": {
+      "src": "../../../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/generators/dist/index.mjs",
+      "file": "@recast-navigation_generators.js",
+      "fileHash": "15adfd52",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-6TMFGFBU": {
+      "file": "chunk-6TMFGFBU.js"
+    },
+    "recast-navigation.wasm-compat-TJSFGAKY": {
+      "file": "recast-navigation__wasm-compat-TJSFGAKY.js"
+    },
+    "chunk-PZ5AY32C": {
+      "file": "chunk-PZ5AY32C.js"
+    }
+  }
+}

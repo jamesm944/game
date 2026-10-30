@@ -1,0 +1,236 @@
+- main [ref=f175e2]:
+  - generic [ref=f175e3]:
+    - paragraph [ref=f175e4]: "Issue #149 · HUD exploration"
+    - heading "AAA HUD references" [level=1] [ref=f175e5]
+    - paragraph [ref=f175e6]: "39 screenshots from 13 shipped strategy games, collected to answer one question: which HUD structure should the AAA build adopt? Judge where the eye goes first, how much map is left open, and how sim depth is surfaced — not the art direction."
+    - navigation [ref=f175e7]:
+      - link "Age of Empires IV" [ref=f175e8] [cursor=pointer]:
+        - /url: "#age-of-empires-iv"
+      - 'link "Age of Empires II: Definitive Edition" [ref=f175e9] [cursor=pointer]':
+        - /url: "#age-of-empires-ii-de"
+      - 'link "Age of Mythology: Retold" [ref=f175e10] [cursor=pointer]':
+        - /url: "#age-of-mythology-retold"
+      - link "Company of Heroes 3" [ref=f175e11] [cursor=pointer]:
+        - /url: "#company-of-heroes-3"
+      - 'link "Total War: WARHAMMER III" [ref=f175e12] [cursor=pointer]':
+        - /url: "#total-war-warhammer-3"
+      - link "Manor Lords" [ref=f175e13] [cursor=pointer]:
+        - /url: "#manor-lords"
+      - link "Anno 1800" [ref=f175e14] [cursor=pointer]:
+        - /url: "#anno-1800"
+      - link "Frostpunk 2" [ref=f175e15] [cursor=pointer]:
+        - /url: "#frostpunk-2"
+      - link "Against the Storm" [ref=f175e16] [cursor=pointer]:
+        - /url: "#against-the-storm"
+      - link "Northgard" [ref=f175e17] [cursor=pointer]:
+        - /url: "#northgard"
+      - link "They Are Billions" [ref=f175e18] [cursor=pointer]:
+        - /url: "#they-are-billions"
+      - 'link "Warcraft III: Reforged" [ref=f175e19] [cursor=pointer]':
+        - /url: "#warcraft-3-reforged"
+      - 'link "Total War: THREE KINGDOMS" [ref=f175e20] [cursor=pointer]':
+        - /url: "#total-war-three-kingdoms"
+  - generic [ref=f175e21]:
+    - generic [ref=f175e22]:
+      - paragraph [ref=f175e23]: Current direction
+      - heading "D · Crown & Chronicle" [level=2] [ref=f175e24]
+      - paragraph [ref=f175e25]: The synthesis to judge against these references. AoE4 skeleton, but built for a settlement sim rather than an army.
+      - list [ref=f175e26]:
+        - listitem [ref=f175e27]: "One 60px top bar: crest, seven resources, epoch, speed, alerts, pause."
+        - listitem [ref=f175e28]: "One tabbed info panel: Commission / Victory / People."
+        - listitem [ref=f175e29]: "One bottom deck: minimap · commands · training queue · inspector."
+        - listitem [ref=f175e30]: "Sim depth on demand: People tab and Pop inspector, not permanent rails."
+    - figure "D at 1600×900 — the state to compare every reference against." [ref=f175e31]:
+      - img "D Crown and Chronicle at 1600 by 900" [ref=f175e32]
+  - generic [ref=f175e34]:
+    - article [ref=f175e35]:
+      - heading "One bar, one deck" [level=3] [ref=f175e36]
+      - paragraph [ref=f175e37]: AoE4 · AoE2 DE · AoM Retold
+      - paragraph [ref=f175e38]: A single resource line on top and a single command deck on the bottom. Everything else is contextual. This is D's skeleton.
+    - article [ref=f175e39]:
+      - heading "Edge-hugging, no rails" [level=3] [ref=f175e40]
+      - paragraph [ref=f175e41]: Company of Heroes 3 · Northgard
+      - paragraph [ref=f175e42]: Tactical map, unit cards and alerts pinned to the corners. The playfield is never framed by full-height panels.
+    - article [ref=f175e43]:
+      - heading "Panel-first sim depth" [level=3] [ref=f175e44]
+      - paragraph [ref=f175e45]: Manor Lords · Against the Storm · Frostpunk 2
+      - paragraph [ref=f175e46]: Mood, needs, production and factions live in slide-in panels or one side column, opened on demand. The map stays readable.
+    - article [ref=f175e47]:
+      - heading "Character-first right rail" [level=3] [ref=f175e48]
+      - paragraph [ref=f175e49]: "TW: THREE KINGDOMS · TW: WARHAMMER III"
+      - paragraph [ref=f175e50]: Portraits, relationships and retinues get a dedicated right-hand surface. Good model for a People tab that is more than a list.
+  - generic [ref=f175e51]:
+    - generic [ref=f175e52]:
+      - generic [ref=f175e53]:
+        - heading "Age of Empires IV" [level=2] [ref=f175e54]
+        - paragraph [ref=f175e55]: Relic / World's Edge · 2021
+      - paragraph [ref=f175e56]: "Steal this: D's direct model: one 60px resource bar, one bottom deck (minimap · command grid · queue · inspector), left panel only on demand. Resources read as a single scan line."
+    - generic [ref=f175e57]:
+      - figure "Village fight — selection bottom-left, minimap bottom-right" [ref=f175e58]:
+        - img "Village fight — selection bottom-left, minimap bottom-right" [ref=f175e59]
+      - figure "Walled town — minimap, queue, inspector" [ref=f175e61]:
+        - img "Walled town — minimap, queue, inspector" [ref=f175e62]
+      - figure "Town at rest — resource bar and deck" [ref=f175e64]:
+        - img "Town at rest — resource bar and deck" [ref=f175e65]
+  - generic [ref=f175e67]:
+    - generic [ref=f175e68]:
+      - generic [ref=f175e69]:
+        - 'heading "Age of Empires II: Definitive Edition" [level=2] [ref=f175e70]'
+        - paragraph [ref=f175e71]: Forgotten Empires · 2019
+      - paragraph [ref=f175e72]: "Steal this: The canonical deck geometry: minimap bottom-left, command card bottom-centre, selection bottom-right. Idle-villager and age-up affordances never move."
+    - generic [ref=f175e73]:
+      - figure "Island town — full deck" [ref=f175e74]:
+        - img "Island town — full deck" [ref=f175e75]
+      - figure "Town — minimap, command card, selection" [ref=f175e77]:
+        - img "Town — minimap, command card, selection" [ref=f175e78]
+      - figure "Desert town — deck with right-side selection" [ref=f175e80]:
+        - img "Desert town — deck with right-side selection" [ref=f175e81]
+  - generic [ref=f175e83]:
+    - generic [ref=f175e84]:
+      - generic [ref=f175e85]:
+        - 'heading "Age of Mythology: Retold" [level=2] [ref=f175e86]'
+        - paragraph [ref=f175e87]: World's Edge · 2024
+      - paragraph [ref=f175e88]: "Steal this: Same skeleton as AoE2, but god powers and myth units get bigger, more legible tiles. Shows how 12 command tiles can read as abilities, not buttons."
+    - generic [ref=f175e89]:
+      - figure "Naval fight — top bar and deck" [ref=f175e90]:
+        - img "Naval fight — top bar and deck" [ref=f175e91]
+      - figure "Town — command deck and queue" [ref=f175e93]:
+        - img "Town — command deck and queue" [ref=f175e94]
+      - figure "Town at rest — full HUD" [ref=f175e96]:
+        - img "Town at rest — full HUD" [ref=f175e97]
+  - generic [ref=f175e99]:
+    - generic [ref=f175e100]:
+      - generic [ref=f175e101]:
+        - heading "Company of Heroes 3" [level=2] [ref=f175e102]
+        - paragraph [ref=f175e103]: Relic · 2023
+      - paragraph [ref=f175e104]: "Steal this: Tactical map top-left, VP/resource ticker top-right, unit cards bottom-centre with veterancy pips. Almost no chrome over the battlefield; the HUD hugs the edges."
+    - generic [ref=f175e105]:
+      - figure "Desert fight — tactical map, unit cards" [ref=f175e106]:
+        - img "Desert fight — tactical map, unit cards" [ref=f175e107]
+      - figure "Winter fight — vet pips and abilities" [ref=f175e109]:
+        - img "Winter fight — vet pips and abilities" [ref=f175e110]
+      - figure "Snow fight — tactical map + unit cards" [ref=f175e112]:
+        - img "Snow fight — tactical map + unit cards" [ref=f175e113]
+  - generic [ref=f175e115]:
+    - generic [ref=f175e116]:
+      - generic [ref=f175e117]:
+        - 'heading "Total War: WARHAMMER III" [level=2] [ref=f175e118]'
+        - paragraph [ref=f175e119]: Creative Assembly · 2022
+      - paragraph [ref=f175e120]: "Steal this: Campaign and battle use different HUDs. Battle puts unit cards bottom, selected unit right, minimap bottom-right. Heavy ornament, always outside the play area."
+    - generic [ref=f175e121]:
+      - figure "Province panel — campaign UI" [ref=f175e122]:
+        - img "Province panel — campaign UI" [ref=f175e123]
+      - figure "Campaign map — army and settlement panels" [ref=f175e125]:
+        - img "Campaign map — army and settlement panels" [ref=f175e126]
+      - figure "Battle — unit cards, minimap, selected unit" [ref=f175e128]:
+        - img "Battle — unit cards, minimap, selected unit" [ref=f175e129]
+  - generic [ref=f175e131]:
+    - generic [ref=f175e132]:
+      - generic [ref=f175e133]:
+        - heading "Manor Lords" [level=2] [ref=f175e134]
+        - paragraph [ref=f175e135]: Slavic Magic · 2024
+      - paragraph [ref=f175e136]: "Steal this: Diegetic and almost HUD-less. Building and people panels slide in from the right; approval, treasury and population are small top-left tokens. Sim depth lives in panels, not rails."
+    - generic [ref=f175e137]:
+      - figure "Winter valley — minimal top-left tokens" [ref=f175e138]:
+        - img "Winter valley — minimal top-left tokens" [ref=f175e139]
+      - figure "Build menu — bottom bar and placement" [ref=f175e141]:
+        - img "Build menu — bottom bar and placement" [ref=f175e142]
+      - figure "Character panel — right-side inspector" [ref=f175e144]:
+        - img "Character panel — right-side inspector" [ref=f175e145]
+  - generic [ref=f175e147]:
+    - generic [ref=f175e148]:
+      - generic [ref=f175e149]:
+        - heading "Anno 1800" [level=2] [ref=f175e150]
+        - paragraph [ref=f175e151]: Blue Byte · 2019
+      - paragraph [ref=f175e152]: "Steal this: Bottom-centre build menu with a category ring, minimap bottom-left, goods in a top ribbon. Dense production chains stay in one horizontal band."
+    - generic [ref=f175e153]:
+      - figure "City — build menu and minimap" [ref=f175e154]:
+        - img "City — build menu and minimap" [ref=f175e155]
+      - figure "City — production and trade panels" [ref=f175e157]:
+        - img "City — production and trade panels" [ref=f175e158]
+      - figure "Cathedral — right-side inspector" [ref=f175e160]:
+        - img "Cathedral — right-side inspector" [ref=f175e161]
+  - generic [ref=f175e163]:
+    - generic [ref=f175e164]:
+      - generic [ref=f175e165]:
+        - heading "Frostpunk 2" [level=2] [ref=f175e166]
+        - paragraph [ref=f175e167]: 11 bit studios · 2024
+      - paragraph [ref=f175e168]: "Steal this: City vitals top-left, heat/timeline bottom, faction council left. Stark monochrome plus one accent; the HUD reads as a diegetic instrument panel."
+    - generic [ref=f175e169]:
+      - figure "City map — top bar and district markers" [ref=f175e170]:
+        - img "City map — top bar and district markers" [ref=f175e171]
+      - figure "City — resource bar and district UI" [ref=f175e173]:
+        - img "City — resource bar and district UI" [ref=f175e174]
+      - figure "Research — tech tree and detail panel" [ref=f175e176]:
+        - img "Research — tech tree and detail panel" [ref=f175e177]
+  - generic [ref=f175e179]:
+    - generic [ref=f175e180]:
+      - generic [ref=f175e181]:
+        - heading "Against the Storm" [level=2] [ref=f175e182]
+        - paragraph [ref=f175e183]: Eremite Games · 2023
+      - paragraph [ref=f175e184]: "Steal this: Best modern run-based city-builder HUD: resource strip on top, settlement panel left, orders/glades right, build bar bottom. Every corner has exactly one job."
+    - generic [ref=f175e185]:
+      - figure "Rainy settlement — four-corner HUD" [ref=f175e186]:
+        - img "Rainy settlement — four-corner HUD" [ref=f175e187]
+      - figure "Grid city — build bar and orders" [ref=f175e189]:
+        - img "Grid city — build bar and orders" [ref=f175e190]
+      - figure "Magical city — full run HUD" [ref=f175e192]:
+        - img "Magical city — full run HUD" [ref=f175e193]
+  - generic [ref=f175e195]:
+    - generic [ref=f175e196]:
+      - generic [ref=f175e197]:
+        - heading "Northgard" [level=2] [ref=f175e198]
+        - paragraph [ref=f175e199]: Shiro Games · 2018
+      - paragraph [ref=f175e200]: "Steal this: Compact, console-friendly HUD: clan vitals top-left, objectives top-right, minimap bottom-left, selection bottom-right. Very little screen coverage."
+    - generic [ref=f175e201]:
+      - figure "Village — clan vitals, objectives, minimap" [ref=f175e202]:
+        - img "Village — clan vitals, objectives, minimap" [ref=f175e203]
+      - figure "Autumn — compact deck" [ref=f175e205]:
+        - img "Autumn — compact deck" [ref=f175e206]
+      - figure "Battle — red alert state" [ref=f175e208]:
+        - img "Battle — red alert state" [ref=f175e209]
+  - generic [ref=f175e211]:
+    - generic [ref=f175e212]:
+      - generic [ref=f175e213]:
+        - heading "They Are Billions" [level=2] [ref=f175e214]
+        - paragraph [ref=f175e215]: Numantian Games · 2019
+      - paragraph [ref=f175e216]: "Steal this: Survival-RTS HUD: colony stats top-left, wave timer top-centre, build grid bottom-centre, minimap bottom-left. Threat is the loudest element on screen."
+    - generic [ref=f175e217]:
+      - figure "Colony — stats, build grid, minimap" [ref=f175e218]:
+        - img "Colony — stats, build grid, minimap" [ref=f175e219]
+      - figure "Statue — bottom command bar" [ref=f175e221]:
+        - img "Statue — bottom command bar" [ref=f175e222]
+      - figure "Night colony — wave HUD" [ref=f175e224]:
+        - img "Night colony — wave HUD" [ref=f175e225]
+  - generic [ref=f175e227]:
+    - generic [ref=f175e228]:
+      - generic [ref=f175e229]:
+        - 'heading "Warcraft III: Reforged" [level=2] [ref=f175e230]'
+        - paragraph [ref=f175e231]: Blizzard · 2020
+      - paragraph [ref=f175e232]: "Steal this: Hero-centric deck: hero portrait and inventory bottom-left, command card bottom-right, unit cards centre. Shows how one unit can own a whole panel."
+    - generic [ref=f175e233]:
+      - figure "Hero — unit panel and minimap" [ref=f175e234]:
+        - img "Hero — unit panel and minimap" [ref=f175e235]
+      - figure "Battle — unit cards and hero panel" [ref=f175e237]:
+        - img "Battle — unit cards and hero panel" [ref=f175e238]
+      - figure "Battle — full deck" [ref=f175e240]:
+        - img "Battle — full deck" [ref=f175e241]
+  - generic [ref=f175e243]:
+    - generic [ref=f175e244]:
+      - generic [ref=f175e245]:
+        - 'heading "Total War: THREE KINGDOMS" [level=2] [ref=f175e246]'
+        - paragraph [ref=f175e247]: Creative Assembly · 2019
+      - paragraph [ref=f175e248]: "Steal this: Character-first campaign UI: portraits, relationships and retinues in a right rail; battle deployment is a full-screen board. Good model for the People and Victory tabs."
+    - generic [ref=f175e249]:
+      - figure "Duel — character panel and retinue" [ref=f175e250]:
+        - img "Duel — character panel and retinue" [ref=f175e251]
+      - figure "Campaign — army and faction panels" [ref=f175e253]:
+        - img "Campaign — army and faction panels" [ref=f175e254]
+      - figure "Deployment — full-screen battle board" [ref=f175e256]:
+        - img "Deployment — full-screen battle board" [ref=f175e257]
+  - generic [ref=f175e259]:
+    - paragraph [ref=f175e260]: "Sources: Steam Community screenshots for each game, collected 30 Oct 2026. Images are downscaled to 1100px and kept only as internal design reference; all rights remain with the respective studios."
+    - paragraph [ref=f175e261]:
+      - text: "How to use this: pick the two or three examples whose structure fits the settlement sim, name what to take from each, then record the verdict on issue #149. The prototype itself lives at"
+      - code [ref=f175e262]: ../aaa-hud.html?variant=D
+      - text: .

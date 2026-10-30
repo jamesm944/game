@@ -1,0 +1,14 @@
+/Users/jamesmoss/Documents/game/tests/helpers/budget-scenario-m3.ts:333
+    throw new Error(
+          ^
+
+
+Error: budget-m3 could only place 4983/5000 units
+    at spawnRinged (/Users/jamesmoss/Documents/game/tests/helpers/budget-scenario-m3.ts:333:11)
+    at run (/Users/jamesmoss/Documents/game/scratch/deep-sim-workloads/scaling.ts:94:3)
+    at <anonymous> (/Users/jamesmoss/Documents/game/scratch/deep-sim-workloads/scaling.ts:175:42)
+    at ModuleJob.run (node:internal/modules/esm/module_job:274:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.16.0

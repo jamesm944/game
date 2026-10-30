@@ -1,0 +1,242 @@
+{
+  "schema": "wayfinder-172-replay-v3",
+  "generatedAt": "2026-10-25T23:28:13.577Z",
+  "pendingResponsePolicy": "simulation comparison omits ok only for pending, unapplied requests; raw comparison retains and reports it",
+  "reference": {
+    "engine": "preserved production Node A* through clean handle scheduler and local FIFO worker",
+    "finalTick": 3600,
+    "finalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+    "finalWorldDigest": "fnv1a64:34ff6633b61b5db6",
+    "finalMapHash": "fnv1a64:0b953a55d8cf5de5",
+    "pathRequests": 90472,
+    "workloadComposition": {
+      "units": 1000,
+      "villagers": 900,
+      "combatUnits": 100,
+      "survivingUnits": 1000,
+      "resourceNodes": 16,
+      "gatherCommands": 900,
+      "attackCommands": 2,
+      "groupMoveCommands": 4,
+      "terrainMutations": 2,
+      "buildingPlacements": 4,
+      "combatDamageEvents": 0
+    },
+    "crowdStates": {
+      "completed": 68,
+      "moving": 30,
+      "stalled": 902,
+      "propagatedParked": 0,
+      "parkedNoActivity": 0,
+      "awaitingGroupPath": 0,
+      "otherActivity": 0
+    }
+  },
+  "allLogicalEqual": true,
+  "allRawLogicalProjectionsEqual": false,
+  "allStoredLogicalProjectionsEqual": true,
+  "allFinalFullStateHashesEqual": true,
+  "allApplicationTicksValid": true,
+  "comparisons": [
+    {
+      "policy": "fifo",
+      "iteration": 1,
+      "file": "chrome-fifo-iteration-1.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "fifo",
+      "iteration": 2,
+      "file": "chrome-fifo-iteration-2.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "fifo",
+      "iteration": 3,
+      "file": "chrome-fifo-iteration-3.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "fifo",
+      "iteration": 4,
+      "file": "chrome-fifo-iteration-4.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "fifo",
+      "iteration": 5,
+      "file": "chrome-fifo-iteration-5.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 1,
+      "file": "chrome-batch-32-iteration-1.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 2,
+      "file": "chrome-batch-32-iteration-2.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 3,
+      "file": "chrome-batch-32-iteration-3.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 4,
+      "file": "chrome-batch-32-iteration-4.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 5,
+      "file": "chrome-batch-32-iteration-5.json",
+      "logicalEqual": true,
+      "rawLogicalProjectionEqual": false,
+      "storedLogicalProjectionEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "appliedOrDiscardedRequests": 90421,
+      "browserFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "nodeFinalFullStateHash": "40e0fe31e150f6935fdcf5413f69f2ee915eeb718b254330c36a7bed310f01eb",
+      "logicalDifferences": [],
+      "rawLogicalDifferences": [
+        {
+          "path": "$.paths[90452].ok",
+          "node": true
+        }
+      ]
+    }
+  ]
+}

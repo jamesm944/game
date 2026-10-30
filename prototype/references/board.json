@@ -1,0 +1,327 @@
+[
+  {
+    "slug": "age-of-empires-iv",
+    "name": "Age of Empires IV",
+    "studio": "Relic / World's Edge \u00b7 2021",
+    "steal": "D's direct model: one 60px resource bar, one bottom deck (minimap \u00b7 command grid \u00b7 queue \u00b7 inspector), left panel only on demand. Resources read as a single scan line.",
+    "picks": [
+      [
+        "age-of-empires-iv-c1.jpg",
+        "Village fight \u2014 selection bottom-left, minimap bottom-right"
+      ],
+      [
+        "age-of-empires-iv-c2.jpg",
+        "Walled town \u2014 minimap, queue, inspector"
+      ],
+      [
+        "age-of-empires-iv-c12.jpg",
+        "Town at rest \u2014 resource bar and deck"
+      ]
+    ],
+    "files": [
+      "hud-age-of-empires-iv-c1.jpg",
+      "hud-age-of-empires-iv-c2.jpg",
+      "hud-age-of-empires-iv-c12.jpg"
+    ]
+  },
+  {
+    "slug": "age-of-empires-ii-de",
+    "name": "Age of Empires II: Definitive Edition",
+    "studio": "Forgotten Empires \u00b7 2019",
+    "steal": "The canonical deck geometry: minimap bottom-left, command card bottom-centre, selection bottom-right. Idle-villager and age-up affordances never move.",
+    "picks": [
+      [
+        "age-of-empires-ii-de-c2.jpg",
+        "Island town \u2014 full deck"
+      ],
+      [
+        "age-of-empires-ii-de-c8.jpg",
+        "Town \u2014 minimap, command card, selection"
+      ],
+      [
+        "age-of-empires-ii-de-c9.jpg",
+        "Desert town \u2014 deck with right-side selection"
+      ]
+    ],
+    "files": [
+      "hud-age-of-empires-ii-de-c2.jpg",
+      "hud-age-of-empires-ii-de-c8.jpg",
+      "hud-age-of-empires-ii-de-c9.jpg"
+    ]
+  },
+  {
+    "slug": "age-of-mythology-retold",
+    "name": "Age of Mythology: Retold",
+    "studio": "World's Edge \u00b7 2024",
+    "steal": "Same skeleton as AoE2, but god powers and myth units get bigger, more legible tiles. Shows how 12 command tiles can read as abilities, not buttons.",
+    "picks": [
+      [
+        "age-of-mythology-retold-c3.jpg",
+        "Naval fight \u2014 top bar and deck"
+      ],
+      [
+        "age-of-mythology-retold-c9.jpg",
+        "Town \u2014 command deck and queue"
+      ],
+      [
+        "age-of-mythology-retold-c11.jpg",
+        "Town at rest \u2014 full HUD"
+      ]
+    ],
+    "files": [
+      "hud-age-of-mythology-retold-c3.jpg",
+      "hud-age-of-mythology-retold-c9.jpg",
+      "hud-age-of-mythology-retold-c11.jpg"
+    ]
+  },
+  {
+    "slug": "company-of-heroes-3",
+    "name": "Company of Heroes 3",
+    "studio": "Relic \u00b7 2023",
+    "steal": "Tactical map top-left, VP/resource ticker top-right, unit cards bottom-centre with veterancy pips. Almost no chrome over the battlefield; the HUD hugs the edges.",
+    "picks": [
+      [
+        "company-of-heroes-3-c4.jpg",
+        "Desert fight \u2014 tactical map, unit cards"
+      ],
+      [
+        "company-of-heroes-3-c7.jpg",
+        "Winter fight \u2014 vet pips and abilities"
+      ],
+      [
+        "company-of-heroes-3-c9.jpg",
+        "Snow fight \u2014 tactical map + unit cards"
+      ]
+    ],
+    "files": [
+      "hud-company-of-heroes-3-c4.jpg",
+      "hud-company-of-heroes-3-c7.jpg",
+      "hud-company-of-heroes-3-c9.jpg"
+    ]
+  },
+  {
+    "slug": "total-war-warhammer-3",
+    "name": "Total War: WARHAMMER III",
+    "studio": "Creative Assembly \u00b7 2022",
+    "steal": "Campaign and battle use different HUDs. Battle puts unit cards bottom, selected unit right, minimap bottom-right. Heavy ornament, always outside the play area.",
+    "picks": [
+      [
+        "total-war-warhammer-3-c2.jpg",
+        "Province panel \u2014 campaign UI"
+      ],
+      [
+        "total-war-warhammer-3-c4.jpg",
+        "Campaign map \u2014 army and settlement panels"
+      ],
+      [
+        "total-war-warhammer-3-c11.jpg",
+        "Battle \u2014 unit cards, minimap, selected unit"
+      ]
+    ],
+    "files": [
+      "hud-total-war-warhammer-3-c2.jpg",
+      "hud-total-war-warhammer-3-c4.jpg",
+      "hud-total-war-warhammer-3-c11.jpg"
+    ]
+  },
+  {
+    "slug": "manor-lords",
+    "name": "Manor Lords",
+    "studio": "Slavic Magic \u00b7 2024",
+    "steal": "Diegetic and almost HUD-less. Building and people panels slide in from the right; approval, treasury and population are small top-left tokens. Sim depth lives in panels, not rails.",
+    "picks": [
+      [
+        "manor-lords-c4.jpg",
+        "Winter valley \u2014 minimal top-left tokens"
+      ],
+      [
+        "manor-lords-c7.jpg",
+        "Build menu \u2014 bottom bar and placement"
+      ],
+      [
+        "manor-lords-c12.jpg",
+        "Character panel \u2014 right-side inspector"
+      ]
+    ],
+    "files": [
+      "hud-manor-lords-c4.jpg",
+      "hud-manor-lords-c7.jpg",
+      "hud-manor-lords-c12.jpg"
+    ]
+  },
+  {
+    "slug": "anno-1800",
+    "name": "Anno 1800",
+    "studio": "Blue Byte \u00b7 2019",
+    "steal": "Bottom-centre build menu with a category ring, minimap bottom-left, goods in a top ribbon. Dense production chains stay in one horizontal band.",
+    "picks": [
+      [
+        "anno-1800-c3.jpg",
+        "City \u2014 build menu and minimap"
+      ],
+      [
+        "anno-1800-c4.jpg",
+        "City \u2014 production and trade panels"
+      ],
+      [
+        "anno-1800-c5.jpg",
+        "Cathedral \u2014 right-side inspector"
+      ]
+    ],
+    "files": [
+      "hud-anno-1800-c3.jpg",
+      "hud-anno-1800-c4.jpg",
+      "hud-anno-1800-c5.jpg"
+    ]
+  },
+  {
+    "slug": "frostpunk-2",
+    "name": "Frostpunk 2",
+    "studio": "11 bit studios \u00b7 2024",
+    "steal": "City vitals top-left, heat/timeline bottom, faction council left. Stark monochrome plus one accent; the HUD reads as a diegetic instrument panel.",
+    "picks": [
+      [
+        "frostpunk-2-2.jpg",
+        "City map \u2014 top bar and district markers"
+      ],
+      [
+        "frostpunk-2-3.jpg",
+        "City \u2014 resource bar and district UI"
+      ],
+      [
+        "frostpunk-2-c3.jpg",
+        "Research \u2014 tech tree and detail panel"
+      ]
+    ],
+    "files": [
+      "hud-frostpunk-2-2.jpg",
+      "hud-frostpunk-2-3.jpg",
+      "hud-frostpunk-2-c3.jpg"
+    ]
+  },
+  {
+    "slug": "against-the-storm",
+    "name": "Against the Storm",
+    "studio": "Eremite Games \u00b7 2023",
+    "steal": "Best modern run-based city-builder HUD: resource strip on top, settlement panel left, orders/glades right, build bar bottom. Every corner has exactly one job.",
+    "picks": [
+      [
+        "against-the-storm-c5.jpg",
+        "Rainy settlement \u2014 four-corner HUD"
+      ],
+      [
+        "against-the-storm-c6.jpg",
+        "Grid city \u2014 build bar and orders"
+      ],
+      [
+        "against-the-storm-c8.jpg",
+        "Magical city \u2014 full run HUD"
+      ]
+    ],
+    "files": [
+      "hud-against-the-storm-c5.jpg",
+      "hud-against-the-storm-c6.jpg",
+      "hud-against-the-storm-c8.jpg"
+    ]
+  },
+  {
+    "slug": "northgard",
+    "name": "Northgard",
+    "studio": "Shiro Games \u00b7 2018",
+    "steal": "Compact, console-friendly HUD: clan vitals top-left, objectives top-right, minimap bottom-left, selection bottom-right. Very little screen coverage.",
+    "picks": [
+      [
+        "northgard-c1.jpg",
+        "Village \u2014 clan vitals, objectives, minimap"
+      ],
+      [
+        "northgard-c3.jpg",
+        "Autumn \u2014 compact deck"
+      ],
+      [
+        "northgard-c7.jpg",
+        "Battle \u2014 red alert state"
+      ]
+    ],
+    "files": [
+      "hud-northgard-c1.jpg",
+      "hud-northgard-c3.jpg",
+      "hud-northgard-c7.jpg"
+    ]
+  },
+  {
+    "slug": "they-are-billions",
+    "name": "They Are Billions",
+    "studio": "Numantian Games \u00b7 2019",
+    "steal": "Survival-RTS HUD: colony stats top-left, wave timer top-centre, build grid bottom-centre, minimap bottom-left. Threat is the loudest element on screen.",
+    "picks": [
+      [
+        "they-are-billions-c2.jpg",
+        "Colony \u2014 stats, build grid, minimap"
+      ],
+      [
+        "they-are-billions-c4.jpg",
+        "Statue \u2014 bottom command bar"
+      ],
+      [
+        "they-are-billions-c11.jpg",
+        "Night colony \u2014 wave HUD"
+      ]
+    ],
+    "files": [
+      "hud-they-are-billions-c2.jpg",
+      "hud-they-are-billions-c4.jpg",
+      "hud-they-are-billions-c11.jpg"
+    ]
+  },
+  {
+    "slug": "warcraft-3-reforged",
+    "name": "Warcraft III: Reforged",
+    "studio": "Blizzard \u00b7 2020",
+    "steal": "Hero-centric deck: hero portrait and inventory bottom-left, command card bottom-right, unit cards centre. Shows how one unit can own a whole panel.",
+    "picks": [
+      [
+        "warcraft-3-reforged-c3.jpg",
+        "Hero \u2014 unit panel and minimap"
+      ],
+      [
+        "warcraft-3-reforged-c8.jpg",
+        "Battle \u2014 unit cards and hero panel"
+      ],
+      [
+        "warcraft-3-reforged-c10.jpg",
+        "Battle \u2014 full deck"
+      ]
+    ],
+    "files": [
+      "hud-warcraft-3-reforged-c3.jpg",
+      "hud-warcraft-3-reforged-c8.jpg",
+      "hud-warcraft-3-reforged-c10.jpg"
+    ]
+  },
+  {
+    "slug": "total-war-three-kingdoms",
+    "name": "Total War: THREE KINGDOMS",
+    "studio": "Creative Assembly \u00b7 2019",
+    "steal": "Character-first campaign UI: portraits, relationships and retinues in a right rail; battle deployment is a full-screen board. Good model for the People and Victory tabs.",
+    "picks": [
+      [
+        "total-war-three-kingdoms-c3.jpg",
+        "Duel \u2014 character panel and retinue"
+      ],
+      [
+        "total-war-three-kingdoms-c8.jpg",
+        "Campaign \u2014 army and faction panels"
+      ],
+      [
+        "total-war-three-kingdoms-c11.jpg",
+        "Deployment \u2014 full-screen battle board"
+      ]
+    ],
+    "files": [
+      "hud-total-war-three-kingdoms-c3.jpg",
+      "hud-total-war-three-kingdoms-c8.jpg",
+      "hud-total-war-three-kingdoms-c11.jpg"
+    ]
+  }
+]

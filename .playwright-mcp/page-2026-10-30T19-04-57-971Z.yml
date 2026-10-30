@@ -1,0 +1,252 @@
+- generic [active] [ref=f118e1]:
+  - generic [ref=f118e2]:
+    - main:
+      - generic [ref=f118e3]:
+        - generic [ref=f118e4]:
+          - generic [ref=f118e9]:
+            - generic [ref=f118e10]: House of Aldric
+            - generic [ref=f118e11]: Britons · By Iron and Oath
+          - generic [ref=f118e12]:
+            - generic "Food" [ref=f118e13]:
+              - generic [ref=f118e19]: 1,240
+              - generic [ref=f118e20]: "+18"
+            - generic "Wood" [ref=f118e21]:
+              - generic [ref=f118e25]: "860"
+              - generic [ref=f118e26]: "+12"
+            - generic "Gold" [ref=f118e27]:
+              - generic [ref=f118e33]: "415"
+              - generic [ref=f118e34]: "+6"
+            - generic "Stone" [ref=f118e35]:
+              - generic [ref=f118e40]: "210"
+              - generic [ref=f118e41]: "+2"
+            - generic "Pop" [ref=f118e42]: 58 / 60
+            - generic "Iron" [ref=f118e50]: "96"
+            - generic "Coal" [ref=f118e54]: "40"
+            - generic "Clay" [ref=f118e59]: "180"
+          - generic [ref=f118e64]:
+            - generic [ref=f118e65]: "7"
+            - generic [ref=f118e67]:
+              - generic [ref=f118e68]: Epoch III · High Middle Ages
+              - generic [ref=f118e69]: Rank 7 of 24 · 62% to Epoch IV · Late Medieval
+          - generic [ref=f118e70]:
+            - generic "Game speed" [ref=f118e71]:
+              - button "II" [ref=f118e72] [cursor=pointer]
+              - button "1×" [ref=f118e73] [cursor=pointer]
+              - button "2×" [ref=f118e74] [cursor=pointer]
+              - button "3×" [ref=f118e75] [cursor=pointer]
+            - button "3" [ref=f118e76] [cursor=pointer]
+            - button "4" [ref=f118e81] [cursor=pointer]
+            - button "Pause / settings" [ref=f118e86] [cursor=pointer]
+            - button "Settings" [ref=f118e90] [cursor=pointer]
+        - generic [ref=f118e94]:
+          - generic [ref=f118e95]:
+            - button "Commission" [ref=f118e96] [cursor=pointer]
+            - button "Victory" [ref=f118e97] [cursor=pointer]
+            - button "People" [ref=f118e98] [cursor=pointer]
+          - generic [ref=f118e99]:
+            - generic [ref=f118e100]:
+              - generic [ref=f118e101]: ○
+              - generic [ref=f118e102]:
+                - generic [ref=f118e103]: Hold the river crossing
+                - generic [ref=f118e104]: Keep 2 keeps standing for 5 minutes
+            - generic [ref=f118e105]:
+              - generic [ref=f118e106]: ✓
+              - generic [ref=f118e107]:
+                - generic [ref=f118e108]: Raise a market
+                - generic [ref=f118e109]: Build a Market in the lower ward
+            - generic [ref=f118e110]:
+              - generic [ref=f118e111]: ○
+              - generic [ref=f118e112]:
+                - generic [ref=f118e113]: Collect 3 relics
+                - generic [ref=f118e114]: 1 of 3 recovered
+            - generic [ref=f118e115]:
+              - generic [ref=f118e116]: Commission reward
+              - generic [ref=f118e117]: 250 gold · 1 favor
+          - generic [ref=f118e118]:
+            - generic [ref=f118e119]:
+              - generic [ref=f118e120]: "72"
+              - generic [ref=f118e121]: Content · +3
+            - generic [ref=f118e122]:
+              - generic [ref=f118e123]:
+                - generic [ref=f118e124]: Health
+                - generic [ref=f118e125]: "94"
+              - generic [ref=f118e126]:
+                - generic [ref=f118e127]: Unrest
+                - generic [ref=f118e128]: "18"
+              - generic [ref=f118e129]:
+                - generic [ref=f118e130]: Tax
+                - generic [ref=f118e131]: 12%
+            - button "People 58 →" [ref=f118e132] [cursor=pointer]
+        - generic:
+          - generic:
+            - generic:
+              - generic: Houses needed
+              - generic: Population at cap — build 2 houses.
+            - time: 2m
+          - generic:
+            - generic:
+              - generic: Research complete
+              - generic: Chain Mail is now available.
+            - time: 6m
+          - generic:
+            - generic:
+              - generic: Raid sighted
+              - generic: Enemy scouts near the north ford.
+            - time: 9m
+        - generic:
+          - generic: RIVER KEEP · SELECTED
+          - generic:
+            - generic:
+              - generic: RIVER CROSSING
+              - generic: Contested · 2 keeps
+          - generic:
+            - generic:
+              - generic: RAID
+              - generic: 3 scouts · north ford
+        - generic [ref=f118e133]:
+          - generic [ref=f118e134]:
+            - generic [ref=f118e146]:
+              - generic [ref=f118e147]: River Ward
+              - generic [ref=f118e148]: 192² · Fog on
+            - generic [ref=f118e149]:
+              - button "1" [ref=f118e150] [cursor=pointer]
+              - button "2" [ref=f118e151] [cursor=pointer]
+              - button "3" [ref=f118e152] [cursor=pointer]
+              - button "4" [ref=f118e153] [cursor=pointer]
+              - button "5" [ref=f118e154] [cursor=pointer]
+              - button "6" [ref=f118e155] [cursor=pointer]
+          - generic [ref=f118e156]:
+            - generic [ref=f118e157]:
+              - generic [ref=f118e163]:
+                - generic [ref=f118e164]: River Keep
+                - generic [ref=f118e165]: Castle · Level 3 · 8 / 15 garrison
+              - generic [ref=f118e167]:
+                - generic [ref=f118e168]: HP
+                - generic [ref=f118e169]: 3200 / 3200
+              - generic [ref=f118e173]:
+                - text: Next
+                - generic [ref=f118e174]: Knight 0:18
+            - generic [ref=f118e175]:
+              - button "Train T" [ref=f118e176] [cursor=pointer]:
+                - text: Train
+                - generic [ref=f118e177]: T
+              - button "Build B" [ref=f118e178] [cursor=pointer]:
+                - text: Build
+                - generic [ref=f118e179]: B
+              - button "Research R" [ref=f118e180] [cursor=pointer]:
+                - text: Research
+                - generic [ref=f118e181]: R
+              - button "Age A" [ref=f118e182] [cursor=pointer]:
+                - text: Age
+                - generic [ref=f118e183]: A
+              - generic [ref=f118e184]: 3 in queue · 8 / 15 garrison
+            - generic [ref=f118e185]:
+              - button "Knight 60f 75g K" [ref=f118e186] [cursor=pointer]:
+                - generic [ref=f118e190]: Knight
+                - generic [ref=f118e191]: 60f 75g
+                - generic [ref=f118e192]: K
+              - button "Crossbow 25w 45g C" [ref=f118e193] [cursor=pointer]:
+                - generic [ref=f118e197]: Crossbow
+                - generic [ref=f118e198]: 25w 45g
+                - generic [ref=f118e199]: C
+              - button "Pikeman 35f 25w P" [ref=f118e200] [cursor=pointer]:
+                - generic [ref=f118e204]: Pikeman
+                - generic [ref=f118e205]: 35f 25w
+                - generic [ref=f118e206]: P
+              - button "Man-at-Arms 60f 20g M" [ref=f118e207] [cursor=pointer]:
+                - generic [ref=f118e211]: Man-at-Arms
+                - generic [ref=f118e212]: 60f 20g
+                - generic [ref=f118e213]: M
+              - button "Battering Ram 160w 75g R" [ref=f118e214] [cursor=pointer]:
+                - generic [ref=f118e221]: Battering Ram
+                - generic [ref=f118e222]: 160w 75g
+                - generic [ref=f118e223]: R
+              - button "Monk 100g O" [ref=f118e224] [cursor=pointer]:
+                - generic [ref=f118e229]: Monk
+                - generic [ref=f118e230]: 100g
+                - generic [ref=f118e231]: O
+              - button "Scout 80f S" [ref=f118e232] [cursor=pointer]:
+                - generic [ref=f118e236]: Scout
+                - generic [ref=f118e237]: 80f
+                - generic [ref=f118e238]: S
+              - button "Spearman 35f 25w E" [ref=f118e239] [cursor=pointer]:
+                - generic [ref=f118e243]: Spearman
+                - generic [ref=f118e244]: 35f 25w
+                - generic [ref=f118e245]: E
+              - button "Archer 25w 45g A" [ref=f118e246] [cursor=pointer]:
+                - generic [ref=f118e250]: Archer
+                - generic [ref=f118e251]: 25w 45g
+                - generic [ref=f118e252]: A
+              - button "Skirmisher 25f 35w J" [ref=f118e253] [cursor=pointer]:
+                - generic [ref=f118e256]: Skirmisher
+                - generic [ref=f118e257]: 25f 35w
+                - generic [ref=f118e258]: J
+              - button "Siege Engineer 100w 50g G" [ref=f118e259] [cursor=pointer]:
+                - generic [ref=f118e263]: Siege Engineer
+                - generic [ref=f118e264]: 100w 50g
+                - generic [ref=f118e265]: G
+              - button "Cancel X" [ref=f118e266] [cursor=pointer]:
+                - generic [ref=f118e269]: Cancel
+                - generic [ref=f118e270]: X
+          - complementary [ref=f118e271]:
+            - generic [ref=f118e272]:
+              - generic [ref=f118e273]: Training Queue
+              - generic [ref=f118e274]: "3"
+            - generic [ref=f118e275]:
+              - generic [ref=f118e276]:
+                - generic [ref=f118e281]: Knight
+                - time [ref=f118e282]: 0:18
+                - generic [ref=f118e283]: Training · River Keep
+              - generic [ref=f118e286]:
+                - generic [ref=f118e291]: Crossbow
+                - time [ref=f118e292]: 0:24
+                - generic [ref=f118e293]: Queued · River Keep
+              - generic [ref=f118e296]:
+                - generic [ref=f118e301]: Pikeman
+                - time [ref=f118e302]: 0:31
+                - generic [ref=f118e303]: Queued · River Keep
+            - generic [ref=f118e306]:
+              - generic [ref=f118e307]: Rally
+              - generic [ref=f118e308]: River Keep
+          - complementary [ref=f118e309]:
+            - generic [ref=f118e310]:
+              - button "River Keep" [ref=f118e311] [cursor=pointer]
+              - button "People" [ref=f118e312] [cursor=pointer]
+            - generic [ref=f118e313]:
+              - generic [ref=f118e320]:
+                - generic [ref=f118e321]: River Keep
+                - generic [ref=f118e322]: Castle · Level 3 · 8 / 15 garrison
+                - generic [ref=f118e323]: Holding
+              - generic [ref=f118e324]:
+                - generic [ref=f118e325]:
+                  - generic [ref=f118e326]: Garrison
+                  - generic [ref=f118e327]: 8 / 15
+                - generic [ref=f118e328]:
+                  - generic [ref=f118e329]: Armor
+                  - generic [ref=f118e330]: "8"
+                - generic [ref=f118e331]:
+                  - generic [ref=f118e332]: Attack
+                  - generic [ref=f118e333]: "12"
+                - generic [ref=f118e334]:
+                  - generic [ref=f118e335]: Range
+                  - generic [ref=f118e336]: "9"
+                - generic [ref=f118e337]:
+                  - generic [ref=f118e338]: Sight
+                  - generic [ref=f118e339]: "11"
+                - generic [ref=f118e340]:
+                  - generic [ref=f118e341]: Work rate
+                  - generic [ref=f118e342]: —
+              - generic [ref=f118e343]:
+                - text: Upgrades
+                - generic [ref=f118e344]: 1 / 3
+              - generic [ref=f118e345]:
+                - generic [ref=f118e346]: Chain Mail
+                - generic [ref=f118e349]: Bodkin Arrow
+                - generic [ref=f118e350]: Ballistics
+              - generic [ref=f118e351]: Mustering the river guard · 3 in queue
+  - generic "Prototype variant switcher" [ref=f118e355]:
+    - generic [ref=f118e356]: Prototype
+    - button "Previous variant" [ref=f118e357] [cursor=pointer]: ‹
+    - generic [ref=f118e358]: D · Crown & Chronicle
+    - button "Next variant" [ref=f118e359] [cursor=pointer]: ›
+    - generic [ref=f118e360]: ← → · 1–4 · Esc

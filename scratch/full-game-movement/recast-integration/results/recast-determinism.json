@@ -1,0 +1,21 @@
+{
+  "scope": "same-host-node-inline-and-scripted-node-mock-transport",
+  "repeatEqual": true,
+  "delayedOutOfOrderMockEqual": true,
+  "finalFullStateHash": "c0d14d3e92015e07a29b8571a6689361d02a4ad05d3064c11c766488394074a8",
+  "inlineFrames": 600,
+  "mockFrames": 820,
+  "mockBlockedTicks": 220,
+  "pathRequestsPerRun": [
+    837,
+    837,
+    837
+  ],
+  "repathsPerRun": [
+    833,
+    833,
+    833
+  ],
+  "crossArchitectureHashEqualityRequired": false,
+  "browserOrCrossCpuEvidence": false
+}

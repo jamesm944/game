@@ -1,0 +1,122 @@
+[
+  {
+    "name": "dense-open-120",
+    "seed": 167001,
+    "size": 120,
+    "ticks": 3600,
+    "map": { "blocked": [] },
+    "groups": [
+      {
+        "id": "dense",
+        "share": 1,
+        "spawn": { "x": 10, "y": 10, "width": 29, "height": 101 },
+        "destination": { "x": 80.5, "y": 60.5 }
+      }
+    ],
+    "commands": [{ "targetTick": 1, "groupIds": ["dense"] }],
+    "terrainMutations": [],
+    "buildingMutations": []
+  },
+  {
+    "name": "opposing-open-120",
+    "seed": 167002,
+    "size": 120,
+    "ticks": 3600,
+    "map": { "blocked": [] },
+    "groups": [
+      {
+        "id": "west",
+        "share": 1,
+        "spawn": { "x": 10, "y": 10, "width": 29, "height": 101 },
+        "destination": { "x": 80.5, "y": 60.5 }
+      },
+      {
+        "id": "east",
+        "share": 1,
+        "spawn": { "x": 82, "y": 10, "width": 29, "height": 101 },
+        "destination": { "x": 39.5, "y": 60.5 }
+      }
+    ],
+    "commands": [{ "targetTick": 1, "groupIds": ["west", "east"] }],
+    "terrainMutations": [],
+    "buildingMutations": []
+  },
+  {
+    "name": "narrow-mutation-120",
+    "seed": 167003,
+    "size": 120,
+    "ticks": 3600,
+    "map": {
+      "blocked": [
+        { "x": 60, "y": 0, "width": 1, "height": 59 },
+        { "x": 60, "y": 63, "width": 1, "height": 57 }
+      ]
+    },
+    "groups": [
+      {
+        "id": "west",
+        "share": 1,
+        "spawn": { "x": 38, "y": 42, "width": 20, "height": 37 },
+        "destination": { "x": 80.5, "y": 60.5 }
+      },
+      {
+        "id": "east",
+        "share": 1,
+        "spawn": { "x": 63, "y": 42, "width": 20, "height": 37 },
+        "destination": { "x": 39.5, "y": 60.5 }
+      }
+    ],
+    "commands": [
+      { "targetTick": 1, "groupIds": ["west", "east"] },
+      { "targetTick": 180, "groupIds": ["west", "east"] }
+    ],
+    "terrainMutations": [
+      {
+        "targetTick": 2,
+        "passable": 0,
+        "tiles": [
+          { "x": 60, "y": 59 },
+          { "x": 60, "y": 60 },
+          { "x": 60, "y": 61 },
+          { "x": 60, "y": 62 }
+        ]
+      },
+      {
+        "targetTick": 120,
+        "passable": 1,
+        "tiles": [
+          { "x": 60, "y": 59 },
+          { "x": 60, "y": 60 },
+          { "x": 60, "y": 61 },
+          { "x": 60, "y": 62 }
+        ]
+      }
+    ],
+    "buildingMutations": [
+      { "targetTick": 2, "defId": "house", "tileX": 52, "tileY": 50 },
+      { "targetTick": 2, "defId": "house", "tileX": 52, "tileY": 68 },
+      { "targetTick": 2, "defId": "house", "tileX": 66, "tileY": 50 },
+      { "targetTick": 2, "defId": "house", "tileX": 66, "tileY": 68 }
+    ]
+  },
+  {
+    "name": "mixed-destinations-120",
+    "seed": 167004,
+    "size": 120,
+    "ticks": 3600,
+    "map": { "blocked": [] },
+    "groups": [
+      { "id": "g0", "share": 1, "spawn": { "x": 10, "y": 5, "width": 29, "height": 12 }, "destination": { "x": 75.5, "y": 20.5 } },
+      { "id": "g1", "share": 1, "spawn": { "x": 10, "y": 18, "width": 29, "height": 12 }, "destination": { "x": 90.5, "y": 20.5 } },
+      { "id": "g2", "share": 1, "spawn": { "x": 10, "y": 31, "width": 29, "height": 12 }, "destination": { "x": 105.5, "y": 40.5 } },
+      { "id": "g3", "share": 1, "spawn": { "x": 10, "y": 44, "width": 29, "height": 12 }, "destination": { "x": 75.5, "y": 55.5 } },
+      { "id": "g4", "share": 1, "spawn": { "x": 10, "y": 57, "width": 29, "height": 12 }, "destination": { "x": 90.5, "y": 65.5 } },
+      { "id": "g5", "share": 1, "spawn": { "x": 10, "y": 70, "width": 29, "height": 12 }, "destination": { "x": 105.5, "y": 80.5 } },
+      { "id": "g6", "share": 1, "spawn": { "x": 10, "y": 83, "width": 29, "height": 12 }, "destination": { "x": 75.5, "y": 95.5 } },
+      { "id": "g7", "share": 1, "spawn": { "x": 10, "y": 96, "width": 29, "height": 12 }, "destination": { "x": 90.5, "y": 100.5 } }
+    ],
+    "commands": [{ "targetTick": 1, "groupIds": ["g0", "g1", "g2", "g3", "g4", "g5", "g6", "g7"] }],
+    "terrainMutations": [],
+    "buildingMutations": []
+  }
+]

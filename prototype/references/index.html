@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAA HUD references — #149</title>
+<style>
+  :root {
+    --ink: #0b0d11;
+    --panel: #11151b;
+    --line: #262c36;
+    --text: #e7e4dc;
+    --muted: #9aa1ad;
+    --gold: #d6b25e;
+    --gold-dim: #8d7440;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--ink); }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(214, 178, 94, 0.06), transparent 45%),
+      var(--ink);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 1560px; margin: 0 auto; padding: 40px 36px 72px; }
+  .eyebrow {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  h1 { margin: 0; font-family: var(--serif); font-size: 46px; font-weight: 600; letter-spacing: 0.01em; }
+  .lede { max-width: 900px; margin: 14px 0 0; font-size: 16px; line-height: 1.6; color: #c3c6cd; }
+  .lede b { color: var(--text); font-weight: 600; }
+  .jump { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 26px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
+  .jump a {
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: 11px;
+    text-decoration: none;
+    background: rgba(255,255,255,0.015);
+  }
+  .jump a:hover { color: var(--gold); border-color: var(--gold-dim); }
+
+  .current {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.35fr);
+    gap: 32px;
+    align-items: center;
+    margin: 40px 0 8px;
+    padding: 26px;
+    border: 1px solid var(--gold-dim);
+    background:
+      linear-gradient(180deg, rgba(214, 178, 94, 0.06), rgba(214, 178, 94, 0.01)),
+      var(--panel);
+  }
+  .current h2 { margin: 0 0 6px; font-family: var(--serif); font-size: 28px; font-weight: 600; }
+  .current p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; color: #c3c6cd; }
+  .current ul { margin: 0; padding: 0; list-style: none; }
+  .current li { position: relative; padding: 4px 0 4px 16px; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+  .current li::before { content: ""; position: absolute; left: 0; top: 10px; width: 6px; height: 6px; border: 1px solid var(--gold); transform: rotate(45deg); }
+  .current figure { margin: 0; }
+  .current img { display: block; width: 100%; border: 1px solid #3a3323; box-shadow: 0 18px 44px rgba(0,0,0,0.55); }
+  .current figcaption { margin-top: 8px; font-size: 11px; color: var(--muted); }
+
+  .patterns { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 32px 0 8px; }
+  .pattern { padding: 16px; border: 1px solid var(--line); background: var(--panel); }
+  .pattern h3 { margin: 0 0 4px; font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--gold); }
+  .pattern .who { margin: 0 0 8px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #7e8592; }
+  .pattern p:last-child { margin: 0; font-size: 12px; line-height: 1.55; color: var(--muted); }
+
+  .game { margin: 44px 0 0; padding: 30px 0 0; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+  .game-head { display: grid; grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr); gap: 28px; align-items: start; margin-bottom: 16px; }
+  .game-title h2 { margin: 0 0 4px; font-family: var(--serif); font-size: 26px; font-weight: 600; }
+  .studio { margin: 0; font-size: 11px; letter-spacing: 0.05em; color: #7e8592; }
+  .steal { margin: 0; padding-left: 16px; border-left: 2px solid var(--gold-dim); font-size: 13px; line-height: 1.6; color: #b9bdc6; }
+  .steal b { color: var(--gold); font-weight: 600; }
+  .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .shots figure { margin: 0; }
+  .shots img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    background: #05070a;
+  }
+  .shots figcaption { margin-top: 6px; font-size: 10.5px; line-height: 1.4; color: #838a96; }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 11px; line-height: 1.6; color: #6f7682; }
+  footer b { color: var(--muted); font-weight: 600; }
+
+  @media (max-width: 1100px) {
+    .page { padding: 28px 20px 56px; }
+    .current { grid-template-columns: 1fr; }
+    .patterns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .game-head { grid-template-columns: 1fr; gap: 10px; }
+  }
+  @media (max-width: 720px) {
+    h1 { font-size: 34px; }
+    .shots { grid-template-columns: 1fr; }
+    .patterns { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <p class="eyebrow">Issue #149 · HUD exploration</p>
+    <h1>AAA HUD references</h1>
+    <p class="lede">39 screenshots from 13 shipped strategy games, collected to answer one question:
+      <b>which HUD structure should the AAA build adopt?</b> Judge where the eye goes first, how much map
+      is left open, and how sim depth is surfaced — not the art direction.</p>
+    <nav class="jump">
+      <a href="#age-of-empires-iv">Age of Empires IV</a><a href="#age-of-empires-ii-de">Age of Empires II: Definitive Edition</a><a href="#age-of-mythology-retold">Age of Mythology: Retold</a><a href="#company-of-heroes-3">Company of Heroes 3</a><a href="#total-war-warhammer-3">Total War: WARHAMMER III</a><a href="#manor-lords">Manor Lords</a><a href="#anno-1800">Anno 1800</a><a href="#frostpunk-2">Frostpunk 2</a><a href="#against-the-storm">Against the Storm</a><a href="#northgard">Northgard</a><a href="#they-are-billions">They Are Billions</a><a href="#warcraft-3-reforged">Warcraft III: Reforged</a><a href="#total-war-three-kingdoms">Total War: THREE KINGDOMS</a>
+    </nav>
+  </header>
+
+  <section class="current">
+    <div>
+      <p class="eyebrow">Current direction</p>
+      <h2>D · Crown &amp; Chronicle</h2>
+      <p>The synthesis to judge against these references. AoE4 skeleton, but built for a
+        settlement sim rather than an army.</p>
+      <ul>
+        <li>One 60px top bar: crest, seven resources, epoch, speed, alerts, pause.</li>
+        <li>One tabbed info panel: Commission / Victory / People.</li>
+        <li>One bottom deck: minimap · commands · training queue · inspector.</li>
+        <li>Sim depth on demand: People tab and Pop inspector, not permanent rails.</li>
+      </ul>
+    </div>
+    <figure>
+      <img src="../hud-D.png" alt="D Crown and Chronicle at 1600 by 900">
+      <figcaption>D at 1600×900 — the state to compare every reference against.</figcaption>
+    </figure>
+  </section>
+
+  <section class="patterns">
+    <article class="pattern">
+      <h3>One bar, one deck</h3>
+      <p class="who">AoE4 · AoE2 DE · AoM Retold</p>
+      <p>A single resource line on top and a single command deck on the bottom. Everything else is contextual. This is D&#x27;s skeleton.</p>
+    </article>
+<article class="pattern">
+      <h3>Edge-hugging, no rails</h3>
+      <p class="who">Company of Heroes 3 · Northgard</p>
+      <p>Tactical map, unit cards and alerts pinned to the corners. The playfield is never framed by full-height panels.</p>
+    </article>
+<article class="pattern">
+      <h3>Panel-first sim depth</h3>
+      <p class="who">Manor Lords · Against the Storm · Frostpunk 2</p>
+      <p>Mood, needs, production and factions live in slide-in panels or one side column, opened on demand. The map stays readable.</p>
+    </article>
+<article class="pattern">
+      <h3>Character-first right rail</h3>
+      <p class="who">TW: THREE KINGDOMS · TW: WARHAMMER III</p>
+      <p>Portraits, relationships and retinues get a dedicated right-hand surface. Good model for a People tab that is more than a list.</p>
+    </article>
+  </section>
+
+  <section class="game" id="age-of-empires-iv">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Age of Empires IV</h2>
+          <p class="studio">Relic / World&#x27;s Edge · 2021</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> D&#x27;s direct model: one 60px resource bar, one bottom deck (minimap · command grid · queue · inspector), left panel only on demand. Resources read as a single scan line.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-age-of-empires-iv-c1.jpg" alt="Village fight — selection bottom-left, minimap bottom-right">
+        <figcaption>Village fight — selection bottom-left, minimap bottom-right</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-age-of-empires-iv-c2.jpg" alt="Walled town — minimap, queue, inspector">
+        <figcaption>Walled town — minimap, queue, inspector</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-age-of-empires-iv-c12.jpg" alt="Town at rest — resource bar and deck">
+        <figcaption>Town at rest — resource bar and deck</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="age-of-empires-ii-de">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Age of Empires II: Definitive Edition</h2>
+          <p class="studio">Forgotten Empires · 2019</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> The canonical deck geometry: minimap bottom-left, command card bottom-centre, selection bottom-right. Idle-villager and age-up affordances never move.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-age-of-empires-ii-de-c2.jpg" alt="Island town — full deck">
+        <figcaption>Island town — full deck</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-age-of-empires-ii-de-c8.jpg" alt="Town — minimap, command card, selection">
+        <figcaption>Town — minimap, command card, selection</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-age-of-empires-ii-de-c9.jpg" alt="Desert town — deck with right-side selection">
+        <figcaption>Desert town — deck with right-side selection</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="age-of-mythology-retold">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Age of Mythology: Retold</h2>
+          <p class="studio">World&#x27;s Edge · 2024</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Same skeleton as AoE2, but god powers and myth units get bigger, more legible tiles. Shows how 12 command tiles can read as abilities, not buttons.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-age-of-mythology-retold-c3.jpg" alt="Naval fight — top bar and deck">
+        <figcaption>Naval fight — top bar and deck</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-age-of-mythology-retold-c9.jpg" alt="Town — command deck and queue">
+        <figcaption>Town — command deck and queue</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-age-of-mythology-retold-c11.jpg" alt="Town at rest — full HUD">
+        <figcaption>Town at rest — full HUD</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="company-of-heroes-3">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Company of Heroes 3</h2>
+          <p class="studio">Relic · 2023</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Tactical map top-left, VP/resource ticker top-right, unit cards bottom-centre with veterancy pips. Almost no chrome over the battlefield; the HUD hugs the edges.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-company-of-heroes-3-c4.jpg" alt="Desert fight — tactical map, unit cards">
+        <figcaption>Desert fight — tactical map, unit cards</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-company-of-heroes-3-c7.jpg" alt="Winter fight — vet pips and abilities">
+        <figcaption>Winter fight — vet pips and abilities</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-company-of-heroes-3-c9.jpg" alt="Snow fight — tactical map + unit cards">
+        <figcaption>Snow fight — tactical map + unit cards</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="total-war-warhammer-3">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Total War: WARHAMMER III</h2>
+          <p class="studio">Creative Assembly · 2022</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Campaign and battle use different HUDs. Battle puts unit cards bottom, selected unit right, minimap bottom-right. Heavy ornament, always outside the play area.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-total-war-warhammer-3-c2.jpg" alt="Province panel — campaign UI">
+        <figcaption>Province panel — campaign UI</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-total-war-warhammer-3-c4.jpg" alt="Campaign map — army and settlement panels">
+        <figcaption>Campaign map — army and settlement panels</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-total-war-warhammer-3-c11.jpg" alt="Battle — unit cards, minimap, selected unit">
+        <figcaption>Battle — unit cards, minimap, selected unit</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="manor-lords">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Manor Lords</h2>
+          <p class="studio">Slavic Magic · 2024</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Diegetic and almost HUD-less. Building and people panels slide in from the right; approval, treasury and population are small top-left tokens. Sim depth lives in panels, not rails.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-manor-lords-c4.jpg" alt="Winter valley — minimal top-left tokens">
+        <figcaption>Winter valley — minimal top-left tokens</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-manor-lords-c7.jpg" alt="Build menu — bottom bar and placement">
+        <figcaption>Build menu — bottom bar and placement</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-manor-lords-c12.jpg" alt="Character panel — right-side inspector">
+        <figcaption>Character panel — right-side inspector</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="anno-1800">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Anno 1800</h2>
+          <p class="studio">Blue Byte · 2019</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Bottom-centre build menu with a category ring, minimap bottom-left, goods in a top ribbon. Dense production chains stay in one horizontal band.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-anno-1800-c3.jpg" alt="City — build menu and minimap">
+        <figcaption>City — build menu and minimap</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-anno-1800-c4.jpg" alt="City — production and trade panels">
+        <figcaption>City — production and trade panels</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-anno-1800-c5.jpg" alt="Cathedral — right-side inspector">
+        <figcaption>Cathedral — right-side inspector</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="frostpunk-2">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Frostpunk 2</h2>
+          <p class="studio">11 bit studios · 2024</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> City vitals top-left, heat/timeline bottom, faction council left. Stark monochrome plus one accent; the HUD reads as a diegetic instrument panel.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-frostpunk-2-2.jpg" alt="City map — top bar and district markers">
+        <figcaption>City map — top bar and district markers</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-frostpunk-2-3.jpg" alt="City — resource bar and district UI">
+        <figcaption>City — resource bar and district UI</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-frostpunk-2-c3.jpg" alt="Research — tech tree and detail panel">
+        <figcaption>Research — tech tree and detail panel</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="against-the-storm">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Against the Storm</h2>
+          <p class="studio">Eremite Games · 2023</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Best modern run-based city-builder HUD: resource strip on top, settlement panel left, orders/glades right, build bar bottom. Every corner has exactly one job.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-against-the-storm-c5.jpg" alt="Rainy settlement — four-corner HUD">
+        <figcaption>Rainy settlement — four-corner HUD</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-against-the-storm-c6.jpg" alt="Grid city — build bar and orders">
+        <figcaption>Grid city — build bar and orders</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-against-the-storm-c8.jpg" alt="Magical city — full run HUD">
+        <figcaption>Magical city — full run HUD</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="northgard">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Northgard</h2>
+          <p class="studio">Shiro Games · 2018</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Compact, console-friendly HUD: clan vitals top-left, objectives top-right, minimap bottom-left, selection bottom-right. Very little screen coverage.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-northgard-c1.jpg" alt="Village — clan vitals, objectives, minimap">
+        <figcaption>Village — clan vitals, objectives, minimap</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-northgard-c3.jpg" alt="Autumn — compact deck">
+        <figcaption>Autumn — compact deck</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-northgard-c7.jpg" alt="Battle — red alert state">
+        <figcaption>Battle — red alert state</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="they-are-billions">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>They Are Billions</h2>
+          <p class="studio">Numantian Games · 2019</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Survival-RTS HUD: colony stats top-left, wave timer top-centre, build grid bottom-centre, minimap bottom-left. Threat is the loudest element on screen.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-they-are-billions-c2.jpg" alt="Colony — stats, build grid, minimap">
+        <figcaption>Colony — stats, build grid, minimap</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-they-are-billions-c4.jpg" alt="Statue — bottom command bar">
+        <figcaption>Statue — bottom command bar</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-they-are-billions-c11.jpg" alt="Night colony — wave HUD">
+        <figcaption>Night colony — wave HUD</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="warcraft-3-reforged">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Warcraft III: Reforged</h2>
+          <p class="studio">Blizzard · 2020</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Hero-centric deck: hero portrait and inventory bottom-left, command card bottom-right, unit cards centre. Shows how one unit can own a whole panel.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-warcraft-3-reforged-c3.jpg" alt="Hero — unit panel and minimap">
+        <figcaption>Hero — unit panel and minimap</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-warcraft-3-reforged-c8.jpg" alt="Battle — unit cards and hero panel">
+        <figcaption>Battle — unit cards and hero panel</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-warcraft-3-reforged-c10.jpg" alt="Battle — full deck">
+        <figcaption>Battle — full deck</figcaption>
+      </figure>
+      </div>
+    </section><section class="game" id="total-war-three-kingdoms">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Total War: THREE KINGDOMS</h2>
+          <p class="studio">Creative Assembly · 2019</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Character-first campaign UI: portraits, relationships and retinues in a right rail; battle deployment is a full-screen board. Good model for the People and Victory tabs.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-total-war-three-kingdoms-c3.jpg" alt="Duel — character panel and retinue">
+        <figcaption>Duel — character panel and retinue</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-total-war-three-kingdoms-c8.jpg" alt="Campaign — army and faction panels">
+        <figcaption>Campaign — army and faction panels</figcaption>
+      </figure>
+<figure>
+        <img loading="lazy" src="hud-total-war-three-kingdoms-c11.jpg" alt="Deployment — full-screen battle board">
+        <figcaption>Deployment — full-screen battle board</figcaption>
+      </figure>
+      </div>
+    </section>
+
+  <footer>
+    <p><b>Sources:</b> Steam Community screenshots for each game, collected 30 Oct 2026.
+      Images are downscaled to 1100px and kept only as internal design reference; all rights
+      remain with the respective studios.</p>
+    <p><b>How to use this:</b> pick the two or three examples whose <i>structure</i> fits the
+      settlement sim, name what to take from each, then record the verdict on issue #149.
+      The prototype itself lives at <code>../aaa-hud.html?variant=D</code>.</p>
+  </footer>
+</main>
+</body>
+</html>

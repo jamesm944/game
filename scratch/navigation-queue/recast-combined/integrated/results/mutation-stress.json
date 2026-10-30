@@ -1,0 +1,1423 @@
+{
+  "schema": "wayfinder-combined-recast-mutation-stress-v1",
+  "ticket": 171,
+  "recastNavigationVersion": "0.43.0",
+  "host": {
+    "node": "v24.21.0",
+    "arch": "arm64",
+    "platform": "darwin"
+  },
+  "oracle": "corrected-full-rebuild-recast-exact-id-status-cost-waypoints",
+  "performanceComparison": false,
+  "comparedResponses": 30,
+  "cases": [
+    {
+      "name": "repeated-one-tile-gate-close-reopen",
+      "width": 12,
+      "exact": true,
+      "revisions": [
+        {
+          "revision": 0,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 1,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 1,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 1,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 2,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 2,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 2,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 3,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 3,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 3,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 4,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 4,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 4,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 5,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 5,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 5,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 6,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 6,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 6,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 7,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 7,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 7,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 8,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 8,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 8,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 9,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 9,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 9,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 10,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 10,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 10,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 11,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 11,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 11,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 12,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 12,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 12,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 13,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 13,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 13,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 14,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 14,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 14,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 15,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 15,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 15,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 16,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 16,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 16,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 17,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 17,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 17,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 18,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 18,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        },
+        {
+          "revision": 18,
+          "snapshotHash": "979de74cd00289399bddc8621f5d0540ced2f7c7f7ecd40cdba6463c23f8847c",
+          "exact": true,
+          "actual": {
+            "id": 19,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          },
+          "expected": {
+            "id": 19,
+            "ok": true,
+            "cost": 15813,
+            "waypoints": [
+              0,
+              0,
+              6,
+              4,
+              11,
+              11
+            ]
+          }
+        },
+        {
+          "revision": 19,
+          "snapshotHash": "4cf1de6a0db4d78d069ba7a550152ac4902a243fed7393813023948524a941b4",
+          "exact": true,
+          "actual": {
+            "id": 20,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 20,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        }
+      ],
+      "mismatches": [],
+      "combinedMetrics": {
+        "integration": "detour-corridor-supercover-cs0.25-exact-compressed-layer-incremental-revisions",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 2,
+        "revisionCacheCapacity": 2,
+        "snapshotCacheBytes": 288,
+        "visibleRevision": 19,
+        "maxObstacles": 512,
+        "obstacleStrategy": "none-exact-compressed-layer-regeneration",
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "exact-touched-tile-rasterization-unchanged-compressed-layer-reuse-atomic-ack",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 20,
+        "incrementalRevisionBuilds": 19,
+        "fullRasterRevisionBuilds": 1,
+        "mutationRebuilds": 19,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 20,
+        "revisionCacheEvictions": 18,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "outOfOrderRebuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "revisionBarriersCompleted": 20,
+        "revisionVisibilityChanges": 20,
+        "revisionVisibilityFailures": 0,
+        "lastAcknowledgedRevision": 19,
+        "changedTilesObserved": 163,
+        "mutationChangedTiles": 19,
+        "maxChangedTilesPerBuild": 144,
+        "changedNavTiles": 23,
+        "rasterizedNavTiles": 80,
+        "maxRasterizedNavTilesPerRevision": 4,
+        "reusedCompressedLayers": 0,
+        "compressedLayerBytes": 829,
+        "totalRevisionBuildMs": 0,
+        "totalIncrementalUpdateMs": 0,
+        "totalGeometryMs": 0,
+        "totalRasterizeMs": 0,
+        "totalNavMeshBuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "tileCacheUpdateCalls": 20,
+        "pathQueries": 20,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 10,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 120,
+        "unreachableRoutes": 10,
+        "partialPathsRejected": 10,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "dynamicObstacleRemoves": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      },
+      "fullRebuildMetrics": {
+        "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 8,
+        "revisionCacheCapacity": 8,
+        "maxObstacles": 512,
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 20,
+        "mutationRebuilds": 19,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 20,
+        "revisionCacheEvictions": 12,
+        "peakRevisionCacheEntries": 9,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "totalRevisionBuildMs": 0,
+        "totalMutationRebuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "maxMutationRebuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "changedTilesObserved": 163,
+        "mutationChangedTiles": 19,
+        "maxChangedTilesPerBuild": 144,
+        "pathQueries": 20,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 10,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 120,
+        "unreachableRoutes": 10,
+        "partialPathsRejected": 10,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      }
+    },
+    {
+      "name": "building-add-remove",
+      "width": 40,
+      "exact": true,
+      "revisions": [
+        {
+          "revision": 0,
+          "snapshotHash": "504bc3fe5f1a16d3c33ae958f0542d01e4cf861071a97a6715cfd486ce7f7d6f",
+          "exact": true,
+          "actual": {
+            "id": 1,
+            "ok": true,
+            "cost": 55154,
+            "waypoints": [
+              0,
+              0,
+              39,
+              39
+            ]
+          },
+          "expected": {
+            "id": 1,
+            "ok": true,
+            "cost": 55154,
+            "waypoints": [
+              0,
+              0,
+              39,
+              39
+            ]
+          }
+        },
+        {
+          "revision": 1,
+          "snapshotHash": "58fbadf95ff38bbc92c91671e969b796c185e573c4e893b0c2508b35fbed45db",
+          "exact": true,
+          "actual": {
+            "id": 2,
+            "ok": true,
+            "cost": 55761,
+            "waypoints": [
+              0,
+              0,
+              7,
+              12,
+              39,
+              39
+            ]
+          },
+          "expected": {
+            "id": 2,
+            "ok": true,
+            "cost": 55761,
+            "waypoints": [
+              0,
+              0,
+              7,
+              12,
+              39,
+              39
+            ]
+          }
+        },
+        {
+          "revision": 2,
+          "snapshotHash": "504bc3fe5f1a16d3c33ae958f0542d01e4cf861071a97a6715cfd486ce7f7d6f",
+          "exact": true,
+          "actual": {
+            "id": 3,
+            "ok": true,
+            "cost": 55154,
+            "waypoints": [
+              0,
+              0,
+              39,
+              39
+            ]
+          },
+          "expected": {
+            "id": 3,
+            "ok": true,
+            "cost": 55154,
+            "waypoints": [
+              0,
+              0,
+              39,
+              39
+            ]
+          }
+        }
+      ],
+      "mismatches": [],
+      "combinedMetrics": {
+        "integration": "detour-corridor-supercover-cs0.25-exact-compressed-layer-incremental-revisions",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 2,
+        "revisionCacheCapacity": 2,
+        "snapshotCacheBytes": 3200,
+        "visibleRevision": 2,
+        "maxObstacles": 512,
+        "obstacleStrategy": "none-exact-compressed-layer-regeneration",
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "exact-touched-tile-rasterization-unchanged-compressed-layer-reuse-atomic-ack",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 3,
+        "incrementalRevisionBuilds": 2,
+        "fullRasterRevisionBuilds": 1,
+        "mutationRebuilds": 2,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 3,
+        "revisionCacheEvictions": 1,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "outOfOrderRebuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "revisionBarriersCompleted": 3,
+        "revisionVisibilityChanges": 3,
+        "revisionVisibilityFailures": 0,
+        "lastAcknowledgedRevision": 2,
+        "changedTilesObserved": 1632,
+        "mutationChangedTiles": 32,
+        "maxChangedTilesPerBuild": 1600,
+        "changedNavTiles": 27,
+        "rasterizedNavTiles": 43,
+        "maxRasterizedNavTilesPerRevision": 25,
+        "reusedCompressedLayers": 32,
+        "compressedLayerBytes": 3273,
+        "totalRevisionBuildMs": 0,
+        "totalIncrementalUpdateMs": 0,
+        "totalGeometryMs": 0,
+        "totalRasterizeMs": 0,
+        "totalNavMeshBuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "tileCacheUpdateCalls": 3,
+        "pathQueries": 3,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 3,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 28,
+        "unreachableRoutes": 0,
+        "partialPathsRejected": 0,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "dynamicObstacleRemoves": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      },
+      "fullRebuildMetrics": {
+        "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 3,
+        "revisionCacheCapacity": 8,
+        "maxObstacles": 512,
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 3,
+        "mutationRebuilds": 2,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 3,
+        "revisionCacheEvictions": 0,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "totalRevisionBuildMs": 0,
+        "totalMutationRebuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "maxMutationRebuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "changedTilesObserved": 1632,
+        "mutationChangedTiles": 32,
+        "maxChangedTilesPerBuild": 1600,
+        "pathQueries": 3,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 3,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 28,
+        "unreachableRoutes": 0,
+        "partialPathsRejected": 0,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      }
+    },
+    {
+      "name": "five-rectangle-mutation-burst",
+      "width": 120,
+      "exact": true,
+      "revisions": [
+        {
+          "revision": 0,
+          "snapshotHash": "78b3c4e2cc325e0e4d16320ab02405498d6992fc11ff9cc282be336d4e68eb8e",
+          "exact": true,
+          "actual": {
+            "id": 1,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          },
+          "expected": {
+            "id": 1,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          }
+        },
+        {
+          "revision": 1,
+          "snapshotHash": "653d69275a7b04592cdc68f6ff373400c2817132a2f7876981a870e8d3aa3864",
+          "exact": true,
+          "actual": {
+            "id": 2,
+            "ok": true,
+            "cost": 168789,
+            "waypoints": [
+              0,
+              0,
+              7,
+              12,
+              119,
+              119
+            ]
+          },
+          "expected": {
+            "id": 2,
+            "ok": true,
+            "cost": 168789,
+            "waypoints": [
+              0,
+              0,
+              7,
+              12,
+              119,
+              119
+            ]
+          }
+        },
+        {
+          "revision": 2,
+          "snapshotHash": "78b3c4e2cc325e0e4d16320ab02405498d6992fc11ff9cc282be336d4e68eb8e",
+          "exact": true,
+          "actual": {
+            "id": 3,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          },
+          "expected": {
+            "id": 3,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          }
+        }
+      ],
+      "mismatches": [],
+      "combinedMetrics": {
+        "integration": "detour-corridor-supercover-cs0.25-exact-compressed-layer-incremental-revisions",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 2,
+        "revisionCacheCapacity": 2,
+        "snapshotCacheBytes": 28800,
+        "visibleRevision": 2,
+        "maxObstacles": 512,
+        "obstacleStrategy": "none-exact-compressed-layer-regeneration",
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "exact-touched-tile-rasterization-unchanged-compressed-layer-reuse-atomic-ack",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 3,
+        "incrementalRevisionBuilds": 2,
+        "fullRasterRevisionBuilds": 1,
+        "mutationRebuilds": 2,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 3,
+        "revisionCacheEvictions": 1,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "outOfOrderRebuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "revisionBarriersCompleted": 3,
+        "revisionVisibilityChanges": 3,
+        "revisionVisibilityFailures": 0,
+        "lastAcknowledgedRevision": 2,
+        "changedTilesObserved": 14560,
+        "mutationChangedTiles": 160,
+        "maxChangedTilesPerBuild": 14400,
+        "changedNavTiles": 235,
+        "rasterizedNavTiles": 315,
+        "maxRasterizedNavTilesPerRevision": 225,
+        "reusedCompressedLayers": 360,
+        "compressedLayerBytes": 28143,
+        "totalRevisionBuildMs": 0,
+        "totalIncrementalUpdateMs": 0,
+        "totalGeometryMs": 0,
+        "totalRasterizeMs": 0,
+        "totalNavMeshBuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "tileCacheUpdateCalls": 3,
+        "pathQueries": 3,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 3,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 28,
+        "unreachableRoutes": 0,
+        "partialPathsRejected": 0,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "dynamicObstacleRemoves": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      },
+      "fullRebuildMetrics": {
+        "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 3,
+        "revisionCacheCapacity": 8,
+        "maxObstacles": 512,
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 3,
+        "mutationRebuilds": 2,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 3,
+        "revisionCacheEvictions": 0,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "totalRevisionBuildMs": 0,
+        "totalMutationRebuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "maxMutationRebuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "changedTilesObserved": 14560,
+        "mutationChangedTiles": 160,
+        "maxChangedTilesPerBuild": 14400,
+        "pathQueries": 3,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 3,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 28,
+        "unreachableRoutes": 0,
+        "partialPathsRejected": 0,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      }
+    },
+    {
+      "name": "large-104x104-obstacle-multi-tile-halo",
+      "width": 120,
+      "exact": true,
+      "revisions": [
+        {
+          "revision": 0,
+          "snapshotHash": "78b3c4e2cc325e0e4d16320ab02405498d6992fc11ff9cc282be336d4e68eb8e",
+          "exact": true,
+          "actual": {
+            "id": 1,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          },
+          "expected": {
+            "id": 1,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          }
+        },
+        {
+          "revision": 1,
+          "snapshotHash": "4de0115ef6f046fb100109c3a8bec5ad260a38c315bc3447027e000b09c336fb",
+          "exact": true,
+          "actual": {
+            "id": 2,
+            "ok": true,
+            "cost": 224437,
+            "waypoints": [
+              0,
+              0,
+              112,
+              7,
+              119,
+              119
+            ]
+          },
+          "expected": {
+            "id": 2,
+            "ok": true,
+            "cost": 224437,
+            "waypoints": [
+              0,
+              0,
+              112,
+              7,
+              119,
+              119
+            ]
+          }
+        },
+        {
+          "revision": 2,
+          "snapshotHash": "78b3c4e2cc325e0e4d16320ab02405498d6992fc11ff9cc282be336d4e68eb8e",
+          "exact": true,
+          "actual": {
+            "id": 3,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          },
+          "expected": {
+            "id": 3,
+            "ok": true,
+            "cost": 168291,
+            "waypoints": [
+              0,
+              0,
+              119,
+              119
+            ]
+          }
+        }
+      ],
+      "mismatches": [],
+      "combinedMetrics": {
+        "integration": "detour-corridor-supercover-cs0.25-exact-compressed-layer-incremental-revisions",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 2,
+        "revisionCacheCapacity": 2,
+        "snapshotCacheBytes": 28800,
+        "visibleRevision": 2,
+        "maxObstacles": 512,
+        "obstacleStrategy": "none-exact-compressed-layer-regeneration",
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "exact-touched-tile-rasterization-unchanged-compressed-layer-reuse-atomic-ack",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 3,
+        "incrementalRevisionBuilds": 2,
+        "fullRasterRevisionBuilds": 1,
+        "mutationRebuilds": 2,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 3,
+        "revisionCacheEvictions": 1,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "outOfOrderRebuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "revisionBarriersCompleted": 3,
+        "revisionVisibilityChanges": 3,
+        "revisionVisibilityFailures": 0,
+        "lastAcknowledgedRevision": 2,
+        "changedTilesObserved": 36032,
+        "mutationChangedTiles": 21632,
+        "maxChangedTilesPerBuild": 14400,
+        "changedNavTiles": 563,
+        "rasterizedNavTiles": 675,
+        "maxRasterizedNavTilesPerRevision": 225,
+        "reusedCompressedLayers": 0,
+        "compressedLayerBytes": 28143,
+        "totalRevisionBuildMs": 0,
+        "totalIncrementalUpdateMs": 0,
+        "totalGeometryMs": 0,
+        "totalRasterizeMs": 0,
+        "totalNavMeshBuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "tileCacheUpdateCalls": 3,
+        "pathQueries": 3,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 3,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 28,
+        "unreachableRoutes": 0,
+        "partialPathsRejected": 0,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "dynamicObstacleRemoves": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      },
+      "fullRebuildMetrics": {
+        "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 3,
+        "revisionCacheCapacity": 8,
+        "maxObstacles": 512,
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 3,
+        "mutationRebuilds": 2,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 3,
+        "revisionCacheEvictions": 0,
+        "peakRevisionCacheEntries": 3,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "totalRevisionBuildMs": 0,
+        "totalMutationRebuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "maxMutationRebuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "changedTilesObserved": 36032,
+        "mutationChangedTiles": 21632,
+        "maxChangedTilesPerBuild": 14400,
+        "pathQueries": 3,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 3,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 28,
+        "unreachableRoutes": 0,
+        "partialPathsRejected": 0,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      }
+    },
+    {
+      "name": "576-isolated-blocked-cells",
+      "width": 48,
+      "exact": true,
+      "revisions": [
+        {
+          "revision": 0,
+          "snapshotHash": "f62deb058e50657a619455364f76f3a212e1f210aae7c66b7ab2090f6e124668",
+          "exact": true,
+          "actual": {
+            "id": 1,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          },
+          "expected": {
+            "id": 1,
+            "ok": false,
+            "cost": 0,
+            "waypoints": []
+          }
+        }
+      ],
+      "mismatches": [],
+      "combinedMetrics": {
+        "integration": "detour-corridor-supercover-cs0.25-exact-compressed-layer-incremental-revisions",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 1,
+        "revisionCacheCapacity": 2,
+        "snapshotCacheBytes": 2304,
+        "visibleRevision": 0,
+        "maxObstacles": 512,
+        "obstacleStrategy": "none-exact-compressed-layer-regeneration",
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "exact-touched-tile-rasterization-unchanged-compressed-layer-reuse-atomic-ack",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 1,
+        "incrementalRevisionBuilds": 0,
+        "fullRasterRevisionBuilds": 1,
+        "mutationRebuilds": 0,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 1,
+        "revisionCacheEvictions": 0,
+        "peakRevisionCacheEntries": 1,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "outOfOrderRebuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "revisionBarriersCompleted": 1,
+        "revisionVisibilityChanges": 1,
+        "revisionVisibilityFailures": 0,
+        "lastAcknowledgedRevision": 0,
+        "changedTilesObserved": 2304,
+        "mutationChangedTiles": 0,
+        "maxChangedTilesPerBuild": 2304,
+        "changedNavTiles": 36,
+        "rasterizedNavTiles": 36,
+        "maxRasterizedNavTilesPerRevision": 36,
+        "reusedCompressedLayers": 0,
+        "compressedLayerBytes": 13430,
+        "totalRevisionBuildMs": 0,
+        "totalIncrementalUpdateMs": 0,
+        "totalGeometryMs": 0,
+        "totalRasterizeMs": 0,
+        "totalNavMeshBuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "tileCacheUpdateCalls": 1,
+        "pathQueries": 1,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 0,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 0,
+        "unreachableRoutes": 1,
+        "partialPathsRejected": 1,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "dynamicObstacleRemoves": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      },
+      "fullRebuildMetrics": {
+        "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+        "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+        "generationCellSize": 0.25,
+        "generationMaxSimplificationError": 0.25,
+        "recastNavigationVersion": "0.43.0",
+        "generationWalkableRadius": 0,
+        "revisionCacheEntries": 1,
+        "revisionCacheCapacity": 8,
+        "maxObstacles": 512,
+        "isolatedCrowdAgentCapacity": 2000,
+        "crowdModel": "none-production-activity-steering-collision",
+        "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+        "exactEndpointTolerance": 0.05,
+        "mockInFlight": 0,
+        "revisionBuilds": 1,
+        "mutationRebuilds": 0,
+        "revisionCacheHits": 0,
+        "revisionCacheMisses": 1,
+        "revisionCacheEvictions": 0,
+        "peakRevisionCacheEntries": 1,
+        "revisionCacheCapacityFailures": 0,
+        "snapshotMismatches": 0,
+        "ephemeralSnapshotBuilds": 0,
+        "navmeshGenerationFailures": 0,
+        "totalRevisionBuildMs": 0,
+        "totalMutationRebuildMs": 0,
+        "maxRevisionBuildMs": 0,
+        "maxMutationRebuildMs": 0,
+        "lastRevisionBuildMs": 0,
+        "changedTilesObserved": 2304,
+        "mutationChangedTiles": 0,
+        "maxChangedTilesPerBuild": 2304,
+        "pathQueries": 1,
+        "pathCapacityFailures": 0,
+        "totalPathQueryMs": 0,
+        "maxPathQueryMs": 0,
+        "routeConversions": 0,
+        "totalRouteConversionMs": 0,
+        "maxRouteConversionMs": 0,
+        "responseWaypointBytes": 0,
+        "unreachableRoutes": 1,
+        "partialPathsRejected": 1,
+        "endpointProjectionsRejected": 0,
+        "geometryRejections": 0,
+        "nativeQueryFailures": 0,
+        "dynamicObstacleAdds": 0,
+        "obstacleCapacityFailures": 0,
+        "tileCacheUpdateFailures": 0,
+        "crowdAgentsCreated": 0,
+        "agentCapacityFailures": 0
+      }
+    }
+  ],
+  "passed": true
+}

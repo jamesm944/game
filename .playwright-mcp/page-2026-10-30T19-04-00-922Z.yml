@@ -1,0 +1,236 @@
+- generic [active] [ref=f105e1]:
+  - generic [ref=f105e2]:
+    - main:
+      - generic [ref=f105e3]:
+        - generic [ref=f105e4]:
+          - generic [ref=f105e8]:
+            - generic [ref=f105e9]: House of Aldric
+            - generic [ref=f105e10]: Britons
+          - generic [ref=f105e11]:
+            - generic [ref=f105e12]:
+              - generic [ref=f105e17]: 1,240
+              - generic [ref=f105e18]: "+18"
+            - generic [ref=f105e19]:
+              - generic [ref=f105e22]: "860"
+              - generic [ref=f105e23]: "+12"
+            - generic [ref=f105e24]:
+              - generic [ref=f105e29]: "415"
+              - generic [ref=f105e30]: "+6"
+            - generic [ref=f105e31]:
+              - generic [ref=f105e35]: "210"
+              - generic [ref=f105e36]: "+2"
+            - generic [ref=f105e37]:
+              - generic [ref=f105e40]: "96"
+              - generic [ref=f105e41]: "+1"
+            - generic [ref=f105e42]: "40"
+            - generic [ref=f105e47]:
+              - generic [ref=f105e51]: "180"
+              - generic [ref=f105e52]: "+3"
+            - generic [ref=f105e53]: 58 / 60
+          - generic [ref=f105e59]:
+            - generic [ref=f105e60]: Epoch III
+            - generic [ref=f105e61]: Rank 7/24
+          - button "Pause" [ref=f105e62] [cursor=pointer]
+          - button "Settings" [ref=f105e66] [cursor=pointer]
+        - complementary [ref=f105e70]:
+          - generic [ref=f105e71]:
+            - heading "Settlement Chronicle" [level=2] [ref=f105e72]
+            - paragraph [ref=f105e73]: River Ward · 47 souls · 12 households
+          - generic [ref=f105e74]:
+            - button "People" [ref=f105e75] [cursor=pointer]
+            - button "Mood" [ref=f105e76] [cursor=pointer]
+            - button "Needs" [ref=f105e77] [cursor=pointer]
+            - button "Politics" [ref=f105e78] [cursor=pointer]
+          - generic [ref=f105e79]:
+            - generic [ref=f105e80]:
+              - generic [ref=f105e81]:
+                - generic [ref=f105e82]: "72"
+                - generic [ref=f105e83]: Settlement mood
+              - generic [ref=f105e86]:
+                - generic [ref=f105e87]: Unrest
+                - generic [ref=f105e90]: 18%
+            - generic [ref=f105e91]:
+              - text: Named Pops
+              - generic [ref=f105e92]: "47"
+            - generic [ref=f105e93]:
+              - generic [ref=f105e94] [cursor=pointer]:
+                - generic [ref=f105e95]: A
+                - generic [ref=f105e96]:
+                  - generic [ref=f105e97]: Aldric · Steward
+                  - generic [ref=f105e98]: Content · mood 82
+              - generic [ref=f105e106] [cursor=pointer]:
+                - generic [ref=f105e107]: M
+                - generic [ref=f105e108]:
+                  - generic [ref=f105e109]: Maud · Farmer
+                  - generic [ref=f105e110]: Hungry · mood 64
+              - generic [ref=f105e118] [cursor=pointer]:
+                - generic [ref=f105e119]: O
+                - generic [ref=f105e120]:
+                  - generic [ref=f105e121]: Osric · Foreman
+                  - generic [ref=f105e122]: Working · mood 71
+              - generic [ref=f105e130] [cursor=pointer]:
+                - generic [ref=f105e131]: E
+                - generic [ref=f105e132]:
+                  - generic [ref=f105e133]: Edith · Scholar
+                  - generic [ref=f105e134]: Inspired · mood 88
+              - generic [ref=f105e142] [cursor=pointer]:
+                - generic [ref=f105e143]: G
+                - generic [ref=f105e144]:
+                  - generic [ref=f105e145]: Godwin · Miner
+                  - generic [ref=f105e146]: Unrest · mood 41
+              - generic [ref=f105e154] [cursor=pointer]:
+                - generic [ref=f105e155]: A
+                - generic [ref=f105e156]:
+                  - generic [ref=f105e157]: Aethel · Guard
+                  - generic [ref=f105e158]: On duty · mood 76
+            - generic [ref=f105e166]:
+              - text: Factions
+              - generic [ref=f105e167]: Council
+            - generic [ref=f105e168]:
+              - generic [ref=f105e169]:
+                - generic [ref=f105e170]: Merchants
+                - generic [ref=f105e173]: 62%
+              - generic [ref=f105e174]:
+                - generic [ref=f105e175]: Clergy
+                - generic [ref=f105e178]: 48%
+              - generic [ref=f105e179]:
+                - generic [ref=f105e180]: Nobility
+                - generic [ref=f105e183]: 71%
+              - generic [ref=f105e184]:
+                - generic [ref=f105e185]: Commons
+                - generic [ref=f105e188]: 39%
+            - generic [ref=f105e189]:
+              - generic [ref=f105e190]:
+                - text: Paths to Victory
+                - generic [ref=f105e191]: 2 active
+              - generic [ref=f105e192]:
+                - generic [ref=f105e193]: Conquest
+                - generic [ref=f105e196]: 2 / 3
+              - generic [ref=f105e197]:
+                - generic [ref=f105e198]: Knowledge
+                - generic [ref=f105e201]: 18 / 40
+              - generic [ref=f105e202]:
+                - generic [ref=f105e203]: Culture
+                - generic [ref=f105e206]: 12 / 40
+              - generic [ref=f105e207]:
+                - generic [ref=f105e208]: Wonder
+                - generic [ref=f105e210]: 0 / 3
+              - generic [ref=f105e211]:
+                - generic [ref=f105e212]: Relic
+                - generic [ref=f105e215]: 1 / 3
+              - generic [ref=f105e216]:
+                - generic [ref=f105e217]: Economic
+                - generic [ref=f105e220]: 22 / 40
+        - generic [ref=f105e221]:
+          - generic [ref=f105e222]:
+            - generic [ref=f105e223]:
+              - heading "Active Contracts" [level=3] [ref=f105e224]
+              - generic [ref=f105e225]: 2 active
+            - generic [ref=f105e226]:
+              - generic [ref=f105e227]:
+                - generic [ref=f105e228]: ○
+                - generic [ref=f105e229]:
+                  - generic [ref=f105e230]: Hold the river crossing
+                  - generic [ref=f105e231]: Keep 2 keeps standing for 5 minutes
+              - generic [ref=f105e232]:
+                - generic [ref=f105e233]: ✓
+                - generic [ref=f105e234]:
+                  - generic [ref=f105e235]: Raise a market
+                  - generic [ref=f105e236]: Build a Market in the lower ward
+              - generic [ref=f105e237]:
+                - generic [ref=f105e238]: ○
+                - generic [ref=f105e239]:
+                  - generic [ref=f105e240]: Collect 3 relics
+                  - generic [ref=f105e241]: 1 of 3 recovered
+          - generic [ref=f105e242]:
+            - generic [ref=f105e248]:
+              - generic [ref=f105e249]: Houses needed
+              - generic [ref=f105e250]: Population at cap — build 2 houses.
+            - generic [ref=f105e255]:
+              - generic [ref=f105e256]: Research complete
+              - generic [ref=f105e257]: Chain Mail is now available.
+            - generic [ref=f105e263]:
+              - generic [ref=f105e264]: Idle villagers
+              - generic [ref=f105e265]: 3 villagers are idle near the mill.
+        - complementary [ref=f105e266]:
+          - generic [ref=f105e270]:
+            - generic [ref=f105e271]: Aldric · Steward
+            - generic [ref=f105e272]: Adult · born here · House of Aldric
+            - generic [ref=f105e273]: Content
+          - generic [ref=f105e274]:
+            - generic [ref=f105e275]:
+              - text: Vitals
+              - generic [ref=f105e276]: Live
+            - generic [ref=f105e277]:
+              - generic [ref=f105e278]:
+                - generic [ref=f105e279]: HP
+                - generic [ref=f105e282]: "96"
+              - generic [ref=f105e283]:
+                - generic [ref=f105e284]: Mood
+                - generic [ref=f105e287]: "82"
+              - generic [ref=f105e288]:
+                - generic [ref=f105e289]: Health
+                - generic [ref=f105e292]: "96"
+              - generic [ref=f105e293]:
+                - generic [ref=f105e294]: Food
+                - generic [ref=f105e297]: "88"
+              - generic [ref=f105e298]:
+                - generic [ref=f105e299]: Rest
+                - generic [ref=f105e302]: "64"
+              - generic [ref=f105e303]:
+                - generic [ref=f105e304]: Social
+                - generic [ref=f105e307]: "76"
+            - generic [ref=f105e308]:
+              - text: Skills
+              - generic [ref=f105e309]: Practice / theory
+            - generic [ref=f105e310]:
+              - generic [ref=f105e311]:
+                - generic [ref=f105e312]: Gathering
+                - generic [ref=f105e315]: "74"
+              - generic [ref=f105e316]:
+                - generic [ref=f105e317]: Stewardship
+                - generic [ref=f105e320]: "58"
+              - generic [ref=f105e321]:
+                - generic [ref=f105e322]: Diplomacy
+                - generic [ref=f105e325]: "41"
+            - generic [ref=f105e326]:
+              - text: Current activity
+              - generic [ref=f105e327]: Working
+            - generic [ref=f105e328]: Managing the town ledger · +2 knowledge this hour
+            - generic [ref=f105e329]:
+              - text: Civic
+              - generic [ref=f105e330]: Tax 12%
+            - generic [ref=f105e331]:
+              - generic [ref=f105e332]:
+                - generic [ref=f105e333]: Unrest
+                - generic [ref=f105e336]: "18"
+              - generic [ref=f105e337]:
+                - generic [ref=f105e338]: Loyalty
+                - generic [ref=f105e341]: "61"
+              - generic [ref=f105e342]:
+                - generic [ref=f105e343]: Faith
+                - generic [ref=f105e346]: "54"
+        - generic [ref=f105e347]:
+          - generic [ref=f105e348]:
+            - button "Build" [ref=f105e349] [cursor=pointer]
+            - button "Train" [ref=f105e354] [cursor=pointer]
+            - button "Research" [ref=f105e359] [cursor=pointer]
+            - button "Advance" [ref=f105e364] [cursor=pointer]
+          - generic [ref=f105e369]:
+            - button "Stop" [ref=f105e370] [cursor=pointer]
+            - button "Attack" [ref=f105e374] [cursor=pointer]
+            - button "Patrol" [ref=f105e379] [cursor=pointer]
+            - button "Guard" [ref=f105e383] [cursor=pointer]
+            - button "Stance" [ref=f105e388] [cursor=pointer]
+            - button "Garrison" [ref=f105e392] [cursor=pointer]
+          - generic [ref=f105e397]:
+            - generic [ref=f105e398]: 1 · 2 · 3 · 4
+            - button "4" [ref=f105e399] [cursor=pointer]
+            - button "Pause" [ref=f105e404] [cursor=pointer]
+            - button "Settings" [ref=f105e408] [cursor=pointer]
+  - generic "Prototype variant switcher" [ref=f105e412]:
+    - generic [ref=f105e413]: Prototype
+    - button "Previous variant" [ref=f105e414] [cursor=pointer]: ‹
+    - generic [ref=f105e415]: B · Chronicle
+    - button "Next variant" [ref=f105e416] [cursor=pointer]: ›
+    - generic [ref=f105e417]: ← → · 1–4 · Esc

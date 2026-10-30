@@ -1,0 +1,765 @@
+{
+  "schema": "wayfinder-169-versioned-snapshot-distribution-v1",
+  "generatedAt": "2026-10-25T20:57:21.358Z",
+  "browserVersion": "156.0.8078.47",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "navigatorPlatform": "MacIntel",
+  "hardwareConcurrency": 8,
+  "config": {
+    "candidate": "versioned-snapshot-astar",
+    "scenario": "mixed-destinations-120",
+    "population": 1000,
+    "ticks": 3600,
+    "warmupRuns": 1,
+    "measuredRunsPerLaunch": 1
+  },
+  "byteAccounting": "Exact binary payloads plus UTF-8 JSON scalar accounting; not browser structured-clone wire size. Full registration is cloned once, deltas and responses use transfer lists.",
+  "responsePostSampling": "responsePostMs measured for request id 1 and every 256th response to avoid doubling the message stream",
+  "baseline": {
+    "sampleCount": 5,
+    "pooled": {
+      "initialLeaderResponse": {
+        "count": 40,
+        "minMs": 20.899999976158142,
+        "p50Ms": 26.600000023841858,
+        "p95Ms": 48,
+        "maxMs": 48.60000002384186,
+        "meanMs": 30.10999999642372
+      },
+      "individualRepathResponse": {
+        "count": 233995,
+        "minMs": 0,
+        "p50Ms": 32.89999997615814,
+        "p95Ms": 115.5,
+        "maxMs": 247.70000004768372,
+        "meanMs": 43.41835210163773
+      },
+      "perActiveTickApply": {
+        "count": 9145,
+        "minMs": 0,
+        "p50Ms": 0,
+        "p95Ms": 0.10000002384185791,
+        "maxMs": 5.500000357627869,
+        "meanMs": 0.04474576322546157
+      }
+    },
+    "wallClockMsRange": [
+      31686.5,
+      32817.299999952316
+    ],
+    "blockedFramesRange": [
+      706,
+      867
+    ]
+  },
+  "samples": [
+    {
+      "sample": 1,
+      "capturedAt": "2026-10-25T20:42:18.227Z",
+      "wallClockMs": 32368.5,
+      "frames": 4365,
+      "blockedFrames": 765,
+      "meanQueueDepth": 88.8114547537228,
+      "maxQueueDepth": 1000,
+      "requests": 46807,
+      "repaths": 46799,
+      "completed": 571,
+      "activeAtCutoff": 429,
+      "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "leaderResponse": {
+        "count": 8,
+        "minMs": 31.299999952316284,
+        "p50Ms": 32.300000071525574,
+        "p95Ms": 36,
+        "maxMs": 36,
+        "meanMs": 32.962500020861626
+      },
+      "repathResponse": {
+        "count": 46799,
+        "minMs": 0.09999990463256836,
+        "p50Ms": 30.90000009536743,
+        "p95Ms": 108.89999997615814,
+        "maxMs": 203.60000002384186,
+        "meanMs": 40.84706297070352
+      },
+      "initialGroupApplyTotalMs": 1.0999997854232788,
+      "perActiveTickApply": {
+        "count": 1829,
+        "minMs": 0,
+        "p50Ms": 0,
+        "p95Ms": 0.10000002384185791,
+        "maxMs": 2.899999976158142,
+        "meanMs": 0.04904319276700195
+      },
+      "protocol": {
+        "registrationCount": 1,
+        "updateCount": 0,
+        "sameRevisionRequests": 46806,
+        "baselinePerRequestSnapshotBytes": 674020800,
+        "fullSnapshotPayloadBytes": 14400,
+        "deltaSnapshotPayloadBytes": 0,
+        "registrationUpdateProtocolBytes": 14483,
+        "scalarRequestProtocolBytes": 9182857,
+        "totalMainToWorkerPayloadBytes": 9197340,
+        "snapshotPreparations": [
+          {
+            "snapshotId": 1,
+            "revision": 0,
+            "plane": "land",
+            "operation": "register",
+            "snapshotBytes": 14400,
+            "deltaEntries": 0,
+            "deltaPayloadBytes": 0,
+            "copyMs": 0,
+            "diffMs": 0
+          }
+        ],
+        "snapshotSends": [
+          {
+            "snapshotId": 1,
+            "revision": 0,
+            "operation": "register",
+            "protocolPayloadBytes": 14483,
+            "snapshotPayloadBytes": 14400,
+            "deltaEntries": 0,
+            "mainPostMs": 0.10000002384185791,
+            "mainCopyMs": 0,
+            "mainDiffMs": 0
+          }
+        ],
+        "snapshotAcks": [
+          {
+            "kind": "snapshot-ack",
+            "snapshotId": 1,
+            "revision": 0,
+            "plane": "land",
+            "operation": "register",
+            "snapshotPayloadBytes": 14400,
+            "deltaEntries": 0,
+            "workerHandlingMs": 0,
+            "snapshotCount": 1,
+            "snapshotBytes": 14400
+          }
+        ],
+        "mainRetainedSnapshotCount": 1,
+        "mainRetainedSnapshotBytes": 14400,
+        "maxWorkerSnapshotCount": 1,
+        "maxWorkerSnapshotBytes": 14400,
+        "maxPathCacheSize": 32,
+        "requestPost": {
+          "count": 46807,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.20000004768371582,
+          "meanMs": 0.00267054076419597
+        },
+        "responsePostSampleCount": 183,
+        "responsePost": {
+          "count": 183,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 0.10000002384185791,
+          "meanMs": 0.01202185557839649
+        },
+        "leaderQueue": {
+          "count": 8,
+          "minMs": 29.89990234375,
+          "p50Ms": 32.699951171875,
+          "p95Ms": 35.800048828125,
+          "maxMs": 35.800048828125,
+          "meanMs": 32.97491455078125
+        },
+        "repathQueue": {
+          "count": 46799,
+          "minMs": 0.999755859375,
+          "p50Ms": 31.39990234375,
+          "p95Ms": 109.699951171875,
+          "maxMs": 204.39990234375,
+          "meanMs": 40.64238807728597
+        },
+        "leaderCompute": {
+          "count": 8,
+          "minMs": 0.20000004768371582,
+          "p50Ms": 0.5,
+          "p95Ms": 1.9000000953674316,
+          "maxMs": 1.9000000953674316,
+          "meanMs": 0.7625000327825546
+        },
+        "repathCompute": {
+          "count": 46799,
+          "minMs": 0,
+          "p50Ms": 0.10000002384185791,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 7.399999976158142,
+          "meanMs": 0.08394196460704477
+        }
+      }
+    },
+    {
+      "sample": 2,
+      "capturedAt": "2026-10-25T20:43:45.232Z",
+      "wallClockMs": 32062.100000023842,
+      "frames": 4366,
+      "blockedFrames": 766,
+      "meanQueueDepth": 92.20453504351809,
+      "maxQueueDepth": 1000,
+      "requests": 46807,
+      "repaths": 46799,
+      "completed": 571,
+      "activeAtCutoff": 429,
+      "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "leaderResponse": {
+        "count": 8,
+        "minMs": 27.399999976158142,
+        "p50Ms": 29,
+        "p95Ms": 31,
+        "maxMs": 31,
+        "meanMs": 29.374999970197678
+      },
+      "repathResponse": {
+        "count": 46799,
+        "minMs": 0,
+        "p50Ms": 31.100000023841858,
+        "p95Ms": 116.10000002384186,
+        "maxMs": 194.89999997615814,
+        "meanMs": 42.26177482392386
+      },
+      "initialGroupApplyTotalMs": 0.9000000953674316,
+      "perActiveTickApply": {
+        "count": 1829,
+        "minMs": 0,
+        "p50Ms": 0,
+        "p95Ms": 0.10000002384185791,
+        "maxMs": 1.899999976158142,
+        "meanMs": 0.045161290140084194
+      },
+      "protocol": {
+        "registrationCount": 1,
+        "updateCount": 0,
+        "sameRevisionRequests": 46806,
+        "baselinePerRequestSnapshotBytes": 674020800,
+        "fullSnapshotPayloadBytes": 14400,
+        "deltaSnapshotPayloadBytes": 0,
+        "registrationUpdateProtocolBytes": 14483,
+        "scalarRequestProtocolBytes": 9210987,
+        "totalMainToWorkerPayloadBytes": 9225470,
+        "snapshotPreparations": [
+          {
+            "snapshotId": 1,
+            "revision": 0,
+            "plane": "land",
+            "operation": "register",
+            "snapshotBytes": 14400,
+            "deltaEntries": 0,
+            "deltaPayloadBytes": 0,
+            "copyMs": 0,
+            "diffMs": 0
+          }
+        ],
+        "snapshotSends": [
+          {
+            "snapshotId": 1,
+            "revision": 0,
+            "operation": "register",
+            "protocolPayloadBytes": 14483,
+            "snapshotPayloadBytes": 14400,
+            "deltaEntries": 0,
+            "mainPostMs": 0,
+            "mainCopyMs": 0,
+            "mainDiffMs": 0
+          }
+        ],
+        "snapshotAcks": [
+          {
+            "kind": "snapshot-ack",
+            "snapshotId": 1,
+            "revision": 0,
+            "plane": "land",
+            "operation": "register",
+            "snapshotPayloadBytes": 14400,
+            "deltaEntries": 0,
+            "workerHandlingMs": 0,
+            "snapshotCount": 1,
+            "snapshotBytes": 14400
+          }
+        ],
+        "mainRetainedSnapshotCount": 1,
+        "mainRetainedSnapshotBytes": 14400,
+        "maxWorkerSnapshotCount": 1,
+        "maxWorkerSnapshotBytes": 14400,
+        "maxPathCacheSize": 32,
+        "requestPost": {
+          "count": 46807,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.3999999761581421,
+          "meanMs": 0.002730360883194072
+        },
+        "responsePostSampleCount": 183,
+        "responsePost": {
+          "count": 183,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 0.5,
+          "meanMs": 0.020765027713254502
+        },
+        "leaderQueue": {
+          "count": 8,
+          "minMs": 25.300048828125,
+          "p50Ms": 29.5,
+          "p95Ms": 31.599853515625,
+          "maxMs": 31.599853515625,
+          "meanMs": 29.4375
+        },
+        "repathQueue": {
+          "count": 46799,
+          "minMs": 1,
+          "p50Ms": 31.199951171875,
+          "p95Ms": 117,
+          "maxMs": 195.800048828125,
+          "meanMs": 42.09800185200272
+        },
+        "leaderCompute": {
+          "count": 8,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.5,
+          "p95Ms": 2.6999999284744263,
+          "maxMs": 2.6999999284744263,
+          "meanMs": 0.824999988079071
+        },
+        "repathCompute": {
+          "count": 46799,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 11.600000023841858,
+          "meanMs": 0.08103591947362561
+        }
+      }
+    },
+    {
+      "sample": 3,
+      "capturedAt": "2026-10-25T20:45:08.483Z",
+      "wallClockMs": 32161.5,
+      "frames": 4347,
+      "blockedFrames": 747,
+      "meanQueueDepth": 87.98527720266851,
+      "maxQueueDepth": 1000,
+      "requests": 46807,
+      "repaths": 46799,
+      "completed": 571,
+      "activeAtCutoff": 429,
+      "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "leaderResponse": {
+        "count": 8,
+        "minMs": 26.100000023841858,
+        "p50Ms": 28.5,
+        "p95Ms": 30,
+        "maxMs": 30,
+        "meanMs": 28.524999976158142
+      },
+      "repathResponse": {
+        "count": 46799,
+        "minMs": 0,
+        "p50Ms": 30.899999976158142,
+        "p95Ms": 109.79999995231628,
+        "maxMs": 167.70000004768372,
+        "meanMs": 40.46448428393577
+      },
+      "initialGroupApplyTotalMs": 1.100000023841858,
+      "perActiveTickApply": {
+        "count": 1829,
+        "minMs": 0,
+        "p50Ms": 0,
+        "p95Ms": 0.10000002384185791,
+        "maxMs": 2.0000001192092896,
+        "meanMs": 0.04658283223996337
+      },
+      "protocol": {
+        "registrationCount": 1,
+        "updateCount": 0,
+        "sameRevisionRequests": 46806,
+        "baselinePerRequestSnapshotBytes": 674020800,
+        "fullSnapshotPayloadBytes": 14400,
+        "deltaSnapshotPayloadBytes": 0,
+        "registrationUpdateProtocolBytes": 14483,
+        "scalarRequestProtocolBytes": 9237971,
+        "totalMainToWorkerPayloadBytes": 9252454,
+        "snapshotPreparations": [
+          {
+            "snapshotId": 1,
+            "revision": 0,
+            "plane": "land",
+            "operation": "register",
+            "snapshotBytes": 14400,
+            "deltaEntries": 0,
+            "deltaPayloadBytes": 0,
+            "copyMs": 0,
+            "diffMs": 0
+          }
+        ],
+        "snapshotSends": [
+          {
+            "snapshotId": 1,
+            "revision": 0,
+            "operation": "register",
+            "protocolPayloadBytes": 14483,
+            "snapshotPayloadBytes": 14400,
+            "deltaEntries": 0,
+            "mainPostMs": 0,
+            "mainCopyMs": 0,
+            "mainDiffMs": 0
+          }
+        ],
+        "snapshotAcks": [
+          {
+            "kind": "snapshot-ack",
+            "snapshotId": 1,
+            "revision": 0,
+            "plane": "land",
+            "operation": "register",
+            "snapshotPayloadBytes": 14400,
+            "deltaEntries": 0,
+            "workerHandlingMs": 0,
+            "snapshotCount": 1,
+            "snapshotBytes": 14400
+          }
+        ],
+        "mainRetainedSnapshotCount": 1,
+        "mainRetainedSnapshotBytes": 14400,
+        "maxWorkerSnapshotCount": 1,
+        "maxWorkerSnapshotBytes": 14400,
+        "maxPathCacheSize": 32,
+        "requestPost": {
+          "count": 46807,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.20000004768371582,
+          "meanMs": 0.002802999585476627
+        },
+        "responsePostSampleCount": 183,
+        "responsePost": {
+          "count": 183,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.3000000715255737,
+          "meanMs": 0.028415302109848606
+        },
+        "leaderQueue": {
+          "count": 8,
+          "minMs": 24,
+          "p50Ms": 28.699951171875,
+          "p95Ms": 31,
+          "maxMs": 31,
+          "meanMs": 28.6875
+        },
+        "repathQueue": {
+          "count": 46799,
+          "minMs": 1.199951171875,
+          "p50Ms": 31.699951171875,
+          "p95Ms": 110.800048828125,
+          "maxMs": 168.800048828125,
+          "meanMs": 40.449318359416736
+        },
+        "leaderCompute": {
+          "count": 8,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.3999999761581421,
+          "p95Ms": 3.100000023841858,
+          "maxMs": 3.100000023841858,
+          "meanMs": 0.862500011920929
+        },
+        "repathCompute": {
+          "count": 46799,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 12.300000071525574,
+          "meanMs": 0.08245047956896775
+        }
+      }
+    }
+  ],
+  "pooled": {
+    "leaderResponse": {
+      "count": 24,
+      "minMs": 26.100000023841858,
+      "p50Ms": 30,
+      "p95Ms": 34.800000071525574,
+      "maxMs": 36,
+      "meanMs": 30.287499989072483
+    },
+    "repathResponse": {
+      "count": 140397,
+      "minMs": 0,
+      "p50Ms": 31,
+      "p95Ms": 111.79999995231628,
+      "maxMs": 203.60000002384186,
+      "meanMs": 41.19110735952105
+    },
+    "perActiveTickApply": {
+      "count": 5487,
+      "minMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0.10000002384185791,
+      "maxMs": 2.899999976158142,
+      "meanMs": 0.046929105049016505
+    },
+    "leaderQueue": {
+      "count": 24,
+      "minMs": 24,
+      "p50Ms": 30.60009765625,
+      "p95Ms": 34.39990234375,
+      "maxMs": 35.800048828125,
+      "meanMs": 30.36663818359375
+    },
+    "repathQueue": {
+      "count": 140397,
+      "minMs": 0.999755859375,
+      "p50Ms": 31.400146484375,
+      "p95Ms": 112.699951171875,
+      "maxMs": 204.39990234375,
+      "meanMs": 41.06323609623514
+    },
+    "leaderCompute": {
+      "count": 24,
+      "minMs": 0.10000002384185791,
+      "p50Ms": 0.5,
+      "p95Ms": 2.6999999284744263,
+      "maxMs": 3.100000023841858,
+      "meanMs": 0.8166666775941849
+    },
+    "repathCompute": {
+      "count": 140397,
+      "minMs": 0,
+      "p50Ms": 0.09999990463256836,
+      "p95Ms": 0.20000004768371582,
+      "maxMs": 12.300000071525574,
+      "meanMs": 0.08247612121654604
+    },
+    "requestPost": {
+      "count": 140421,
+      "minMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "maxMs": 0.3999999761581421,
+      "meanMs": 0.0027346337442888894
+    },
+    "responsePost": {
+      "count": 549,
+      "minMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0.10000002384185791,
+      "maxMs": 2.3000000715255737,
+      "meanMs": 0.02040072846716653
+    }
+  },
+  "pooledProtocol": {
+    "fullSnapshotPayloadBytes": 43200,
+    "baselinePerRequestSnapshotBytes": 2022062400,
+    "mainToWorkerPayloadBytesRange": [
+      9197340,
+      9252454
+    ],
+    "mainToWorkerPayloadBytesMean": 9225088
+  },
+  "comparisonToBaseline": {
+    "leaderP95DeltaMs": -13.199999928474426,
+    "repathP95DeltaMs": -3.700000047683716,
+    "applyP95DeltaMs": 0
+  },
+  "mutationSmoke": {
+    "sample": 1,
+    "capturedAt": "2026-10-25T20:45:26.165Z",
+    "wallClockMs": 3149.100000023842,
+    "frames": 605,
+    "blockedFrames": 5,
+    "meanQueueDepth": 3.649586776859504,
+    "maxQueueDepth": 95,
+    "requests": 1069,
+    "repaths": 1065,
+    "completed": 0,
+    "activeAtCutoff": 100,
+    "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+    "leaderResponse": {
+      "count": 2,
+      "minMs": 19.199999928474426,
+      "p50Ms": 19.199999928474426,
+      "p95Ms": 19.600000023841858,
+      "maxMs": 19.600000023841858,
+      "meanMs": 19.399999976158142
+    },
+    "repathResponse": {
+      "count": 1065,
+      "minMs": 0,
+      "p50Ms": 1.7999999523162842,
+      "p95Ms": 9.299999952316284,
+      "maxMs": 12.200000047683716,
+      "meanMs": 2.810328638049918
+    },
+    "initialGroupApplyTotalMs": null,
+    "perActiveTickApply": {
+      "count": 162,
+      "minMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0.10000002384185791,
+      "maxMs": 0.2999999523162842,
+      "meanMs": 0.021604940479184376
+    },
+    "protocol": {
+      "registrationCount": 1,
+      "updateCount": 1,
+      "sameRevisionRequests": 1067,
+      "baselinePerRequestSnapshotBytes": 15393600,
+      "fullSnapshotPayloadBytes": 14400,
+      "deltaSnapshotPayloadBytes": 80,
+      "registrationUpdateProtocolBytes": 14680,
+      "scalarRequestProtocolBytes": 208136,
+      "totalMainToWorkerPayloadBytes": 222816,
+      "snapshotPreparations": [
+        {
+          "snapshotId": 1,
+          "revision": 0,
+          "plane": "land",
+          "operation": "register",
+          "snapshotBytes": 14400,
+          "deltaEntries": 0,
+          "deltaPayloadBytes": 0,
+          "copyMs": 0,
+          "diffMs": 0
+        },
+        {
+          "snapshotId": 2,
+          "revision": 6,
+          "baseRevision": 0,
+          "plane": "land",
+          "operation": "update",
+          "snapshotBytes": 14400,
+          "deltaEntries": 16,
+          "deltaPayloadBytes": 80,
+          "copyMs": 0,
+          "diffMs": 0.20000004768371582
+        }
+      ],
+      "snapshotSends": [
+        {
+          "snapshotId": 1,
+          "revision": 0,
+          "operation": "register",
+          "protocolPayloadBytes": 14483,
+          "snapshotPayloadBytes": 14400,
+          "deltaEntries": 0,
+          "mainPostMs": 0.09999990463256836,
+          "mainCopyMs": 0,
+          "mainDiffMs": 0
+        },
+        {
+          "snapshotId": 2,
+          "revision": 6,
+          "operation": "update",
+          "protocolPayloadBytes": 197,
+          "snapshotPayloadBytes": 14400,
+          "deltaEntries": 16,
+          "mainPostMs": 0,
+          "mainCopyMs": 0,
+          "mainDiffMs": 0.20000004768371582
+        }
+      ],
+      "snapshotAcks": [
+        {
+          "kind": "snapshot-ack",
+          "snapshotId": 1,
+          "revision": 0,
+          "plane": "land",
+          "operation": "register",
+          "snapshotPayloadBytes": 14400,
+          "deltaEntries": 0,
+          "workerHandlingMs": 0,
+          "snapshotCount": 1,
+          "snapshotBytes": 14400
+        },
+        {
+          "kind": "snapshot-ack",
+          "snapshotId": 2,
+          "revision": 6,
+          "plane": "land",
+          "operation": "update",
+          "snapshotPayloadBytes": 80,
+          "deltaEntries": 16,
+          "workerHandlingMs": 0,
+          "snapshotCount": 2,
+          "snapshotBytes": 28800
+        }
+      ],
+      "mainRetainedSnapshotCount": 1,
+      "mainRetainedSnapshotBytes": 14400,
+      "maxWorkerSnapshotCount": 2,
+      "maxWorkerSnapshotBytes": 28800,
+      "maxPathCacheSize": 32,
+      "requestPost": {
+        "count": 1069,
+        "minMs": 0,
+        "p50Ms": 0,
+        "p95Ms": 0,
+        "maxMs": 0.20000004768371582,
+        "meanMs": 0.0048643593703395745
+      },
+      "responsePostSampleCount": 5,
+      "responsePost": {
+        "count": 5,
+        "minMs": 0,
+        "p50Ms": 0,
+        "p95Ms": 0.10000002384185791,
+        "maxMs": 0.10000002384185791,
+        "meanMs": 0.020000004768371583
+      },
+      "leaderQueue": {
+        "count": 2,
+        "minMs": 17.60009765625,
+        "p50Ms": 17.60009765625,
+        "p95Ms": 19.400146484375,
+        "maxMs": 19.400146484375,
+        "meanMs": 18.5001220703125
+      },
+      "repathQueue": {
+        "count": 1065,
+        "minMs": 0.300048828125,
+        "p50Ms": 1.900146484375,
+        "p95Ms": 9.400146484375,
+        "maxMs": 12.400146484375,
+        "meanMs": 2.9507143119131456
+      },
+      "leaderCompute": {
+        "count": 2,
+        "minMs": 0.30000007152557373,
+        "p50Ms": 0.30000007152557373,
+        "p95Ms": 1.5,
+        "maxMs": 1.5,
+        "meanMs": 0.9000000357627869
+      },
+      "repathCompute": {
+        "count": 1065,
+        "minMs": 0,
+        "p50Ms": 0.09999990463256836,
+        "p95Ms": 0.20000004768371582,
+        "maxMs": 1.100000023841858,
+        "meanMs": 0.07793427162886785
+      }
+    }
+  }
+}

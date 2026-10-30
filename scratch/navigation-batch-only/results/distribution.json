@@ -1,0 +1,2954 @@
+{
+  "schema": "wayfinder-171-batch-only-distribution-v1",
+  "generatedAt": "2026-10-25T22:25:32.157Z",
+  "browserVersion": "156.0.8078.47",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "design": "Four rotated same-browser-session iterations; fresh page/worker per policy; one warmup plus one measured run per page; diagnostic after headline timings",
+  "diagnosticMethod": "64 sequential post-message/acknowledgment round trips; start and end use main performance.now(); includes outbound, worker handling, and inbound delivery; not one-way delivery and not policy-selection evidence",
+  "policies": {
+    "fifo": {
+      "samples": [
+        {
+          "iteration": 1,
+          "capturedAt": "2026-10-25T22:06:43.290Z",
+          "policyOrder": [
+            "fifo",
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64"
+          ],
+          "wallClockMs": 31678.300000071526,
+          "frames": 4386,
+          "blockedFrames": 786,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 17.699999928474426,
+            "p50Ms": 19.300000071525574,
+            "p95Ms": 22,
+            "maxMs": 22,
+            "meanMs": 19.912500008940697
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 32.89999997615814,
+            "p95Ms": 113.29999995231628,
+            "maxMs": 154.80000007152557,
+            "meanMs": 42.60843821441687
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 15.2998046875,
+            "p50Ms": 18.7998046875,
+            "p95Ms": 22,
+            "maxMs": 22,
+            "meanMs": 19.09991455078125
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.099853515625,
+            "p50Ms": 32.2998046875,
+            "p95Ms": 113.199951171875,
+            "maxMs": 154.89990234375,
+            "meanMs": 41.77470440303045
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.5,
+            "p95Ms": 2,
+            "maxMs": 2,
+            "meanMs": 0.7500000298023224
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 13.600000023841858,
+            "meanMs": 0.08288852336653843
+          },
+          "tickWall": {
+            "count": 4386,
+            "minMs": 0,
+            "p50Ms": 2,
+            "p95Ms": 3.5,
+            "maxMs": 17.5,
+            "meanMs": 2.0170086647515095
+          },
+          "initialGroupApplyMs": 0.7000000476837158,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.8000001907348633,
+            "meanMs": 0.04226353182826556
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 33.199999928474426,
+            "meanMs": 0.6687499973922968
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 5.800000071525574,
+            "meanMs": 0.09062500111758709
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 46807,
+            "pathResultMessages": 46807,
+            "maxBatchSize": 1,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 0
+          }
+        },
+        {
+          "iteration": 2,
+          "capturedAt": "2026-10-25T22:13:30.264Z",
+          "policyOrder": [
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo"
+          ],
+          "wallClockMs": 31872.899999976158,
+          "frames": 4386,
+          "blockedFrames": 786,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 20.399999976158142,
+            "p50Ms": 21.699999928474426,
+            "p95Ms": 24.600000023841858,
+            "maxMs": 24.600000023841858,
+            "meanMs": 22.162499994039536
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 31.399999976158142,
+            "p95Ms": 111.90000009536743,
+            "maxMs": 170.10000002384186,
+            "meanMs": 41.56264663797436
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 18.39990234375,
+            "p50Ms": 21.2001953125,
+            "p95Ms": 23.699951171875,
+            "maxMs": 23.699951171875,
+            "meanMs": 21.40008544921875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.10009765625,
+            "p50Ms": 31.39990234375,
+            "p95Ms": 111.900146484375,
+            "maxMs": 170.10009765625,
+            "meanMs": 40.74224357529174
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 0.7000000476837158,
+            "p95Ms": 1.7999999523162842,
+            "maxMs": 1.7999999523162842,
+            "meanMs": 0.7374999821186066
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 8.600000023841858,
+            "meanMs": 0.08237569180662636
+          },
+          "tickWall": {
+            "count": 4386,
+            "minMs": 0,
+            "p50Ms": 2,
+            "p95Ms": 3.600000023841858,
+            "maxMs": 18.600000023841858,
+            "meanMs": 2.0545143640264225
+          },
+          "initialGroupApplyMs": 0.8000000715255737,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.999999761581421,
+            "meanMs": 0.044286495091942504
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 32.5,
+            "meanMs": 0.5437500011175871
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 46807,
+            "pathResultMessages": 46807,
+            "maxBatchSize": 1,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 0
+          }
+        },
+        {
+          "iteration": 3,
+          "capturedAt": "2026-10-25T22:16:33.112Z",
+          "policyOrder": [
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8"
+          ],
+          "wallClockMs": 31277.600000023842,
+          "frames": 4375,
+          "blockedFrames": 775,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 18.799999952316284,
+            "p50Ms": 20,
+            "p95Ms": 23.300000071525574,
+            "maxMs": 23.300000071525574,
+            "meanMs": 20.875
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.09999990463256836,
+            "p50Ms": 30.40000009536743,
+            "p95Ms": 112.29999995231628,
+            "maxMs": 185.5,
+            "meanMs": 40.847174084750264
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 16.5,
+            "p50Ms": 19.400146484375,
+            "p95Ms": 23.199951171875,
+            "maxMs": 23.199951171875,
+            "meanMs": 20.11248779296875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.199951171875,
+            "p50Ms": 30.199951171875,
+            "p95Ms": 112.300048828125,
+            "maxMs": 185.60009765625,
+            "meanMs": 40.131169758443356
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.20000004768371582,
+            "p50Ms": 0.6000000238418579,
+            "p95Ms": 2.0999999046325684,
+            "maxMs": 2.0999999046325684,
+            "meanMs": 0.8125000149011612
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 13,
+            "meanMs": 0.08096754203487373
+          },
+          "tickWall": {
+            "count": 4375,
+            "minMs": 0,
+            "p50Ms": 2,
+            "p95Ms": 3.3000000715255737,
+            "maxMs": 28,
+            "meanMs": 1.9639771416527885
+          },
+          "initialGroupApplyMs": 0.8999998569488525,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.9000002145767212,
+            "meanMs": 0.04477856770573319
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 19.200000047683716,
+            "meanMs": 0.36875000037252903
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.10000002384185791,
+            "meanMs": 0.0015625003725290298
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 46807,
+            "pathResultMessages": 46807,
+            "maxBatchSize": 1,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 0
+          }
+        },
+        {
+          "iteration": 4,
+          "capturedAt": "2026-10-25T22:19:35.187Z",
+          "policyOrder": [
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8",
+            "batch-16"
+          ],
+          "wallClockMs": 31974.599999904633,
+          "frames": 4399,
+          "blockedFrames": 799,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 28.200000047683716,
+            "p50Ms": 29.59999990463257,
+            "p95Ms": 32.39999997615814,
+            "maxMs": 32.39999997615814,
+            "meanMs": 30.162499979138374
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 31.300000071525574,
+            "p95Ms": 113.60000002384186,
+            "maxMs": 263.39999997615814,
+            "meanMs": 42.49145280883599
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 26.300048828125,
+            "p50Ms": 29.10009765625,
+            "p95Ms": 32.2001953125,
+            "maxMs": 32.2001953125,
+            "meanMs": 29.50018310546875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.199951171875,
+            "p50Ms": 31.30029296875,
+            "p95Ms": 113.7001953125,
+            "maxMs": 263.5,
+            "meanMs": 41.784742250644044
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.2999999523162842,
+            "p50Ms": 0.7000000476837158,
+            "p95Ms": 1.7999999523162842,
+            "maxMs": 1.7999999523162842,
+            "meanMs": 0.7750000059604645
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 8.399999976158142,
+            "meanMs": 0.08235005018112433
+          },
+          "tickWall": {
+            "count": 4399,
+            "minMs": 0,
+            "p50Ms": 2,
+            "p95Ms": 3.799999952316284,
+            "maxMs": 22.899999976158142,
+            "meanMs": 2.056217322162022
+          },
+          "initialGroupApplyMs": 1.6999999284744263,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 2.400000214576721,
+            "meanMs": 0.048223072743402796
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 17,
+            "meanMs": 0.28749999962747097
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.10000002384185791,
+            "meanMs": 0.0015625003725290298
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 46807,
+            "pathResultMessages": 46807,
+            "maxBatchSize": 1,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 0
+          }
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 17.699999928474426,
+          "p50Ms": 21.899999976158142,
+          "p95Ms": 32.10000002384186,
+          "maxMs": 32.39999997615814,
+          "meanMs": 23.27812499552965
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 31.399999976158142,
+          "p95Ms": 112.79999995231628,
+          "maxMs": 263.39999997615814,
+          "meanMs": 41.87742793649437
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 15.2998046875,
+          "p50Ms": 21.2998046875,
+          "p95Ms": 31.500244140625,
+          "maxMs": 32.2001953125,
+          "meanMs": 22.528167724609375
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0.099853515625,
+          "p50Ms": 31.300048828125,
+          "p95Ms": 112.800048828125,
+          "maxMs": 263.5,
+          "meanMs": 41.108214996852396
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.7000000476837158,
+          "p95Ms": 2,
+          "maxMs": 2.0999999046325684,
+          "meanMs": 0.7687500081956387
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 13.600000023841858,
+          "meanMs": 0.08214545184729072
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 31277.600000023842,
+          "p50Ms": 31678.300000071526,
+          "p95Ms": 31974.599999904633,
+          "maxMs": 31974.599999904633,
+          "meanMs": 31700.84999999404
+        },
+        "tickWall": {
+          "count": 17546,
+          "minMs": 0,
+          "p50Ms": 2,
+          "p95Ms": 3.600000023841858,
+          "maxMs": 28,
+          "meanMs": 2.0229909950496805
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.400000214576721,
+          "meanMs": 0.04488791684233601
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.19999992847442627,
+          "maxMs": 33.199999928474426,
+          "meanMs": 0.46718749962747097
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 5.800000071525574,
+          "meanMs": 0.023437500465661287
+        }
+      }
+    },
+    "batch-8": {
+      "samples": [
+        {
+          "iteration": 1,
+          "capturedAt": "2026-10-25T22:07:29.580Z",
+          "policyOrder": [
+            "fifo",
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64"
+          ],
+          "wallClockMs": 34028.10000002384,
+          "frames": 4415,
+          "blockedFrames": 815,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 66.69999992847443,
+            "p50Ms": 66.79999995231628,
+            "p95Ms": 67.19999992847443,
+            "maxMs": 67.19999992847443,
+            "meanMs": 66.83749994635582
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 40.299999952316284,
+            "p95Ms": 144.89999997615814,
+            "maxMs": 322.6999999284744,
+            "meanMs": 54.6921344478481
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 53.099853515625,
+            "p50Ms": 53.099853515625,
+            "p95Ms": 53.099853515625,
+            "maxMs": 53.099853515625,
+            "meanMs": 53.099853515625
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.2998046875,
+            "p50Ms": 34.699951171875,
+            "p95Ms": 139.599853515625,
+            "maxMs": 293.599853515625,
+            "meanMs": 49.20756282018579
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.20000004768371582,
+            "p50Ms": 0.6000000238418579,
+            "p95Ms": 2,
+            "maxMs": 2,
+            "meanMs": 0.9125000089406967
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.10000002384185791,
+            "p95Ms": 0.2999999523162842,
+            "maxMs": 28.100000023841858,
+            "meanMs": 0.09641017971946866
+          },
+          "tickWall": {
+            "count": 4415,
+            "minMs": 0,
+            "p50Ms": 2.299999952316284,
+            "p95Ms": 4.199999928474426,
+            "maxMs": 16.399999976158142,
+            "meanMs": 2.3622650063591393
+          },
+          "initialGroupApplyMs": 1.2000000476837158,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 4.9999998807907104,
+            "meanMs": 0.04904319237593812
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 15.5,
+            "meanMs": 0.2640624977648258
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 7171,
+            "pathResultMessages": 7171,
+            "maxBatchSize": 8,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 2,
+          "capturedAt": "2026-10-25T22:10:35.730Z",
+          "policyOrder": [
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo"
+          ],
+          "wallClockMs": 33384.799999952316,
+          "frames": 4237,
+          "blockedFrames": 637,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 38.39999997615814,
+            "p50Ms": 38.89999997615814,
+            "p95Ms": 39.89999997615814,
+            "maxMs": 39.89999997615814,
+            "meanMs": 39.049999952316284
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 33.800000071525574,
+            "p95Ms": 108.10000002384186,
+            "maxMs": 196.40000009536743,
+            "meanMs": 42.64623175673221
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 21.19970703125,
+            "p50Ms": 21.19970703125,
+            "p95Ms": 21.19970703125,
+            "maxMs": 21.19970703125,
+            "meanMs": 21.19970703125
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.19970703125,
+            "p50Ms": 28,
+            "p95Ms": 104.599853515625,
+            "maxMs": 192.199951171875,
+            "meanMs": 37.739785923953036
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.30000007152557373,
+            "p50Ms": 0.7999999523162842,
+            "p95Ms": 2.899999976158142,
+            "maxMs": 2.899999976158142,
+            "meanMs": 1.3375000059604645
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 10,
+            "meanMs": 0.07886279626555844
+          },
+          "tickWall": {
+            "count": 4237,
+            "minMs": 0,
+            "p50Ms": 2.5,
+            "p95Ms": 4.600000023841858,
+            "maxMs": 18.5,
+            "meanMs": 2.5552749594399633
+          },
+          "initialGroupApplyMs": 1.0999999046325684,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 2.500000238418579,
+            "meanMs": 0.0427009293523364
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.19999992847442627,
+            "maxMs": 24.799999952316284,
+            "meanMs": 0.42031249962747097
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 7171,
+            "pathResultMessages": 7171,
+            "maxBatchSize": 8,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 3,
+          "capturedAt": "2026-10-25T22:17:15.857Z",
+          "policyOrder": [
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8"
+          ],
+          "wallClockMs": 31952.200000047684,
+          "frames": 4257,
+          "blockedFrames": 657,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 27.100000023841858,
+            "p50Ms": 27.299999952316284,
+            "p95Ms": 27.699999928474426,
+            "maxMs": 27.699999928474426,
+            "meanMs": 27.38749997317791
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 34.5,
+            "p95Ms": 105.20000004768372,
+            "maxMs": 152.10000002384186,
+            "meanMs": 41.64777238921642
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 11.800048828125,
+            "p50Ms": 11.800048828125,
+            "p95Ms": 11.800048828125,
+            "maxMs": 11.800048828125,
+            "meanMs": 11.800048828125
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.199951171875,
+            "p50Ms": 29,
+            "p95Ms": 100.89990234375,
+            "maxMs": 150.699951171875,
+            "meanMs": 36.96081656433965
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.20000004768371582,
+            "p50Ms": 0.7000000476837158,
+            "p95Ms": 3.1999999284744263,
+            "maxMs": 3.1999999284744263,
+            "meanMs": 1.1875
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 4.600000023841858,
+            "meanMs": 0.07646530906997019
+          },
+          "tickWall": {
+            "count": 4257,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 3.700000047683716,
+            "maxMs": 17,
+            "meanMs": 2.185999531238494
+          },
+          "initialGroupApplyMs": 0.6000000238418579,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.7000001668930054,
+            "meanMs": 0.04199015872604929
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 18.5,
+            "meanMs": 0.3125
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.10000002384185791,
+            "meanMs": 0.0015625003725290298
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 7171,
+            "pathResultMessages": 7171,
+            "maxBatchSize": 8,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 4,
+          "capturedAt": "2026-10-25T22:20:18.295Z",
+          "policyOrder": [
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8",
+            "batch-16"
+          ],
+          "wallClockMs": 32228.799999952316,
+          "frames": 4265,
+          "blockedFrames": 665,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 20.90000009536743,
+            "p50Ms": 21,
+            "p95Ms": 21.300000071525574,
+            "maxMs": 21.300000071525574,
+            "meanMs": 21.075000032782555
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 34.5,
+            "p95Ms": 109.10000002384186,
+            "maxMs": 142.5,
+            "meanMs": 42.27793969977154
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 9.699951171875,
+            "p50Ms": 9.699951171875,
+            "p95Ms": 9.699951171875,
+            "maxMs": 9.699951171875,
+            "meanMs": 9.699951171875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.199951171875,
+            "p50Ms": 28.5,
+            "p95Ms": 104.800048828125,
+            "maxMs": 139.89990234375,
+            "meanMs": 37.38344366916895
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 0.40000009536743164,
+            "p95Ms": 2.399999976158142,
+            "maxMs": 2.399999976158142,
+            "meanMs": 0.7250000089406967
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 4.600000023841858,
+            "meanMs": 0.07886920664773496
+          },
+          "tickWall": {
+            "count": 4265,
+            "minMs": 0,
+            "p50Ms": 2.1999999284744263,
+            "p95Ms": 4,
+            "maxMs": 18.5,
+            "meanMs": 2.2144196963953107
+          },
+          "initialGroupApplyMs": 0.7999999523162842,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.9000002145767212,
+            "meanMs": 0.041880810110864905
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 27.59999990463257,
+            "meanMs": 0.45781249925494194
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 7171,
+            "pathResultMessages": 7171,
+            "maxBatchSize": 8,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 20.90000009536743,
+          "p50Ms": 27.699999928474426,
+          "p95Ms": 66.89999997615814,
+          "maxMs": 67.19999992847443,
+          "meanMs": 38.58749997615814
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 35.59999990463257,
+          "p95Ms": 115.29999995231628,
+          "maxMs": 322.6999999284744,
+          "meanMs": 45.31601957339207
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 9.699951171875,
+          "p50Ms": 11.800048828125,
+          "p95Ms": 53.099853515625,
+          "maxMs": 53.099853515625,
+          "meanMs": 23.94989013671875
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0.19970703125,
+          "p50Ms": 29.800048828125,
+          "p95Ms": 111.300048828125,
+          "maxMs": 293.599853515625,
+          "meanMs": 40.32290224441186
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 0.7000000476837158,
+          "p95Ms": 2.899999976158142,
+          "maxMs": 3.1999999284744263,
+          "meanMs": 1.0406250059604645
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 28.100000023841858,
+          "meanMs": 0.08265187292568306
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 31952.200000047684,
+          "p50Ms": 32228.799999952316,
+          "p95Ms": 34028.10000002384,
+          "maxMs": 34028.10000002384,
+          "meanMs": 32898.47499999404
+        },
+        "tickWall": {
+          "count": 17174,
+          "minMs": 0,
+          "p50Ms": 2.299999952316284,
+          "p95Ms": 4.100000023841858,
+          "maxMs": 18.5,
+          "meanMs": 2.3294747883912303
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 4.9999998807907104,
+          "meanMs": 0.04390377264129718
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 27.59999990463257,
+          "meanMs": 0.3636718741618097
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000002384185791,
+          "meanMs": 0.00039062509313225746
+        }
+      }
+    },
+    "batch-16": {
+      "samples": [
+        {
+          "iteration": 1,
+          "capturedAt": "2026-10-25T22:08:13.669Z",
+          "policyOrder": [
+            "fifo",
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64"
+          ],
+          "wallClockMs": 32959.89999997616,
+          "frames": 4289,
+          "blockedFrames": 689,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 21.800000071525574,
+            "p50Ms": 22.100000023841858,
+            "p95Ms": 22.800000071525574,
+            "maxMs": 22.800000071525574,
+            "meanMs": 22.187500029802322
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 35.200000047683716,
+            "p95Ms": 114.89999997615814,
+            "maxMs": 246.29999995231628,
+            "meanMs": 45.024750529399
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 11.900146484375,
+            "p50Ms": 11.900146484375,
+            "p95Ms": 11.900146484375,
+            "maxMs": 11.900146484375,
+            "meanMs": 11.900146484375
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 29.300048828125,
+            "p95Ms": 110.699951171875,
+            "maxMs": 245,
+            "meanMs": 39.4290019196958
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 0.6000000238418579,
+            "p95Ms": 1.8000000715255737,
+            "maxMs": 1.8000000715255737,
+            "meanMs": 0.7000000029802322
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 25.5,
+            "meanMs": 0.08551464769793829
+          },
+          "tickWall": {
+            "count": 4289,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 4.199999928474426,
+            "maxMs": 16.699999928474426,
+            "meanMs": 2.2849148991058468
+          },
+          "initialGroupApplyMs": 1,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.6999999284744263,
+            "meanMs": 0.04297430310632571
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 18.5,
+            "meanMs": 0.3156249988824129
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.10000002384185791,
+            "meanMs": 0.0015625003725290298
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 4489,
+            "pathResultMessages": 4489,
+            "maxBatchSize": 16,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 2,
+          "capturedAt": "2026-10-25T22:11:19.159Z",
+          "policyOrder": [
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo"
+          ],
+          "wallClockMs": 32123.100000023842,
+          "frames": 4227,
+          "blockedFrames": 627,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 24.199999928474426,
+            "p50Ms": 26.699999928474426,
+            "p95Ms": 27.299999952316284,
+            "maxMs": 27.299999952316284,
+            "meanMs": 26.499999970197678
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 34.200000047683716,
+            "p95Ms": 103.20000004768372,
+            "maxMs": 148.5,
+            "meanMs": 41.47852945578409
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 13.89990234375,
+            "p50Ms": 13.89990234375,
+            "p95Ms": 13.89990234375,
+            "maxMs": 13.89990234375,
+            "meanMs": 13.89990234375
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.19970703125,
+            "p50Ms": 27.599853515625,
+            "p95Ms": 98.5,
+            "maxMs": 146.300048828125,
+            "meanMs": 35.979103421764485
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.6000000238418579,
+            "p95Ms": 2.600000023841858,
+            "maxMs": 2.600000023841858,
+            "meanMs": 0.800000011920929
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 15.200000047683716,
+            "meanMs": 0.07921323109321118
+          },
+          "tickWall": {
+            "count": 4227,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 3.899999976158142,
+            "maxMs": 27.399999976158142,
+            "meanMs": 2.2285308735799867
+          },
+          "initialGroupApplyMs": 0.7999999523162842,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.7999998331069946,
+            "meanMs": 0.04149808676403165
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 12.300000071525574,
+            "meanMs": 0.21718749962747097
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 4489,
+            "pathResultMessages": 4489,
+            "maxBatchSize": 16,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 3,
+          "capturedAt": "2026-10-25T22:14:23.862Z",
+          "policyOrder": [
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8"
+          ],
+          "wallClockMs": 32208.700000047684,
+          "frames": 4265,
+          "blockedFrames": 665,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 20.799999952316284,
+            "p50Ms": 20.799999952316284,
+            "p95Ms": 21.09999990463257,
+            "maxMs": 21.09999990463257,
+            "meanMs": 20.88749995827675
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 36.699999928474426,
+            "p95Ms": 111.20000004768372,
+            "maxMs": 186.29999995231628,
+            "meanMs": 44.99084168383575
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 10.699951171875,
+            "p50Ms": 10.699951171875,
+            "p95Ms": 10.699951171875,
+            "maxMs": 10.699951171875,
+            "meanMs": 10.699951171875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.099853515625,
+            "p50Ms": 29.800048828125,
+            "p95Ms": 106.300048828125,
+            "maxMs": 182.499755859375,
+            "meanMs": 39.34489594128614
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.20000004768371582,
+            "p50Ms": 0.3999999761581421,
+            "p95Ms": 1.600000023841858,
+            "maxMs": 1.600000023841858,
+            "meanMs": 0.7374999970197678
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 14.5,
+            "meanMs": 0.08219833756265493
+          },
+          "tickWall": {
+            "count": 4265,
+            "minMs": 0,
+            "p50Ms": 2.1999999284744263,
+            "p95Ms": 3.899999976158142,
+            "maxMs": 15.200000047683716,
+            "meanMs": 2.1928018755538243
+          },
+          "initialGroupApplyMs": 1.100000023841858,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 2.399999976158142,
+            "meanMs": 0.04253690571260948
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 17.5,
+            "meanMs": 0.3156250026077032
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.10000002384185791,
+            "meanMs": 0.0015625003725290298
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 4489,
+            "pathResultMessages": 4489,
+            "maxBatchSize": 16,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 4,
+          "capturedAt": "2026-10-25T22:21:01.691Z",
+          "policyOrder": [
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8",
+            "batch-16"
+          ],
+          "wallClockMs": 32641.599999904633,
+          "frames": 4253,
+          "blockedFrames": 653,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 29.899999976158142,
+            "p50Ms": 30.100000023841858,
+            "p95Ms": 30.600000023841858,
+            "maxMs": 30.600000023841858,
+            "meanMs": 30.174999982118607
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 36.200000047683716,
+            "p95Ms": 112.79999995231628,
+            "maxMs": 172.89999997615814,
+            "meanMs": 44.20507703124668
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 17.39990234375,
+            "p50Ms": 17.39990234375,
+            "p95Ms": 17.39990234375,
+            "maxMs": 17.39990234375,
+            "meanMs": 17.39990234375
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.099853515625,
+            "p50Ms": 30.2001953125,
+            "p95Ms": 108.5,
+            "maxMs": 171.10009765625,
+            "meanMs": 38.74586171754805
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.6999999284744263,
+            "p95Ms": 4.599999904632568,
+            "maxMs": 4.599999904632568,
+            "meanMs": 1.0999999940395355
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 16.5,
+            "meanMs": 0.08159789745821759
+          },
+          "tickWall": {
+            "count": 4253,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 4.199999928474426,
+            "maxMs": 16,
+            "meanMs": 2.288196567672857
+          },
+          "initialGroupApplyMs": 0.9000000953674316,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.8000000715255737,
+            "meanMs": 0.04253690545190026
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 13.299999952316284,
+            "meanMs": 0.2390624973922968
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 4489,
+            "pathResultMessages": 4489,
+            "maxBatchSize": 16,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 20.799999952316284,
+          "p50Ms": 22.800000071525574,
+          "p95Ms": 30.299999952316284,
+          "maxMs": 30.600000023841858,
+          "meanMs": 24.93749998509884
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 35.60000002384186,
+          "p95Ms": 110.39999997615814,
+          "maxMs": 246.29999995231628,
+          "meanMs": 43.92479967506638
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 10.699951171875,
+          "p50Ms": 11.900146484375,
+          "p95Ms": 17.39990234375,
+          "maxMs": 17.39990234375,
+          "meanMs": 13.4749755859375
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 29.2001953125,
+          "p95Ms": 105.800048828125,
+          "maxMs": 245,
+          "meanMs": 38.37471575007362
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.6000000238418579,
+          "p95Ms": 2.600000023841858,
+          "maxMs": 4.599999904632568,
+          "meanMs": 0.8343750014901161
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 25.5,
+          "meanMs": 0.0821310284530055
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 32123.100000023842,
+          "p50Ms": 32208.700000047684,
+          "p95Ms": 32959.89999997616,
+          "maxMs": 32959.89999997616,
+          "meanMs": 32483.32499998808
+        },
+        "tickWall": {
+          "count": 17034,
+          "minMs": 0,
+          "p50Ms": 2.200000047683716,
+          "p95Ms": 4,
+          "maxMs": 27.399999976158142,
+          "meanMs": 2.248679112741417
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.399999976158142,
+          "meanMs": 0.04238655025871677
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 18.5,
+          "meanMs": 0.27187499962747097
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000002384185791,
+          "meanMs": 0.0007812501862645149
+        }
+      }
+    },
+    "batch-32": {
+      "samples": [
+        {
+          "iteration": 1,
+          "capturedAt": "2026-10-25T22:08:56.735Z",
+          "policyOrder": [
+            "fifo",
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64"
+          ],
+          "wallClockMs": 32219.800000071526,
+          "frames": 4222,
+          "blockedFrames": 622,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 20.600000023841858,
+            "p50Ms": 20.899999976158142,
+            "p95Ms": 21.199999928474426,
+            "maxMs": 21.199999928474426,
+            "meanMs": 20.93749998509884
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 36.60000002384186,
+            "p95Ms": 112.39999997615814,
+            "maxMs": 233.90000009536743,
+            "meanMs": 44.44617192695894
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 11.400146484375,
+            "p50Ms": 11.400146484375,
+            "p95Ms": 11.400146484375,
+            "maxMs": 11.400146484375,
+            "meanMs": 11.400146484375
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.099853515625,
+            "p50Ms": 28.39990234375,
+            "p95Ms": 106,
+            "maxMs": 231.800048828125,
+            "meanMs": 37.61361326747767
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.3999999761581421,
+            "p95Ms": 2,
+            "maxMs": 2,
+            "meanMs": 0.6375000029802322
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 8.100000023841858,
+            "meanMs": 0.0815893500663141
+          },
+          "tickWall": {
+            "count": 4222,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 3.8000000715255737,
+            "maxMs": 14.799999952316284,
+            "meanMs": 2.2353150158739385
+          },
+          "initialGroupApplyMs": 0.6999999284744263,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.7000001668930054,
+            "meanMs": 0.04056861623510629
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 15,
+            "meanMs": 0.25781250186264515
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.09999990463256836,
+            "meanMs": 0.0015624985098838806
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 3145,
+            "pathResultMessages": 3145,
+            "maxBatchSize": 32,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 2,
+          "capturedAt": "2026-10-25T22:12:02.586Z",
+          "policyOrder": [
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo"
+          ],
+          "wallClockMs": 32006.799999952316,
+          "frames": 4199,
+          "blockedFrames": 599,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 20.700000047683716,
+            "p50Ms": 20.899999976158142,
+            "p95Ms": 21.100000023841858,
+            "maxMs": 21.100000023841858,
+            "meanMs": 20.9375
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 34,
+            "p95Ms": 106.89999997615814,
+            "maxMs": 150.70000004768372,
+            "meanMs": 41.809310027859084
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 10.800048828125,
+            "p50Ms": 10.800048828125,
+            "p95Ms": 10.800048828125,
+            "maxMs": 10.800048828125,
+            "meanMs": 10.800048828125
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.099853515625,
+            "p50Ms": 26.5,
+            "p95Ms": 100.7001953125,
+            "maxMs": 149.7001953125,
+            "meanMs": 35.29287078908938
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 0.3999999761581421,
+            "p95Ms": 1.6999999284744263,
+            "maxMs": 1.6999999284744263,
+            "meanMs": 0.7250000089406967
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 6.199999928474426,
+            "meanMs": 0.07833714396676593
+          },
+          "tickWall": {
+            "count": 4199,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 3.899999976158142,
+            "maxMs": 13.899999976158142,
+            "meanMs": 2.2137651812834354
+          },
+          "initialGroupApplyMs": 0.9999998807907104,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.9999998807907104,
+            "meanMs": 0.042208858107269105
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 15.5,
+            "meanMs": 0.26718750037252903
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 3145,
+            "pathResultMessages": 3145,
+            "maxBatchSize": 32,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 3,
+          "capturedAt": "2026-10-25T22:15:06.446Z",
+          "policyOrder": [
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8"
+          ],
+          "wallClockMs": 32001,
+          "frames": 4199,
+          "blockedFrames": 599,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 22,
+            "p50Ms": 22.200000047683716,
+            "p95Ms": 22.5,
+            "maxMs": 22.5,
+            "meanMs": 22.212500035762787
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 34.200000047683716,
+            "p95Ms": 110.19999992847443,
+            "maxMs": 165.89999997615814,
+            "meanMs": 43.059056816295886
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 12.599853515625,
+            "p50Ms": 12.599853515625,
+            "p95Ms": 12.599853515625,
+            "maxMs": 12.599853515625,
+            "meanMs": 12.599853515625
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": -0.000244140625,
+            "p50Ms": 26.39990234375,
+            "p95Ms": 103.2998046875,
+            "maxMs": 164.39990234375,
+            "meanMs": 36.22560491097065
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.20000004768371582,
+            "p50Ms": 0.3999999761581421,
+            "p95Ms": 1.399999976158142,
+            "maxMs": 1.399999976158142,
+            "meanMs": 0.6749999970197678
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 10.300000071525574,
+            "meanMs": 0.07867689490478776
+          },
+          "tickWall": {
+            "count": 4199,
+            "minMs": 0,
+            "p50Ms": 2.200000047683716,
+            "p95Ms": 3.799999952316284,
+            "maxMs": 17.5,
+            "meanMs": 2.2117408898422393
+          },
+          "initialGroupApplyMs": 1.2000000476837158,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.5,
+            "meanMs": 0.041826133847953584
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 13.699999928474426,
+            "meanMs": 0.23437499813735485
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 3145,
+            "pathResultMessages": 3145,
+            "maxBatchSize": 32,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 4,
+          "capturedAt": "2026-10-25T22:18:07.871Z",
+          "policyOrder": [
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8",
+            "batch-16"
+          ],
+          "wallClockMs": 31853.5,
+          "frames": 4221,
+          "blockedFrames": 621,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 23.100000023841858,
+            "p50Ms": 23.200000047683716,
+            "p95Ms": 23.600000023841858,
+            "maxMs": 23.600000023841858,
+            "meanMs": 23.262500047683716
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 35,
+            "p95Ms": 109.10000002384186,
+            "maxMs": 144.29999995231628,
+            "meanMs": 42.883597939841636
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 13.7998046875,
+            "p50Ms": 13.7998046875,
+            "p95Ms": 13.7998046875,
+            "maxMs": 13.7998046875,
+            "meanMs": 13.7998046875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.19970703125,
+            "p50Ms": 27,
+            "p95Ms": 103.39990234375,
+            "maxMs": 140.7998046875,
+            "meanMs": 36.275645981726704
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.5,
+            "p95Ms": 2.100000023841858,
+            "maxMs": 2.100000023841858,
+            "meanMs": 0.6875
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 13,
+            "meanMs": 0.0806748007053967
+          },
+          "tickWall": {
+            "count": 4221,
+            "minMs": 0,
+            "p50Ms": 2.1999999284744263,
+            "p95Ms": 3.6999999284744263,
+            "maxMs": 15,
+            "meanMs": 2.157285003463286
+          },
+          "initialGroupApplyMs": 1.2999999523162842,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 2.100000023841858,
+            "meanMs": 0.04056861656099281
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 22.699999928474426,
+            "meanMs": 0.37656250037252903
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 3145,
+            "pathResultMessages": 3145,
+            "maxBatchSize": 32,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 20.600000023841858,
+          "p50Ms": 21.199999928474426,
+          "p95Ms": 23.40000009536743,
+          "maxMs": 23.600000023841858,
+          "meanMs": 21.837500017136335
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 35,
+          "p95Ms": 109.89999997615814,
+          "maxMs": 233.90000009536743,
+          "meanMs": 43.049534177738884
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 10.800048828125,
+          "p50Ms": 11.400146484375,
+          "p95Ms": 13.7998046875,
+          "maxMs": 13.7998046875,
+          "meanMs": 12.14996337890625
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": -0.000244140625,
+          "p50Ms": 27,
+          "p95Ms": 103.2001953125,
+          "maxMs": 231.800048828125,
+          "meanMs": 36.3519337373161
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.5,
+          "p95Ms": 2,
+          "maxMs": 2.100000023841858,
+          "meanMs": 0.6812500022351742
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 13,
+          "meanMs": 0.07981954741081612
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 31853.5,
+          "p50Ms": 32001,
+          "p95Ms": 32219.800000071526,
+          "maxMs": 32219.800000071526,
+          "meanMs": 32020.27500000596
+        },
+        "tickWall": {
+          "count": 16841,
+          "minMs": 0,
+          "p50Ms": 2.200000047683716,
+          "p95Ms": 3.799999952316284,
+          "maxMs": 17.5,
+          "meanMs": 2.2045068576269227
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.100000023841858,
+          "meanMs": 0.04129305618783045
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 22.699999928474426,
+          "meanMs": 0.2839843751862645
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.09999990463256836,
+          "meanMs": 0.00039062462747097015
+        }
+      }
+    },
+    "batch-64": {
+      "samples": [
+        {
+          "iteration": 1,
+          "capturedAt": "2026-10-25T22:09:40.663Z",
+          "policyOrder": [
+            "fifo",
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64"
+          ],
+          "wallClockMs": 32969.39999997616,
+          "frames": 4129,
+          "blockedFrames": 529,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 21.899999976158142,
+            "p50Ms": 22,
+            "p95Ms": 22.200000047683716,
+            "maxMs": 22.200000047683716,
+            "meanMs": 22.037500008940697
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 35.299999952316284,
+            "p95Ms": 102.60000002384186,
+            "maxMs": 130.69999992847443,
+            "meanMs": 42.07288831017838
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 12.199951171875,
+            "p50Ms": 12.199951171875,
+            "p95Ms": 12.199951171875,
+            "maxMs": 12.199951171875,
+            "meanMs": 12.199951171875
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.099853515625,
+            "p50Ms": 25.099853515625,
+            "p95Ms": 95.199951171875,
+            "maxMs": 124.199951171875,
+            "meanMs": 33.03757906360512
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.20000004768371582,
+            "p50Ms": 0.5999999046325684,
+            "p95Ms": 1.7000000476837158,
+            "maxMs": 1.7000000476837158,
+            "meanMs": 0.7250000089406967
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 8.399999976158142,
+            "meanMs": 0.07653796021486287
+          },
+          "tickWall": {
+            "count": 4129,
+            "minMs": 0,
+            "p50Ms": 2.5,
+            "p95Ms": 4.599999904632568,
+            "maxMs": 14.5,
+            "meanMs": 2.560038750383576
+          },
+          "initialGroupApplyMs": 1.000000238418579,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.500000238418579,
+            "meanMs": 0.038162931058496774
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 20.399999976158142,
+            "meanMs": 0.34062499925494194
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 2466,
+            "pathResultMessages": 2466,
+            "maxBatchSize": 64,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 2,
+          "capturedAt": "2026-10-25T22:12:47.038Z",
+          "policyOrder": [
+            "batch-8",
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo"
+          ],
+          "wallClockMs": 33503.299999952316,
+          "frames": 4166,
+          "blockedFrames": 566,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 21.200000047683716,
+            "p50Ms": 21.300000071525574,
+            "p95Ms": 21.600000023841858,
+            "maxMs": 21.600000023841858,
+            "meanMs": 21.375000029802322
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 37.10000002384186,
+            "p95Ms": 109.5,
+            "maxMs": 164.60000002384186,
+            "meanMs": 44.27914271734421
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 12.60009765625,
+            "p50Ms": 12.60009765625,
+            "p95Ms": 12.60009765625,
+            "maxMs": 12.60009765625,
+            "meanMs": 12.60009765625
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.199951171875,
+            "p50Ms": 26.400146484375,
+            "p95Ms": 100.000244140625,
+            "maxMs": 160.300048828125,
+            "meanMs": 35.035274780719476
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.09999990463256836,
+            "p50Ms": 0.5,
+            "p95Ms": 1.899999976158142,
+            "maxMs": 1.899999976158142,
+            "meanMs": 0.6249999850988388
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 7.399999976158142,
+            "meanMs": 0.080183337260985
+          },
+          "tickWall": {
+            "count": 4166,
+            "minMs": 0,
+            "p50Ms": 2.5,
+            "p95Ms": 4.699999928474426,
+            "maxMs": 15.299999952316284,
+            "meanMs": 2.6190110404675706
+          },
+          "initialGroupApplyMs": 1.0999999046325684,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.4999998807907104,
+            "meanMs": 0.04002186996549645
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 16.299999952316284,
+            "meanMs": 0.27343749813735485
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 2466,
+            "pathResultMessages": 2466,
+            "maxBatchSize": 64,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 3,
+          "capturedAt": "2026-10-25T22:15:49.747Z",
+          "policyOrder": [
+            "batch-16",
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8"
+          ],
+          "wallClockMs": 32021.899999976158,
+          "frames": 4229,
+          "blockedFrames": 629,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 23.399999976158142,
+            "p50Ms": 23.5,
+            "p95Ms": 24,
+            "maxMs": 24,
+            "meanMs": 23.58749996125698
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 37.5,
+            "p95Ms": 117.30000007152557,
+            "maxMs": 198.89999997615814,
+            "meanMs": 45.985679180176994
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 13,
+            "p50Ms": 13,
+            "p95Ms": 13,
+            "maxMs": 13,
+            "meanMs": 13
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.199951171875,
+            "p50Ms": 27.10009765625,
+            "p95Ms": 107.39990234375,
+            "maxMs": 194.300048828125,
+            "meanMs": 36.60149011180127
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.6000000238418579,
+            "p95Ms": 1.7999999523162842,
+            "maxMs": 1.7999999523162842,
+            "meanMs": 0.7249999940395355
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 13.100000023841858,
+            "meanMs": 0.08310433976856413
+          },
+          "tickWall": {
+            "count": 4229,
+            "minMs": 0,
+            "p50Ms": 2.1999999284744263,
+            "p95Ms": 3.600000023841858,
+            "maxMs": 18.09999990463257,
+            "meanMs": 2.1697327977349836
+          },
+          "initialGroupApplyMs": 0.8999999761581421,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 1.7000000476837158,
+            "meanMs": 0.042755603659928594
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 16.799999952316284,
+            "meanMs": 0.28749999962747097
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0,
+            "meanMs": 0
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 2466,
+            "pathResultMessages": 2466,
+            "maxBatchSize": 64,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        },
+        {
+          "iteration": 4,
+          "capturedAt": "2026-10-25T22:18:52.252Z",
+          "policyOrder": [
+            "batch-32",
+            "batch-64",
+            "fifo",
+            "batch-8",
+            "batch-16"
+          ],
+          "wallClockMs": 33651,
+          "frames": 4167,
+          "blockedFrames": 567,
+          "requests": 46807,
+          "repaths": 46799,
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 25.799999952316284,
+            "p50Ms": 26.299999952316284,
+            "p95Ms": 27.899999976158142,
+            "maxMs": 27.899999976158142,
+            "meanMs": 26.51249998807907
+          },
+          "repathResponse": {
+            "count": 46799,
+            "minMs": 0.19999992847442627,
+            "p50Ms": 36.40000009536743,
+            "p95Ms": 109.89999997615814,
+            "maxMs": 231.30000007152557,
+            "meanMs": 44.830891684506774
+          },
+          "leaderQueue": {
+            "count": 8,
+            "minMs": 14.300048828125,
+            "p50Ms": 14.300048828125,
+            "p95Ms": 14.300048828125,
+            "maxMs": 14.300048828125,
+            "meanMs": 14.300048828125
+          },
+          "repathQueue": {
+            "count": 46799,
+            "minMs": 0.10009765625,
+            "p50Ms": 25.39990234375,
+            "p95Ms": 99.800048828125,
+            "maxMs": 223.199951171875,
+            "meanMs": 35.5231651574002
+          },
+          "leaderCompute": {
+            "count": 8,
+            "minMs": 0.10000002384185791,
+            "p50Ms": 0.5,
+            "p95Ms": 2.299999952316284,
+            "maxMs": 2.299999952316284,
+            "meanMs": 0.7999999970197678
+          },
+          "repathCompute": {
+            "count": 46799,
+            "minMs": 0,
+            "p50Ms": 0.09999990463256836,
+            "p95Ms": 0.20000004768371582,
+            "maxMs": 15.899999976158142,
+            "meanMs": 0.08097181569261656
+          },
+          "tickWall": {
+            "count": 4167,
+            "minMs": 0,
+            "p50Ms": 2.5,
+            "p95Ms": 4.900000095367432,
+            "maxMs": 22.100000023841858,
+            "meanMs": 2.643724502062723
+          },
+          "initialGroupApplyMs": 1.100000023841858,
+          "perActiveTickApply": {
+            "count": 1829,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 2.100000023841858,
+            "meanMs": 0.04297430356256684
+          },
+          "deliveryDiagnosticRtt": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000002384185791,
+            "maxMs": 20.600000023841858,
+            "meanMs": 0.3453124985098839
+          },
+          "deliveryDiagnosticWorkerHandling": {
+            "count": 64,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0,
+            "maxMs": 0.09999990463256836,
+            "meanMs": 0.0015624985098838806
+          },
+          "protocol": {
+            "fullSnapshotPayloadBytes": 14400,
+            "deltaSnapshotPayloadBytes": 0,
+            "responseWaypointBytes": 374216,
+            "mainSnapshotCount": 1,
+            "mainSnapshotBytes": 14400,
+            "maxWorkerSnapshotCount": 1,
+            "maxWorkerSnapshotBytes": 14400,
+            "maxPathCacheSize": 32,
+            "pathRequestMessages": 2466,
+            "pathResultMessages": 2466,
+            "maxBatchSize": 64,
+            "coalescingEligibleResponses": 0,
+            "coalescedResponses": 0,
+            "maxQueuedRequests": 1000
+          }
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 21.200000047683716,
+          "p50Ms": 22.200000047683716,
+          "p95Ms": 26.899999976158142,
+          "maxMs": 27.899999976158142,
+          "meanMs": 23.378124997019768
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 36.699999928474426,
+          "p95Ms": 109.5,
+          "maxMs": 231.30000007152557,
+          "meanMs": 44.29215047305159
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 12.199951171875,
+          "p50Ms": 12.60009765625,
+          "p95Ms": 14.300048828125,
+          "maxMs": 14.300048828125,
+          "meanMs": 13.0250244140625
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0.099853515625,
+          "p50Ms": 25.89990234375,
+          "p95Ms": 99.800048828125,
+          "maxMs": 223.199951171875,
+          "meanMs": 35.04937727838151
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.09999990463256836,
+          "p50Ms": 0.5999999046325684,
+          "p95Ms": 1.899999976158142,
+          "maxMs": 2.299999952316284,
+          "meanMs": 0.7187499962747097
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 15.899999976158142,
+          "meanMs": 0.08019936323425714
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 32021.899999976158,
+          "p50Ms": 32969.39999997616,
+          "p95Ms": 33651,
+          "maxMs": 33651,
+          "meanMs": 33036.39999997616
+        },
+        "tickWall": {
+          "count": 16691,
+          "minMs": 0,
+          "p50Ms": 2.399999976158142,
+          "p95Ms": 4.5,
+          "maxMs": 22.100000023841858,
+          "meanMs": 2.4967587320495057
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.100000023841858,
+          "meanMs": 0.040978677061622164
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 20.600000023841858,
+          "meanMs": 0.3117187488824129
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.09999990463256836,
+          "meanMs": 0.00039062462747097015
+        }
+      }
+    }
+  },
+  "perIteration": [
+    {
+      "iteration": 1,
+      "policyOrder": [
+        "fifo",
+        "batch-8",
+        "batch-16",
+        "batch-32",
+        "batch-64"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": 45.199999928474426,
+          "repathP95Ms": 31.600000023841858,
+          "blockedFrames": 29,
+          "wallClockMs": 2349.7999999523163
+        },
+        "batch-16": {
+          "leaderP95Ms": 0.8000000715255737,
+          "repathP95Ms": 1.600000023841858,
+          "blockedFrames": -97,
+          "wallClockMs": 1281.5999999046326
+        },
+        "batch-32": {
+          "leaderP95Ms": -0.8000000715255737,
+          "repathP95Ms": -0.8999999761581421,
+          "blockedFrames": -164,
+          "wallClockMs": 541.5
+        },
+        "batch-64": {
+          "leaderP95Ms": 0.20000004768371582,
+          "repathP95Ms": -10.699999928474426,
+          "blockedFrames": -257,
+          "wallClockMs": 1291.0999999046326
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "policyOrder": [
+        "batch-8",
+        "batch-16",
+        "batch-32",
+        "batch-64",
+        "fifo"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": 15.299999952316284,
+          "repathP95Ms": -3.8000000715255737,
+          "blockedFrames": -149,
+          "wallClockMs": 1511.8999999761581
+        },
+        "batch-16": {
+          "leaderP95Ms": 2.6999999284744263,
+          "repathP95Ms": -8.700000047683716,
+          "blockedFrames": -159,
+          "wallClockMs": 250.20000004768372
+        },
+        "batch-32": {
+          "leaderP95Ms": -3.5,
+          "repathP95Ms": -5.0000001192092896,
+          "blockedFrames": -187,
+          "wallClockMs": 133.89999997615814
+        },
+        "batch-64": {
+          "leaderP95Ms": -3,
+          "repathP95Ms": -2.4000000953674316,
+          "blockedFrames": -220,
+          "wallClockMs": 1630.3999999761581
+        }
+      }
+    },
+    {
+      "iteration": 3,
+      "policyOrder": [
+        "batch-16",
+        "batch-32",
+        "batch-64",
+        "fifo",
+        "batch-8"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": 4.3999998569488525,
+          "repathP95Ms": -7.099999904632568,
+          "blockedFrames": -118,
+          "wallClockMs": 674.6000000238419
+        },
+        "batch-16": {
+          "leaderP95Ms": -2.2000001668930054,
+          "repathP95Ms": -1.0999999046325684,
+          "blockedFrames": -110,
+          "wallClockMs": 931.1000000238419
+        },
+        "batch-32": {
+          "leaderP95Ms": -0.8000000715255737,
+          "repathP95Ms": -2.100000023841858,
+          "blockedFrames": -176,
+          "wallClockMs": 723.3999999761581
+        },
+        "batch-64": {
+          "leaderP95Ms": 0.6999999284744263,
+          "repathP95Ms": 5.0000001192092896,
+          "blockedFrames": -146,
+          "wallClockMs": 744.2999999523163
+        }
+      }
+    },
+    {
+      "iteration": 4,
+      "policyOrder": [
+        "batch-32",
+        "batch-64",
+        "fifo",
+        "batch-8",
+        "batch-16"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": -11.099999904632568,
+          "repathP95Ms": -4.5,
+          "blockedFrames": -134,
+          "wallClockMs": 254.20000004768372
+        },
+        "batch-16": {
+          "leaderP95Ms": -1.7999999523162842,
+          "repathP95Ms": -0.8000000715255737,
+          "blockedFrames": -146,
+          "wallClockMs": 667
+        },
+        "batch-32": {
+          "leaderP95Ms": -8.799999952316284,
+          "repathP95Ms": -4.5,
+          "blockedFrames": -178,
+          "wallClockMs": -121.09999990463257
+        },
+        "batch-64": {
+          "leaderP95Ms": -4.5,
+          "repathP95Ms": -3.700000047683716,
+          "blockedFrames": -232,
+          "wallClockMs": 1676.4000000953674
+        }
+      }
+    }
+  ]
+}
