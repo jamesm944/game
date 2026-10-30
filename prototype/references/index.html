@@ -72,7 +72,7 @@
   .current img { display: block; width: 100%; border: 1px solid #3a3323; box-shadow: 0 18px 44px rgba(0,0,0,0.55); }
   .current figcaption { margin-top: 8px; font-size: 11px; color: var(--muted); }
 
-  .patterns { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 32px 0 8px; }
+  .patterns { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 32px 0 8px; }
   .pattern { padding: 16px; border: 1px solid var(--line); background: var(--panel); }
   .pattern h3 { margin: 0 0 4px; font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--gold); }
   .pattern .who { margin: 0 0 8px; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: #7e8592; }
@@ -121,28 +121,46 @@
       <b>which HUD structure should the AAA build adopt?</b> Judge where the eye goes first, how much map
       is left open, and how sim depth is surfaced — not the art direction.</p>
     <nav class="jump">
-      <a href="#age-of-empires-iv">Age of Empires IV</a><a href="#age-of-empires-ii-de">Age of Empires II: Definitive Edition</a><a href="#age-of-mythology-retold">Age of Mythology: Retold</a><a href="#company-of-heroes-3">Company of Heroes 3</a><a href="#total-war-warhammer-3">Total War: WARHAMMER III</a><a href="#manor-lords">Manor Lords</a><a href="#anno-1800">Anno 1800</a><a href="#frostpunk-2">Frostpunk 2</a><a href="#against-the-storm">Against the Storm</a><a href="#northgard">Northgard</a><a href="#they-are-billions">They Are Billions</a><a href="#warcraft-3-reforged">Warcraft III: Reforged</a><a href="#total-war-three-kingdoms">Total War: THREE KINGDOMS</a>
+      <a href="#age-of-empires-iv">Age of Empires IV</a><a href="#age-of-empires-ii-de">Age of Empires II: Definitive Edition</a><a href="#age-of-mythology-retold">Age of Mythology: Retold</a><a href="#company-of-heroes-3">Company of Heroes 3</a><a href="#total-war-warhammer-3">Total War: WARHAMMER III</a><a href="#manor-lords">Manor Lords</a><a href="#anno-1800">Anno 1800</a><a href="#frostpunk-2">Frostpunk 2</a><a href="#against-the-storm">Against the Storm</a><a href="#northgard">Northgard</a><a href="#they-are-billions">They Are Billions</a><a href="#warcraft-3-reforged">Warcraft III: Reforged</a><a href="#total-war-three-kingdoms">Total War: THREE KINGDOMS</a><a href="#victoria-3">Victoria 3</a><a href="#crusader-kings-3">Crusader Kings III</a><a href="#project-caesar">EU5 (Project Caesar)</a>
     </nav>
   </header>
 
-  <section class="current">
+  <section class="current" style="border-color: #d4af37; background: linear-gradient(180deg, rgba(212, 175, 55, 0.09), rgba(212, 175, 55, 0.02)), var(--panel);">
     <div>
-      <p class="eyebrow">Current direction</p>
-      <h2>D · Crown &amp; Chronicle</h2>
-      <p>The synthesis to judge against these references. AoE4 skeleton, but built for a
-        settlement sim rather than an army.</p>
+      <p class="eyebrow" style="color: #d4af37;">Grand RTS Synthesis · Built from First Principles</p>
+      <h2>E · Imperium &amp; Chronicle</h2>
+      <p>The complete synthesis of <b>Tactical RTS</b> (AoE4/CoH3), <b>Grand Strategy</b> (Victoria 3/EU5/CK3), <b>Settlement Survival</b> (Manor Lords/Anno), and <b>Colony Sims</b> (RimWorld/Dwarf Fortress).</p>
       <ul>
-        <li>One 60px top bar: crest, seven resources, epoch, speed, alerts, pause.</li>
-        <li>One tabbed info panel: Commission / Victory / People.</li>
-        <li>One bottom deck: minimap · commands · training queue · inspector.</li>
-        <li>Sim depth on demand: People tab and Pop inspector, not permanent rails.</li>
+        <li><b>Macro Pulse Top Bar (Vic3 + EU5):</b> 7 resources with production deltas (+/- per min), market inflation, Imperial Favor, Town Council Approval, Unrest risk %, and Pop counts by class strata (Slaves, Peasants, Craftsmen, Burghers, Nobility).</li>
+        <li><b>Left Operational Lenses (Vic3):</b> 5 slide-out drawers (War, Civic &amp; Tax, Council, Market, Deeds) keeping the playfield completely clear when not needed.</li>
+        <li><b>Adaptive Bottom Deck:</b> Switches contextually between <b>CK3/DF Pop character sheet</b> (portrait, traits, household, mood thoughts, practice/rust skills), <b>AoE4 Military tactical grid</b> (12 commands, stances, formations, counter bonuses), and <b>Manor Lords Workplace production</b> (recipes, foreman, logistics).</li>
+        <li><b>Paradox Outliner (Right Rail):</b> Pinned alerts for idle villagers (1-click cycle), raid warnings, council votes, and wonder progress.</li>
       </ul>
+      <div style="margin-top: 14px; display: flex; gap: 8px;">
+        <a href="../aaa-hud.html?variant=E" style="padding: 6px 12px; background: #d4af37; color: #0b0d11; font-weight: 700; font-size: 11px; text-decoration: none; border-radius: 3px;">Launch Interactive Variant E →</a>
+        <a href="../aaa-hud.html?variant=D" style="padding: 6px 12px; border: 1px solid var(--line); color: var(--muted); font-size: 11px; text-decoration: none; border-radius: 3px;">Compare with Variant D</a>
+      </div>
     </div>
     <figure>
-      <img src="../hud-D.png" alt="D Crown and Chronicle at 1600 by 900">
-      <figcaption>D at 1600×900 — the state to compare every reference against.</figcaption>
+      <img src="../hud-E.png" alt="E Imperium and Chronicle at 1600 by 900">
+      <figcaption>Variant E (Grand RTS Synthesis) at 1600×900 — Pop character sheet, Civic lens drawer, Top capacities.</figcaption>
     </figure>
   </section>
+
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 32px;">
+    <figure style="margin: 0;">
+      <img src="../hud-E-military.png" alt="Mode 2: Military Squad" style="width: 100%; border: 1px solid var(--line); display: block;">
+      <figcaption style="font-size: 11px; color: var(--muted); margin-top: 6px;"><b>Mode 2 · Military Squad:</b> AoE4 12-grid commands, formations, combat counters, and training queue.</figcaption>
+    </figure>
+    <figure style="margin: 0;">
+      <img src="../hud-E-workplace.png" alt="Mode 3: Workplace Production" style="width: 100%; border: 1px solid var(--line); display: block;">
+      <figcaption style="font-size: 11px; color: var(--muted); margin-top: 6px;"><b>Mode 3 · Workplace Industry:</b> Manor Lords production recipes, physical logistics, and foreman appointment.</figcaption>
+    </figure>
+    <figure style="margin: 0;">
+      <img src="../hud-E-council.png" alt="Lens: Town Council & Factions" style="width: 100%; border: 1px solid var(--line); display: block;">
+      <figcaption style="font-size: 11px; color: var(--muted); margin-top: 6px;"><b>Operational Lens · Town Council:</b> EU5/Frostpunk estate factions, bill voting sessions, and political unrest.</figcaption>
+    </figure>
+  </div>
 
   <section class="patterns">
     <article class="pattern">
@@ -164,6 +182,11 @@
       <h3>Character-first right rail</h3>
       <p class="who">TW: THREE KINGDOMS · TW: WARHAMMER III</p>
       <p>Portraits, relationships and retinues get a dedicated right-hand surface. Good model for a People tab that is more than a list.</p>
+    </article>
+    <article class="pattern" style="border-color: var(--gold-dim);">
+      <h3 style="color: var(--gold);">Societal lenses &amp; Pop strata</h3>
+      <p class="who">Victoria 3 · EU5 · Crusader Kings III</p>
+      <p>State capacities in top bar, operational lenses (Production, Politics, Military) on left, Pop strata/classes, and character sheets. Separates macro governance from tactical unit control.</p>
     </article>
   </section>
 
@@ -452,6 +475,75 @@
         <img loading="lazy" src="hud-total-war-three-kingdoms-c11.jpg" alt="Deployment — full-screen battle board">
         <figcaption>Deployment — full-screen battle board</figcaption>
       </figure>
+      </div>
+    </section>
+
+<section class="game" id="victoria-3">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Victoria 3</h2>
+          <p class="studio">Paradox Development Studio · 2022</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> The definitive Pop and macro-economics HUD: state capacities and balance deltas in top bar, left lens system (Production, Politics, Diplomacy, Military), Pop strata (Lower, Middle, Upper) with Standard of Living, radical/loyalist split, and market goods pricing.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-victoria-3-c1.jpg" alt="Buildings &amp; production methods — employment by strata, wages, weekly balance">
+        <figcaption>Buildings &amp; production methods — employment by strata, wages, weekly balance</figcaption>
+      </figure>
+      <figure>
+        <img loading="lazy" src="hud-victoria-3-c2.jpg" alt="Strategic map — left lens bar, top capacity indicators, outliner">
+        <figcaption>Strategic map — left lens bar, top capacity indicators, outliner</figcaption>
+      </figure>
+      <figure>
+        <img loading="lazy" src="hud-victoria-3-c3.jpg" alt="Diplomatic and market trade — goods supply/demand and trade routes">
+        <figcaption>Diplomatic and market trade — goods supply/demand and trade routes</figcaption>
+      </figure>
+      </div>
+    </section>
+
+<section class="game" id="crusader-kings-3">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>Crusader Kings III</h2>
+          <p class="studio">Paradox Development Studio · 2020</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Character-first RPG strategy HUD: bottom-left character window with 3D portrait, traits, stress, health and opinions; top-left realm &amp; council management; right-rail outliner; character interaction ring.</p>
+      </div>
+      <div class="shots">
+      <figure>
+        <img loading="lazy" src="hud-crusader-kings-3-c1.jpg" alt="Character sheet — traits, stress, lifestyle, relationships and claims">
+        <figcaption>Character sheet — traits, stress, lifestyle, relationships and claims</figcaption>
+      </figure>
+      <figure>
+        <img loading="lazy" src="hud-crusader-kings-3-c2.jpg" alt="Council &amp; realm window — minister appointments and active tasks">
+        <figcaption>Council &amp; realm window — minister appointments and active tasks</figcaption>
+      </figure>
+      <figure>
+        <img loading="lazy" src="hud-crusader-kings-3-c3.jpg" alt="Campaign map — character anchor, realm currencies, situational alerts">
+        <figcaption>Campaign map — character anchor, realm currencies, situational alerts</figcaption>
+      </figure>
+      </div>
+    </section>
+
+<section class="game" id="project-caesar">
+      <div class="game-head">
+        <div class="game-title">
+          <h2>EU5 / Project Caesar</h2>
+          <p class="studio">Paradox Tinto · Tinto Talks</p>
+        </div>
+        <p class="steal"><b>Steal this:</b> Demographic simulation ground-truth: location-level Pops (Nobles, Clergy, Burghers, Peasants, Slaves), Estates influence &amp; satisfaction, Market centers with raw-to-finished goods pricing, food supply/starvation, Control &amp; Proximity, Cabinet ministers with state missions, and parliamentary negotiations.</p>
+      </div>
+      <div class="shots" style="grid-template-columns: 1fr;">
+        <div style="background: var(--panel); border: 1px solid var(--line); padding: 20px; font-size: 13.5px; line-height: 1.7; color: #c3c6cd;">
+          <h4 style="margin: 0 0 10px; color: var(--gold); font-size: 16px;">Core Architectural Insights for our RTS + Deep Sim:</h4>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li><b>Pops as First-Class Citizens:</b> Pops aren't abstract statistics; they reside in physical locations, belong to social strata, consume food and goods, and pay taxes based on local Control.</li>
+            <li><b>Estates &amp; Town Council:</b> Different social classes have distinct political leverage. Taxing peasant job income or burgher trade without representation sparks unrest, petitions, or rebellion.</li>
+            <li><b>Markets &amp; Logistics:</b> Food and commodities flow through physical nodes. Siting a granary, mill, or company branch matters because local market access dictates prices and starvation buffers.</li>
+            <li><b>Cabinet / Delegation:</b> Instead of micro-managing every single citizen manually, player appoints trusted ministers (Foremen, Managers, Councilors) with policy priorities.</li>
+          </ul>
+        </div>
       </div>
     </section>
 

@@ -27,11 +27,41 @@ Switch variants with the floating bottom bar, the `←` / `→` keys, or
 | B | **Chronicle** | Sim-first: full-height settlement sidebar with named Pops, mood, needs and factions; contextual inspector on the right; slim command bar. The map stays dominant. |
 | C | **War Table** | Diegetic parchment: royal commission scroll, victory banners, radial command ring around the selected building, council drawer, framed minimap. |
 | D | **Crown & Chronicle** | AoE4-style: one 60px resource bar, one tabbed info panel, one bottom command deck (minimap · commands · training queue · inspector). The map is left open. |
+| E | **Imperium & Chronicle** | **Grand RTS & Pop Sim Synthesis** (Victoria 3 + EU5 + CK3 + DF/RimWorld + AoE4): Top bar capacities (Imperial favor, council approval, unrest %, net resource flow rates, class strata), left operational lenses (War, Civic & Tax, Council, Market, Deeds), adaptive bottom deck switching between CK3/DF Pop character sheet, AoE4 military tactical grid, and Manor Lords workplace production, plus Paradox outliner. |
 
 All four show the same state: 58 Pops (cap 60), Epoch III / rank 7 of 24,
 seven resources, six victory paths, a River Keep queue, and Pop mood /
 health / needs / tax / unrest / factions. Compare **information hierarchy
 and primary affordance**, not colour alone.
+
+### E — Imperium & Chronicle (Grand RTS Synthesis)
+
+The comprehensive synthesis answering the user's requirement to look beyond simple RTS HUDs and integrate **Victoria 3**, **EU5 / Project Caesar**, **Crusader Kings III**, **Dwarf Fortress / RimWorld**, and **Manor Lords** alongside **Age of Empires IV**:
+
+- **Top bar (60px):**
+  - Left: House crest, civ, and **Rank Progression across 24 historical tiers** (`Epoch III · Rank 7/24`).
+  - Center: 7 gatherable resources with net production flow rates (`+18/m`, `+12/m`...) and Market Inflation Index (`1.04×`).
+  - Right: **Macro State Capacities**: Population by strata (`58/60: 32 Peasants, 14 Working, 8 Burghers, 4 Nobles`), Imperial Favor (`★ 4.8/10`), Council Approval (`61%`), Class Unrest / Radicalism risk (`24%`), and active Job Tax Rate (`15%`).
+- **Left Operational Lens Rail (Victoria 3 style):**
+  - 5 dedicated lenses (`⚔ War`, `⚖ Civic & Tax`, `👑 Council`, `⚒ Market`, `📜 Deeds`).
+  - Clicking a lens opens a slide-out drawer (380px) for that domain while leaving the playfield edge-to-edge clear. Clicking it again closes it.
+  - **Civic & Tax Drawer:** Live income tax rate slider, Victoria 3-style social strata table (Standard of Living, population, tax share, unrest), grain subsidies toggle, and household demographics.
+  - **Town Council Drawer:** Active legislative session ("Bill #14: Royal Salt & Iron Surcharge" voting countdown), 4 estate factions loyalty, and voting actions.
+  - **Market Drawer:** Commodity supply/demand table with live fluctuating prices (Planks, Tools, Weapons, Bricks), plus autonomous Chartered Companies with pending expansion proposals.
+- **Adaptive Bottom Deck (286px):**
+  - Adapts contextually between 3 operational modes via the deck mode switcher:
+  - **Mode 1: Citizen Pop Selected (CK3 + RimWorld + Dwarf Fortress):**
+    - *Col 1:* Minimap, control groups, Day/Night time dial.
+    - *Col 2 (CK3 Character Sheet):* Large expressive portrait, Pop Name (`Godwin of Deep Seam`), Social Strata (`Peasant Laborer`), Age (38), Household (`Godwin & Elsbeth`), and persistent health/injuries (`Scarred foot`).
+    - *Col 3 (RimWorld Thought Ledger):* Hunger, Rest, and Morale meters + live thought drivers (`[+6] Warm hearth`, `[-8] Salt tax (15%)`, `[-14] Saw goblin raid scout`, `[-5] Double shift`).
+    - *Col 4 (DF Skills & IAUS Brain):* Practice vs Theory skill bars (Mining 77, Masonry 45, Melee 38) + current IAUS utility assignment and cooldown timer.
+    - *Col 5 (Citizen Direct Orders):* Assign Job, Send to School, Visit Tavern (Morale), Draft to Militia, Rehome Household.
+  - **Mode 2: Military Squad Selected (AoE4 + CoH3):**
+    - Squad composition (12 Footmen, 8 Archers), aggregate HP (1,840), Combat Counter Triangle bonuses (+4 vs Cavalry, -3 vs Siege), Morale break point (82%), 12 tactical RTS commands (Move, Attack, Patrol, Stop, Line/Box/Stagger/Flank formations, Stances), and reinforcement training queue.
+  - **Mode 3: Workplace Selected (Manor Lords + Anno 1800):**
+    - Industry card (River Ironworks Tier II), production recipes (`2 Iron Ore + 1 Coal ➔ 1 Weapons + 1 Tools`), input/output buffer storage, market value created (360g), appointed Foreman (Osric), and physical cart walker logistics.
+- **Right Rail Outliner (Paradox / CK3 style):**
+  - Collapsible sticky triage cards: Idle Pops (3, click to cycle), Raid warning banner (North ford), active Council session vote, and Grand Wonder construction stage.
 
 ### D — Crown & Chronicle
 

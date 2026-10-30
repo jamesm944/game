@@ -323,5 +323,55 @@
       "hud-total-war-three-kingdoms-c8.jpg",
       "hud-total-war-three-kingdoms-c11.jpg"
     ]
+  },
+  {
+    "slug": "victoria-3",
+    "name": "Victoria 3",
+    "studio": "Paradox Development Studio \u00b7 2022",
+    "steal": "The definitive Pop and macro-economics HUD: state capacities and balance deltas in top bar, left lens system (Production, Politics, Diplomacy, Military), Pop strata (Lower, Middle, Upper) with Standard of Living, radical/loyalist split, and market goods pricing.",
+    "picks": [
+      [
+        "victoria-3-c1.jpg",
+        "Buildings & production methods \u2014 employment by strata, wages, weekly balance"
+      ],
+      [
+        "victoria-3-c2.jpg",
+        "Strategic map \u2014 left lens bar, top capacity indicators, outliner"
+      ],
+      [
+        "victoria-3-c3.jpg",
+        "Diplomatic and market trade \u2014 goods supply/demand and trade routes"
+      ]
+    ],
+    "files": [
+      "hud-victoria-3-c1.jpg",
+      "hud-victoria-3-c2.jpg",
+      "hud-victoria-3-c3.jpg"
+    ]
+  },
+  {
+    "slug": "crusader-kings-3",
+    "name": "Crusader Kings III",
+    "studio": "Paradox Development Studio \u00b7 2020",
+    "steal": "Character-first RPG strategy HUD: bottom-left character window with 3D portrait, traits, stress, health and opinions; top-left realm & council management; right-rail outliner; character interaction ring.",
+    "picks": [
+      [
+        "crusader-kings-3-c1.jpg",
+        "Character sheet \u2014 traits, stress, lifestyle, relationships and claims"
+      ],
+      [
+        "crusader-kings-3-c2.jpg",
+        "Council & realm window \u2014 minister appointments and active tasks"
+      ],
+      [
+        "crusader-kings-3-c3.jpg",
+        "Campaign map \u2014 character anchor, realm currencies, situational alerts"
+      ]
+    ],
+    "files": [
+      "hud-crusader-kings-3-c1.jpg",
+      "hud-crusader-kings-3-c2.jpg",
+      "hud-crusader-kings-3-c3.jpg"
+    ]
   }
 ]

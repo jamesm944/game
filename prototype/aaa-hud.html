@@ -4436,6 +4436,625 @@
           width: 78px;
         }
       }
+
+      /* =====================================================================
+         VARIANT E — IMPERIUM & CHRONICLE (The Grand RTS & Pop Sim Synthesis)
+         ===================================================================== */
+      .ve {
+        position: absolute;
+        inset: 0;
+        color: var(--text, #e8e6df);
+        font-family: var(--sans, sans-serif);
+        user-select: none;
+        overflow: hidden;
+      }
+      .ve button { font-family: inherit; }
+      
+      /* Top Bar */
+      .ve-top {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 60px;
+        z-index: 30;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        background: rgba(11, 14, 19, 0.94);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid #2a3240;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.7);
+      }
+      .ve-civ-cluster {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 210px;
+      }
+      .ve-crest {
+        width: 36px; height: 36px;
+        border-radius: 4px;
+        border: 1px solid #d4af37;
+        background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(0,0,0,0.6));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d4af37;
+      }
+      .ve-civ-text b { display: block; font-family: "Cinzel", serif; font-size: 13px; color: #fff; letter-spacing: 0.05em; }
+      .ve-civ-text span { font-size: 10.5px; color: #8a93a2; }
+      
+      .ve-age-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 10px;
+        background: rgba(212,175,55,0.08);
+        border: 1px solid rgba(212,175,55,0.3);
+        border-radius: 4px;
+      }
+      .ve-age-badge .ring {
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        border: 1.5px solid #d4af37;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 11px;
+        color: #d4af37;
+      }
+      .ve-age-badge .age-info b { display: block; font-size: 11px; color: #d4af37; font-weight: 600; }
+      .ve-age-badge .age-info span { font-size: 9.5px; color: #8a93a2; }
+
+      .ve-resources {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ve-res-chip {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 7px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid #1f2733;
+        border-radius: 3px;
+        font-size: 11px;
+      }
+      .ve-res-chip b { color: #f0ede6; font-variant-numeric: tabular-nums; }
+      .ve-res-chip small { font-size: 9.5px; color: #52c41a; font-variant-numeric: tabular-nums; font-weight: 600; }
+      .ve-res-chip small.zero { color: #6b7280; }
+
+      .ve-state-capacities {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ve-cap-chip {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 11px;
+        background: rgba(0,0,0,0.3);
+        border: 1px solid #27313f;
+      }
+      .ve-cap-chip.gold { border-color: rgba(212,175,55,0.5); color: #d4af37; }
+      .ve-cap-chip.warn { border-color: rgba(250,140,22,0.5); color: #fa8c16; }
+      .ve-cap-chip.danger { border-color: rgba(245,34,45,0.5); color: #f5222d; }
+      .ve-cap-chip.green { border-color: rgba(82,196,26,0.5); color: #52c41a; }
+      .ve-cap-chip b { font-variant-numeric: tabular-nums; }
+
+      .ve-top-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ve-speed-group {
+        display: flex;
+        border: 1px solid #27313f;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .ve-speed-group button {
+        padding: 4px 8px;
+        font-size: 10px;
+        font-weight: 600;
+        background: #141922;
+        color: #8a93a2;
+        border: none;
+        cursor: pointer;
+      }
+      .ve-speed-group button.active {
+        background: #d4af37;
+        color: #0b0d12;
+      }
+      .ve-ctrl-btn {
+        width: 30px; height: 30px;
+        border: 1px solid #27313f;
+        border-radius: 3px;
+        background: #141922;
+        color: #8a93a2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .ve-ctrl-btn:hover { color: #d4af37; border-color: #d4af37; }
+
+      /* Left Operational Lens Rail */
+      .ve-lens-rail {
+        position: absolute;
+        left: 0;
+        top: 60px;
+        bottom: 286px;
+        width: 52px;
+        z-index: 28;
+        background: rgba(11, 14, 19, 0.95);
+        border-right: 1px solid #242c38;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px 0;
+        gap: 8px;
+        box-shadow: 3px 0 14px rgba(0,0,0,0.5);
+      }
+      .ve-lens-btn {
+        width: 40px; height: 42px;
+        background: #121720;
+        border: 1px solid #222b38;
+        border-radius: 4px;
+        color: #7d8796;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        transition: all 0.15s ease;
+        position: relative;
+      }
+      .ve-lens-btn:hover {
+        border-color: #8c7325;
+        color: #d4af37;
+      }
+      .ve-lens-btn.active {
+        border-color: #d4af37;
+        color: #d4af37;
+        background: rgba(212,175,55,0.14);
+        box-shadow: 0 0 10px rgba(212,175,55,0.25);
+      }
+      .ve-lens-btn .lens-lbl {
+        font-size: 7.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      /* Slide-out Operational Drawer */
+      .ve-drawer {
+        position: absolute;
+        left: 52px;
+        top: 60px;
+        bottom: 286px;
+        width: 380px;
+        z-index: 27;
+        background: rgba(13, 17, 24, 0.97);
+        backdrop-filter: blur(12px);
+        border-right: 1px solid #8c7325;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.75);
+        display: flex;
+        flex-direction: column;
+        animation: veSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes veSlideIn {
+        from { transform: translateX(-30px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      .ve-drawer-head {
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.02);
+        border-bottom: 1px solid #222a36;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .ve-drawer-head h3 {
+        margin: 0;
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        color: #d4af37;
+        letter-spacing: 0.06em;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ve-drawer-head .close-btn {
+        background: none;
+        border: none;
+        color: #6c7582;
+        cursor: pointer;
+        font-size: 15px;
+      }
+      .ve-drawer-head .close-btn:hover { color: #fff; }
+      .ve-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px 16px;
+        font-size: 12px;
+      }
+      .ve-section-title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #8c7325;
+        margin: 14px 0 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .ve-section-title:first-child { margin-top: 0; }
+      
+      .ve-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid #202734;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 8px;
+      }
+      .ve-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+      }
+      .ve-table th { text-align: left; color: #727b88; font-weight: 600; padding: 4px 6px; border-bottom: 1px solid #202734; }
+      .ve-table td { padding: 5px 6px; border-bottom: 1px solid rgba(255,255,255,0.02); color: #dcd9d0; }
+      .ve-table tr:hover td { background: rgba(212,175,55,0.04); }
+
+      /* Right Outliner */
+      .ve-outliner {
+        position: absolute;
+        right: 14px;
+        top: 72px;
+        width: 270px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        pointer-events: none;
+      }
+      .ve-outliner-card {
+        pointer-events: auto;
+        background: rgba(12, 16, 22, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid #242c38;
+        border-radius: 4px;
+        padding: 8px 10px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        cursor: pointer;
+        transition: border-color 0.15s ease;
+      }
+      .ve-outliner-card:hover { border-color: #d4af37; }
+      .ve-outliner-card.alert { border-color: rgba(245,34,45,0.6); background: rgba(30,12,14,0.92); }
+      .ve-outliner-card.wonder { border-color: rgba(212,175,55,0.6); }
+      .ve-outliner-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2px;
+      }
+      .ve-outliner-head b { font-size: 11px; color: #fff; }
+      .ve-outliner-card.alert .ve-outliner-head b { color: #ff7875; }
+      .ve-outliner-head span { font-size: 9.5px; color: #8a93a2; }
+      .ve-outliner-card p { margin: 0; font-size: 10.5px; color: #a4abb7; line-height: 1.35; }
+
+      /* Adaptive Bottom Deck */
+      .ve-deck {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 286px;
+        padding-bottom: 46px;
+        box-sizing: border-box;
+        z-index: 29;
+        background: rgba(11, 14, 20, 0.97);
+        backdrop-filter: blur(14px);
+        border-top: 1px solid #8c7325;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.8);
+        display: flex;
+        flex-direction: column;
+      }
+      .ve-deck-modes {
+        height: 32px;
+        background: rgba(0,0,0,0.4);
+        border-bottom: 1px solid #222a36;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        gap: 4px;
+      }
+      .ve-mode-btn {
+        padding: 4px 12px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 3px 3px 0 0;
+        color: #7b8593;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .ve-mode-btn:hover { color: #d4af37; }
+      .ve-mode-btn.active {
+        background: #141922;
+        color: #d4af37;
+        border-color: #2e3846;
+        border-bottom-color: #141922;
+      }
+      .ve-deck-content {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 240px minmax(300px, 1fr) minmax(320px, 1.15fr) minmax(240px, 0.85fr);
+        gap: 12px;
+        padding: 8px 14px;
+        overflow: hidden;
+      }
+
+      /* Minimap column */
+      .ve-mini-col {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .ve-mini-frame {
+        width: 100%;
+        height: 165px;
+        background: #05070a;
+        border: 1px solid #28313d;
+        border-radius: 3px;
+        overflow: hidden;
+        position: relative;
+      }
+      .ve-mini-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 10px;
+        color: #7c8593;
+      }
+      .ve-groups {
+        display: flex;
+        gap: 4px;
+      }
+      .ve-group-btn {
+        width: 22px; height: 20px;
+        background: #151b24;
+        border: 1px solid #27313f;
+        border-radius: 2px;
+        color: #8c96a5;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .ve-group-btn.active { border-color: #d4af37; color: #d4af37; }
+
+      /* Pop Mode Styles (CK3 + RimWorld + DF) */
+      .ve-pop-bio {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+      }
+      .ve-pop-head {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .ve-portrait-frame {
+        width: 58px; height: 58px;
+        border: 2px solid #8c7325;
+        border-radius: 4px;
+        background: #070a0e;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+      }
+      .ve-pop-details b { font-family: "Cinzel", serif; font-size: 14px; color: #fff; display: block; }
+      .ve-pop-details .strata-pill {
+        display: inline-block;
+        padding: 1px 6px;
+        border-radius: 2px;
+        background: rgba(212,175,55,0.12);
+        border: 1px solid rgba(212,175,55,0.3);
+        color: #d4af37;
+        font-size: 9.5px;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+      .ve-pop-details .sub { font-size: 10px; color: #87909f; display: block; margin-top: 2px; }
+
+      .ve-vitals-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+      }
+      .ve-vital-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid #1e2531;
+        border-radius: 3px;
+        padding: 3px 6px;
+      }
+      .ve-vital-card span { font-size: 9px; color: #727b88; display: block; }
+      .ve-vital-card b { font-size: 11px; font-variant-numeric: tabular-nums; color: #e4e1d9; }
+      .ve-bar-track {
+        height: 3px;
+        background: #181f2a;
+        border-radius: 1px;
+        margin-top: 3px;
+        overflow: hidden;
+      }
+      .ve-bar-fill { height: 100%; border-radius: 1px; }
+      .ve-bar-fill.green { background: #52c41a; }
+      .ve-bar-fill.gold { background: #d4af37; }
+      .ve-bar-fill.blue { background: #1890ff; }
+      .ve-bar-fill.red { background: #f5222d; }
+
+      /* Thoughts Ledger */
+      .ve-thoughts-col {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+      }
+      .ve-thought-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid #1c232e;
+        border-radius: 3px;
+        font-size: 10.5px;
+      }
+      .ve-thought-val {
+        font-weight: 700;
+        font-size: 10px;
+        padding: 1px 5px;
+        border-radius: 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      .ve-thought-val.pos { background: rgba(82,196,26,0.15); color: #52c41a; }
+      .ve-thought-val.neg { background: rgba(245,34,45,0.15); color: #f5222d; }
+      .ve-thought-item span { color: #c8c5bc; }
+
+      /* Skills & Brain */
+      .ve-skills-col {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        overflow-y: auto;
+      }
+      .ve-skill-row {
+        display: grid;
+        grid-template-columns: 68px 1fr 28px;
+        align-items: center;
+        gap: 6px;
+        font-size: 10.5px;
+      }
+      .ve-skill-row span { color: #8a93a2; }
+      .ve-skill-bar {
+        height: 6px;
+        background: #171d27;
+        border-radius: 2px;
+        display: flex;
+        overflow: hidden;
+      }
+      .ve-skill-bar .practice { background: #d4af37; }
+      .ve-skill-bar .theory { background: #1890ff; }
+      .ve-skill-row b { text-align: right; color: #fff; font-size: 10px; }
+
+      .ve-iaus-box {
+        background: rgba(212,175,55,0.06);
+        border: 1px solid rgba(212,175,55,0.25);
+        border-radius: 3px;
+        padding: 6px 8px;
+        margin-top: 4px;
+        font-size: 10px;
+      }
+      .ve-iaus-box b { color: #d4af37; display: block; font-size: 10px; }
+      .ve-iaus-box span { color: #8c95a3; }
+
+      /* Orders / Action buttons */
+      .ve-actions-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow-y: auto;
+      }
+      .ve-order-btn {
+        width: 100%;
+        padding: 6px 8px;
+        background: #151b24;
+        border: 1px solid #232c3a;
+        border-radius: 3px;
+        color: #d1ced7;
+        font-size: 10.5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: all 0.12s ease;
+      }
+      .ve-order-btn:hover {
+        background: #1e2634;
+        border-color: #8c7325;
+        color: #d4af37;
+      }
+      .ve-order-btn kbd {
+        font-size: 9px;
+        padding: 1px 4px;
+        background: #0d1117;
+        border: 1px solid #2b3544;
+        border-radius: 2px;
+        color: #8a93a2;
+      }
+
+      /* Military Mode Commands Grid */
+      .ve-grid-12 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 4px;
+        height: 100%;
+      }
+      .ve-grid-tile {
+        background: #141922;
+        border: 1px solid #222b37;
+        border-radius: 3px;
+        color: #c8c5bc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        padding: 2px;
+      }
+      .ve-grid-tile:hover {
+        border-color: #d4af37;
+        color: #d4af37;
+        background: #1a222e;
+      }
+      .ve-grid-tile span { font-size: 9px; font-weight: 600; margin-top: 2px; text-align: center; }
+      .ve-grid-tile kbd {
+        position: absolute;
+        top: 2px; right: 3px;
+        font-size: 8px;
+        color: #656e7d;
+      }
+
+      /* Workplace Mode */
+      .ve-recipe-box {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid #202734;
+        border-radius: 3px;
+        padding: 8px;
+        font-size: 11px;
+      }
+      .ve-recipe-arrow {
+        color: #d4af37;
+        font-weight: 700;
+        margin: 0 4px;
+      }
+
     </style>
   </head>
   <body>
@@ -4450,7 +5069,7 @@
       <button id="prev" type="button" aria-label="Previous variant">‹</button>
       <span class="proto-label" id="proto-label"></span>
       <button id="next" type="button" aria-label="Next variant">›</button>
-      <span class="proto-hint">← → · 1–4 · Esc</span>
+      <span class="proto-hint">← → · 1–5 · Esc</span>
     </div>
     <div id="pause-slot"></div>
     <script>
@@ -5631,16 +6250,623 @@
           </div>
         </div>`;
 
+
+      /* ---------------------------------------------------------------------
+         Variant E: Imperium & Chronicle (Grand RTS & Pop Sim Synthesis)
+         --------------------------------------------------------------------- */
+      const eState = {
+        lens: "civic", // "military" | "civic" | "council" | "market" | "victory" | null
+        mode: "pop", // "pop" | "military" | "workplace"
+        popIndex: 4, // Godwin
+        taxRate: 15,
+      };
+
+      const topBarE = () => {
+        const resChips = DATA.resources.map(r => {
+          const delta = r.delta && r.delta !== "—" ? `<small>${r.delta}/m</small>` : `<small class="zero">—</small>`;
+          return `<div class="ve-res-chip" title="${r.label}">${icon(r.id)} <b>${r.value}</b> ${delta}</div>`;
+        }).join("");
+
+        return `
+        <header class="ve-top">
+          <div class="ve-civ-cluster">
+            <div class="ve-crest">${icon("crown")}</div>
+            <div class="ve-civ-text">
+              <b>${DATA.house}</b>
+              <span>${DATA.civ} · ${DATA.motto}</span>
+            </div>
+            <div class="ve-age-badge" title="Rank progression across 24 historical tiers">
+              <span class="ring">${DATA.age.rank}</span>
+              <div class="age-info">
+                <b>${DATA.age.epoch}</b>
+                <span>Rank ${DATA.age.rank}/24 · ${Math.round(DATA.age.progress * 100)}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ve-resources">
+            ${resChips}
+            <div class="ve-res-chip" title="Market Price Inflation Index">
+              <span style="color:#d4af37">⚖</span> <b>1.04×</b> <small style="color:#fa8c16">+1.2%</small>
+            </div>
+          </div>
+
+          <div class="ve-state-capacities">
+            <div class="ve-cap-chip" title="Total population by strata">
+              ${icon("pop")} <b>58 / 60</b>
+              <span style="font-size:9.5px;color:#8a93a2;margin-left:2px">(32P · 14W · 8B · 4N)</span>
+            </div>
+            <div class="ve-cap-chip gold" title="Imperial Favor with Suzerain">
+              <span>★</span> <b>4.8</b> <small>/ 10</small>
+            </div>
+            <div class="ve-cap-chip ${DATA.council.mood >= 60 ? 'green' : 'warn'}" title="Town Council Approval">
+              <span>👑</span> <b>61%</b> <small>+3</small>
+            </div>
+            <div class="ve-cap-chip ${DATA.council.unrest > 20 ? 'warn' : 'green'}" title="Class Unrest / Radicalism Risk">
+              <span>⚠</span> <b>${DATA.council.unrest}%</b> <small>Unrest</small>
+            </div>
+            <div class="ve-cap-chip warn" title="Current Job Income Tax Rate">
+              <span>🪙</span> <b>${eState.taxRate}%</b> <small>Tax</small>
+            </div>
+          </div>
+
+          <div class="ve-top-controls">
+            <div class="ve-speed-group">
+              <button type="button">II</button>
+              <button type="button" class="active">1×</button>
+              <button type="button">2×</button>
+              <button type="button">3×</button>
+            </div>
+            <button class="ve-ctrl-btn" type="button" data-action="pause" title="Pause / Menu">${icon("pause")}</button>
+            <button class="ve-ctrl-btn" type="button" data-action="settings" title="Settings">${icon("settings")}</button>
+          </div>
+        </header>`;
+      };
+
+      const lensRailE = () => {
+        const lenses = [
+          { id: "military", icon: "⚔", label: "War" },
+          { id: "civic", icon: "⚖", label: "Civic" },
+          { id: "council", icon: "👑", label: "Council" },
+          { id: "market", icon: "⚒", label: "Market" },
+          { id: "victory", icon: "📜", label: "Deeds" },
+        ];
+        return `
+        <nav class="ve-lens-rail" aria-label="Operational Lenses">
+          ${lenses.map(l => `
+            <button class="ve-lens-btn ${eState.lens === l.id ? 'active' : ''}" type="button" data-e-lens="${l.id}" title="${l.label} Lens">
+              <span style="font-size:15px">${l.icon}</span>
+              <span class="lens-lbl">${l.label}</span>
+            </button>
+          `).join("")}
+        </nav>`;
+      };
+
+      const lensDrawerE = () => {
+        if (!eState.lens) return "";
+        let title = "";
+        let body = "";
+
+        if (eState.lens === "civic") {
+          title = "⚖ Civic Governance & Taxation";
+          body = `
+            <div class="ve-section-title">Income Taxation Rate <span>${eState.taxRate}%</span></div>
+            <div class="ve-card">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span>Tax on Pop Job Income</span>
+                <b style="color:#d4af37">+${eState.taxRate * 3.8 | 0} gold/min</b>
+              </div>
+              <input type="range" min="5" max="30" value="${eState.taxRate}" style="width:100%" data-e-tax="slider">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:#8a93a2;margin-top:4px">
+                <span>5% (Calm)</span>
+                <span>15% (Moderate)</span>
+                <span>30% (Riots)</span>
+              </div>
+            </div>
+
+            <div class="ve-section-title">Social Strata (Victoria 3 Model) <span>58 Souls</span></div>
+            <table class="ve-table">
+              <thead><tr><th>Class</th><th>Pops</th><th>Std. Living</th><th>Tax Share</th><th>Unrest</th></tr></thead>
+              <tbody>
+                <tr><td><b>Nobility</b></td><td>4</td><td>24.2 (Wealthy)</td><td>5%</td><td style="color:#52c41a">2%</td></tr>
+                <tr><td><b>Burghers</b></td><td>8</td><td>18.5 (Affluent)</td><td>15%</td><td style="color:#52c41a">8%</td></tr>
+                <tr><td><b>Craftsmen</b></td><td>14</td><td>13.8 (Secure)</td><td>12%</td><td style="color:#fa8c16">18%</td></tr>
+                <tr><td><b>Peasants</b></td><td>32</td><td>10.4 (Struggling)</td><td>15%</td><td style="color:#f5222d">34%</td></tr>
+              </tbody>
+            </table>
+
+            <div class="ve-section-title">Welfare & Demographics</div>
+            <div class="ve-card" style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <b>Bread Subsidies (Granary)</b>
+                <div style="font-size:10px;color:#8a93a2">-12 Food/min · buffers poor peasant hunger</div>
+              </div>
+              <button class="ve-order-btn" style="width:auto;padding:4px 8px;color:#52c41a" type="button">ACTIVE</button>
+            </div>
+            <div class="ve-card" style="font-size:11px;color:#a0a7b4">
+              <div>Household Demographics: <b>18 Married Couples · 12 Children</b></div>
+              <div>Net Fertility: <b>+1 Pop every 2.1 minutes</b> (gated by housing & food)</div>
+            </div>`;
+        } else if (eState.lens === "council") {
+          title = "👑 Town Council & Factions";
+          body = `
+            <div class="ve-section-title">Active Council Session <span>Ends in 0:42</span></div>
+            <div class="ve-card" style="border-color:#d4af37">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <b style="color:#fff">Bill #14: Royal Salt & Iron Surcharge</b>
+                <span style="color:#fa8c16;font-weight:700">TIE (3 vs 3)</span>
+              </div>
+              <p style="margin:0 0 8px;font-size:10.5px;color:#9aa2b0">Levies an emergency +5% duty on mined ores to fund frontier palisades.</p>
+              <div style="display:flex;gap:6px">
+                <button class="ve-order-btn" type="button" style="color:#52c41a">Vote AYE (1 Favor)</button>
+                <button class="ve-order-btn" type="button" style="color:#f5222d">Vote NAY</button>
+              </div>
+            </div>
+
+            <div class="ve-section-title">Estates & Faction Loyalty</div>
+            <div class="ve-card">
+              ${DATA.factions.map(f => `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1c232f">
+                  <span>${f.name}</span>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span style="font-size:10px;color:#8a93a2">${f.loyalty < 45 ? 'Disaffected' : 'Supportive'}</span>
+                    <b style="color:${f.loyalty < 45 ? '#f5222d' : '#52c41a'}">${f.loyalty}%</b>
+                  </div>
+                </div>
+              `).join("")}
+            </div>`;
+        } else if (eState.lens === "market") {
+          title = "⚒ Market Economy & Chartered Companies";
+          body = `
+            <div class="ve-section-title">Local Market Price Index <span>Inflation: +1.2%</span></div>
+            <table class="ve-table">
+              <thead><tr><th>Commodity</th><th>Stock</th><th>Supply/Demand</th><th>Local Price</th></tr></thead>
+              <tbody>
+                <tr><td><b>Planks</b></td><td>84</td><td>High / Moderate</td><td>12g <small style="color:#52c41a">↘ -1g</small></td></tr>
+                <tr><td><b>Tools</b></td><td>28</td><td>Scarse / High</td><td>34g <small style="color:#f5222d">↗ +4g</small></td></tr>
+                <tr><td><b>Weapons</b></td><td>42</td><td>Balanced</td><td>48g <small>—</small></td></tr>
+                <tr><td><b>Clay Bricks</b></td><td>110</td><td>Surplus</td><td>8g <small style="color:#52c41a">↘ -2g</small></td></tr>
+              </tbody>
+            </table>
+
+            <div class="ve-section-title">Chartered Companies (Autonomous Economy)</div>
+            <div class="ve-card">
+              <div style="display:flex;justify-content:space-between">
+                <b>Aldric Mining & Quarry Guild</b>
+                <span style="color:#d4af37">Treasury: 480 credits</span>
+              </div>
+              <div style="font-size:10px;color:#8a93a2;margin:4px 0">3 Branches (2 Iron Mines, 1 Quarry) · 14 Workers</div>
+              <div style="background:#090d12;border:1px solid #1f2734;border-radius:3px;padding:6px;margin-top:6px">
+                <div style="display:flex;justify-content:space-between;color:#fa8c16;font-size:10px">
+                  <b>Pending Proposal: East Ridge Quarry</b>
+                  <span>Approvals: Manual</span>
+                </div>
+                <div style="font-size:9.5px;color:#8a93a2;margin-top:2px">Sited near rich limestone outcrop. Cost: 250 company credits.</div>
+                <div style="display:flex;gap:6px;margin-top:6px">
+                  <button class="ve-order-btn" type="button" style="color:#52c41a">Approve Branch</button>
+                  <button class="ve-order-btn" type="button" style="color:#f5222d">Veto</button>
+                </div>
+              </div>
+            </div>`;
+        } else if (eState.lens === "military") {
+          title = "⚔ Military & Tactical Formations";
+          body = `
+            <div class="ve-section-title">Standing Muster <span>24 Combatants</span></div>
+            <div class="ve-card">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">
+                <div style="background:#0b0f15;padding:6px;border-radius:3px">
+                  <b style="display:block;color:#fff">12 Footmen</b>
+                  <span style="font-size:9.5px;color:#52c41a">Anti-Cavalry +4</span>
+                </div>
+                <div style="background:#0b0f15;padding:6px;border-radius:3px">
+                  <b style="display:block;color:#fff">8 Archers</b>
+                  <span style="font-size:9.5px;color:#1890ff">Range 7 · Piercing</span>
+                </div>
+                <div style="background:#0b0f15;padding:6px;border-radius:3px">
+                  <b style="display:block;color:#fff">4 Knights</b>
+                  <span style="font-size:9.5px;color:#d4af37">Heavy Shock Armor</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:#8a93a2">
+                <span>Army Upkeep: 38 Food / 12 Gold per min</span>
+                <span style="color:#52c41a">Supply: Unrestricted</span>
+              </div>
+            </div>
+
+            <div class="ve-section-title">Tactical Rules & High Ground</div>
+            <div class="ve-card" style="font-size:11px;color:#a0a8b4">
+              <div>High Ground Elevation: <b>+25% Damage Dealt, -25% Taken</b></div>
+              <div>Formation Pacing: <b>Harmonized to slowest unit</b></div>
+              <div>Bond Buffer: <b>Strong family bonds reduce combat morale shock</b></div>
+            </div>`;
+        } else if (eState.lens === "victory") {
+          title = "📜 Imperial Quests & Victory Paths";
+          body = `
+            <div class="ve-section-title">Civilization Victory Paths (6 Paths)</div>
+            ${DATA.victory.map(v => `
+              <div class="ve-card" style="margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <b>${v.label} Path</b>
+                  <span style="color:#d4af37">${v.value} (${Math.round(v.pct * 100)}%)</span>
+                </div>
+                <div class="ve-bar-track">
+                  <div class="ve-bar-fill gold" style="width:${v.pct * 100}%"></div>
+                </div>
+              </div>
+            `).join("")}
+
+            <div class="ve-section-title">Imperial Favor Exchange</div>
+            <div class="ve-card" style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <b>Summon Imperial Praetorians (3 Favor)</b>
+                <div style="font-size:9.5px;color:#8a93a2">Deploys 4 elite royal guards at Town Center</div>
+              </div>
+              <button class="ve-order-btn" style="width:auto;padding:4px 8px;color:#d4af37" type="button">REQUISITION</button>
+            </div>`;
+        }
+
+        return `
+        <aside class="ve-drawer">
+          <header class="ve-drawer-head">
+            <h3>${title}</h3>
+            <button class="close-btn" type="button" data-e-lens="close">✕</button>
+          </header>
+          <div class="ve-drawer-body">
+            ${body}
+          </div>
+        </aside>`;
+      };
+
+      const outlinerE = () => `
+        <aside class="ve-outliner" aria-label="Urgent Outliner">
+          <div class="ve-outliner-card alert" data-e-jump="raid">
+            <div class="ve-outliner-head">
+              <b>⚔ RAID AT NORTH FORD</b>
+              <span>0:18 AGO</span>
+            </div>
+            <p>3 enemy scouts sighted approaching the lumber camp. Spearmen mobilizing.</p>
+          </div>
+
+          <div class="ve-outliner-card" data-e-jump="idle">
+            <div class="ve-outliner-head">
+              <b>👤 IDLE CITIZENS (3 POPS)</b>
+              <span>CLICK TO CYCLE</span>
+            </div>
+            <p>Maud, Godwin, and Aethel currently lack active workplace tasks.</p>
+          </div>
+
+          <div class="ve-outliner-card wonder" data-e-jump="wonder">
+            <div class="ve-outliner-head">
+              <b style="color:#d4af37">🏛 GRAND MONASTERY (WONDER)</b>
+              <span>STAGE 2 / 4</span>
+            </div>
+            <p>58% masonry complete. 12 stone & 8 clay bricks needed for arches.</p>
+          </div>
+        </aside>`;
+
+      const deckE = () => {
+        const mode = eState.mode;
+        const p = DATA.pops[eState.popIndex] || DATA.pops[4];
+
+        let col2 = "";
+        let col3 = "";
+        let col4 = "";
+
+        if (mode === "pop") {
+          // MODE 1: POP SELECTED (CK3 + RimWorld + DF)
+          col2 = `
+            <div class="ve-pop-bio">
+              <div class="ve-pop-head">
+                <div class="ve-portrait-frame">
+                  ${portrait("villager", 58)}
+                </div>
+                <div class="ve-pop-details">
+                  <b>${p.name} of Deep Seam</b>
+                  <span class="strata-pill">Peasant Laborer</span>
+                  <span class="sub">Age 38 · Household: Godwin & Elsbeth</span>
+                  <span class="sub" style="color:#52c41a">Health 73% (Old foot injury)</span>
+                </div>
+              </div>
+              <div class="ve-vitals-grid">
+                <div class="ve-vital-card">
+                  <span>Hunger</span><b>${p.needs[0]}%</b>
+                  <div class="ve-bar-track"><div class="ve-bar-fill blue" style="width:${p.needs[0]}%"></div></div>
+                </div>
+                <div class="ve-vital-card">
+                  <span>Rest</span><b>${p.needs[1]}%</b>
+                  <div class="ve-bar-track"><div class="ve-bar-fill blue" style="width:${p.needs[1]}%"></div></div>
+                </div>
+                <div class="ve-vital-card">
+                  <span>Morale</span><b style="color:${p.mood < 50 ? '#f5222d' : '#52c41a'}">${p.mood}%</b>
+                  <div class="ve-bar-track"><div class="ve-bar-fill ${p.mood < 50 ? 'red' : 'green'}" style="width:${p.mood}%"></div></div>
+                </div>
+              </div>
+            </div>`;
+
+          col3 = `
+            <div class="ve-thoughts-col">
+              <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+                RimWorld Thought Ledger <span>(Active)</span>
+              </div>
+              <div class="ve-thought-item">
+                <span class="ve-thought-val pos">+6</span>
+                <span>Warm stone hearth and personal cot</span>
+              </div>
+              <div class="ve-thought-item">
+                <span class="ve-thought-val neg">-8</span>
+                <span>Oppressive salt tax (${eState.taxRate}% income withheld)</span>
+              </div>
+              <div class="ve-thought-item">
+                <span class="ve-thought-val neg">-14</span>
+                <span>Witnessed enemy scouts at the crossing</span>
+              </div>
+              <div class="ve-thought-item">
+                <span class="ve-thought-val neg">-5</span>
+                <span>Exhausted from forced double shift</span>
+              </div>
+            </div>`;
+
+          col4 = `
+            <div class="ve-skills-col">
+              <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+                Dwarf Fortress Skills & IAUS Brain
+              </div>
+              <div class="ve-skill-row">
+                <span>Mining</span>
+                <div class="ve-skill-bar"><span class="theory" style="width:25%"></span><span class="practice" style="width:52%"></span></div>
+                <b>77</b>
+              </div>
+              <div class="ve-skill-row">
+                <span>Masonry</span>
+                <div class="ve-skill-bar"><span class="theory" style="width:15%"></span><span class="practice" style="width:30%"></span></div>
+                <b>45</b>
+              </div>
+              <div class="ve-skill-row">
+                <span>Melee</span>
+                <div class="ve-skill-bar"><span class="theory" style="width:18%"></span><span class="practice" style="width:20%"></span></div>
+                <b>38</b>
+              </div>
+              <div class="ve-iaus-box">
+                <b>IAUS Brain Assignment:</b>
+                <span>Extracting Iron Seam #2 · 0.4s cooldown window</span>
+              </div>
+            </div>`;
+        } else if (mode === "military") {
+          // MODE 2: MILITARY SQUAD (AoE4 + CoH3)
+          col2 = `
+            <div class="ve-pop-bio">
+              <div class="ve-pop-head">
+                <div class="ve-portrait-frame">
+                  ${portrait("knight", 58)}
+                </div>
+                <div class="ve-pop-details">
+                  <b>River Guard Vanguard</b>
+                  <span class="strata-pill" style="border-color:#1890ff;color:#1890ff">12 Footmen · 8 Archers</span>
+                  <span class="sub">Aggregate HP: 1,840 / 1,840</span>
+                  <span class="sub" style="color:#52c41a">Tactical Stance: Defensive Formation</span>
+                </div>
+              </div>
+              <div style="background:#0b0f16;border:1px solid #1f2733;border-radius:3px;padding:6px;font-size:10.5px">
+                <div style="display:flex;justify-content:space-between;color:#52c41a">
+                  <span>Armor Class Bonuses:</span>
+                  <b>+4 vs Cavalry</b>
+                </div>
+                <div style="display:flex;justify-content:space-between;color:#f5222d;margin-top:2px">
+                  <span>Weakness Vulnerability:</span>
+                  <b>-3 vs Heavy Siege</b>
+                </div>
+              </div>
+            </div>`;
+
+          col3 = `
+            <div class="ve-grid-12">
+              <button class="ve-grid-tile" type="button"><kbd>Q</kbd><span>Move</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>W</kbd><span>Attack</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>E</kbd><span>Patrol</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>R</kbd><span>Stop</span></button>
+
+              <button class="ve-grid-tile" type="button"><kbd>A</kbd><span>Line</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>S</kbd><span>Box</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>D</kbd><span>Stagger</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>F</kbd><span>Flank</span></button>
+
+              <button class="ve-grid-tile" type="button"><kbd>Z</kbd><span>Aggr</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>X</kbd><span>Defend</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>C</kbd><span>Hold</span></button>
+              <button class="ve-grid-tile" type="button"><kbd>V</kbd><span>Retreat</span></button>
+            </div>`;
+
+          col4 = `
+            <div class="ve-skills-col">
+              <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+                Reinforcement Queue & Rally
+              </div>
+              <div style="background:#0c1017;border:1px solid #1e2634;border-radius:3px;padding:6px;font-size:10.5px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span>1. Man-at-Arms</span>
+                  <b style="color:#d4af37">0:08</b>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span>2. Crossbowman</span>
+                  <b style="color:#d4af37">0:14</b>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span>3. Heavy Knight</span>
+                  <b style="color:#d4af37">0:32</b>
+                </div>
+              </div>
+              <div class="ve-iaus-box" style="border-color:#1890ff">
+                <b style="color:#1890ff">Rally Point:</b>
+                <span>North Ford Outpost</span>
+              </div>
+            </div>`;
+        } else if (mode === "workplace") {
+          // MODE 3: WORKPLACE SELECTED (Manor Lords + Anno 1800)
+          col2 = `
+            <div class="ve-pop-bio">
+              <div class="ve-pop-head">
+                <div class="ve-portrait-frame">
+                  ${portrait("town", 58)}
+                </div>
+                <div class="ve-pop-details">
+                  <b>River Ironworks & Armory</b>
+                  <span class="strata-pill" style="border-color:#52c41a;color:#52c41a">Tier II Industry</span>
+                  <span class="sub">HP 2,800 / 2,800 · Efficiency 92%</span>
+                  <span class="sub">Charter: Aldric Mining Guild (Branch #1)</span>
+                </div>
+              </div>
+              <div style="background:#0b0f16;border:1px solid #1f2733;border-radius:3px;padding:6px;font-size:10.5px">
+                <div style="display:flex;justify-content:space-between">
+                  <span>Tax Paid to Player:</span>
+                  <b style="color:#d4af37">15% (+18g/min)</b>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:2px">
+                  <span>Company Treasury Share:</span>
+                  <b style="color:#52c41a">85% (+102 credits)</b>
+                </div>
+              </div>
+            </div>`;
+
+          col3 = `
+            <div class="ve-thoughts-col">
+              <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+                Production Recipe & Logistics (Anno 1800)
+              </div>
+              <div class="ve-recipe-box">
+                <div>Active Recipe:</div>
+                <div style="display:flex;align-items:center;margin:6px 0;font-size:11.5px">
+                  <span>2 Iron Ore + 1 Coal</span>
+                  <span class="ve-recipe-arrow">➔</span>
+                  <b style="color:#d4af37">1 Weapons + 1 Tools</b>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#8a93a2">
+                  <span>Input Buffer: 42 Ore / 18 Coal</span>
+                  <span>Cycle: 12.0s</span>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;background:#0c1017;border:1px solid #1e2634;border-radius:3px;padding:6px;font-size:10.5px">
+                <span>Output Staged: 8 Weapons, 14 Tools</span>
+                <b style="color:#52c41a">Market Val: 360g</b>
+              </div>
+            </div>`;
+
+          col4 = `
+            <div class="ve-skills-col">
+              <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+                Appointed Foreman & Labor (Caesar III)
+              </div>
+              <div style="background:#0c1017;border:1px solid #1e2634;border-radius:3px;padding:6px;font-size:10.5px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+                  <b>Foreman: Osric</b>
+                  <span style="color:#d4af37">Masonry 59 · Mgmt 48</span>
+                </div>
+                <div style="color:#8a93a2;font-size:10px">Workforce: 4 / 5 Assigned Workers</div>
+              </div>
+              <div class="ve-iaus-box" style="border-color:#52c41a">
+                <b style="color:#52c41a">Logistics Delivery:</b>
+                <span>Physical cart walker en route to Town Armory</span>
+              </div>
+            </div>`;
+        }
+
+        const actionsCol = mode === "pop" ? `
+          <div class="ve-actions-col">
+            <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+              Citizen Direct Orders
+            </div>
+            <button class="ve-order-btn" type="button"><span>Assign Job Slot</span> <kbd>J</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Send to School (Skills)</span> <kbd>S</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Visit Tavern (Morale)</span> <kbd>T</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Draft into Militia</span> <kbd>M</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Rehome Household</span> <kbd>H</kbd></button>
+          </div>` : mode === "military" ? `
+          <div class="ve-actions-col">
+            <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+              Combat Directives
+            </div>
+            <button class="ve-order-btn" type="button"><span>Hold Position</span> <kbd>H</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Volley Fire (Archers)</span> <kbd>F</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Charge Attack</span> <kbd>C</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Disengage to Keep</span> <kbd>D</kbd></button>
+          </div>` : `
+          <div class="ve-actions-col">
+            <div style="font-size:10px;font-weight:700;color:#8c7325;letter-spacing:0.05em;text-transform:uppercase">
+              Workplace Management
+            </div>
+            <button class="ve-order-btn" type="button"><span>Change Recipe</span> <kbd>R</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Upgrade to Blast Furnace</span> <kbd>U</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Reassign Foreman</span> <kbd>F</kbd></button>
+            <button class="ve-order-btn" type="button"><span>Seize from Company</span> <kbd>S</kbd></button>
+          </div>`;
+
+        return `
+        <section class="ve-deck">
+          <div class="ve-deck-modes">
+            <button class="ve-mode-btn ${mode === 'pop' ? 'active' : ''}" type="button" data-e-mode="pop">
+              <span>👤</span> Citizen Pop: Godwin (Miner)
+            </button>
+            <button class="ve-mode-btn ${mode === 'military' ? 'active' : ''}" type="button" data-e-mode="military">
+              <span>⚔</span> Military Squad: Vanguard (20 Troops)
+            </button>
+            <button class="ve-mode-btn ${mode === 'workplace' ? 'active' : ''}" type="button" data-e-mode="workplace">
+              <span>🏰</span> Workplace: River Ironworks
+            </button>
+          </div>
+
+          <div class="ve-deck-content">
+            <div class="ve-mini-col">
+              <div class="ve-mini-frame">${minimap()}</div>
+              <div class="ve-mini-info">
+                <span>Day 42 · 14:30</span>
+                <span>River Ward · 192²</span>
+              </div>
+              <div class="ve-groups">
+                ${[1, 2, 3, 4, 5, 6].map(n => `<button class="ve-group-btn ${n === 1 ? 'active' : ''}" type="button">${n}</button>`).join("")}
+              </div>
+            </div>
+
+            ${col2}
+            ${col3}
+            ${col4}
+            ${actionsCol}
+          </div>
+        </section>`;
+      };
+
+      const variantE = () => `
+        <div class="ve">
+          ${topBarE()}
+          ${lensRailE()}
+          ${lensDrawerE()}
+          ${outlinerE()}
+
+          <!-- Tactical Battlefield Map View -->
+          <div class="vh-map">
+            <div class="vh-select-ring" style="left:46%;top:48%"></div>
+            <div class="vh-marker vh-marker-crossing" style="left:52%;top:38%">
+              <span class="m-diamond"></span>
+              <div><b>CONTESTED RIVER CROSSING</b><span>River Keep Garrison · 2 Keeps</span></div>
+            </div>
+            <div class="vh-marker red vh-marker-raid" style="left:68%;top:22%">
+              <span class="m-diamond"></span>
+              <div><b>RAID INCOMING</b><span>3 Goblin Scouts at North Ford</span></div>
+            </div>
+          </div>
+
+          ${deckE()}
+        </div>`;
+
       const VARIANTS = {
         A: { name: "Royal Command", render: variantA },
         B: { name: "Chronicle", render: variantB },
         C: { name: "War Table", render: variantC },
         D: { name: "Crown & Chronicle", render: variantD },
+        E: { name: "Imperium & Chronicle (Grand RTS)", render: variantE },
       };
-      const ORDER = ["A", "B", "C", "D"];
+      const ORDER = ["A", "B", "C", "D", "E"];
 
       const params = new URLSearchParams(window.location.search);
-      let current = (params.get("variant") || "D").toUpperCase();
+      let current = (params.get("variant") || "E").toUpperCase();
       if (!VARIANTS[current]) current = "D";
 
       const root = document.getElementById("variant-root");
@@ -5733,6 +6959,31 @@
 
         const pauseTab = e.target.closest("[data-pause-tab]");
         if (pauseTab) return setPauseTab(pauseTab.dataset.pauseTab);
+
+
+        if (current === "E") {
+          const lensBtn = e.target.closest("[data-e-lens]");
+          if (lensBtn) {
+            const l = lensBtn.dataset.eLens;
+            eState.lens = (eState.lens === l || l === "close") ? null : l;
+            render();
+            return;
+          }
+
+          const modeBtn = e.target.closest("[data-e-mode]");
+          if (modeBtn) {
+            eState.mode = modeBtn.dataset.eMode;
+            render();
+            return;
+          }
+
+          const taxSlider = e.target.closest("[data-e-tax]");
+          if (taxSlider) {
+            eState.taxRate = parseInt(taxSlider.value, 10);
+            render();
+            return;
+          }
+        }
 
         if (current !== "D") return;
 
