@@ -1,0 +1,5099 @@
+{
+  "schema": "wayfinder-173-recast-vs-astar-distribution-v1",
+  "generatedAt": "2026-10-30T23:57:38.522Z",
+  "design": "Four rotated same-session iterations per scenario (A*/Recast order alternates); fresh page per sample; one 400-tick warmup worker then fresh measured worker; FIFO single-request messages for both engines",
+  "scenarios": {
+    "dense-open-120": {
+      "astar": {
+        "samples": [
+          {
+            "iteration": 1,
+            "engine": "astar",
+            "wallClockMs": 33862.700000047684,
+            "frames": 4630,
+            "blockedFrames": 1030,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 28.200000047683716,
+              "p50Ms": 28.200000047683716,
+              "p95Ms": 28.200000047683716,
+              "maxMs": 28.200000047683716,
+              "meanMs": 28.200000047683716
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 40.799999952316284,
+              "p95Ms": 146.20000004768372,
+              "maxMs": 222.29999995231628,
+              "meanMs": 52.888634203669525
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 24.500244140625,
+                "p50Ms": 24.500244140625,
+                "p95Ms": 24.500244140625,
+                "maxMs": 24.500244140625,
+                "meanMs": 24.500244140625
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 3.3999998569488525,
+                "p50Ms": 3.3999998569488525,
+                "p95Ms": 3.3999998569488525,
+                "maxMs": 3.3999998569488525,
+                "meanMs": 3.3999998569488525
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.2997560501098633,
+                "p50Ms": 0.2997560501098633,
+                "p95Ms": 0.2997560501098633,
+                "maxMs": 0.2997560501098633,
+                "meanMs": 0.2997560501098633
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.199951171875,
+                "p50Ms": 40.800048828125,
+                "p95Ms": 146.2001953125,
+                "maxMs": 222.2001953125,
+                "meanMs": 52.41824836612283
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.2999999523162842,
+                "maxMs": 11.799999952316284,
+                "meanMs": 0.09973859325993897
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.20034170150756836,
+                "p50Ms": -0.20004892349243164,
+                "p95Ms": 3.099658250808716,
+                "maxMs": 25.499707221984863,
+                "meanMs": 0.37064724428675144
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4630,
+              "minMs": 0,
+              "p50Ms": 2.700000047683716,
+              "p95Ms": 3.799999952316284,
+              "maxMs": 16.799999952316284,
+              "meanMs": 2.4206695458286522
+            },
+            "initialGroupApplyMs": 1.2000000476837158,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 2.1999998092651367,
+              "meanMs": 0.047222220295607444
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 1030,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 112.43866090712743
+            },
+            "memoryProbe": {
+              "pollCount": 24,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 94357529,
+                "totalJSHeapSize": 198087625,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 20.799999952316284,
+              "meanMs": 0.34687500074505806
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "pathRequestMessages": 46289,
+              "pathResultMessages": 46289,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 2,
+            "engine": "astar",
+            "wallClockMs": 33036.199999809265,
+            "frames": 4500,
+            "blockedFrames": 900,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 26.100000143051147,
+              "p50Ms": 26.100000143051147,
+              "p95Ms": 26.100000143051147,
+              "maxMs": 26.100000143051147,
+              "meanMs": 26.100000143051147
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 35.700000047683716,
+              "p95Ms": 124.29999995231628,
+              "maxMs": 220.20000004768372,
+              "meanMs": 46.61820558243007
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 23.60009765625,
+                "p50Ms": 23.60009765625,
+                "p95Ms": 23.60009765625,
+                "maxMs": 23.60009765625,
+                "meanMs": 23.60009765625
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 2.299999952316284,
+                "p50Ms": 2.299999952316284,
+                "p95Ms": 2.299999952316284,
+                "maxMs": 2.299999952316284,
+                "meanMs": 2.299999952316284
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.19990253448486328,
+                "p50Ms": 0.19990253448486328,
+                "p95Ms": 0.19990253448486328,
+                "maxMs": 0.19990253448486328,
+                "meanMs": 0.19990253448486328
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.099853515625,
+                "p50Ms": 35.699951171875,
+                "p95Ms": 124.199951171875,
+                "maxMs": 220.199951171875,
+                "meanMs": 46.031631137440456
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.2999999523162842,
+                "maxMs": 5.6000001430511475,
+                "meanMs": 0.09119642217638087
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.10009765625,
+                "p50Ms": -0.09980463981628418,
+                "p95Ms": 3.300048828125,
+                "maxMs": 30.699951171875,
+                "meanMs": 0.4953780228132366
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4500,
+              "minMs": 0,
+              "p50Ms": 2.700000047683716,
+              "p95Ms": 3.700000047683716,
+              "maxMs": 17.700000047683716,
+              "meanMs": 2.4311333349545796
+            },
+            "initialGroupApplyMs": 1.1000001430511475,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.9000003337860107,
+              "meanMs": 0.042727269668771765
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 900,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 101.846
+            },
+            "memoryProbe": {
+              "pollCount": 24,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9508033,
+                "totalJSHeapSize": 100072445,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.19999980926513672,
+              "maxMs": 22.600000143051147,
+              "meanMs": 0.3828124962747097
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "pathRequestMessages": 46289,
+              "pathResultMessages": 46289,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 3,
+            "engine": "astar",
+            "wallClockMs": 33664.5,
+            "frames": 4564,
+            "blockedFrames": 964,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 28.90000009536743,
+              "p50Ms": 28.90000009536743,
+              "p95Ms": 28.90000009536743,
+              "maxMs": 28.90000009536743,
+              "meanMs": 28.90000009536743
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 40,
+              "p95Ms": 133.59999990463257,
+              "maxMs": 227.5,
+              "meanMs": 50.99058071184212
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 26.300048828125,
+                "p50Ms": 26.300048828125,
+                "p95Ms": 26.300048828125,
+                "maxMs": 26.300048828125,
+                "meanMs": 26.300048828125
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 2.200000047683716,
+                "p50Ms": 2.200000047683716,
+                "p95Ms": 2.200000047683716,
+                "maxMs": 2.200000047683716,
+                "meanMs": 2.200000047683716
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.3999512195587158,
+                "p50Ms": 0.3999512195587158,
+                "p95Ms": 0.3999512195587158,
+                "maxMs": 0.3999512195587158,
+                "meanMs": 0.3999512195587158
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.300048828125,
+                "p50Ms": 40.10009765625,
+                "p95Ms": 133.800048828125,
+                "maxMs": 227.5,
+                "meanMs": 50.60436355585546
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.2999999523162842,
+                "maxMs": 5.400000095367432,
+                "meanMs": 0.0966319561499112
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.3002440929412842,
+                "p50Ms": -0.29995107650756836,
+                "p95Ms": 3.10009765625,
+                "maxMs": 25,
+                "meanMs": 0.2895851998367484
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4564,
+              "minMs": 0,
+              "p50Ms": 2.799999952316284,
+              "p95Ms": 3.799999952316284,
+              "maxMs": 16.799999952316284,
+              "meanMs": 2.4730718693223364
+            },
+            "initialGroupApplyMs": 1.8000001907348633,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 2.0999996662139893,
+              "meanMs": 0.044999999470180935
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 964,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 108.64219982471516
+            },
+            "memoryProbe": {
+              "pollCount": 24,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 90682683,
+                "totalJSHeapSize": 190405891,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 24.40000009536743,
+              "meanMs": 0.40937500074505806
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "pathRequestMessages": 46289,
+              "pathResultMessages": 46289,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 4,
+            "engine": "astar",
+            "wallClockMs": 30831.5,
+            "frames": 4276,
+            "blockedFrames": 676,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 17.200000047683716,
+              "p50Ms": 17.200000047683716,
+              "p95Ms": 17.200000047683716,
+              "maxMs": 17.200000047683716,
+              "meanMs": 17.200000047683716
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 29.699999809265137,
+              "p95Ms": 98.20000004768372,
+              "maxMs": 163.60000014305115,
+              "meanMs": 37.209391203216725
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 14.900146484375,
+                "p50Ms": 14.900146484375,
+                "p95Ms": 14.900146484375,
+                "maxMs": 14.900146484375,
+                "meanMs": 14.900146484375
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 1.9000000953674316,
+                "p50Ms": 1.9000000953674316,
+                "p95Ms": 1.9000000953674316,
+                "maxMs": 1.9000000953674316,
+                "meanMs": 1.9000000953674316
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.3998534679412842,
+                "p50Ms": 0.3998534679412842,
+                "p95Ms": 0.3998534679412842,
+                "maxMs": 0.3998534679412842,
+                "meanMs": 0.3998534679412842
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.099853515625,
+                "p50Ms": 29.60009765625,
+                "p95Ms": 98.10009765625,
+                "maxMs": 163.60009765625,
+                "meanMs": 36.62250176755112
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 3.8000001907348633,
+                "meanMs": 0.07416609087762559
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.10014653205871582,
+                "p50Ms": -0.09980463981628418,
+                "p95Ms": 3.5000977516174316,
+                "maxMs": 23.999902486801147,
+                "meanMs": 0.512723344787981
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4276,
+              "minMs": 0,
+              "p50Ms": 2.5999999046325684,
+              "p95Ms": 3.299999952316284,
+              "maxMs": 17.5,
+              "meanMs": 2.328811972301847
+            },
+            "initialGroupApplyMs": 1.0999999046325684,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.6000003814697266,
+              "meanMs": 0.03550505011972755
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 676,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 86.62020579981291
+            },
+            "memoryProbe": {
+              "pollCount": 22,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9442678,
+                "totalJSHeapSize": 98952666,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 11.900000095367432,
+              "meanMs": 0.20624999701976776
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "pathRequestMessages": 46289,
+              "pathResultMessages": 46289,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          }
+        ],
+        "pooled": {
+          "leaderResponse": {
+            "count": 4,
+            "minMs": 17.200000047683716,
+            "p50Ms": 26.100000143051147,
+            "p95Ms": 28.90000009536743,
+            "maxMs": 28.90000009536743,
+            "meanMs": 25.100000083446503
+          },
+          "repathResponse": {
+            "count": 185152,
+            "minMs": 0.09999990463256836,
+            "p50Ms": 35.89999985694885,
+            "p95Ms": 127.60000014305115,
+            "maxMs": 227.5,
+            "meanMs": 46.92670292528961
+          },
+          "leaderTelemetry": {
+            "queue": {
+              "count": 4,
+              "minMs": 14.900146484375,
+              "p50Ms": 23.60009765625,
+              "p95Ms": 26.300048828125,
+              "maxMs": 26.300048828125,
+              "meanMs": 22.32513427734375
+            },
+            "compute": {
+              "count": 4,
+              "minMs": 1.9000000953674316,
+              "p50Ms": 2.200000047683716,
+              "p95Ms": 3.3999998569488525,
+              "maxMs": 3.3999998569488525,
+              "meanMs": 2.449999988079071
+            },
+            "deliveryResidual": {
+              "count": 4,
+              "minMs": 0.19990253448486328,
+              "p50Ms": 0.2997560501098633,
+              "p95Ms": 0.3999512195587158,
+              "maxMs": 0.3999512195587158,
+              "meanMs": 0.32486581802368164
+            }
+          },
+          "repathTelemetry": {
+            "queue": {
+              "count": 185152,
+              "minMs": 0.099853515625,
+              "p50Ms": 35.89990234375,
+              "p95Ms": 127.699951171875,
+              "maxMs": 227.5,
+              "meanMs": 46.41918620674247
+            },
+            "compute": {
+              "count": 185152,
+              "minMs": 0,
+              "p50Ms": 0.09999990463256836,
+              "p95Ms": 0.2999999523162842,
+              "maxMs": 11.799999952316284,
+              "meanMs": 0.09043326561596415
+            },
+            "deliveryResidual": {
+              "count": 185152,
+              "minMs": -0.3002440929412842,
+              "p50Ms": -0.09995126724243164,
+              "p95Ms": 3.2001953125,
+              "maxMs": 30.699951171875,
+              "meanMs": 0.4170834529311794
+            }
+          },
+          "wallClock": {
+            "count": 4,
+            "minMs": 30831.5,
+            "p50Ms": 33036.199999809265,
+            "p95Ms": 33862.700000047684,
+            "maxMs": 33862.700000047684,
+            "meanMs": 32848.72499996424
+          },
+          "tickWall": {
+            "count": 17970,
+            "minMs": 0,
+            "p50Ms": 2.700000047683716,
+            "p95Ms": 3.700000047683716,
+            "maxMs": 17.700000047683716,
+            "meanMs": 2.4147412359283313
+          },
+          "perActiveTickApply": {
+            "count": 7920,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000014305114746,
+            "maxMs": 2.1999998092651367,
+            "meanMs": 0.04261363488857192
+          },
+          "blockedFrames": [
+            1030,
+            900,
+            964,
+            676
+          ]
+        }
+      },
+      "recast": {
+        "samples": [
+          {
+            "iteration": 1,
+            "engine": "recast",
+            "wallClockMs": 30371.199999809265,
+            "frames": 4482,
+            "blockedFrames": 882,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 250.90000009536743,
+              "p50Ms": 250.90000009536743,
+              "p95Ms": 250.90000009536743,
+              "maxMs": 250.90000009536743,
+              "meanMs": 250.90000009536743
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 37.69999980926514,
+              "p95Ms": 97.80000019073486,
+              "maxMs": 154.90000009536743,
+              "meanMs": 42.294387313437184
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 1.099853515625,
+                "p50Ms": 1.099853515625,
+                "p95Ms": 1.099853515625,
+                "maxMs": 1.099853515625,
+                "meanMs": 1.099853515625
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 249.59999990463257,
+                "p50Ms": 249.59999990463257,
+                "p95Ms": 249.59999990463257,
+                "maxMs": 249.59999990463257,
+                "meanMs": 249.59999990463257
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.20014667510986328,
+                "p50Ms": 0.20014667510986328,
+                "p95Ms": 0.20014667510986328,
+                "maxMs": 0.20014667510986328,
+                "meanMs": 0.20014667510986328
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.199951171875,
+                "p50Ms": 37.499755859375,
+                "p95Ms": 97.89990234375,
+                "maxMs": 155,
+                "meanMs": 41.576923648585016
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 4.799999952316284,
+                "meanMs": 0.08683244019200799
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.20014643669128418,
+                "p50Ms": -0.19975590705871582,
+                "p95Ms": 5.200097560882568,
+                "maxMs": 31.20004892349243,
+                "meanMs": 0.6306312246601598
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4482,
+              "minMs": 0,
+              "p50Ms": 2.4000000953674316,
+              "p95Ms": 3.5,
+              "maxMs": 19.700000047683716,
+              "meanMs": 2.2788933507037554
+            },
+            "initialGroupApplyMs": 1.0999999046325684,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.6000001430511475,
+              "meanMs": 0.03575757621514677
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 882,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 91.98148148148148
+            },
+            "memoryProbe": {
+              "pollCount": 20,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 12190486,
+                "totalJSHeapSize": 90443186,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9063341,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 48.200000047683716,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 247.59999990463257,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 247.59999990463257,
+              "lastRevisionBuildMs": 247.59999990463257,
+              "totalRasterizeMs": 151,
+              "totalNavMeshBuildMs": 4.400000095367432,
+              "totalGeometryMs": 7.599999904632568,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46204,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 839.7000026702881,
+              "maxPathQueryMs": 2.299999952316284,
+              "totalRouteConversionMs": 208.50000596046448,
+              "maxRouteConversionMs": 1.5,
+              "pathQueries": 46205,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 2,
+            "engine": "recast",
+            "wallClockMs": 30750.5,
+            "frames": 4473,
+            "blockedFrames": 873,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 173.79999995231628,
+              "p50Ms": 173.79999995231628,
+              "p95Ms": 173.79999995231628,
+              "maxMs": 173.79999995231628,
+              "meanMs": 173.79999995231628
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.19999980926513672,
+              "p50Ms": 36.700000047683716,
+              "p95Ms": 101.39999985694885,
+              "maxMs": 153.20000004768372,
+              "meanMs": 42.603536554435486
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 0.599853515625,
+                "p50Ms": 0.599853515625,
+                "p95Ms": 0.599853515625,
+                "maxMs": 0.599853515625,
+                "meanMs": 0.599853515625
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 172.90000009536743,
+                "p50Ms": 172.90000009536743,
+                "p95Ms": 172.90000009536743,
+                "maxMs": 172.90000009536743,
+                "meanMs": 172.90000009536743
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.30014634132385254,
+                "p50Ms": 0.30014634132385254,
+                "p95Ms": 0.30014634132385254,
+                "maxMs": 0.30014634132385254,
+                "meanMs": 0.30014634132385254
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.099853515625,
+                "p50Ms": 36.5,
+                "p95Ms": 100.89990234375,
+                "maxMs": 153.199951171875,
+                "meanMs": 41.774262191925416
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 5.700000047683716,
+                "meanMs": 0.08788886950105027
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.10014653205871582,
+                "p50Ms": -0.09975600242614746,
+                "p95Ms": 5.300049066543579,
+                "maxMs": 26.80004858970642,
+                "meanMs": 0.7413854930090155
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4473,
+              "minMs": 0,
+              "p50Ms": 2.5999999046325684,
+              "p95Ms": 3.700000047683716,
+              "maxMs": 18.200000047683716,
+              "meanMs": 2.388307623860022
+            },
+            "initialGroupApplyMs": 1.3000001907348633,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.6999990940093994,
+              "meanMs": 0.04186868535147773
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 873,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 92.55913257321708
+            },
+            "memoryProbe": {
+              "pollCount": 20,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 44219386,
+                "totalJSHeapSize": 89656754,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9062983,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 46.299999952316284,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 169.39999985694885,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 169.39999985694885,
+              "lastRevisionBuildMs": 169.39999985694885,
+              "totalRasterizeMs": 83.59999990463257,
+              "totalNavMeshBuildMs": 4.5,
+              "totalGeometryMs": 7.099999904632568,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46204,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 854.7000060081482,
+              "maxPathQueryMs": 3.4000000953674316,
+              "totalRouteConversionMs": 201.2000012397766,
+              "maxRouteConversionMs": 1.7000000476837158,
+              "pathQueries": 46205,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 3,
+            "engine": "recast",
+            "wallClockMs": 32759.900000095367,
+            "frames": 4480,
+            "blockedFrames": 880,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 185,
+              "p50Ms": 185,
+              "p95Ms": 185,
+              "maxMs": 185,
+              "meanMs": 185
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.19999980926513672,
+              "p50Ms": 38.200000047683716,
+              "p95Ms": 97.70000004768372,
+              "maxMs": 143.70000004768372,
+              "meanMs": 42.55771258218949
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 1.400146484375,
+                "p50Ms": 1.400146484375,
+                "p95Ms": 1.400146484375,
+                "maxMs": 1.400146484375,
+                "meanMs": 1.400146484375
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 182.79999995231628,
+                "p50Ms": 182.79999995231628,
+                "p95Ms": 182.79999995231628,
+                "maxMs": 182.79999995231628,
+                "meanMs": 182.79999995231628
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.7998535633087158,
+                "p50Ms": 0.7998535633087158,
+                "p95Ms": 0.7998535633087158,
+                "maxMs": 0.7998535633087158,
+                "meanMs": 0.7998535633087158
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.400146484375,
+                "p50Ms": 38.300048828125,
+                "p95Ms": 98,
+                "maxMs": 143.900146484375,
+                "meanMs": 41.93008749863288
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 13.200000047683716,
+                "meanMs": 0.09326607353065898
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.4003417491912842,
+                "p50Ms": -0.3003416061401367,
+                "p95Ms": 5.699902296066284,
+                "maxMs": 78.09990239143372,
+                "meanMs": 0.5343590100259464
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4480,
+              "minMs": 0,
+              "p50Ms": 2.6999998092651367,
+              "p95Ms": 5.5,
+              "maxMs": 21,
+              "meanMs": 2.7275000005960464
+            },
+            "initialGroupApplyMs": 1.2999999523162842,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.8999996185302734,
+              "meanMs": 0.047777777729612406
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 880,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 91.05022321428571
+            },
+            "memoryProbe": {
+              "pollCount": 21,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 18705286,
+                "totalJSHeapSize": 89918898,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9119122,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 32.5,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 180.20000004768372,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 180.20000004768372,
+              "lastRevisionBuildMs": 180.20000004768372,
+              "totalRasterizeMs": 92.69999980926514,
+              "totalNavMeshBuildMs": 7.800000190734863,
+              "totalGeometryMs": 7.6000001430511475,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46204,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 936.8999953269958,
+              "maxPathQueryMs": 8.700000047683716,
+              "totalRouteConversionMs": 231.1000051498413,
+              "maxRouteConversionMs": 4.5,
+              "pathQueries": 46205,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 4,
+            "engine": "recast",
+            "wallClockMs": 29572.799999952316,
+            "frames": 4362,
+            "blockedFrames": 762,
+            "finalTick": 3600,
+            "requests": 46289,
+            "leaderCount": 1,
+            "repathCount": 46288,
+            "otherCommandCount": 0,
+            "movementRepaths": 46288,
+            "completed": 528,
+            "activeAtCutoff": 472,
+            "crowdStates": {
+              "completed": 528,
+              "moving": 26,
+              "stalled": 435,
+              "propagatedParked": 11,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46287,
+              "pending": 2
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+            "leaderResponse": {
+              "count": 1,
+              "minMs": 151.10000014305115,
+              "p50Ms": 151.10000014305115,
+              "p95Ms": 151.10000014305115,
+              "maxMs": 151.10000014305115,
+              "meanMs": 151.10000014305115
+            },
+            "repathResponse": {
+              "count": 46288,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 31.59999990463257,
+              "p95Ms": 88.60000014305115,
+              "maxMs": 237.70000004768372,
+              "meanMs": 37.8105470091156
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 1,
+                "minMs": 0.699951171875,
+                "p50Ms": 0.699951171875,
+                "p95Ms": 0.699951171875,
+                "maxMs": 0.699951171875,
+                "meanMs": 0.699951171875
+              },
+              "compute": {
+                "count": 1,
+                "minMs": 149.90000009536743,
+                "p50Ms": 149.90000009536743,
+                "p95Ms": 149.90000009536743,
+                "maxMs": 149.90000009536743,
+                "meanMs": 149.90000009536743
+              },
+              "deliveryResidual": {
+                "count": 1,
+                "minMs": 0.5000488758087158,
+                "p50Ms": 0.5000488758087158,
+                "p95Ms": 0.5000488758087158,
+                "maxMs": 0.5000488758087158,
+                "meanMs": 0.5000488758087158
+              },
+              "telemetryCount": 1
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46288,
+                "minMs": 0.199951171875,
+                "p50Ms": 31.5,
+                "p95Ms": 88.7001953125,
+                "maxMs": 237.800048828125,
+                "meanMs": 37.005498791828806
+              },
+              "compute": {
+                "count": 46288,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 16.299999952316284,
+                "meanMs": 0.08010931549457954
+              },
+              "deliveryResidual": {
+                "count": 46288,
+                "minMs": -0.20029306411743164,
+                "p50Ms": -0.199951171875,
+                "p95Ms": 5.6998536586761475,
+                "maxMs": 31.29970693588257,
+                "meanMs": 0.7249389017922138
+              },
+              "telemetryCount": 46288
+            },
+            "tickWall": {
+              "count": 4362,
+              "minMs": 0,
+              "p50Ms": 2.5,
+              "p95Ms": 3.5,
+              "maxMs": 18.600000143051147,
+              "meanMs": 2.3265245317155645
+            },
+            "initialGroupApplyMs": 1,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1980,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.799999952316284,
+              "meanMs": 0.03868687068573152
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 762,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 83.70953690967445
+            },
+            "memoryProbe": {
+              "pollCount": 19,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 27831782,
+                "totalJSHeapSize": 97521074,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9063757,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 369976,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 26.600000143051147,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 148.09999990463257,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 148.09999990463257,
+              "lastRevisionBuildMs": 148.09999990463257,
+              "totalRasterizeMs": 70.29999995231628,
+              "totalNavMeshBuildMs": 6.200000047683716,
+              "totalGeometryMs": 6.199999809265137,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46204,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 778.500006198883,
+              "maxPathQueryMs": 14.400000095367432,
+              "totalRouteConversionMs": 166.1999933719635,
+              "maxRouteConversionMs": 1.6000001430511475,
+              "pathQueries": 46205,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          }
+        ],
+        "pooled": {
+          "leaderResponse": {
+            "count": 4,
+            "minMs": 151.10000014305115,
+            "p50Ms": 173.79999995231628,
+            "p95Ms": 250.90000009536743,
+            "maxMs": 250.90000009536743,
+            "meanMs": 190.20000004768372
+          },
+          "repathResponse": {
+            "count": 185152,
+            "minMs": 0.09999990463256836,
+            "p50Ms": 35.700000047683716,
+            "p95Ms": 97.59999990463257,
+            "maxMs": 237.70000004768372,
+            "meanMs": 41.316545864794435
+          },
+          "leaderTelemetry": {
+            "queue": {
+              "count": 4,
+              "minMs": 0.599853515625,
+              "p50Ms": 0.699951171875,
+              "p95Ms": 1.400146484375,
+              "maxMs": 1.400146484375,
+              "meanMs": 0.949951171875
+            },
+            "compute": {
+              "count": 4,
+              "minMs": 149.90000009536743,
+              "p50Ms": 172.90000009536743,
+              "p95Ms": 249.59999990463257,
+              "maxMs": 249.59999990463257,
+              "meanMs": 188.80000001192093
+            },
+            "deliveryResidual": {
+              "count": 4,
+              "minMs": 0.20014667510986328,
+              "p50Ms": 0.30014634132385254,
+              "p95Ms": 0.7998535633087158,
+              "maxMs": 0.7998535633087158,
+              "meanMs": 0.45004886388778687
+            }
+          },
+          "repathTelemetry": {
+            "queue": {
+              "count": 185152,
+              "minMs": 0.099853515625,
+              "p50Ms": 35.699951171875,
+              "p95Ms": 97.600341796875,
+              "maxMs": 237.800048828125,
+              "meanMs": 40.57169303274303
+            },
+            "compute": {
+              "count": 185152,
+              "minMs": 0,
+              "p50Ms": 0.09999990463256836,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 16.299999952316284,
+              "meanMs": 0.0870241746795742
+            },
+            "deliveryResidual": {
+              "count": 185152,
+              "minMs": -0.4003417491912842,
+              "p50Ms": -0.10009765625,
+              "p95Ms": 5.4998533725738525,
+              "maxMs": 78.09990239143372,
+              "meanMs": 0.6578286573718338
+            }
+          },
+          "wallClock": {
+            "count": 4,
+            "minMs": 29572.799999952316,
+            "p50Ms": 30371.199999809265,
+            "p95Ms": 32759.900000095367,
+            "maxMs": 32759.900000095367,
+            "meanMs": 30863.599999964237
+          },
+          "tickWall": {
+            "count": 17797,
+            "minMs": 0,
+            "p50Ms": 2.5,
+            "p95Ms": 4.3999998569488525,
+            "maxMs": 21,
+            "meanMs": 2.430993988278569
+          },
+          "perActiveTickApply": {
+            "count": 7920,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000014305114746,
+            "maxMs": 3.8999996185302734,
+            "meanMs": 0.04102272749549211
+          },
+          "blockedFrames": [
+            882,
+            873,
+            880,
+            762
+          ]
+        }
+      },
+      "perIterationDeltas": [
+        {
+          "iteration": 1,
+          "engineOrder": [
+            "astar",
+            "recast"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 222.70000004768372,
+            "leaderP95Ms": 222.70000004768372,
+            "leaderMaxMs": 222.70000004768372,
+            "repathP50Ms": -3.1000001430511475,
+            "repathP95Ms": -48.39999985694885,
+            "repathMaxMs": -67.39999985694885,
+            "blockedFrames": -148,
+            "wallClockMs": -3491.5000002384186,
+            "completed": 0,
+            "requests": 0
+          }
+        },
+        {
+          "iteration": 2,
+          "engineOrder": [
+            "recast",
+            "astar"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 147.69999980926514,
+            "leaderP95Ms": 147.69999980926514,
+            "leaderMaxMs": 147.69999980926514,
+            "repathP50Ms": 1,
+            "repathP95Ms": -22.90000009536743,
+            "repathMaxMs": -67,
+            "blockedFrames": -27,
+            "wallClockMs": -2285.699999809265,
+            "completed": 0,
+            "requests": 0
+          }
+        },
+        {
+          "iteration": 3,
+          "engineOrder": [
+            "astar",
+            "recast"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 156.09999990463257,
+            "leaderP95Ms": 156.09999990463257,
+            "leaderMaxMs": 156.09999990463257,
+            "repathP50Ms": -1.7999999523162842,
+            "repathP95Ms": -35.89999985694885,
+            "repathMaxMs": -83.79999995231628,
+            "blockedFrames": -84,
+            "wallClockMs": -904.5999999046326,
+            "completed": 0,
+            "requests": 0
+          }
+        },
+        {
+          "iteration": 4,
+          "engineOrder": [
+            "recast",
+            "astar"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 133.90000009536743,
+            "leaderP95Ms": 133.90000009536743,
+            "leaderMaxMs": 133.90000009536743,
+            "repathP50Ms": 1.9000000953674316,
+            "repathP95Ms": -9.599999904632568,
+            "repathMaxMs": 74.09999990463257,
+            "blockedFrames": 86,
+            "wallClockMs": -1258.7000000476837,
+            "completed": 0,
+            "requests": 0
+          }
+        }
+      ]
+    },
+    "mixed-destinations-120": {
+      "astar": {
+        "samples": [
+          {
+            "iteration": 1,
+            "engine": "astar",
+            "wallClockMs": 30258.10000014305,
+            "frames": 4500,
+            "blockedFrames": 900,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 30,
+              "p50Ms": 31,
+              "p95Ms": 32.200000047683716,
+              "maxMs": 32.200000047683716,
+              "meanMs": 31.049999952316284
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0,
+              "p50Ms": 29.59999990463257,
+              "p95Ms": 149.29999995231628,
+              "maxMs": 209.20000004768372,
+              "meanMs": 46.52024402279419
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 28.099853515625,
+                "p50Ms": 30.10009765625,
+                "p95Ms": 31.2998046875,
+                "maxMs": 31.2998046875,
+                "meanMs": 30.26251220703125
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.20000004768371582,
+                "p50Ms": 0.6999998092651367,
+                "p95Ms": 1.7000000476837158,
+                "maxMs": 1.7000000476837158,
+                "meanMs": 0.7499999701976776
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -0.10014653205871582,
+                "p50Ms": -0.00009775161743164062,
+                "p95Ms": 0.30014634132385254,
+                "maxMs": 0.30014634132385254,
+                "meanMs": 0.03748777508735657
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 0.099853515625,
+                "p50Ms": 29.199951171875,
+                "p95Ms": 149.199951171875,
+                "maxMs": 209.199951171875,
+                "meanMs": 45.76320035530106
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.2999999523162842,
+                "maxMs": 3.799999952316284,
+                "meanMs": 0.08835231515316298
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -0.10019540786743164,
+                "p50Ms": -0.099853515625,
+                "p95Ms": 4.800048828125,
+                "maxMs": 29.20004892349243,
+                "meanMs": 0.668691352339962
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4500,
+              "minMs": 0,
+              "p50Ms": 2.0999999046325684,
+              "p95Ms": 2.799999952316284,
+              "maxMs": 16.299999952316284,
+              "meanMs": 1.8873555581304762
+            },
+            "initialGroupApplyMs": 0.7999999523162842,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 2.000000238418579,
+              "meanMs": 0.03985784417491848
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 900,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 102.86822222222222
+            },
+            "memoryProbe": {
+              "pollCount": 23,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9456370,
+                "totalJSHeapSize": 100263558,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 13.799999952316284,
+              "meanMs": 0.24062500149011612
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "pathRequestMessages": 46807,
+              "pathResultMessages": 46807,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 2,
+            "engine": "astar",
+            "wallClockMs": 28346.799999952316,
+            "frames": 4270,
+            "blockedFrames": 670,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 22.299999952316284,
+              "p50Ms": 23.5,
+              "p95Ms": 25.90000009536743,
+              "maxMs": 25.90000009536743,
+              "meanMs": 23.974999994039536
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0,
+              "p50Ms": 26.5,
+              "p95Ms": 95.79999995231628,
+              "maxMs": 126.60000014305115,
+              "meanMs": 35.14944550109655
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 20.099853515625,
+                "p50Ms": 23.39990234375,
+                "p95Ms": 25.800048828125,
+                "maxMs": 25.800048828125,
+                "meanMs": 23.43743896484375
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.2999999523162842,
+                "p50Ms": 0.39999985694885254,
+                "p95Ms": 2.0999999046325684,
+                "maxMs": 2.0999999046325684,
+                "meanMs": 0.7124999463558197
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -0.29990220069885254,
+                "p50Ms": -0.20004868507385254,
+                "p95Ms": 0.10014653205871582,
+                "maxMs": 0.10014653205871582,
+                "meanMs": -0.17493891716003418
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 0.2998046875,
+                "p50Ms": 26.699951171875,
+                "p95Ms": 95.999755859375,
+                "maxMs": 126.800048828125,
+                "meanMs": 34.60206223732411
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 5.5,
+                "meanMs": 0.0713989613349067
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -0.3000977039337158,
+                "p50Ms": -0.29970717430114746,
+                "p95Ms": 4.800097703933716,
+                "maxMs": 24.5,
+                "meanMs": 0.4759843024375278
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4270,
+              "minMs": 0,
+              "p50Ms": 1.8999998569488525,
+              "p95Ms": 2.6000001430511475,
+              "maxMs": 15.099999904632568,
+              "meanMs": 1.7889929718937752
+            },
+            "initialGroupApplyMs": 0.6999998092651367,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.500000238418579,
+              "meanMs": 0.03581192129749363
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 670,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 83.8526932084309
+            },
+            "memoryProbe": {
+              "pollCount": 21,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9449418,
+                "totalJSHeapSize": 100525734,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 21.100000143051147,
+              "meanMs": 0.3578125014901161
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "pathRequestMessages": 46807,
+              "pathResultMessages": 46807,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 3,
+            "engine": "astar",
+            "wallClockMs": 29653.5,
+            "frames": 4496,
+            "blockedFrames": 896,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 15.199999809265137,
+              "p50Ms": 16.5,
+              "p95Ms": 19.199999809265137,
+              "maxMs": 19.199999809265137,
+              "meanMs": 16.974999964237213
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0,
+              "p50Ms": 30.699999809265137,
+              "p95Ms": 146.20000004768372,
+              "maxMs": 193.29999995231628,
+              "meanMs": 46.127233488554275
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 24.89990234375,
+                "p50Ms": 27.5,
+                "p95Ms": 29.7998046875,
+                "maxMs": 29.7998046875,
+                "meanMs": 27.687408447265625
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.09999990463256836,
+                "p50Ms": 0.5,
+                "p95Ms": 1.5,
+                "maxMs": 1.5,
+                "meanMs": 0.5999999940395355
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -11.5,
+                "p50Ms": -11.400000095367432,
+                "p95Ms": -10.699804782867432,
+                "maxMs": -10.699804782867432,
+                "meanMs": -11.312408477067947
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 11.499755859375,
+                "p50Ms": 41.599853515625,
+                "p95Ms": 157.5,
+                "maxMs": 204.69970703125,
+                "meanMs": 56.79964344690859
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.2999999523162842,
+                "maxMs": 7.1000001430511475,
+                "meanMs": 0.08777324298337046
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -11.500048637390137,
+                "p50Ms": -11.499706983566284,
+                "p95Ms": -6.599902391433716,
+                "maxMs": 27.200146198272705,
+                "meanMs": -10.760183201337686
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4496,
+              "minMs": 0,
+              "p50Ms": 1.9000000953674316,
+              "p95Ms": 2.5,
+              "maxMs": 16.59999990463257,
+              "meanMs": 1.7584741999564222
+            },
+            "initialGroupApplyMs": 0.8999998569488525,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 2.299999713897705,
+              "meanMs": 0.040240567261042526
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 896,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 102.83830071174377
+            },
+            "memoryProbe": {
+              "pollCount": 21,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 96602758,
+                "totalJSHeapSize": 182279430,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 13.799999952316284,
+              "meanMs": 0.23281249403953552
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "pathRequestMessages": 46807,
+              "pathResultMessages": 46807,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 4,
+            "engine": "astar",
+            "wallClockMs": 28483,
+            "frames": 4192,
+            "blockedFrames": 592,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 21.59999990463257,
+              "p50Ms": 22.90000009536743,
+              "p95Ms": 24.100000143051147,
+              "maxMs": 24.100000143051147,
+              "meanMs": 23.02500006556511
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0,
+              "p50Ms": 25.09999990463257,
+              "p95Ms": 90.60000014305115,
+              "maxMs": 116.29999995231628,
+              "meanMs": 32.60571379797992
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 19.89990234375,
+                "p50Ms": 22.499755859375,
+                "p95Ms": 23.89990234375,
+                "maxMs": 23.89990234375,
+                "meanMs": 22.46240234375
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.20000004768371582,
+                "p50Ms": 0.2999999523162842,
+                "p95Ms": 1.5,
+                "maxMs": 1.5,
+                "meanMs": 0.5374999940395355
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -0.10000014305114746,
+                "p50Ms": -0.09975576400756836,
+                "p95Ms": 0.3000001907348633,
+                "maxMs": 0.3000001907348633,
+                "meanMs": 0.02509772777557373
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 0.099853515625,
+                "p50Ms": 23.699951171875,
+                "p95Ms": 90.60009765625,
+                "maxMs": 116.2998046875,
+                "meanMs": 31.66406036633228
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 3.700000047683716,
+                "meanMs": 0.06800572668228112
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -0.10009765625,
+                "p50Ms": -0.00009751319885253906,
+                "p95Ms": 5.900146484375,
+                "maxMs": 27.20004892349243,
+                "meanMs": 0.8736477049653526
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4192,
+              "minMs": 0,
+              "p50Ms": 1.9000000953674316,
+              "p95Ms": 3,
+              "maxMs": 16.799999952316284,
+              "meanMs": 1.9371660276109937
+            },
+            "initialGroupApplyMs": 1.0999999046325684,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.5000004768371582,
+              "meanMs": 0.036303992868447446
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 592,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 76.97781488549619
+            },
+            "memoryProbe": {
+              "pollCount": 21,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9508669,
+                "totalJSHeapSize": 102956321,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 18.300000190734863,
+              "meanMs": 0.3218749947845936
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "pathRequestMessages": 46807,
+              "pathResultMessages": 46807,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 1,
+              "maxWorkerSnapshotCount": 1,
+              "maxWorkerSnapshotBytes": 14400,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          }
+        ],
+        "pooled": {
+          "leaderResponse": {
+            "count": 32,
+            "minMs": 15.199999809265137,
+            "p50Ms": 23.5,
+            "p95Ms": 32.19999980926514,
+            "maxMs": 32.200000047683716,
+            "meanMs": 23.756249994039536
+          },
+          "repathResponse": {
+            "count": 187196,
+            "minMs": 0,
+            "p50Ms": 27.399999856948853,
+            "p95Ms": 120.19999980926514,
+            "maxMs": 209.20000004768372,
+            "meanMs": 40.10065920260623
+          },
+          "leaderTelemetry": {
+            "queue": {
+              "count": 32,
+              "minMs": 19.89990234375,
+              "p50Ms": 25.199951171875,
+              "p95Ms": 31.2001953125,
+              "maxMs": 31.2998046875,
+              "meanMs": 25.962440490722656
+            },
+            "compute": {
+              "count": 32,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 0.5,
+              "p95Ms": 1.7000000476837158,
+              "maxMs": 2.0999999046325684,
+              "meanMs": 0.6499999761581421
+            },
+            "deliveryResidual": {
+              "count": 32,
+              "minMs": -11.5,
+              "p50Ms": -0.10014653205871582,
+              "p95Ms": 0.3000001907348633,
+              "maxMs": 0.30014634132385254,
+              "meanMs": -2.856190472841263
+            }
+          },
+          "repathTelemetry": {
+            "queue": {
+              "count": 187196,
+              "minMs": 0.099853515625,
+              "p50Ms": 29.999755859375,
+              "p95Ms": 125.2998046875,
+              "maxMs": 209.199951171875,
+              "meanMs": 42.207241601466514
+            },
+            "compute": {
+              "count": 187196,
+              "minMs": 0,
+              "p50Ms": 0.09999990463256836,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 7.1000001430511475,
+              "meanMs": 0.07888256153843032
+            },
+            "deliveryResidual": {
+              "count": 187196,
+              "minMs": -11.500048637390137,
+              "p50Ms": -0.10004878044128418,
+              "p95Ms": 4.199951171875,
+              "maxMs": 29.20004892349243,
+              "meanMs": -2.185464960398711
+            }
+          },
+          "wallClock": {
+            "count": 4,
+            "minMs": 28346.799999952316,
+            "p50Ms": 28483,
+            "p95Ms": 30258.10000014305,
+            "maxMs": 30258.10000014305,
+            "meanMs": 29185.350000023842
+          },
+          "tickWall": {
+            "count": 17458,
+            "minMs": 0,
+            "p50Ms": 1.9000000953674316,
+            "p95Ms": 2.799999952316284,
+            "maxMs": 16.799999952316284,
+            "meanMs": 1.8420666738642983
+          },
+          "perActiveTickApply": {
+            "count": 7316,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000014305114746,
+            "maxMs": 2.299999713897705,
+            "meanMs": 0.03805358140047552
+          },
+          "blockedFrames": [
+            900,
+            670,
+            896,
+            592
+          ]
+        }
+      },
+      "recast": {
+        "samples": [
+          {
+            "iteration": 1,
+            "engine": "recast",
+            "wallClockMs": 26365.900000095367,
+            "frames": 4305,
+            "blockedFrames": 705,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 136,
+              "p50Ms": 136.20000004768372,
+              "p95Ms": 136.60000014305115,
+              "maxMs": 136.60000014305115,
+              "meanMs": 136.2999999821186
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 29.300000190734863,
+              "p95Ms": 77.40000009536743,
+              "maxMs": 96.30000019073486,
+              "meanMs": 33.59266864606699
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 1,
+                "p50Ms": 136.300048828125,
+                "p95Ms": 136.60009765625,
+                "maxMs": 136.60009765625,
+                "meanMs": 119.4375
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.09999990463256836,
+                "p50Ms": 0.10000014305114746,
+                "p95Ms": 135,
+                "maxMs": 135,
+                "meanMs": 17
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -0.20004892349243164,
+                "p50Ms": -0.199951171875,
+                "p95Ms": 0.09999990463256836,
+                "maxMs": 0.09999990463256836,
+                "meanMs": -0.13750001788139343
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 0.199951171875,
+                "p50Ms": 29.300048828125,
+                "p95Ms": 77.400146484375,
+                "maxMs": 96.10009765625,
+                "meanMs": 32.87586582045022
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 4.1000001430511475,
+                "meanMs": 0.0725122334628577
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -0.2001953125,
+                "p50Ms": -0.19985342025756836,
+                "p95Ms": 5.599951267242432,
+                "maxMs": 24.499951124191284,
+                "meanMs": 0.6442905921539069
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4305,
+              "minMs": 0,
+              "p50Ms": 1.7999999523162842,
+              "p95Ms": 2.5,
+              "maxMs": 16.299999952316284,
+              "meanMs": 1.7053426265716554
+            },
+            "initialGroupApplyMs": 0.9000000953674316,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.4000003337860107,
+              "meanMs": 0.03176599138091991
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 705,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 77.24924506387921
+            },
+            "memoryProbe": {
+              "pollCount": 18,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 38387746,
+                "totalJSHeapSize": 97783218,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9182971,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 24.199999809265137,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 130.09999990463257,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 130.09999990463257,
+              "lastRevisionBuildMs": 130.09999990463257,
+              "totalRasterizeMs": 62.200000047683716,
+              "totalNavMeshBuildMs": 4.299999952316284,
+              "totalGeometryMs": 4.299999952316284,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46746,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 649.3000013828278,
+              "maxPathQueryMs": 3.799999952316284,
+              "totalRouteConversionMs": 145.20000410079956,
+              "maxRouteConversionMs": 3.0999999046325684,
+              "pathQueries": 46747,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 2,
+            "engine": "recast",
+            "wallClockMs": 26204.5,
+            "frames": 4349,
+            "blockedFrames": 749,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 144.59999990463257,
+              "p50Ms": 144.70000004768372,
+              "p95Ms": 145,
+              "maxMs": 145,
+              "meanMs": 144.78749999403954
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 30.09999990463257,
+              "p95Ms": 80.40000009536743,
+              "maxMs": 111.5,
+              "meanMs": 34.63745592839672
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 2.300048828125,
+                "p50Ms": 144.800048828125,
+                "p95Ms": 145.10009765625,
+                "maxMs": 145.10009765625,
+                "meanMs": 127.03753662109375
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 142.09999990463257,
+                "maxMs": 142.09999990463257,
+                "meanMs": 17.837499976158142
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -0.20009756088256836,
+                "p50Ms": -0.19985365867614746,
+                "p95Ms": 0.29995131492614746,
+                "maxMs": 0.29995131492614746,
+                "meanMs": -0.08753660321235657
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 0.199951171875,
+                "p50Ms": 30.10009765625,
+                "p95Ms": 80.400146484375,
+                "maxMs": 111.400146484375,
+                "meanMs": 33.98333306066903
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 4.700000047683716,
+                "meanMs": 0.07437765791634265
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -0.20024418830871582,
+                "p50Ms": -0.19990253448486328,
+                "p95Ms": 5.099853515625,
+                "maxMs": 31.399951219558716,
+                "meanMs": 0.5797452098113476
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4349,
+              "minMs": 0,
+              "p50Ms": 1.6000001430511475,
+              "p95Ms": 2.3999998569488525,
+              "maxMs": 17.700000047683716,
+              "meanMs": 1.5977696012864033
+            },
+            "initialGroupApplyMs": 0.9000000953674316,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.9000000953674316,
+              "meanMs": 0.03597594193906455
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 749,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 80.11772821338239
+            },
+            "memoryProbe": {
+              "pollCount": 18,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 33815654,
+                "totalJSHeapSize": 98045362,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9211219,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 27.5,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 140.40000009536743,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 140.40000009536743,
+              "lastRevisionBuildMs": 140.40000009536743,
+              "totalRasterizeMs": 65.90000009536743,
+              "totalNavMeshBuildMs": 6.900000095367432,
+              "totalGeometryMs": 3.5,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46746,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 661.5000131130219,
+              "maxPathQueryMs": 4.6000001430511475,
+              "totalRouteConversionMs": 160.29999494552612,
+              "maxRouteConversionMs": 4.700000047683716,
+              "pathQueries": 46747,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 3,
+            "engine": "recast",
+            "wallClockMs": 26368.299999952316,
+            "frames": 4364,
+            "blockedFrames": 764,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 158.20000004768372,
+              "p50Ms": 159.5,
+              "p95Ms": 159.60000014305115,
+              "maxMs": 159.60000014305115,
+              "meanMs": 159.28750002384186
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0,
+              "p50Ms": 31.100000143051147,
+              "p95Ms": 82.79999995231628,
+              "maxMs": 157.09999990463257,
+              "meanMs": 36.23304771490058
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 2.400146484375,
+                "p50Ms": 160.199951171875,
+                "p95Ms": 160.699951171875,
+                "maxMs": 160.699951171875,
+                "meanMs": 140.49996948242188
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.09999990463256836,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 156.20000004768372,
+                "maxMs": 156.20000004768372,
+                "meanMs": 19.737499982118607
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -1.1999998092651367,
+                "p50Ms": -1.099853277206421,
+                "p95Ms": -0.400146484375,
+                "maxMs": -0.400146484375,
+                "meanMs": -0.9499694406986237
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 1.199951171875,
+                "p50Ms": 32,
+                "p95Ms": 83.7998046875,
+                "maxMs": 158.300048828125,
+                "meanMs": 36.46654692286928
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 15,
+                "meanMs": 0.07521100884235431
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -1.2001953125,
+                "p50Ms": -1.1998534202575684,
+                "p95Ms": 4.600097894668579,
+                "maxMs": 29.400195360183716,
+                "meanMs": -0.30871021681105587
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4364,
+              "minMs": 0,
+              "p50Ms": 1.6999998092651367,
+              "p95Ms": 2.4000000953674316,
+              "maxMs": 17.90000009536743,
+              "meanMs": 1.617323557244431
+            },
+            "initialGroupApplyMs": 1,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.5,
+              "meanMs": 0.03324220674555441
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 764,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 82.72983501374885
+            },
+            "memoryProbe": {
+              "pollCount": 18,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 23559970,
+                "totalJSHeapSize": 89918898,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9210797,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 28.200000047683716,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 153.29999995231628,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 153.29999995231628,
+              "lastRevisionBuildMs": 153.29999995231628,
+              "totalRasterizeMs": 70.60000014305115,
+              "totalNavMeshBuildMs": 4.599999904632568,
+              "totalGeometryMs": 9.200000047683716,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46746,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 681.3999989032745,
+              "maxPathQueryMs": 3.700000047683716,
+              "totalRouteConversionMs": 153.20000100135803,
+              "maxRouteConversionMs": 3.9000000953674316,
+              "pathQueries": 46747,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 4,
+            "engine": "recast",
+            "wallClockMs": 27935.39999985695,
+            "frames": 4323,
+            "blockedFrames": 723,
+            "finalTick": 3600,
+            "requests": 46807,
+            "leaderCount": 8,
+            "repathCount": 46799,
+            "otherCommandCount": 0,
+            "movementRepaths": 46799,
+            "completed": 571,
+            "activeAtCutoff": 429,
+            "crowdStates": {
+              "completed": 571,
+              "moving": 15,
+              "stalled": 398,
+              "propagatedParked": 16,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "applied": 46802,
+              "pending": 5
+            },
+            "noPathResponses": 0,
+            "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+            "leaderResponse": {
+              "count": 8,
+              "minMs": 160.5,
+              "p50Ms": 160.69999980926514,
+              "p95Ms": 161,
+              "maxMs": 161,
+              "meanMs": 160.71250000596046
+            },
+            "repathResponse": {
+              "count": 46799,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 30.40000009536743,
+              "p95Ms": 82.70000004768372,
+              "maxMs": 118.39999985694885,
+              "meanMs": 35.27877518811229
+            },
+            "otherCommandResponse": null,
+            "leaderTelemetry": {
+              "queue": {
+                "count": 8,
+                "minMs": 0.80029296875,
+                "p50Ms": 160.800048828125,
+                "p95Ms": 161.2001953125,
+                "maxMs": 161.2001953125,
+                "meanMs": 140.85018920898438
+              },
+              "compute": {
+                "count": 8,
+                "minMs": 0.09999990463256836,
+                "p50Ms": 0.10000014305114746,
+                "p95Ms": 159.5,
+                "maxMs": 159.5,
+                "meanMs": 20.062500029802322
+              },
+              "deliveryResidual": {
+                "count": 8,
+                "minMs": -0.3002440929412842,
+                "p50Ms": -0.300048828125,
+                "p95Ms": 0.19970703125,
+                "maxMs": 0.19970703125,
+                "meanMs": -0.2001892328262329
+              },
+              "telemetryCount": 8
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 46799,
+                "minMs": 0.300048828125,
+                "p50Ms": 29.900146484375,
+                "p95Ms": 82.800048828125,
+                "maxMs": 118.60009765625,
+                "meanMs": 34.40032045915444
+              },
+              "compute": {
+                "count": 46799,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 3.1000001430511475,
+                "meanMs": 0.07505715974144106
+              },
+              "deliveryResidual": {
+                "count": 46799,
+                "minMs": -0.3003418445587158,
+                "p50Ms": -0.20029306411743164,
+                "p95Ms": 6.899804592132568,
+                "maxMs": 33.39990210533142,
+                "meanMs": 0.803397569216409
+              },
+              "telemetryCount": 46799
+            },
+            "tickWall": {
+              "count": 4323,
+              "minMs": 0,
+              "p50Ms": 1.9000000953674316,
+              "p95Ms": 3.200000047683716,
+              "maxMs": 21.40000009536743,
+              "meanMs": 1.97457783734553
+            },
+            "initialGroupApplyMs": 0.9000000953674316,
+            "leadersMissingApplyCost": 0,
+            "perActiveTickApply": {
+              "count": 1829,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.9000003337860107,
+              "meanMs": 0.043193002943786654
+            },
+            "applyExcludedWithoutCost": 0,
+            "schedulerQueue": {
+              "blockedTicks": 723,
+              "finalQueueDepth": 5,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 77.55678926671293
+            },
+            "memoryProbe": {
+              "pollCount": 18,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 34994238,
+                "totalJSHeapSize": 89394610,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14483,
+              "requestProtocolBytes": 9210810,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 0,
+              "responseWaypointBytes": 374216,
+              "registrationCount": 1,
+              "updateCount": 0,
+              "snapshotPreparationCount": 1,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 14400,
+              "compressedLayerBytes": 28143,
+              "revisionCacheEntries": 1,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 30.40000009536743,
+              "revisionBuilds": 1,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 0,
+              "mutationRebuilds": 0,
+              "totalRevisionBuildMs": 156,
+              "totalIncrementalUpdateMs": 0,
+              "maxRevisionBuildMs": 156,
+              "lastRevisionBuildMs": 156,
+              "totalRasterizeMs": 65.10000014305115,
+              "totalNavMeshBuildMs": 7.799999952316284,
+              "totalGeometryMs": 8.5,
+              "changedNavTiles": 225,
+              "rasterizedNavTiles": 225,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 0,
+              "revisionCacheHits": 46746,
+              "revisionCacheMisses": 1,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 699.6000037193298,
+              "maxPathQueryMs": 2.200000047683716,
+              "totalRouteConversionMs": 168.80000138282776,
+              "maxRouteConversionMs": 2.799999952316284,
+              "pathQueries": 46747,
+              "geometryRejections": 0,
+              "unreachableRoutes": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          }
+        ],
+        "pooled": {
+          "leaderResponse": {
+            "count": 32,
+            "minMs": 136,
+            "p50Ms": 145,
+            "p95Ms": 161,
+            "maxMs": 161,
+            "meanMs": 150.27187500149012
+          },
+          "repathResponse": {
+            "count": 187196,
+            "minMs": 0,
+            "p50Ms": 30.200000047683716,
+            "p95Ms": 80.70000004768372,
+            "maxMs": 157.09999990463257,
+            "meanMs": 34.93548686936914
+          },
+          "leaderTelemetry": {
+            "queue": {
+              "count": 32,
+              "minMs": 0.80029296875,
+              "p50Ms": 145,
+              "p95Ms": 161.10009765625,
+              "maxMs": 161.2001953125,
+              "meanMs": 131.956298828125
+            },
+            "compute": {
+              "count": 32,
+              "minMs": 0,
+              "p50Ms": 0.10000014305114746,
+              "p95Ms": 156.20000004768372,
+              "maxMs": 159.5,
+              "meanMs": 18.659374997019768
+            },
+            "deliveryResidual": {
+              "count": 32,
+              "minMs": -1.1999998092651367,
+              "p50Ms": -0.20009756088256836,
+              "p95Ms": 0.19970703125,
+              "maxMs": 0.29995131492614746,
+              "meanMs": -0.34379882365465164
+            }
+          },
+          "repathTelemetry": {
+            "queue": {
+              "count": 187196,
+              "minMs": 0.199951171875,
+              "p50Ms": 30.300048828125,
+              "p95Ms": 81,
+              "maxMs": 158.300048828125,
+              "meanMs": 34.43151656578574
+            },
+            "compute": {
+              "count": 187196,
+              "minMs": 0,
+              "p50Ms": 0.09999990463256836,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 15,
+              "meanMs": 0.07428951499074893
+            },
+            "deliveryResidual": {
+              "count": 187196,
+              "minMs": -1.2001953125,
+              "p50Ms": -0.20004892349243164,
+              "p95Ms": 5.5001466274261475,
+              "maxMs": 33.39990210533142,
+              "meanMs": 0.42968078859265196
+            }
+          },
+          "wallClock": {
+            "count": 4,
+            "minMs": 26204.5,
+            "p50Ms": 26365.900000095367,
+            "p95Ms": 27935.39999985695,
+            "maxMs": 27935.39999985695,
+            "meanMs": 26718.524999976158
+          },
+          "tickWall": {
+            "count": 17341,
+            "minMs": 0,
+            "p50Ms": 1.7000000476837158,
+            "p95Ms": 2.8000001907348633,
+            "maxMs": 21.40000009536743,
+            "meanMs": 1.7233319876618978
+          },
+          "perActiveTickApply": {
+            "count": 7316,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000014305114746,
+            "maxMs": 3.9000000953674316,
+            "meanMs": 0.03604428575233138
+          },
+          "blockedFrames": [
+            705,
+            749,
+            764,
+            723
+          ]
+        }
+      },
+      "perIterationDeltas": [
+        {
+          "iteration": 1,
+          "engineOrder": [
+            "astar",
+            "recast"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 105.20000004768372,
+            "leaderP95Ms": 104.40000009536743,
+            "leaderMaxMs": 104.40000009536743,
+            "repathP50Ms": -0.2999997138977051,
+            "repathP95Ms": -71.89999985694885,
+            "repathMaxMs": -112.89999985694885,
+            "blockedFrames": -195,
+            "wallClockMs": -3892.2000000476837,
+            "completed": 0,
+            "requests": 0
+          }
+        },
+        {
+          "iteration": 2,
+          "engineOrder": [
+            "recast",
+            "astar"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 121.20000004768372,
+            "leaderP95Ms": 119.09999990463257,
+            "leaderMaxMs": 119.09999990463257,
+            "repathP50Ms": 3.5999999046325684,
+            "repathP95Ms": -15.399999856948853,
+            "repathMaxMs": -15.100000143051147,
+            "blockedFrames": 79,
+            "wallClockMs": -2142.2999999523163,
+            "completed": 0,
+            "requests": 0
+          }
+        },
+        {
+          "iteration": 3,
+          "engineOrder": [
+            "astar",
+            "recast"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 143,
+            "leaderP95Ms": 140.400000333786,
+            "leaderMaxMs": 140.400000333786,
+            "repathP50Ms": 0.40000033378601074,
+            "repathP95Ms": -63.40000009536743,
+            "repathMaxMs": -36.200000047683716,
+            "blockedFrames": -132,
+            "wallClockMs": -3285.2000000476837,
+            "completed": 0,
+            "requests": 0
+          }
+        },
+        {
+          "iteration": 4,
+          "engineOrder": [
+            "recast",
+            "astar"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 137.7999997138977,
+            "leaderP95Ms": 136.89999985694885,
+            "leaderMaxMs": 136.89999985694885,
+            "repathP50Ms": 5.300000190734863,
+            "repathP95Ms": -7.900000095367432,
+            "repathMaxMs": 2.0999999046325684,
+            "blockedFrames": 131,
+            "wallClockMs": -547.6000001430511,
+            "completed": 0,
+            "requests": 0
+          }
+        }
+      ]
+    },
+    "narrow-mutation-120": {
+      "astar": {
+        "samples": [
+          {
+            "iteration": 1,
+            "engine": "astar",
+            "wallClockMs": 32162.10000014305,
+            "frames": 3777,
+            "blockedFrames": 177,
+            "finalTick": 3600,
+            "requests": 53709,
+            "leaderCount": 2,
+            "repathCount": 53705,
+            "otherCommandCount": 2,
+            "movementRepaths": 53705,
+            "completed": 487,
+            "activeAtCutoff": 513,
+            "crowdStates": {
+              "completed": 487,
+              "moving": 16,
+              "stalled": 490,
+              "propagatedParked": 7,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53697,
+              "pending": 10
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 19.5,
+              "p50Ms": 19.5,
+              "p95Ms": 19.5,
+              "maxMs": 19.5,
+              "meanMs": 19.5
+            },
+            "repathResponse": {
+              "count": 53705,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 2.1000001430511475,
+              "p95Ms": 43.700000047683716,
+              "maxMs": 97.70000004768372,
+              "meanMs": 8.455871893158506
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 14.599999904632568,
+              "p50Ms": 14.599999904632568,
+              "p95Ms": 15,
+              "maxMs": 15,
+              "meanMs": 14.799999952316284
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 18.099853515625,
+                "p50Ms": 18.099853515625,
+                "p95Ms": 19.2998046875,
+                "maxMs": 19.2998046875,
+                "meanMs": 18.6998291015625
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.3000001907348633,
+                "p50Ms": 0.3000001907348633,
+                "p95Ms": 1,
+                "maxMs": 1,
+                "meanMs": 0.6500000953674316
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": -0.09980487823486328,
+                "p50Ms": -0.09980487823486328,
+                "p95Ms": 0.400146484375,
+                "maxMs": 0.400146484375,
+                "meanMs": 0.15017080307006836
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53705,
+                "minMs": 0.19970703125,
+                "p50Ms": 1.300048828125,
+                "p95Ms": 43.699951171875,
+                "maxMs": 97.39990234375,
+                "meanMs": 7.600168554996625
+              },
+              "compute": {
+                "count": 53705,
+                "minMs": 0,
+                "p50Ms": 0,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 8,
+                "meanMs": 0.0633851595646775
+              },
+              "deliveryResidual": {
+                "count": 53705,
+                "minMs": -0.20009756088256836,
+                "p50Ms": -0.09999990463256836,
+                "p95Ms": 3.800097703933716,
+                "maxMs": 30.000048875808716,
+                "meanMs": 0.7923181785972033
+              },
+              "telemetryCount": 53705
+            },
+            "tickWall": {
+              "count": 3777,
+              "minMs": 0,
+              "p50Ms": 3.5,
+              "p95Ms": 4.700000047683716,
+              "maxMs": 16.799999952316284,
+              "meanMs": 3.3594122300363893
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3293,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.3999998569488525,
+              "meanMs": 0.034467052479410044
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 177,
+              "finalQueueDepth": 10,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 40.389992057188245
+            },
+            "memoryProbe": {
+              "pollCount": 23,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 121437971,
+                "totalJSHeapSize": 217505027,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 14.099999904632568,
+              "meanMs": 0.25
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 80,
+              "responseWaypointBytes": 599936,
+              "pathRequestMessages": 53709,
+              "pathResultMessages": 53709,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 2,
+              "maxWorkerSnapshotCount": 2,
+              "maxWorkerSnapshotBytes": 28800,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 2,
+            "engine": "astar",
+            "wallClockMs": 36539.5,
+            "frames": 4478,
+            "blockedFrames": 878,
+            "finalTick": 3600,
+            "requests": 53709,
+            "leaderCount": 2,
+            "repathCount": 53705,
+            "otherCommandCount": 2,
+            "movementRepaths": 53705,
+            "completed": 487,
+            "activeAtCutoff": 513,
+            "crowdStates": {
+              "completed": 487,
+              "moving": 16,
+              "stalled": 490,
+              "propagatedParked": 7,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53697,
+              "pending": 10
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 2720.800000190735,
+              "p50Ms": 2720.800000190735,
+              "p95Ms": 2721.199999809265,
+              "maxMs": 2721.199999809265,
+              "meanMs": 2721
+            },
+            "repathResponse": {
+              "count": 53705,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 2.3000001907348633,
+              "p95Ms": 66.20000004768372,
+              "maxMs": 183.79999995231628,
+              "meanMs": 12.178368867361483
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 16.59999990463257,
+              "p50Ms": 16.59999990463257,
+              "p95Ms": 16.90000009536743,
+              "maxMs": 16.90000009536743,
+              "meanMs": 16.75
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 2718,
+                "p50Ms": 2718,
+                "p95Ms": 2720.400146484375,
+                "maxMs": 2720.400146484375,
+                "meanMs": 2719.2000732421875
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.5,
+                "p50Ms": 0.5,
+                "p95Ms": 2.200000047683716,
+                "maxMs": 2.200000047683716,
+                "meanMs": 1.350000023841858
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": 0.2998533248901367,
+                "p50Ms": 0.2998533248901367,
+                "p95Ms": 0.6000001430511475,
+                "maxMs": 0.6000001430511475,
+                "meanMs": 0.4499267339706421
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53705,
+                "minMs": 0.199951171875,
+                "p50Ms": 1.5,
+                "p95Ms": 66.10009765625,
+                "maxMs": 183.7001953125,
+                "meanMs": 11.270432463261393
+              },
+              "compute": {
+                "count": 53705,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 6.699999809265137,
+                "meanMs": 0.0725593520058743
+              },
+              "deliveryResidual": {
+                "count": 53705,
+                "minMs": -0.20029306411743164,
+                "p50Ms": -0.10019540786743164,
+                "p95Ms": 4.099853515625,
+                "maxMs": 33.19985365867615,
+                "meanMs": 0.8353770520942148
+              },
+              "telemetryCount": 53705
+            },
+            "tickWall": {
+              "count": 4478,
+              "minMs": 0,
+              "p50Ms": 3.6000001430511475,
+              "p95Ms": 4.8999998569488525,
+              "maxMs": 20.600000143051147,
+              "meanMs": 3.0983698092277905
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3293,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.7000000476837158,
+              "meanMs": 0.03495293064679268
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 878,
+              "finalQueueDepth": 10,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 43.353506029477444
+            },
+            "memoryProbe": {
+              "pollCount": 23,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9557588,
+                "totalJSHeapSize": 104722004,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 47,
+              "meanMs": 0.75
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 80,
+              "responseWaypointBytes": 599936,
+              "pathRequestMessages": 53709,
+              "pathResultMessages": 53709,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 2,
+              "maxWorkerSnapshotCount": 2,
+              "maxWorkerSnapshotBytes": 28800,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 3,
+            "engine": "astar",
+            "wallClockMs": 31284.900000095367,
+            "frames": 3730,
+            "blockedFrames": 130,
+            "finalTick": 3600,
+            "requests": 53709,
+            "leaderCount": 2,
+            "repathCount": 53705,
+            "otherCommandCount": 2,
+            "movementRepaths": 53705,
+            "completed": 487,
+            "activeAtCutoff": 513,
+            "crowdStates": {
+              "completed": 487,
+              "moving": 16,
+              "stalled": 490,
+              "propagatedParked": 7,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53697,
+              "pending": 10
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 29,
+              "p50Ms": 29,
+              "p95Ms": 29.100000143051147,
+              "maxMs": 29.100000143051147,
+              "meanMs": 29.050000071525574
+            },
+            "repathResponse": {
+              "count": 53705,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 2,
+              "p95Ms": 33.799999952316284,
+              "maxMs": 80.29999995231628,
+              "meanMs": 7.119398565348295
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 13.699999809265137,
+              "p50Ms": 13.699999809265137,
+              "p95Ms": 13.899999856948853,
+              "maxMs": 13.899999856948853,
+              "meanMs": 13.799999833106995
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 27.800048828125,
+                "p50Ms": 27.800048828125,
+                "p95Ms": 28.7998046875,
+                "maxMs": 28.7998046875,
+                "meanMs": 28.2999267578125
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.39999985694885254,
+                "p50Ms": 0.39999985694885254,
+                "p95Ms": 1,
+                "maxMs": 1,
+                "meanMs": 0.6999999284744263
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": -0.09980440139770508,
+                "p50Ms": -0.09980440139770508,
+                "p95Ms": 0.199951171875,
+                "maxMs": 0.199951171875,
+                "meanMs": 0.05007338523864746
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53705,
+                "minMs": 0.19970703125,
+                "p50Ms": 1.2998046875,
+                "p95Ms": 33.599853515625,
+                "maxMs": 80.19970703125,
+                "meanMs": 6.30872591006424
+              },
+              "compute": {
+                "count": 53705,
+                "minMs": 0,
+                "p50Ms": 0,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 6.1000001430511475,
+                "meanMs": 0.0574583373448445
+              },
+              "deliveryResidual": {
+                "count": 53705,
+                "minMs": -0.20009779930114746,
+                "p50Ms": -0.09995126724243164,
+                "p95Ms": 3.5999021530151367,
+                "maxMs": 26.70004892349243,
+                "meanMs": 0.7532143179392107
+              },
+              "telemetryCount": 53705
+            },
+            "tickWall": {
+              "count": 3730,
+              "minMs": 0,
+              "p50Ms": 3.3999998569488525,
+              "p95Ms": 4.299999952316284,
+              "maxMs": 16.40000009536743,
+              "meanMs": 3.257372655561718
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3293,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.0000004768371582,
+              "meanMs": 0.03167324583109773
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 130,
+              "finalQueueDepth": 10,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 37.61045576407507
+            },
+            "memoryProbe": {
+              "pollCount": 22,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9551708,
+                "totalJSHeapSize": 107084356,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 13.099999904632568,
+              "meanMs": 0.22812499850988388
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 80,
+              "responseWaypointBytes": 599936,
+              "pathRequestMessages": 53709,
+              "pathResultMessages": 53709,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 2,
+              "maxWorkerSnapshotCount": 2,
+              "maxWorkerSnapshotBytes": 28800,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          },
+          {
+            "iteration": 4,
+            "engine": "astar",
+            "wallClockMs": 32026.200000047684,
+            "frames": 3766,
+            "blockedFrames": 166,
+            "finalTick": 3600,
+            "requests": 53709,
+            "leaderCount": 2,
+            "repathCount": 53705,
+            "otherCommandCount": 2,
+            "movementRepaths": 53705,
+            "completed": 487,
+            "activeAtCutoff": 513,
+            "crowdStates": {
+              "completed": 487,
+              "moving": 16,
+              "stalled": 490,
+              "propagatedParked": 7,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53697,
+              "pending": 10
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 18.200000047683716,
+              "p50Ms": 18.200000047683716,
+              "p95Ms": 18.299999952316284,
+              "maxMs": 18.299999952316284,
+              "meanMs": 18.25
+            },
+            "repathResponse": {
+              "count": 53705,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 2.1000001430511475,
+              "p95Ms": 40.299999952316284,
+              "maxMs": 93.29999995231628,
+              "meanMs": 8.06486174571715
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 13.399999856948853,
+              "p50Ms": 13.399999856948853,
+              "p95Ms": 13.700000047683716,
+              "maxMs": 13.700000047683716,
+              "meanMs": 13.549999952316284
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 16.89990234375,
+                "p50Ms": 16.89990234375,
+                "p95Ms": 17.900146484375,
+                "maxMs": 17.900146484375,
+                "meanMs": 17.4000244140625
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.20000004768371582,
+                "p50Ms": 0.20000004768371582,
+                "p95Ms": 1.1000001430511475,
+                "maxMs": 1.1000001430511475,
+                "meanMs": 0.6500000953674316
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": 0.19985342025756836,
+                "p50Ms": 0.19985342025756836,
+                "p95Ms": 0.20009756088256836,
+                "maxMs": 0.20009756088256836,
+                "meanMs": 0.19997549057006836
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53705,
+                "minMs": 0.099853515625,
+                "p50Ms": 1.2001953125,
+                "p95Ms": 40.199951171875,
+                "maxMs": 93.199951171875,
+                "meanMs": 7.09607769822555
+              },
+              "compute": {
+                "count": 53705,
+                "minMs": 0,
+                "p50Ms": 0,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 5.099999904632568,
+                "meanMs": 0.06208360478616318
+              },
+              "deliveryResidual": {
+                "count": 53705,
+                "minMs": -0.10024404525756836,
+                "p50Ms": -0.00014662742614746094,
+                "p95Ms": 3.999755859375,
+                "maxMs": 28.299951314926147,
+                "meanMs": 0.9067004427054377
+              },
+              "telemetryCount": 53705
+            },
+            "tickWall": {
+              "count": 3766,
+              "minMs": 0,
+              "p50Ms": 3.5,
+              "p95Ms": 4.400000095367432,
+              "maxMs": 19.799999952316284,
+              "meanMs": 3.3531598511111906
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3293,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.3000001907348633,
+              "meanMs": 0.03534770909682111
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 166,
+              "finalQueueDepth": 10,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 39.18454593733404
+            },
+            "memoryProbe": {
+              "pollCount": 22,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 9550280,
+                "totalJSHeapSize": 107343444,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": {
+              "count": 64,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 19.799999952316284,
+              "meanMs": 0.3453124985098839
+            },
+            "bytes": {
+              "fullSnapshotPayloadBytes": 14400,
+              "deltaSnapshotPayloadBytes": 80,
+              "responseWaypointBytes": 599936,
+              "pathRequestMessages": 53709,
+              "pathResultMessages": 53709,
+              "maxBatchSize": 1,
+              "snapshotPreparationCount": 2,
+              "maxWorkerSnapshotCount": 2,
+              "maxWorkerSnapshotBytes": 28800,
+              "maxPathCacheSize": 32
+            },
+            "rebuild": null
+          }
+        ],
+        "pooled": {
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 18.200000047683716,
+            "p50Ms": 19.5,
+            "p95Ms": 2721.199999809265,
+            "maxMs": 2721.199999809265,
+            "meanMs": 696.9500000178814
+          },
+          "repathResponse": {
+            "count": 214820,
+            "minMs": 0.09999990463256836,
+            "p50Ms": 2.1000001430511475,
+            "p95Ms": 44,
+            "maxMs": 183.79999995231628,
+            "meanMs": 8.954625267896358
+          },
+          "leaderTelemetry": {
+            "queue": {
+              "count": 8,
+              "minMs": 16.89990234375,
+              "p50Ms": 19.2998046875,
+              "p95Ms": 2720.400146484375,
+              "maxMs": 2720.400146484375,
+              "meanMs": 695.8999633789062
+            },
+            "compute": {
+              "count": 8,
+              "minMs": 0.20000004768371582,
+              "p50Ms": 0.5,
+              "p95Ms": 2.200000047683716,
+              "maxMs": 2.200000047683716,
+              "meanMs": 0.8375000357627869
+            },
+            "deliveryResidual": {
+              "count": 8,
+              "minMs": -0.09980487823486328,
+              "p50Ms": 0.199951171875,
+              "p95Ms": 0.6000001430511475,
+              "maxMs": 0.6000001430511475,
+              "meanMs": 0.21253660321235657
+            }
+          },
+          "repathTelemetry": {
+            "queue": {
+              "count": 214820,
+              "minMs": 0.099853515625,
+              "p50Ms": 1.300048828125,
+              "p95Ms": 43.999755859375,
+              "maxMs": 183.7001953125,
+              "meanMs": 8.068851156636953
+            },
+            "compute": {
+              "count": 214820,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 8,
+              "meanMs": 0.06387161342538987
+            },
+            "deliveryResidual": {
+              "count": 214820,
+              "minMs": -0.20029306411743164,
+              "p50Ms": -0.09995126724243164,
+              "p95Ms": 3.8998048305511475,
+              "maxMs": 33.19985365867615,
+              "meanMs": 0.8219024978340166
+            }
+          },
+          "wallClock": {
+            "count": 4,
+            "minMs": 31284.900000095367,
+            "p50Ms": 32026.200000047684,
+            "p95Ms": 36539.5,
+            "maxMs": 36539.5,
+            "meanMs": 33003.175000071526
+          },
+          "tickWall": {
+            "count": 15751,
+            "minMs": 0,
+            "p50Ms": 3.5,
+            "p95Ms": 4.6000001430511475,
+            "maxMs": 20.600000143051147,
+            "meanMs": 3.2595390770807846
+          },
+          "perActiveTickApply": {
+            "count": 13172,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000014305114746,
+            "maxMs": 1.7000000476837158,
+            "meanMs": 0.03411023451353039
+          },
+          "blockedFrames": [
+            177,
+            878,
+            130,
+            166
+          ]
+        }
+      },
+      "recast": {
+        "samples": [
+          {
+            "iteration": 1,
+            "engine": "recast",
+            "wallClockMs": 30145.799999952316,
+            "frames": 3896,
+            "blockedFrames": 296,
+            "finalTick": 3600,
+            "requests": 53098,
+            "leaderCount": 2,
+            "repathCount": 53094,
+            "otherCommandCount": 2,
+            "movementRepaths": 53094,
+            "completed": 500,
+            "activeAtCutoff": 500,
+            "crowdStates": {
+              "completed": 500,
+              "moving": 15,
+              "stalled": 473,
+              "propagatedParked": 12,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53084,
+              "pending": 12
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 162.70000004768372,
+              "p50Ms": 162.70000004768372,
+              "p95Ms": 163,
+              "maxMs": 163,
+              "meanMs": 162.85000002384186
+            },
+            "repathResponse": {
+              "count": 53094,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 2.700000047683716,
+              "p95Ms": 52.39999985694885,
+              "maxMs": 89.70000004768372,
+              "meanMs": 10.318917391214612
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 74.90000009536743,
+              "p50Ms": 74.90000009536743,
+              "p95Ms": 75,
+              "maxMs": 75,
+              "meanMs": 74.95000004768372
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 0.899658203125,
+                "p50Ms": 0.899658203125,
+                "p95Ms": 162.19970703125,
+                "maxMs": 162.19970703125,
+                "meanMs": 81.5496826171875
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.5,
+                "p50Ms": 0.5,
+                "p95Ms": 161.29999995231628,
+                "maxMs": 161.29999995231628,
+                "meanMs": 80.89999997615814
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": 0.0002930164337158203,
+                "p50Ms": 0.0002930164337158203,
+                "p95Ms": 0.8003418445587158,
+                "maxMs": 0.8003418445587158,
+                "meanMs": 0.4003174304962158
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53094,
+                "minMs": 0.099609375,
+                "p50Ms": 1.899658203125,
+                "p95Ms": 52.19970703125,
+                "maxMs": 89.699951171875,
+                "meanMs": 9.31222248512073
+              },
+              "compute": {
+                "count": 53094,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 3.8999998569488525,
+                "meanMs": 0.08326364530342134
+              },
+              "deliveryResidual": {
+                "count": 53094,
+                "minMs": -0.09999990463256836,
+                "p50Ms": 0.00009775161743164062,
+                "p95Ms": 4.4000489711761475,
+                "maxMs": 27.10019540786743,
+                "meanMs": 0.9234312607904619
+              },
+              "telemetryCount": 53094
+            },
+            "tickWall": {
+              "count": 3896,
+              "minMs": 0,
+              "p50Ms": 3.200000047683716,
+              "p95Ms": 5.5,
+              "maxMs": 16.40000009536743,
+              "meanMs": 3.202592402145848
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3274,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 1.2999992370605469,
+              "meanMs": 0.029810629389092336
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 296,
+              "finalQueueDepth": 12,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 42.45123203285421
+            },
+            "memoryProbe": {
+              "pollCount": 19,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 28644050,
+                "totalJSHeapSize": 90705330,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14680,
+              "requestProtocolBytes": 10469282,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 80,
+              "responseWaypointBytes": 600116,
+              "registrationCount": 1,
+              "updateCount": 1,
+              "snapshotPreparationCount": 2,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 28800,
+              "compressedLayerBytes": 29555,
+              "revisionCacheEntries": 2,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 26.200000047683716,
+              "revisionBuilds": 2,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 1,
+              "mutationRebuilds": 1,
+              "totalRevisionBuildMs": 233.70000004768372,
+              "totalIncrementalUpdateMs": 74.40000009536743,
+              "maxRevisionBuildMs": 159.29999995231628,
+              "lastRevisionBuildMs": 74.40000009536743,
+              "totalRasterizeMs": 94.30000019073486,
+              "totalNavMeshBuildMs": 12.299999952316284,
+              "totalGeometryMs": 7.1000001430511475,
+              "changedNavTiles": 229,
+              "rasterizedNavTiles": 250,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 200,
+              "revisionCacheHits": 53049,
+              "revisionCacheMisses": 2,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 1038.4000000953674,
+              "maxPathQueryMs": 2.6999998092651367,
+              "totalRouteConversionMs": 223.40000009536743,
+              "maxRouteConversionMs": 1.5999999046325684,
+              "pathQueries": 53051,
+              "geometryRejections": 0,
+              "unreachableRoutes": 16,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 2,
+            "engine": "recast",
+            "wallClockMs": 31179.299999952316,
+            "frames": 3909,
+            "blockedFrames": 309,
+            "finalTick": 3600,
+            "requests": 53098,
+            "leaderCount": 2,
+            "repathCount": 53094,
+            "otherCommandCount": 2,
+            "movementRepaths": 53094,
+            "completed": 500,
+            "activeAtCutoff": 500,
+            "crowdStates": {
+              "completed": 500,
+              "moving": 15,
+              "stalled": 473,
+              "propagatedParked": 12,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53084,
+              "pending": 12
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 173.09999990463257,
+              "p50Ms": 173.09999990463257,
+              "p95Ms": 173.29999995231628,
+              "maxMs": 173.29999995231628,
+              "meanMs": 173.19999992847443
+            },
+            "repathResponse": {
+              "count": 53094,
+              "minMs": 0.19999980926513672,
+              "p50Ms": 3.299999952316284,
+              "p95Ms": 49.39999985694885,
+              "maxMs": 94,
+              "meanMs": 10.460605718853577
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 74.40000009536743,
+              "p50Ms": 74.40000009536743,
+              "p95Ms": 74.59999990463257,
+              "maxMs": 74.59999990463257,
+              "meanMs": 74.5
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 2.599853515625,
+                "p50Ms": 2.599853515625,
+                "p95Ms": 170.899658203125,
+                "maxMs": 170.899658203125,
+                "meanMs": 86.749755859375
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.20000004768371582,
+                "p50Ms": 0.20000004768371582,
+                "p95Ms": 168.20000004768372,
+                "maxMs": 168.20000004768372,
+                "meanMs": 84.20000004768372
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": 2.0003416538238525,
+                "p50Ms": 2.0003416538238525,
+                "p95Ms": 2.5001463890075684,
+                "maxMs": 2.5001463890075684,
+                "meanMs": 2.2502440214157104
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53094,
+                "minMs": 0.19970703125,
+                "p50Ms": 2.39990234375,
+                "p95Ms": 48.7998046875,
+                "maxMs": 93.39990234375,
+                "meanMs": 9.448439278611401
+              },
+              "compute": {
+                "count": 53094,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 39.5,
+                "meanMs": 0.09299732498445991
+              },
+              "deliveryResidual": {
+                "count": 53094,
+                "minMs": -0.20004868507385254,
+                "p50Ms": -0.09990215301513672,
+                "p95Ms": 4.599999904632568,
+                "maxMs": 31.300097703933716,
+                "meanMs": 0.9191691152577158
+              },
+              "telemetryCount": 53094
+            },
+            "tickWall": {
+              "count": 3909,
+              "minMs": 0,
+              "p50Ms": 3.5,
+              "p95Ms": 6.1000001430511475,
+              "maxMs": 14.200000047683716,
+              "meanMs": 3.3917114335150633
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3274,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.700000047683716,
+              "meanMs": 0.03503360031724486
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 309,
+              "finalQueueDepth": 12,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 41.95727807623433
+            },
+            "memoryProbe": {
+              "pollCount": 20,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 32107526,
+                "totalJSHeapSize": 90181042,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14680,
+              "requestProtocolBytes": 10469811,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 80,
+              "responseWaypointBytes": 600116,
+              "registrationCount": 1,
+              "updateCount": 1,
+              "snapshotPreparationCount": 2,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 28800,
+              "compressedLayerBytes": 29555,
+              "revisionCacheEntries": 2,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 34.10000014305115,
+              "revisionBuilds": 2,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 1,
+              "mutationRebuilds": 1,
+              "totalRevisionBuildMs": 239.70000004768372,
+              "totalIncrementalUpdateMs": 74,
+              "maxRevisionBuildMs": 165.70000004768372,
+              "lastRevisionBuildMs": 74,
+              "totalRasterizeMs": 92.29999995231628,
+              "totalNavMeshBuildMs": 13.100000143051147,
+              "totalGeometryMs": 6.299999952316284,
+              "changedNavTiles": 229,
+              "rasterizedNavTiles": 250,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 200,
+              "revisionCacheHits": 53049,
+              "revisionCacheMisses": 2,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 1260.1999790668488,
+              "maxPathQueryMs": 36.40000009536743,
+              "totalRouteConversionMs": 250.90000128746033,
+              "maxRouteConversionMs": 1.2999999523162842,
+              "pathQueries": 53051,
+              "geometryRejections": 0,
+              "unreachableRoutes": 16,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 3,
+            "engine": "recast",
+            "wallClockMs": 29250.5,
+            "frames": 3907,
+            "blockedFrames": 307,
+            "finalTick": 3600,
+            "requests": 53098,
+            "leaderCount": 2,
+            "repathCount": 53094,
+            "otherCommandCount": 2,
+            "movementRepaths": 53094,
+            "completed": 500,
+            "activeAtCutoff": 500,
+            "crowdStates": {
+              "completed": 500,
+              "moving": 15,
+              "stalled": 473,
+              "propagatedParked": 12,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53084,
+              "pending": 12
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 153.10000014305115,
+              "p50Ms": 153.10000014305115,
+              "p95Ms": 153.40000009536743,
+              "maxMs": 153.40000009536743,
+              "meanMs": 153.2500001192093
+            },
+            "repathResponse": {
+              "count": 53094,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 2.8999998569488525,
+              "p95Ms": 54.5,
+              "maxMs": 97,
+              "meanMs": 10.477008701053345
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 74.39999985694885,
+              "p50Ms": 74.39999985694885,
+              "p95Ms": 74.59999990463257,
+              "maxMs": 74.59999990463257,
+              "meanMs": 74.49999988079071
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 0.900146484375,
+                "p50Ms": 0.900146484375,
+                "p95Ms": 153.2001953125,
+                "maxMs": 153.2001953125,
+                "meanMs": 77.0501708984375
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.10000014305114746,
+                "p50Ms": 0.10000014305114746,
+                "p95Ms": 152,
+                "maxMs": 152,
+                "meanMs": 76.05000007152557
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": -0.2001953125,
+                "p50Ms": -0.2001953125,
+                "p95Ms": 0.49985361099243164,
+                "maxMs": 0.49985361099243164,
+                "meanMs": 0.14982914924621582
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53094,
+                "minMs": 0.199951171875,
+                "p50Ms": 2.000244140625,
+                "p95Ms": 54.60009765625,
+                "maxMs": 96.900146484375,
+                "meanMs": 9.621995149154683
+              },
+              "compute": {
+                "count": 53094,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 7.5,
+                "meanMs": 0.0841130829038838
+              },
+              "deliveryResidual": {
+                "count": 53094,
+                "minMs": -0.20024418830871582,
+                "p50Ms": -0.10014653205871582,
+                "p95Ms": 4.099999904632568,
+                "maxMs": 28.699853658676147,
+                "meanMs": 0.7709004689947775
+              },
+              "telemetryCount": 53094
+            },
+            "tickWall": {
+              "count": 3907,
+              "minMs": 0,
+              "p50Ms": 2.8000001907348633,
+              "p95Ms": 5.299999952316284,
+              "maxMs": 16.40000009536743,
+              "meanMs": 2.949270541081503
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3274,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.8999998569488525,
+              "meanMs": 0.03323152106057309
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 307,
+              "finalQueueDepth": 12,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 42.86562579984643
+            },
+            "memoryProbe": {
+              "pollCount": 19,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 32786886,
+                "totalJSHeapSize": 90705330,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14680,
+              "requestProtocolBytes": 10406153,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 80,
+              "responseWaypointBytes": 600116,
+              "registrationCount": 1,
+              "updateCount": 1,
+              "snapshotPreparationCount": 2,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 28800,
+              "compressedLayerBytes": 29555,
+              "revisionCacheEntries": 2,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 24.40000009536743,
+              "revisionBuilds": 2,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 1,
+              "mutationRebuilds": 1,
+              "totalRevisionBuildMs": 222.5,
+              "totalIncrementalUpdateMs": 73.09999990463257,
+              "maxRevisionBuildMs": 149.40000009536743,
+              "lastRevisionBuildMs": 73.09999990463257,
+              "totalRasterizeMs": 82.90000009536743,
+              "totalNavMeshBuildMs": 14.799999952316284,
+              "totalGeometryMs": 5.1000001430511475,
+              "changedNavTiles": 229,
+              "rasterizedNavTiles": 250,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 200,
+              "revisionCacheHits": 53049,
+              "revisionCacheMisses": 2,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 1075.6999804973602,
+              "maxPathQueryMs": 3.5999999046325684,
+              "totalRouteConversionMs": 223.4000062942505,
+              "maxRouteConversionMs": 2,
+              "pathQueries": 53051,
+              "geometryRejections": 0,
+              "unreachableRoutes": 16,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          },
+          {
+            "iteration": 4,
+            "engine": "recast",
+            "wallClockMs": 29813.599999904633,
+            "frames": 3914,
+            "blockedFrames": 314,
+            "finalTick": 3600,
+            "requests": 53098,
+            "leaderCount": 2,
+            "repathCount": 53094,
+            "otherCommandCount": 2,
+            "movementRepaths": 53094,
+            "completed": 500,
+            "activeAtCutoff": 500,
+            "crowdStates": {
+              "completed": 500,
+              "moving": 15,
+              "stalled": 473,
+              "propagatedParked": 12,
+              "parkedNoActivity": 0,
+              "awaitingGroupPath": 0,
+              "otherActivity": 0
+            },
+            "outcomes": {
+              "stale-discarded": 2,
+              "applied": 53084,
+              "pending": 12
+            },
+            "noPathResponses": 16,
+            "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+            "leaderResponse": {
+              "count": 2,
+              "minMs": 132,
+              "p50Ms": 132,
+              "p95Ms": 132,
+              "maxMs": 132,
+              "meanMs": 132
+            },
+            "repathResponse": {
+              "count": 53094,
+              "minMs": 0.09999990463256836,
+              "p50Ms": 3.200000047683716,
+              "p95Ms": 49.80000019073486,
+              "maxMs": 103.20000004768372,
+              "meanMs": 10.438119184761149
+            },
+            "otherCommandResponse": {
+              "count": 2,
+              "minMs": 66,
+              "p50Ms": 66,
+              "p95Ms": 66.29999995231628,
+              "maxMs": 66.29999995231628,
+              "meanMs": 66.14999997615814
+            },
+            "leaderTelemetry": {
+              "queue": {
+                "count": 2,
+                "minMs": 1.500244140625,
+                "p50Ms": 1.500244140625,
+                "p95Ms": 131.800048828125,
+                "maxMs": 131.800048828125,
+                "meanMs": 66.650146484375
+              },
+              "compute": {
+                "count": 2,
+                "minMs": 0.20000004768371582,
+                "p50Ms": 0.20000004768371582,
+                "p95Ms": 130.10000014305115,
+                "maxMs": 130.10000014305115,
+                "meanMs": 65.15000009536743
+              },
+              "deliveryResidual": {
+                "count": 2,
+                "minMs": -0.00004887580871582031,
+                "p50Ms": -0.00004887580871582031,
+                "p95Ms": 0.39975571632385254,
+                "maxMs": 0.39975571632385254,
+                "meanMs": 0.19985342025756836
+              },
+              "telemetryCount": 2
+            },
+            "repathTelemetry": {
+              "queue": {
+                "count": 53094,
+                "minMs": 0.10009765625,
+                "p50Ms": 2.30029296875,
+                "p95Ms": 49.500244140625,
+                "maxMs": 103.2001953125,
+                "meanMs": 9.390057384772467
+              },
+              "compute": {
+                "count": 53094,
+                "minMs": 0,
+                "p50Ms": 0.09999990463256836,
+                "p95Ms": 0.20000004768371582,
+                "maxMs": 10.200000047683716,
+                "meanMs": 0.09067126240448102
+              },
+              "deliveryResidual": {
+                "count": 53094,
+                "minMs": -0.100341796875,
+                "p50Ms": -0.00019550323486328125,
+                "p95Ms": 4.499804735183716,
+                "maxMs": 32.399853467941284,
+                "meanMs": 0.9573905375842011
+              },
+              "telemetryCount": 53094
+            },
+            "tickWall": {
+              "count": 3914,
+              "minMs": 0,
+              "p50Ms": 3,
+              "p95Ms": 5.400000095367432,
+              "maxMs": 16.5,
+              "meanMs": 3.03454266602005
+            },
+            "initialGroupApplyMs": null,
+            "leadersMissingApplyCost": 2,
+            "perActiveTickApply": {
+              "count": 3274,
+              "minMs": 0,
+              "p50Ms": 0,
+              "p95Ms": 0.10000014305114746,
+              "maxMs": 3.799999713897705,
+              "meanMs": 0.032284667452589066
+            },
+            "applyExcludedWithoutCost": 2,
+            "schedulerQueue": {
+              "blockedTicks": 314,
+              "finalQueueDepth": 12,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 41.809402146142055
+            },
+            "memoryProbe": {
+              "pollCount": 19,
+              "heapPollCount": 0,
+              "maxWorkerUsedJSHeapBytes": null,
+              "maxWorkerTotalJSHeapBytes": null,
+              "pageMemoryAfter": {
+                "usedJSHeapSize": 34184394,
+                "totalJSHeapSize": 88608178,
+                "jsHeapSizeLimit": 4395630592
+              }
+            },
+            "deliveryDiagnosticRtt": null,
+            "bytes": {
+              "registrationUpdateProtocolBytes": 14680,
+              "requestProtocolBytes": 10437408,
+              "snapshotFullPayloadBytes": 14400,
+              "snapshotDeltaPayloadBytes": 80,
+              "responseWaypointBytes": 600116,
+              "registrationCount": 1,
+              "updateCount": 1,
+              "snapshotPreparationCount": 2,
+              "mainRetainedSnapshotCount": 1,
+              "mainRetainedSnapshotBytes": 14400,
+              "snapshotCacheBytes": 28800,
+              "compressedLayerBytes": 29555,
+              "revisionCacheEntries": 2,
+              "revisionCacheCapacity": 2
+            },
+            "rebuild": {
+              "wasmInitializationMs": 26.5,
+              "revisionBuilds": 2,
+              "fullRasterRevisionBuilds": 1,
+              "incrementalRevisionBuilds": 1,
+              "mutationRebuilds": 1,
+              "totalRevisionBuildMs": 193.5,
+              "totalIncrementalUpdateMs": 65.59999990463257,
+              "maxRevisionBuildMs": 127.90000009536743,
+              "lastRevisionBuildMs": 65.59999990463257,
+              "totalRasterizeMs": 69.20000004768372,
+              "totalNavMeshBuildMs": 12.700000047683716,
+              "totalGeometryMs": 5.799999952316284,
+              "changedNavTiles": 229,
+              "rasterizedNavTiles": 250,
+              "maxRasterizedNavTilesPerRevision": 225,
+              "reusedCompressedLayers": 200,
+              "revisionCacheHits": 53049,
+              "revisionCacheMisses": 2,
+              "revisionCacheEvictions": 0,
+              "ephemeralSnapshotBuilds": 0,
+              "outOfOrderRebuilds": 0,
+              "totalPathQueryMs": 1203.7000286579132,
+              "maxPathQueryMs": 4.900000095367432,
+              "totalRouteConversionMs": 238.39999508857727,
+              "maxRouteConversionMs": 4.799999952316284,
+              "pathQueries": 53051,
+              "geometryRejections": 0,
+              "unreachableRoutes": 16,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "workerErrorCount": 0
+            }
+          }
+        ],
+        "pooled": {
+          "leaderResponse": {
+            "count": 8,
+            "minMs": 132,
+            "p50Ms": 153.40000009536743,
+            "p95Ms": 173.29999995231628,
+            "maxMs": 173.29999995231628,
+            "meanMs": 155.3250000178814
+          },
+          "repathResponse": {
+            "count": 212376,
+            "minMs": 0.09999990463256836,
+            "p50Ms": 3,
+            "p95Ms": 51.5,
+            "maxMs": 103.20000004768372,
+            "meanMs": 10.42366274897067
+          },
+          "leaderTelemetry": {
+            "queue": {
+              "count": 8,
+              "minMs": 0.899658203125,
+              "p50Ms": 2.599853515625,
+              "p95Ms": 170.899658203125,
+              "maxMs": 170.899658203125,
+              "meanMs": 77.99993896484375
+            },
+            "compute": {
+              "count": 8,
+              "minMs": 0.10000014305114746,
+              "p50Ms": 0.5,
+              "p95Ms": 168.20000004768372,
+              "maxMs": 168.20000004768372,
+              "meanMs": 76.57500004768372
+            },
+            "deliveryResidual": {
+              "count": 8,
+              "minMs": -0.2001953125,
+              "p50Ms": 0.39975571632385254,
+              "p95Ms": 2.5001463890075684,
+              "maxMs": 2.5001463890075684,
+              "meanMs": 0.7500610053539276
+            }
+          },
+          "repathTelemetry": {
+            "queue": {
+              "count": 212376,
+              "minMs": 0.099609375,
+              "p50Ms": 2.100341796875,
+              "p95Ms": 51.399658203125,
+              "maxMs": 103.2001953125,
+              "meanMs": 9.443178574414821
+            },
+            "compute": {
+              "count": 212376,
+              "minMs": 0,
+              "p50Ms": 0.09999990463256836,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 39.5,
+              "meanMs": 0.08776132889906152
+            },
+            "deliveryResidual": {
+              "count": 212376,
+              "minMs": -0.20024418830871582,
+              "p50Ms": -0.09975600242614746,
+              "p95Ms": 4.400048732757568,
+              "maxMs": 32.399853467941284,
+              "meanMs": 0.892722845656789
+            }
+          },
+          "wallClock": {
+            "count": 4,
+            "minMs": 29250.5,
+            "p50Ms": 29813.599999904633,
+            "p95Ms": 31179.299999952316,
+            "maxMs": 31179.299999952316,
+            "meanMs": 30097.299999952316
+          },
+          "tickWall": {
+            "count": 15626,
+            "minMs": 0,
+            "p50Ms": 3.1999998092651367,
+            "p95Ms": 5.5,
+            "maxMs": 16.5,
+            "meanMs": 3.144470753307213
+          },
+          "perActiveTickApply": {
+            "count": 13096,
+            "minMs": 0,
+            "p50Ms": 0,
+            "p95Ms": 0.10000014305114746,
+            "maxMs": 3.8999998569488525,
+            "meanMs": 0.032590104554874835
+          },
+          "blockedFrames": [
+            296,
+            309,
+            307,
+            314
+          ]
+        }
+      },
+      "perIterationDeltas": [
+        {
+          "iteration": 1,
+          "engineOrder": [
+            "astar",
+            "recast"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 143.20000004768372,
+            "leaderP95Ms": 143.5,
+            "leaderMaxMs": 143.5,
+            "repathP50Ms": 0.5999999046325684,
+            "repathP95Ms": 8.699999809265137,
+            "repathMaxMs": -8,
+            "blockedFrames": 119,
+            "wallClockMs": -2016.3000001907349,
+            "completed": 13,
+            "requests": -611
+          }
+        },
+        {
+          "iteration": 2,
+          "engineOrder": [
+            "recast",
+            "astar"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": -2547.7000002861023,
+            "leaderP95Ms": -2547.899999856949,
+            "leaderMaxMs": -2547.899999856949,
+            "repathP50Ms": 0.9999997615814209,
+            "repathP95Ms": -16.800000190734863,
+            "repathMaxMs": -89.79999995231628,
+            "blockedFrames": -569,
+            "wallClockMs": -5360.200000047684,
+            "completed": 13,
+            "requests": -611
+          }
+        },
+        {
+          "iteration": 3,
+          "engineOrder": [
+            "astar",
+            "recast"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 124.10000014305115,
+            "leaderP95Ms": 124.29999995231628,
+            "leaderMaxMs": 124.29999995231628,
+            "repathP50Ms": 0.8999998569488525,
+            "repathP95Ms": 20.700000047683716,
+            "repathMaxMs": 16.700000047683716,
+            "blockedFrames": 177,
+            "wallClockMs": -2034.4000000953674,
+            "completed": 13,
+            "requests": -611
+          }
+        },
+        {
+          "iteration": 4,
+          "engineOrder": [
+            "recast",
+            "astar"
+          ],
+          "recastMinusAstar": {
+            "leaderP50Ms": 113.79999995231628,
+            "leaderP95Ms": 113.70000004768372,
+            "leaderMaxMs": 113.70000004768372,
+            "repathP50Ms": 1.0999999046325684,
+            "repathP95Ms": 9.500000238418579,
+            "repathMaxMs": 9.900000095367432,
+            "blockedFrames": 148,
+            "wallClockMs": -2212.600000143051,
+            "completed": 13,
+            "requests": -611
+          }
+        }
+      ]
+    }
+  }
+}

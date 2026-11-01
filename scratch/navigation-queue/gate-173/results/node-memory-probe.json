@@ -1,0 +1,95 @@
+{
+  "schema": "wayfinder-173-node-wasm-memory-probe-v1",
+  "evidenceScope": "node-process-memoryUsage-around-combined-recast-engine; not browser allocator telemetry",
+  "node": "v24.22.1",
+  "rows": [
+    {
+      "label": "before-init",
+      "rss": 95797248,
+      "heapUsed": 15706872,
+      "heapTotal": 30556160,
+      "external": 4204651,
+      "arrayBuffers": 1682911
+    },
+    {
+      "label": "after-wasm-init",
+      "rss": 110034944,
+      "heapUsed": 14319744,
+      "heapTotal": 32866304,
+      "external": 75553559,
+      "arrayBuffers": 4677731
+    },
+    {
+      "label": "after-initial-full-build",
+      "rss": 123961344,
+      "heapUsed": 22153992,
+      "heapTotal": 32866304,
+      "external": 75659880,
+      "arrayBuffers": 5836676
+    },
+    {
+      "label": "after-first-incremental-revision",
+      "rss": 131809280,
+      "heapUsed": 19268808,
+      "heapTotal": 32866304,
+      "external": 75662446,
+      "arrayBuffers": 5839242
+    },
+    {
+      "label": "after-10-revision-churn",
+      "rss": 146751488,
+      "heapUsed": 24459320,
+      "heapTotal": 34799616,
+      "external": 76890901,
+      "arrayBuffers": 7067697
+    },
+    {
+      "label": "after-1000-queries-same-revision",
+      "rss": 147243008,
+      "heapUsed": 21284080,
+      "heapTotal": 35586048,
+      "external": 74744307,
+      "arrayBuffers": 4921103
+    },
+    {
+      "label": "after-dispose",
+      "rss": 147243008,
+      "heapUsed": 21290008,
+      "heapTotal": 35586048,
+      "external": 74744307,
+      "arrayBuffers": 4921103
+    },
+    {
+      "label": "after-dispose-and-gc",
+      "rss": 147079168,
+      "heapUsed": 14852248,
+      "heapTotal": 34586624,
+      "external": 74744307,
+      "arrayBuffers": 4905075
+    }
+  ],
+  "deltasExternalBytes": {
+    "wasmInit": 71348908,
+    "initialBuild": 106321,
+    "firstIncremental": 2566,
+    "churnToQueries": -918139
+  },
+  "initialMetrics": {
+    "compressedLayerBytes": 29099,
+    "rasterizedNavTiles": 225,
+    "revisionCacheEntries": 1,
+    "snapshotCacheBytes": 14400
+  },
+  "finalMetrics": {
+    "compressedLayerBytes": 29099,
+    "rasterizedNavTiles": 315,
+    "reusedCompressedLayers": 2160,
+    "revisionCacheEntries": 2,
+    "revisionCacheCapacity": 2,
+    "snapshotCacheBytes": 28800,
+    "revisionBuilds": 11,
+    "incrementalRevisionBuilds": 10,
+    "totalRevisionBuildMs": 0,
+    "totalIncrementalUpdateMs": 0
+  }
+}
