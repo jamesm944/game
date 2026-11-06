@@ -160,6 +160,7 @@ side-by-side that led to the mix.
 
 ## Verdict
 
-D-final — Crown & Chronicle with E's crown pulse — is the recommended
-synthesis. Record the user's sign-off on issue #149, then fold it into the
-real HUD and delete this directory.
+D-final — Crown & Chronicle with E's crown pulse — is the locked
+synthesis ([ADR-0011](../docs/adr/0011-crown-and-chronicle-hud.md)). The
+user signed off on 2026-11-06; fold it into the real HUD, then delete this
+directory.
