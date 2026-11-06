@@ -2143,9 +2143,9 @@
         z-index: 30;
         height: 60px;
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto auto;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         padding: 0 14px;
         background:
           repeating-linear-gradient(
@@ -2238,8 +2238,8 @@
       .vh-res .res {
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 5px 8px;
+        gap: 5px;
+        padding: 5px 7px;
         border-left: 1px solid rgba(255, 255, 255, 0.055);
         white-space: nowrap;
       }
@@ -2322,6 +2322,115 @@
           #14100a;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
         white-space: nowrap;
+      }
+
+      .vh-favor {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 8px 5px 7px;
+        border: 1px solid rgba(214, 178, 94, 0.38);
+        background:
+          linear-gradient(180deg, rgba(80, 61, 25, 0.34), rgba(20, 16, 8, 0.85)),
+          #14100a;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+      }
+
+      .vh-favor-star {
+        color: var(--gold);
+        font-size: 15px;
+        line-height: 1;
+        text-shadow: 0 0 7px rgba(214, 178, 94, 0.45);
+      }
+
+      .vh-favor-copy {
+        display: grid;
+        line-height: 1.05;
+      }
+
+      .vh-favor-copy b {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gold-2);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-favor-copy span {
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .vh-macro-pulse {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        margin: 2px 0 8px;
+        border: 1px solid rgba(214, 178, 94, 0.24);
+        background: rgba(0, 0, 0, 0.34);
+      }
+
+      .vh-macro-cell {
+        min-width: 0;
+        padding: 5px 6px 4px;
+        border-left: 1px solid rgba(255, 255, 255, 0.055);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent);
+      }
+
+      .vh-macro-cell:first-child {
+        border-left: 0;
+      }
+
+      .vh-macro-cell > span {
+        display: block;
+        overflow: hidden;
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: var(--muted);
+      }
+
+      .vh-macro-cell > div {
+        display: flex;
+        align-items: baseline;
+        gap: 3px;
+        margin-top: 2px;
+      }
+
+      .vh-macro-cell b {
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-macro-cell small {
+        font-size: 8px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-macro-cell.gold b {
+        color: var(--gold-2);
+      }
+
+      .vh-macro-cell.good b {
+        color: #bfe3a8;
+      }
+
+      .vh-macro-cell.warn b {
+        color: #e8c06a;
+      }
+
+      .vh-macro-cell.danger b {
+        color: #f0a79e;
       }
 
       .vh-age-ring {
@@ -2986,7 +3095,7 @@
       }
 
       .vh-select-ring::after {
-        content: "RIVER KEEP · SELECTED";
+        content: var(--sel-label, "RIVER KEEP · SELECTED");
         position: absolute;
         left: 50%;
         bottom: -18px;
@@ -3862,6 +3971,26 @@
         }
       }
 
+      @media (max-width: 1440px) {
+        .vh-insp-body .vh-buffer {
+          padding: 2px 0;
+        }
+        .vh-insp-body .vh-insp-label {
+          margin-top: 3px;
+        }
+        .vh-insp-head .vh-squad-mark,
+        .vh-insp-head .portrait {
+          width: 40px;
+          height: 40px;
+        }
+        .vh-insp-body .vh-insp-copy > span:not(.chip) {
+          display: none;
+        }
+        .vh-insp-body .vh-thought {
+          padding: 3px 0;
+        }
+      }
+
       @media (max-width: 1100px) {
         .vh-top {
           gap: 8px;
@@ -3887,6 +4016,9 @@
         }
         .vh-res .res b {
           font-size: 12px;
+        }
+        .vh-favor {
+          display: none;
         }
         .vh-age {
           padding: 4px 8px 4px 4px;
@@ -4001,6 +4133,392 @@
         .vh-toasts .vh-toast:nth-child(3) {
           display: none;
         }
+      }
+
+      /* ---------- final synthesis: realm, squad, workplace ---------- */
+      .vh-panel-tab {
+        padding: 9px 2px 8px;
+        font-size: 9px;
+        letter-spacing: 0.09em;
+      }
+
+      .vh-insp-tab {
+        padding: 8px 2px 7px;
+        font-size: 8.5px;
+        letter-spacing: 0.05em;
+      }
+
+      .vh-insp-body .vh-insp-label {
+        margin-top: 5px;
+      }
+
+      .vh-subtabs {
+        display: flex;
+        gap: 4px;
+        margin: 2px 0 8px;
+      }
+
+      .vh-subtab {
+        flex: 1;
+        height: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: linear-gradient(180deg, #1c1f24, #101216);
+        color: var(--muted);
+        font-size: 8.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .vh-subtab.active {
+        color: var(--gold-2);
+        border-color: rgba(214, 178, 94, 0.55);
+        background: linear-gradient(180deg, #3a2f16, #17130a);
+      }
+
+      .vh-tax {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 0 7px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .vh-tax label {
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .vh-tax input[type="range"] {
+        flex: 1;
+        min-width: 0;
+        accent-color: #d6b25e;
+      }
+
+      .vh-tax b {
+        font-size: 12px;
+        color: var(--gold-2);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-tax small {
+        display: block;
+        font-size: 8px;
+        color: var(--green);
+        white-space: nowrap;
+      }
+
+      .vh-strata {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 3px;
+      }
+
+      .vh-strata th {
+        padding: 3px 0;
+        font-size: 7.5px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-align: right;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .vh-strata th:first-child,
+      .vh-strata td:first-child {
+        text-align: left;
+      }
+
+      .vh-strata td {
+        padding: 3px 0;
+        font-size: 9px;
+        color: var(--text);
+        text-align: right;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-strata td:first-child {
+        color: var(--muted);
+      }
+
+      .vh-strata td.hot {
+        color: #f0a79e;
+        font-weight: 700;
+      }
+
+      .vh-realm-note {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 8.5px;
+        color: var(--muted);
+      }
+
+      .vh-realm-note b {
+        color: var(--gold-2);
+        font-weight: 700;
+      }
+
+      .vh-bill {
+        padding: 7px 8px;
+        border: 1px solid rgba(214, 178, 94, 0.28);
+        background: rgba(214, 178, 94, 0.06);
+        margin-top: 2px;
+      }
+
+      .vh-bill-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: baseline;
+      }
+
+      .vh-bill-head b {
+        font-size: 10.5px;
+        color: var(--text);
+      }
+
+      .vh-bill-head time {
+        font-size: 9px;
+        color: #ffd98a;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-bill p {
+        margin: 3px 0 5px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-vote {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 8.5px;
+        color: var(--muted);
+      }
+
+      .vh-vote .bar {
+        flex: 1;
+        height: 5px;
+      }
+
+      .vh-vote b {
+        color: var(--gold-2);
+      }
+
+      .vh-vote .vh-subtab {
+        flex: none;
+        width: 46px;
+        height: 18px;
+        font-size: 7.5px;
+      }
+
+      .vh-market-row b.up {
+        color: var(--green);
+      }
+
+      .vh-faction {
+        display: grid;
+        grid-template-columns: 18px 1fr 32px;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-faction .seal {
+        width: 16px;
+        height: 16px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(214, 178, 94, 0.35);
+        color: var(--gold-2);
+        font-size: 8px;
+      }
+
+      .vh-faction b {
+        text-align: right;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-market-head,
+      .vh-market-row {
+        display: grid;
+        grid-template-columns: 1fr 38px 44px 38px;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .vh-market-head {
+        padding: 3px 0;
+        font-size: 7.5px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .vh-market-row {
+        padding: 4px 0;
+        font-size: 9px;
+        color: var(--text);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-market-row span:nth-child(2),
+      .vh-market-row span:nth-child(3) {
+        text-align: right;
+        color: var(--muted);
+      }
+
+      .vh-market-row b {
+        text-align: right;
+        font-size: 9px;
+        color: var(--green);
+      }
+
+      .vh-market-row b.down {
+        color: #f0a79e;
+      }
+
+      .vh-market-row b.flat {
+        color: var(--muted);
+      }
+
+      .vh-thought {
+        display: grid;
+        grid-template-columns: 1fr 34px;
+        gap: 6px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-thought b {
+        text-align: right;
+        font-size: 9px;
+        color: var(--green);
+      }
+
+      .vh-thought b.bad {
+        color: #f0a79e;
+      }
+
+      .vh-thought-net {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0 0;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-thought-net b {
+        color: var(--gold-2);
+      }
+
+      .vh-buffer {
+        display: grid;
+        grid-template-columns: 1fr 52px;
+        gap: 5px;
+        padding: 4px 0;
+        font-size: 9px;
+        color: var(--muted);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .vh-buffer b {
+        text-align: right;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .vh-buffer .bar {
+        grid-column: 1 / -1;
+        height: 3px;
+        margin-top: 1px;
+      }
+
+      .vh-squad-mark {
+        width: 44px;
+        height: 44px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(214, 178, 94, 0.4);
+        background: radial-gradient(circle at 50% 35%, rgba(214, 178, 94, 0.18), rgba(0, 0, 0, 0.5));
+        color: var(--gold-2);
+      }
+
+      .vh-squad-mark .ico {
+        width: 24px;
+        height: 24px;
+      }
+
+      .vh-squad-counters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .vh-squad-counters .chip {
+        font-size: 8.5px;
+      }
+
+      .vh-squad-counters .chip.good {
+        color: #bfe3a8;
+        border-color: rgba(120, 180, 90, 0.4);
+      }
+
+      .vh-squad-counters .chip.bad {
+        color: #f0a79e;
+        border-color: rgba(200, 90, 80, 0.4);
+      }
+
+      .vh-recipe {
+        padding: 7px 8px;
+        border: 1px solid rgba(214, 178, 94, 0.28);
+        background: rgba(214, 178, 94, 0.05);
+        margin: 2px 0 6px;
+      }
+
+      .vh-recipe b {
+        display: block;
+        font-size: 10px;
+        color: var(--gold-2);
+      }
+
+      .vh-recipe span {
+        display: block;
+        margin-top: 2px;
+        font-size: 9px;
+        color: var(--muted);
+      }
+
+      .vh-recipe .arrow {
+        color: var(--gold);
+      }
+
+      .vh-works-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px 10px;
+      }
+
+      .vh-works-grid .vh-buffer {
+        padding: 3px 0;
       }
 
       /* ---------- pause / settings overlay ---------- */
@@ -5809,11 +6327,85 @@
         commandTab: "train",
         pop: "aldric",
         panelTab: "commission",
+        realmTab: "tax",
+        taxRate: DATA.council.tax,
       };
 
       const getPop = () =>
         DATA.pops.find((p) => p.name.toLowerCase() === dState.pop) ||
         DATA.pops[0];
+
+      const REALM = {
+        strata: [
+          { name: "Nobility", souls: 6, loyalty: 84, mood: "+2" },
+          { name: "Clergy", souls: 4, loyalty: 71, mood: "+1" },
+          { name: "Merchants", souls: 11, loyalty: 62, mood: "+3" },
+          { name: "Commons", souls: 37, loyalty: 39, mood: "−1" },
+        ],
+        bills: [
+          {
+            title: "River Toll Charter",
+            time: "2:14",
+            desc: "Levy 2 gold per crossing · Merchants −4 loyalty",
+            yes: 0.58,
+          },
+          {
+            title: "Militia Muster",
+            time: "3:40",
+            desc: "Raise 12 spearmen · Commons −6 loyalty",
+            yes: 0.41,
+          },
+        ],
+        market: [
+          { name: "Food", stock: "1,240", price: "18", trend: "+6%", dir: "up" },
+          { name: "Wood", stock: "860", price: "12", trend: "+2%", dir: "up" },
+          { name: "Stone", stock: "210", price: "9", trend: "−4%", dir: "down" },
+          { name: "Iron", stock: "96", price: "14", trend: "+11%", dir: "up" },
+          { name: "Clay", stock: "180", price: "6", trend: "—", dir: "flat" },
+        ],
+      };
+
+      const SQUAD = {
+        name: "River Guard",
+        subtitle: "Veteran company · 24 / 30",
+        stance: "Defensive",
+        hp: 0.86,
+        morale: 0.72,
+        supply: 0.64,
+        counters: [
+          ["Spears", "good"],
+          ["Archers", "bad"],
+          ["Cavalry", ""],
+        ],
+        units: [
+          ["Knight", 6, "attack"],
+          ["Crossbow", 10, "bow"],
+          ["Pikeman", 8, "spear"],
+        ],
+      };
+
+      const WORKS = {
+        name: "Lower Ward Workshop",
+        subtitle: "Artisan quarter · 3 benches",
+        recipe: ["Plank", "2 wood", "1 plank", "0:18"],
+        buffers: [
+          ["Input · Wood", 64, "128 / 200"],
+          ["Output · Planks", 38, "38 / 100"],
+          ["Tools", 82, "41 / 50"],
+        ],
+        workers: [
+          ["Osric", "Foreman", 91],
+          ["Maud", "Hauler", 64],
+          ["Godwin", "Sawyer", 41],
+        ],
+      };
+
+      const POP_THOUGHTS = [
+        ["Ate a fine meal", "+4", false],
+        ["Slept in a house", "+3", false],
+        ["Crowded ward", "−2", true],
+        ["Working the iron seam", "−5", true],
+      ];
 
       const resChipsD = () => {
         const chip = (r, minor = false) =>
@@ -5941,10 +6533,45 @@
         ],
       };
 
-      const commandGridD = () =>
-        (COMMANDS[dState.commandTab] || COMMANDS.train)
-          .map((cmd) => commandButton(...cmd))
-          .join("");
+      const SQUAD_COMMANDS = [
+        ["patrol", "Move", "M", ""],
+        ["attack", "Attack", "A", ""],
+        ["patrol", "Patrol", "P", ""],
+        ["guard", "Guard", "G", ""],
+        ["stop", "Stop", "S", ""],
+        ["rally", "Hold", "H", ""],
+        ["chevron", "Follow", "F", ""],
+        ["house", "Return", "R", ""],
+        ["garrison", "Garrison", "T", ""],
+        ["health", "Heal", "E", ""],
+        ["spear", "Split", "X", ""],
+        ["x", "Disband", "D", ""],
+      ];
+
+      const WORKS_COMMANDS = [
+        ["build", "Build", "B", ""],
+        ["repair", "Repair", "R", ""],
+        ["farm", "Haul", "H", ""],
+        ["market", "Trade", "T", ""],
+        ["stop", "Halt", "S", ""],
+        ["research", "Research", "E", ""],
+        ["idle", "Assign", "A", ""],
+        ["guard", "Priority", "P", ""],
+        ["house", "Store", "O", ""],
+        ["chevron", "Queue +5", "Q", ""],
+        ["dot", "Repeat", "Y", ""],
+        ["x", "Cancel", "X", ""],
+      ];
+
+      const commandGridD = () => {
+        const list =
+          dState.inspector === "squad"
+            ? SQUAD_COMMANDS
+            : dState.inspector === "works"
+              ? WORKS_COMMANDS
+              : COMMANDS[dState.commandTab] || COMMANDS.train;
+        return list.map((cmd) => commandButton(...cmd)).join("");
+      };
 
       const vitalD = (label, pct, cls = "") =>
         `<div class="vh-vital"><span>${label}</span>${bar(pct, cls)}<b>${Math.round(pct * 100)}</b></div>`;
@@ -5952,6 +6579,12 @@
       const dTabs = () => {
         if (dState.inspector === "pop") {
           return `<button class="vh-cmd-tab active" type="button">Villager Orders <span class="hk">O</span></button><button class="vh-cmd-tab" type="button" data-d-select="building">← Back to Keep</button>`;
+        }
+        if (dState.inspector === "squad") {
+          return `<button class="vh-cmd-tab active" type="button">Squad Orders <span class="hk">O</span></button><button class="vh-cmd-tab" type="button">Stance · ${SQUAD.stance}</button><button class="vh-cmd-tab" type="button" data-d-select="building">← Back to Keep</button>`;
+        }
+        if (dState.inspector === "works") {
+          return `<button class="vh-cmd-tab active" type="button">Workshop Orders <span class="hk">O</span></button><button class="vh-cmd-tab" type="button">Recipe · ${WORKS.recipe[0]}</button><button class="vh-cmd-tab" type="button" data-d-select="building">← Back to Keep</button>`;
         }
         return [
           ["train", "Train", "T"],
@@ -5972,6 +6605,18 @@
             <div class="vh-sel-copy"><b>${p.name} · ${p.role}</b><span>${p.status} · ${p.activity || "Working the ward"}</span></div>
             <div class="vh-queue"><span class="q">Mood <b>${p.mood}</b></span><span class="q">Health <b>${p.health}</b></span><span class="q">Needs <b>${Math.round(p.needs[0])}</b></span></div>`;
         }
+        if (dState.inspector === "squad") {
+          return `<div class="vh-squad-mark">${icon("guard")}</div>
+            <div class="vh-sel-copy"><b>${SQUAD.name}</b><span>${SQUAD.subtitle} · ${SQUAD.stance}</span></div>
+            <div class="vh-hp"><div class="tiny-label"><span>Morale</span><b>${Math.round(SQUAD.morale * 100)}</b></div>${bar(SQUAD.morale)}</div>
+            <div class="vh-queue"><span class="q">24 units</span><span class="q">Vet II</span></div>`;
+        }
+        if (dState.inspector === "works") {
+          return `<div class="vh-squad-mark">${icon("build")}</div>
+            <div class="vh-sel-copy"><b>${WORKS.name}</b><span>${WORKS.subtitle}</span></div>
+            <div class="vh-hp"><div class="tiny-label"><span>Output</span><b>${WORKS.buffers[1][1]}%</b></div>${bar(WORKS.buffers[1][1] / 100, "green")}</div>
+            <div class="vh-queue"><span class="q">3 benches</span><span class="q">2 idle</span></div>`;
+        }
         const k = DATA.keep;
         return `${portrait("town", 44)}
           <div class="vh-sel-copy"><b>${k.name}</b><span>${k.subtitle}</span></div>
@@ -5981,6 +6626,8 @@
 
       const cmdHintD = () => {
         if (dState.inspector === "pop") return "Villager orders · 12 actions";
+        if (dState.inspector === "squad") return "24 units · morale 72 · supply 6 days";
+        if (dState.inspector === "works") return "Plank · 2 wood → 1 plank · 0:18";
         if (dState.commandTab === "age") return "Advance requirements";
         if (dState.commandTab === "build") return "30 wood · 4 houses free";
         if (dState.commandTab === "research") return "1 done · 2 available";
@@ -5988,6 +6635,65 @@
       };
 
       const queueColD = () => {
+        if (dState.inspector === "squad") {
+          return `<div class="vh-queue-head"><span>River Guard</span><b>24</b></div>
+            <div class="vh-queue-list">
+              ${SQUAD.units
+                .map(
+                  ([name, n, ico]) => `<div class="vh-qitem">
+                    <span class="q-icon">${icon(ico)}</span>
+                    <b>${name}</b><time>×${n}</time>
+                    <span>Veteran II · River Keep</span>
+                    ${bar(n / 12)}
+                  </div>`,
+                )
+                .join("")}
+            </div>
+            <div class="vh-queue-foot"><span>Stance</span><b>${SQUAD.stance}</b></div>`;
+        }
+        if (dState.inspector === "works") {
+          const jobs = [
+            ["Plank", "×12", 0.55],
+            ["Tool", "×4", 0.2],
+            ["Barrel", "×6", 0.1],
+          ];
+          return `<div class="vh-queue-head"><span>Workshop Queue</span><b>3</b></div>
+            <div class="vh-queue-list">
+              ${jobs
+                .map(
+                  ([name, n, pct], i) => `<div class="vh-qitem">
+                    <span class="q-icon">${icon(i === 0 ? "build" : i === 1 ? "repair" : "house")}</span>
+                    <b>${name}</b><time>${n}</time>
+                    <span>${i === 0 ? "Sawing" : "Queued"} · Lower Ward</span>
+                    ${bar(pct)}
+                  </div>`,
+                )
+                .join("")}
+            </div>
+            <div class="vh-queue-foot"><span>Repeat</span><b>On · 3 benches</b></div>`;
+        }
+        if (dState.inspector === "pop") {
+          const p = getPop();
+          const jobs = [
+            ["Work the ward", "2:00", 0.4],
+            ["Eat at the hall", "0:30", 0.15],
+            ["Sleep", "6:00", 0.0],
+          ];
+          return `<div class="vh-queue-head"><span>${p.name}'s Day</span><b>3</b></div>
+            <div class="vh-queue-list">
+              ${jobs
+                .map(
+                  ([name, time, pct], i) => `<div class="vh-qitem">
+                    <span class="q-icon">${icon(i === 0 ? "build" : i === 1 ? "food" : "idle")}</span>
+                    <b>${name}</b><time>${time}</time>
+                    <span>${i === 0 ? "Now" : "Planned"} · ${p.role}</span>
+                    ${bar(pct)}
+                  </div>`,
+                )
+                .join("")}
+            </div>
+            <div class="vh-queue-foot"><span>Thoughts</span><b>Net +2</b></div>`;
+        }
         const k = DATA.keep;
         const pcts = [0.62, 0.28, 0.08];
         return `<div class="vh-queue-head"><span>Training Queue</span><b>${k.queue.length}</b></div>
@@ -6024,28 +6730,62 @@
       const inspectorD = () => {
         if (dState.inspector === "pop") {
           const p = getPop();
-          const skills = p.skills || DATA.pops[0].skills;
           return `<div class="vh-insp-head">
-              ${portrait("villager", 50)}
-              <div class="vh-insp-copy vh-insp-copy-pop"><div class="vh-insp-name"><b>${p.name} · ${p.role}</b><span class="chip gold">${p.status}</span></div><span>Adult · born here · House of Aldric</span></div>
+              ${portrait("villager", 44)}
+              <div class="vh-insp-copy vh-insp-copy-pop"><div class="vh-insp-name"><b>${p.name} · ${p.role}</b><span class="chip gold">${p.status}</span></div><span>Adult · House of Aldric</span></div>
             </div>
             <div class="vh-insp-label">Vitals <span>Live</span></div>
             <div class="vh-vitals">
               ${vitalD("HP", p.health / 100, "green")}
               ${vitalD("Mood", p.mood / 100)}
-              ${vitalD("Health", p.health / 100, "green")}
               ${vitalD("Food", p.needs[0] / 100, "blue")}
               ${vitalD("Rest", p.needs[1] / 100, "blue")}
               ${vitalD("Social", p.needs[2] / 100, "blue")}
+              ${vitalD("Health", p.health / 100, "green")}
             </div>
-            <div class="vh-insp-label">Skills <span>Practice / theory</span></div>
-            ${skills
+            <div class="vh-insp-label">Thoughts <span>Net +2</span></div>
+            ${POP_THOUGHTS.slice(0, 3)
               .map(
-                ([name, value, theory]) => `<div class="vh-skill"><span>${name}</span><div class="vh-skill-bar"><span class="theory" style="width:${theory}%"></span><span class="practice" style="width:${Math.max(0, value - theory)}%"></span></div><b>${value}</b></div>`,
+                ([t, v, bad]) => `<div class="vh-thought"><span>${t}</span><b class="${bad ? "bad" : ""}">${v}</b></div>`,
               )
               .join("")}
-            <div class="vh-activity">${icon("scroll")} ${p.activity || "Working the ward"}</div>
-            <div class="vh-civic vh-civic-pop"><span class="chip">Unrest ${DATA.council.unrest}</span><span class="chip">Loyalty 61</span><span class="chip">Faith 54</span></div>`;
+            <div class="vh-activity">${icon("scroll")} ${p.activity || "Working the ward"}</div>`;
+        }
+        if (dState.inspector === "squad") {
+          return `<div class="vh-insp-head">
+              <div class="vh-squad-mark">${icon("guard")}</div>
+              <div class="vh-insp-copy"><b>${SQUAD.name}</b><span>${SQUAD.subtitle}</span><span class="chip gold">${SQUAD.stance}</span></div>
+            </div>
+            <div class="vh-insp-label">Company <span>24 / 30</span></div>
+            <div class="vh-vitals">
+              ${vitalD("HP", SQUAD.hp, "green")}
+              ${vitalD("Morale", SQUAD.morale)}
+              ${vitalD("Supply", SQUAD.supply, "blue")}
+            </div>
+            <div class="vh-insp-label">Counters <span>vs enemy</span></div>
+            <div class="vh-squad-counters">${SQUAD.counters.map(([n, c]) => `<span class="chip ${c}">${n}</span>`).join("")}</div>
+            <div class="vh-insp-label">Roster <span>Veteran II</span></div>
+            ${SQUAD.units.map(([name, n]) => `<div class="vh-buffer"><span>${name}</span><b>×${n}</b></div>`).join("")}`;
+        }
+        if (dState.inspector === "works") {
+          return `<div class="vh-insp-head">
+              <div class="vh-squad-mark">${icon("build")}</div>
+              <div class="vh-insp-copy"><b>${WORKS.name}</b><span>${WORKS.subtitle}</span><span class="chip gold">Producing</span></div>
+            </div>
+            <div class="vh-insp-label">Buffers <span>Live</span></div>
+            ${WORKS.buffers
+              .slice(0, 2)
+              .map(
+                ([name, pct, val]) => `<div class="vh-buffer"><span>${name}</span><b>${val}</b>${bar(pct / 100, pct < 50 ? "red" : "")}</div>`,
+              )
+              .join("")}
+            <div class="vh-insp-label">Workers <span>3 assigned</span></div>
+            ${WORKS.workers
+              .slice(0, 2)
+              .map(
+                ([name, role, mood]) => `<div class="vh-buffer"><span>${name} · ${role}</span><b>${mood}</b></div>`,
+              )
+              .join("")}`;
         }
         const k = DATA.keep;
         return `<div class="vh-insp-head">
@@ -6057,6 +6797,78 @@
           <div class="vh-civic">${k.upgrades.map(([name, done]) => `<span class="chip ${done ? "green" : ""}">${done ? icon("check") : ""} ${name}</span>`).join("")}</div>
           <div class="vh-activity">${icon("train")} ${k.activity}</div>`;
       };
+
+      const realmTaxD = () => `
+        <div class="vh-tax">
+          <label for="d-tax">Tax rate</label>
+          <input id="d-tax" type="range" min="0" max="40" step="1" value="${dState.taxRate}" data-d-tax />
+          <div><b data-d-tax-out>${dState.taxRate}%</b><small data-d-tax-gold>+${Math.round(dState.taxRate * 8)} gold/m</small></div>
+        </div>
+        <table class="vh-strata">
+          <thead><tr><th>Stratum</th><th>Souls</th><th>Loyalty</th><th>Mood</th></tr></thead>
+          <tbody>
+            ${REALM.strata
+              .map(
+                (s) => `<tr><td>${s.name}</td><td>${s.souls}</td><td>${s.loyalty}%</td><td class="${s.mood.startsWith("−") ? "hot" : ""}">${s.mood}</td></tr>`,
+              )
+              .join("")}
+          </tbody>
+        </table>
+        <div class="vh-realm-note"><span>Court levy · paid weekly</span><b data-d-tax-note>${Math.round(dState.taxRate * 8)} gold / min</b></div>`;
+
+      const realmCouncilD = () => `
+        ${REALM.bills
+          .map(
+            (b, i) => `<div class="vh-bill">
+              <div class="vh-bill-head"><b>${b.title}</b><time>${b.time}</time></div>
+              <p>${b.desc}</p>
+              <div class="vh-vote">
+                <span>Ayes</span>${bar(b.yes)}<b>${Math.round(b.yes * 100)}%</b>
+                <button class="vh-subtab" type="button" data-d-vote="${i}">Vote</button>
+              </div>
+            </div>`,
+          )
+          .join("")}
+        <div class="vh-insp-label">Factions <span>Loyalty</span></div>
+        ${DATA.factions
+          .map(
+            (f) => `<div class="vh-faction"><span class="seal">${f.initial}</span><span>${f.name}</span><b>${f.loyalty}%</b></div>`,
+          )
+          .join("")}`;
+
+      const realmMarketD = () => `
+        <div class="vh-market-head"><span>Good</span><span>Stock</span><span>Price</span><span>7d</span></div>
+        ${REALM.market
+          .map(
+            (g) => `<div class="vh-market-row"><span>${g.name}</span><span>${g.stock}</span><span>${g.price}g</span><b class="${g.dir}">${g.trend}</b></div>`,
+          )
+          .join("")}
+        <div class="vh-realm-note"><span>Market tax · ${dState.taxRate}%</span><b>+${Math.round(22 + dState.taxRate * 0.8)} gold/m</b></div>`;
+
+      const macroPulseD = () => {
+        const tax = dState.taxRate;
+        return `<div class="vh-macro-pulse">
+          <div class="vh-macro-cell gold"><span>Favor</span><div><b>4.8</b><small>/10</small></div></div>
+          <div class="vh-macro-cell good"><span>Approval</span><div><b>${DATA.council.mood}%</b><small>+3</small></div></div>
+          <div class="vh-macro-cell ${DATA.council.unrest >= 25 ? "danger" : "good"}"><span>Unrest</span><div><b>${DATA.council.unrest}%</b><small>low</small></div></div>
+          <div class="vh-macro-cell warn"><span>Tax</span><div><b data-d-tax-macro>${tax}%</b><small data-d-tax-macro-gold>+${Math.round(tax * 8)}g</small></div></div>
+        </div>`;
+      };
+
+      const realmPanelD = () => `
+        ${macroPulseD()}
+        <div class="vh-subtabs">
+          ${[
+            ["tax", "Tax"],
+            ["council", "Council"],
+            ["market", "Market"],
+          ]
+            .map(
+              ([id, label]) => `<button class="vh-subtab ${dState.realmTab === id ? "active" : ""}" type="button" data-d-realmtab="${id}">${label}</button>`,
+            )
+            .join("")}
+        </div>
+        ${dState.realmTab === "council" ? realmCouncilD() : dState.realmTab === "market" ? realmMarketD() : realmTaxD()}`;
 
       const commissionD = () => `
         ${objectiveRows()}
@@ -6083,15 +6895,37 @@
             (f) => `<div class="vh-council-row"><span class="f-seal">${f.initial}</span><span>${f.name}</span><b>${f.loyalty}%</b>${bar(f.loyalty / 100, f.loyalty < 45 ? "red" : "")}</div>`,
           )
           .join("");
+        const selected = getPop();
+        const detail =
+          dState.inspector === "pop"
+            ? `<div class="vh-insp-label">Selected · ${selected.name} <span>Practice / theory</span></div>
+              ${selected.skills
+                .map(
+                  ([name, value, theory]) => `<div class="vh-skill"><span>${name}</span><div class="vh-skill-bar"><span class="theory" style="width:${theory}%"></span><span class="practice" style="width:${Math.max(0, value - theory)}%"></span></div><b>${value}</b></div>`,
+                )
+                .join("")}
+              <div class="vh-activity">${icon("scroll")} ${selected.activity}</div>`
+            : `<div class="vh-insp-label">Council loyalty <span>4 factions</span></div>
+              <div class="vh-council">${council}</div>`;
         return `<div class="vh-insp-label">Named Pops <span>Sorted by mood</span></div>
           ${rows}
-          <div class="vh-insp-label">Council loyalty <span>4 factions</span></div>
-          <div class="vh-council">${council}</div>
+          ${detail}
           <div class="vh-panel-foot"><span>6 named · 58 souls</span><b>View all →</b></div>`;
       };
 
+      const mapSelectionD = () => {
+        const map = {
+          building: ["45%", "46%", "RIVER KEEP · SELECTED"],
+          squad: ["38%", "52%", "RIVER GUARD · SELECTED"],
+          works: ["52%", "58%", "LOWER WARD · SELECTED"],
+          pop: ["41%", "49%", `${getPop().name.toUpperCase()} · SELECTED`],
+        };
+        const [left, top, label] = map[dState.inspector] || map.building;
+        return `<div class="vh-select-ring" style="left:${left};top:${top};--sel-label:'${label}'"></div>`;
+      };
+
       const variantD = () => {
-        const isPop = dState.inspector === "pop";
+        const sel = dState.inspector;
         return `
         <div class="vh">
           <header class="vh-top">
@@ -6100,6 +6934,10 @@
               <div class="vh-civ-copy"><b>${DATA.house}</b><span>${DATA.civ} · ${DATA.motto}</span></div>
             </div>
             <div class="vh-res">${resChipsD()}</div>
+            <div class="vh-favor" title="Crown Favor · 4.8 of 10">
+              <span class="vh-favor-star">★</span>
+              <div class="vh-favor-copy"><b>4.8</b><span>Favor</span></div>
+            </div>
             <div class="vh-age">
               <div class="vh-age-ring"><span>${DATA.age.rank}</span></div>
               <div class="vh-age-copy"><b>${DATA.age.epoch} · ${DATA.age.name}</b><span>Rank ${DATA.age.rank} of ${DATA.age.total} · ${Math.round(DATA.age.progress * 100)}% to ${DATA.age.next}</span></div>
@@ -6124,6 +6962,7 @@
                 ["commission", "Commission"],
                 ["victory", "Victory"],
                 ["people", "People"],
+                ["realm", "Realm"],
               ]
                 .map(
                   ([id, label]) => `<button class="vh-panel-tab ${dState.panelTab === id ? "active" : ""}" type="button" data-d-paneltab="${id}">${label}</button>`,
@@ -6131,14 +6970,22 @@
                 .join("")}
             </div>
             <div class="vh-panel-body">
-              ${dState.panelTab === "victory" ? victoryPanelD() : dState.panelTab === "people" ? peoplePanelD() : commissionD()}
+              ${
+                dState.panelTab === "victory"
+                  ? victoryPanelD()
+                  : dState.panelTab === "people"
+                    ? peoplePanelD()
+                    : dState.panelTab === "realm"
+                      ? realmPanelD()
+                      : commissionD()
+              }
             </div>
             <footer class="vh-settle">
               <div class="vh-mood"><b>${DATA.council.mood}</b><span>Content · +3</span></div>
               <div class="vh-settle-stats">
                 <div class="vh-settle-stat"><span>Health</span><b>${DATA.council.health}</b></div>
                 <div class="vh-settle-stat"><span>Unrest</span><b class="danger">${DATA.council.unrest}</b></div>
-                <div class="vh-settle-stat"><span>Tax</span><b class="warn">${DATA.council.tax}%</b></div>
+                <div class="vh-settle-stat"><span>Tax</span><b class="warn" data-d-tax-stat>${dState.taxRate}%</b></div>
               </div>
               <button class="vh-people-btn" type="button" data-d-paneltab="people">People ${DATA.souls} →</button>
             </footer>
@@ -6147,7 +6994,7 @@
           <div class="vh-toasts">${reportRowsD()}</div>
 
           <div class="vh-map">
-            <div class="vh-select-ring" style="left:45%;top:46%"></div>
+            ${mapSelectionD()}
             <div class="vh-marker vh-marker-crossing">
               <span class="m-diamond"></span>
               <div><b>RIVER CROSSING</b><span>Contested · 2 keeps</span></div>
@@ -6168,15 +7015,17 @@
             <div class="vh-cmd-col">
               <div class="vh-selection">${selectionD()}</div>
               <div class="vh-cmd-tabs">${dTabs()}<span class="vh-cmd-hint">${cmdHintD()}</span></div>
-              ${!isPop && dState.commandTab === "age" ? agePanelD() : `<div class="vh-cmd-grid">${commandGridD()}</div>`}
+              ${sel === "building" && dState.commandTab === "age" ? agePanelD() : `<div class="vh-cmd-grid">${commandGridD()}</div>`}
             </div>
 
             <aside class="vh-queue-col">${queueColD()}</aside>
 
             <aside class="vh-inspector vh-frame vh-corners">
               <div class="vh-insp-tabs">
-                <button class="vh-insp-tab ${isPop ? "" : "active"}" type="button" data-d-select="building">River Keep</button>
-                <button class="vh-insp-tab ${isPop ? "active" : ""}" type="button" data-d-select="pop">People</button>
+                <button class="vh-insp-tab ${sel === "building" ? "active" : ""}" type="button" data-d-select="building">Keep</button>
+                <button class="vh-insp-tab ${sel === "squad" ? "active" : ""}" type="button" data-d-select="squad">Squad</button>
+                <button class="vh-insp-tab ${sel === "works" ? "active" : ""}" type="button" data-d-select="works">Works</button>
+                <button class="vh-insp-tab ${sel === "pop" ? "active" : ""}" type="button" data-d-select="pop">People</button>
               </div>
               <div class="vh-insp-body">${inspectorD()}</div>
             </aside>
@@ -6860,13 +7709,13 @@
         A: { name: "Royal Command", render: variantA },
         B: { name: "Chronicle", render: variantB },
         C: { name: "War Table", render: variantC },
-        D: { name: "Crown & Chronicle", render: variantD },
+        D: { name: "Crown & Chronicle (Final)", render: variantD },
         E: { name: "Imperium & Chronicle (Grand RTS)", render: variantE },
       };
       const ORDER = ["A", "B", "C", "D", "E"];
 
       const params = new URLSearchParams(window.location.search);
-      let current = (params.get("variant") || "E").toUpperCase();
+      let current = (params.get("variant") || "D").toUpperCase();
       if (!VARIANTS[current]) current = "D";
 
       const root = document.getElementById("variant-root");
@@ -6994,6 +7843,21 @@
           return;
         }
 
+        const realmTab = e.target.closest("[data-d-realmtab]");
+        if (realmTab) {
+          dState.realmTab = realmTab.dataset.dRealmtab;
+          render();
+          return;
+        }
+
+        const vote = e.target.closest("[data-d-vote]");
+        if (vote) {
+          const bill = REALM.bills[Number(vote.dataset.dVote)];
+          if (bill) bill.yes = Math.min(0.99, bill.yes + 0.08);
+          render();
+          return;
+        }
+
         const select = e.target.closest("[data-d-select]");
         if (select) {
           dState.inspector = select.dataset.dSelect;
@@ -7018,6 +7882,25 @@
           dState.panelTab = "people";
           render();
         }
+      });
+
+      document.addEventListener("input", (e) => {
+        const tax = e.target.closest("[data-d-tax]");
+        if (!tax || current !== "D") return;
+        dState.taxRate = parseInt(tax.value, 10) || 0;
+        const gold = Math.round(dState.taxRate * 8);
+        const out = document.querySelector("[data-d-tax-out]");
+        const goldEl = document.querySelector("[data-d-tax-gold]");
+        const note = document.querySelector("[data-d-tax-note]");
+        const stat = document.querySelector("[data-d-tax-stat]");
+        const macro = document.querySelector("[data-d-tax-macro]");
+        const macroGold = document.querySelector("[data-d-tax-macro-gold]");
+        if (out) out.textContent = `${dState.taxRate}%`;
+        if (goldEl) goldEl.textContent = `+${gold} gold/m`;
+        if (note) note.textContent = `${gold} gold / min`;
+        if (stat) stat.textContent = `${dState.taxRate}%`;
+        if (macro) macro.textContent = `${dState.taxRate}%`;
+        if (macroGold) macroGold.textContent = `+${gold}g`;
       });
 
       document.getElementById("prev").addEventListener("click", () => cycle(-1));
