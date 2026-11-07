@@ -1,0 +1,15 @@
+{
+    "engine": "Unity URP",
+    "digest": "150d62074d241ef0",
+    "gpu": "Apple M1",
+    "api": "Metal",
+    "view": 1,
+    "width": 1600,
+    "height": 1000,
+    "pops": 323,
+    "frames": 814,
+    "tick": 12652,
+    "live_tick": 12652,
+    "p50_frame_ms": 8.386833190917969,
+    "p95_frame_ms": 17.252416610717773
+}

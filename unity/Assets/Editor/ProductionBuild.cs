@@ -33,9 +33,37 @@ public static class ProductionBuild
         return report.summary.result == BuildResult.Succeeded;
     }
 
+    /// <summary>Ship the Rust sim inside the player (SkeletonMain spawns it
+    /// from StreamingAssets/sim/, ADR-0012 Unity-owns-process). macOS host
+    /// binary only for now; Windows sim.exe is future work.</summary>
+    static void CopySim()
+    {
+        var src = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "sim", "target", "release", "ageofwind-sim"));
+        var dstDir = Path.Combine(Application.streamingAssetsPath, "sim");
+        var dst = Path.Combine(dstDir, "ageofwind-sim");
+        if (File.Exists(src))
+        {
+            Directory.CreateDirectory(dstDir);
+            File.Copy(src, dst, true);
+            Debug.Log($"[ProductionBuild] sim copied: {src} -> {dst}");
+        }
+        else Debug.LogWarning($"[ProductionBuild] sim binary missing, player will need AGEOFWIND_SIM: {src}");
+        AssetDatabase.Refresh();
+    }
+
+    public static void BuildMac()
+    {
+        EnsureScene();
+        CopySim();
+        PlayerSettings.productName = "Ageofwind";
+        PlayerSettings.companyName = "Ageofwind";
+        if (!Build(BuildTarget.StandaloneOSX, "build/macos/Ageofwind.app")) EditorApplication.Exit(1);
+    }
+
     public static void BuildAll()
     {
         EnsureScene();
+        CopySim();
         PlayerSettings.productName = "Ageofwind";
         PlayerSettings.companyName = "Ageofwind";
         var okMac = Build(BuildTarget.StandaloneOSX, "build/macos/Ageofwind.app");
