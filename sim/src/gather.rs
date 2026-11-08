@@ -1111,6 +1111,140 @@ mod tests {
     }
 
     #[test]
+    fn m2t2_filtered_dropoffs_match_ts_snapshot() {
+        #[derive(Deserialize)]
+        struct FixtureBuilding {
+            eid: i64,
+            #[serde(rename = "defId")]
+            def_id: String,
+            #[serde(rename = "tileX")]
+            tile_x: i64,
+            #[serde(rename = "tileY")]
+            tile_y: i64,
+        }
+        #[derive(Deserialize)]
+        struct M2Fixture {
+            seed: u32,
+            size: usize,
+            ticks: u64,
+            #[serde(rename = "milestoneEvery")]
+            milestone_every: u64,
+            stockpile: std::collections::BTreeMap<String, f64>,
+            spawns: Vec<FixtureSpawn>,
+            buildings: Vec<FixtureBuilding>,
+            nodes: Vec<FixtureNode2>,
+            commands: Vec<FixtureCommand>,
+        }
+        #[derive(Deserialize)]
+        struct FixtureNode2 {
+            eid: i64,
+            #[serde(rename = "tileX")]
+            tile_x: i64,
+            #[serde(rename = "tileY")]
+            tile_y: i64,
+            resource: String,
+            amount: i64,
+        }
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/golden/m2t2/case.json");
+        let fixture: M2Fixture = serde_json::from_str(&std::fs::read_to_string(path).expect("case")).expect("parse case");
+        let mut sim = EconomySim::new(fixture.seed, fixture.size, Transport::synchronous(), defs(), traits()).unwrap();
+        let econ = sim.econ;
+        for spawn in &fixture.spawns {
+            assert_eq!(sim.spawn_unit(spawn.x, spawn.y) as i64, spawn.eid, "spawn order");
+        }
+        let amounts: Vec<f64> = ["food", "wood", "gold", "stone", "iron", "coal", "clay"]
+            .iter()
+            .map(|slug| fixture.stockpile[*slug])
+            .collect();
+        create_player_stockpile(&mut sim.movement.world, &econ, PLAYER_ONE, Some(&amounts)).unwrap();
+        {
+            let bcomps = crate::buildings::BuildingComps::from_world(&sim.movement.world);
+            let age = crate::buildings::AgeComps::from_world(&sim.movement.world);
+            let defs = defs();
+            for building in &fixture.buildings {
+                let crate::movement::MovementSim { world, comps, layers, paths, .. } = &mut sim.movement;
+                let eid = crate::placement::stamp_finished_building(
+                    world, comps, &bcomps, &econ, &age, &defs, layers, paths,
+                    &building.def_id, building.tile_x, building.tile_y, PLAYER_ONE,
+                );
+                assert_eq!(eid as i64, building.eid, "building order");
+            }
+        }
+        let mut node_ids = Vec::new();
+        for node in &fixture.nodes {
+            let code = crate::economy::resource_code_of_slug(&node.resource).expect("slug");
+            let eid = spawn_resource_node(&mut sim.movement.world, &econ, node.tile_x, node.tile_y, code, node.amount, None).unwrap();
+            assert_eq!(eid as i64, node.eid, "node order");
+            node_ids.push(eid);
+        }
+        for command in &fixture.commands {
+            sim.submit(Command { kind: command.kind.clone(), target_tick: command.target_tick, data: Some(command.data.clone()) })
+                .unwrap();
+        }
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/golden/m2t2/__snapshots__");
+        let mut text = String::new();
+        for entry in std::fs::read_dir(dir).expect("snapshot dir") {
+            let p = entry.expect("entry").path();
+            if p.extension().map(|e| e == "snap").unwrap_or(false) {
+                text.push_str(&std::fs::read_to_string(p).expect("read snap"));
+            }
+        }
+        let mut expected = Vec::new();
+        let mut rest = text.as_str();
+        while let Some(i) = rest.find("fnv1a64:") {
+            let digest = rest[i..i + 24].to_string();
+            let after = &rest[i..];
+            let tick_at = after.find("\"tick\":").expect("tick after digest");
+            let num: String = after[tick_at + 7..].trim_start().chars().take_while(|c| c.is_ascii_digit()).collect();
+            expected.push((num.parse::<u64>().expect("tick"), digest));
+            rest = &rest[i + 24..];
+        }
+        let mut digests = Vec::new();
+        while sim.movement.world.tick < fixture.ticks {
+            let before = sim.movement.world.tick;
+            sim.step();
+            if sim.movement.world.tick == before {
+                continue;
+            }
+            let t = sim.movement.world.tick;
+            if t % fixture.milestone_every == 0 || t == fixture.ticks {
+                digests.push((t, sim.digest()));
+            }
+        }
+        assert_eq!(digests, expected);
+        let diag = &sim.gather.diagnostics;
+        assert_eq!(diag.rejected_by_filter, 0);
+        assert!(diag.deliveries_by_drop_off.len() >= 3);
+        assert!(diag.deliveries_by_drop_off[0] > 0.0, "wood to lumber camp");
+        assert!(diag.deliveries_by_drop_off[1] > 0.0, "ores to mining camp");
+        assert!(diag.deliveries_by_drop_off[2] > 0.0, "food to mill");
+        let world = &sim.movement.world;
+        let mut carried = [0.0f64; 7];
+        for spawn in &fixture.spawns {
+            if let Some((code, amount)) = inventory(world, &econ, spawn.eid as Eid) {
+                if amount > 0.0 {
+                    carried[code as usize] += amount;
+                }
+            }
+        }
+        for code in 0..7 {
+            assert_eq!(
+                diag.extracted_by_resource[code],
+                diag.deposited_by_resource[code] + carried[code],
+                "ledger code {code}"
+            );
+        }
+        let final_amounts = stockpile_amounts(world, &econ, PLAYER_ONE);
+        for code in 0..7 {
+            assert_eq!(final_amounts[code], amounts[code] + diag.deposited_by_resource[code]);
+        }
+        for (i, &id) in node_ids.iter().enumerate() {
+            let remaining = resource_node_row(world, &econ, id).expect("node")[1];
+            assert!(remaining <= fixture.nodes[i].amount as f64);
+        }
+    }
+
+    #[test]
     fn m1t9_worker_mock_byte_identical() {
         let sync = run_scenario(false);
         let worker = run_scenario(true);
