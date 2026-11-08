@@ -824,6 +824,13 @@ pub struct EconomySim {
     pub age: crate::age::AgeSystem,
     pub combat: crate::combat_system::CombatSystem,
     pub equipment: crate::equipment::EquipmentSystem,
+    /// Fog-of-war handle when the scenario runs real fog (SPEC §2.9);
+    /// None = the all-visible observational stub.
+    pub fog: Option<crate::fog::FogHandle>,
+    fog_defs: Arc<Defs>,
+    fog_pop: PopComps,
+    fog_bcomps: crate::buildings::BuildingComps,
+    fog_ccomps: crate::combat::CombatComps,
 }
 
 impl EconomySim {
@@ -855,8 +862,24 @@ impl EconomySim {
         let age_system = crate::age::AgeSystem::new(defs.clone(), bcomps, ccomps, age);
         let aux = crate::combat::CombatAuxComps::from_world(&movement.world);
         let combat = crate::combat_system::CombatSystem::new(defs.clone(), traits, pop, bcomps, age, ccomps, aux, pcomps, false);
-        let equipment = crate::equipment::EquipmentSystem::new(defs, ccomps, aux);
-        Ok(EconomySim { movement, econ, gather, placement, construction, training, production, age: age_system, combat, equipment })
+        let equipment = crate::equipment::EquipmentSystem::new(defs.clone(), ccomps, aux);
+        Ok(EconomySim {
+            movement,
+            econ,
+            gather,
+            placement,
+            construction,
+            training,
+            production,
+            age: age_system,
+            combat,
+            equipment,
+            fog: None,
+            fog_defs: defs,
+            fog_pop: pop,
+            fog_bcomps: bcomps,
+            fog_ccomps: ccomps,
+        })
     }
 
     pub fn spawn_unit(&mut self, x: f64, y: f64) -> Eid {
@@ -867,21 +890,64 @@ impl EconomySim {
         self.movement.submit(command)
     }
 
+    /// Map-gen fog bootstrap (TS fog.recomputeAll after setup spawns).
+    pub fn fog_recompute_all(&mut self) {
+        let defs = self.fog_defs.clone();
+        let fcomps = crate::fog::FogComps::new(&self.movement.comps, &self.fog_bcomps, &self.fog_ccomps);
+        if let Some(fog) = &mut self.fog {
+            fog.recompute_all(&self.movement.world, &fcomps, &self.fog_pop, &defs);
+        }
+    }
+
     pub fn step(&mut self) -> bool {
+        // Fog "moved" marks: tile snapshots bracketing the movement
+        // system (TS compares steering start vs committed tiles).
+        let tiles_before: Option<std::collections::HashMap<crate::core::Eid, (i64, i64)>> =
+            self.fog.as_ref().map(|_| {
+                self.movement.world.rows_by_component[self.movement.comps.position]
+                    .iter()
+                    .map(|(eid, p)| (*eid, (p[0].floor() as i64, p[1].floor() as i64)))
+                    .collect()
+            });
         if !self.movement.step() {
             return false;
         }
+        if let (Some(before), Some(fog)) = (&tiles_before, &mut self.fog) {
+            let entities: Vec<crate::core::Eid> = self.movement.world.entities.clone();
+            for eid in entities {
+                let Some(&(bx, by)) = before.get(&eid) else { continue };
+                let Some(pos) = self.movement.world.rows_by_component[self.movement.comps.position].get(&eid)
+                else {
+                    continue;
+                };
+                if (pos[0].floor() as i64, pos[1].floor() as i64) != (bx, by) {
+                    fog.mark_dirty(eid);
+                }
+            }
+        }
         let econ = self.econ;
+        let fog_ref = self.fog.as_ref();
         let MovementSim { world, comps, layers, paths, last_commands, .. } = &mut self.movement;
         let version = paths.passability_version();
         self.gather.run(world, comps, &econ, layers, version, last_commands);
         self.combat.run(world, comps, &econ, layers, paths, last_commands);
-        self.placement.run(world, comps, &econ, layers, paths, last_commands);
+        self.placement.run(world, comps, &econ, layers, paths, last_commands, fog_ref);
         self.construction.run(world, comps, &econ, layers, last_commands);
         self.training.run(world, comps, &econ, layers, last_commands);
         self.age.run(world, comps, &econ, last_commands);
         self.production.run(world, comps, &econ, layers, last_commands);
         self.equipment.run(world, &econ, last_commands);
+        // Fog flush: after all systems, before the tick commit.
+        if let Some(fog) = &mut self.fog {
+            let removed: Vec<crate::core::Eid> = std::mem::take(&mut self.movement.world.fog_removed);
+            for eid in removed {
+                fog.mark_dirty(eid);
+            }
+            let defs = self.fog_defs.clone();
+            let fcomps = crate::fog::FogComps::new(&self.movement.comps, &self.fog_bcomps, &self.fog_ccomps);
+            let pop = self.fog_pop;
+            fog.flush_dirty(&self.movement.world, &fcomps, &pop, &defs);
+        }
         true
     }
 

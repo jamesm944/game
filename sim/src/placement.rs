@@ -6,15 +6,15 @@
 //! passable). Age-gated placements record polite digest-visible
 //! GateRejected rows; other invalid commands throw loudly.
 //!
-//! The fog/explored gate consults TS's visibility provider; Rust has
-//! no provider yet (fog is E4), matching the TS all-visible default
-//! every current fixture runs under.
+//! The fog/explored gate consults the fog handle when the runner
+//! carries one (crate::fog); without it, the all-visible default.
 use crate::buildings::{
     append_gate_rejection, building_rect, can_afford_costs, complete_building, footprint_tiles,
     is_def_age_unlocked, pay_costs, rects_overlap, site_rect, spawn_building_site, AgeComps,
     BuildingComps, FootprintRect, GATE_HANDLER_PLACE,
 };
 use crate::core::{Command, Eid, World as CoreWorld};
+use crate::fog::FogHandle;
 use crate::defs::Defs;
 use crate::economy::EconomyComps;
 use crate::mapgen::{is_water_terrain, Layers};
@@ -103,6 +103,7 @@ pub fn validate_placement(
     tile_y: i64,
     player_id: f64,
     ignore_age_gate: bool,
+    fog: Option<&FogHandle>,
 ) -> Result<FootprintRect, &'static str> {
     let Some(def) = defs.buildings.get(def_id) else { return Err("unknown-def") };
     if !ignore_age_gate && !is_def_age_unlocked(world, age, player_id, &def.age_gate) {
@@ -165,7 +166,14 @@ pub fn validate_placement(
             }
         }
     }
-    // Fog gate: all-visible default (see module note).
+    // Fog gate (SPEC §2.9): every footprint tile must be explored.
+    if let Some(fog) = fog {
+        for &(x, y) in &tiles {
+            if !fog.is_explored(x, y, player_id as usize) {
+                return Err("unexplored");
+            }
+        }
+    }
     Ok(rect)
 }
 
@@ -204,6 +212,7 @@ impl PlacementSystem {
         layers: &mut Layers,
         paths: &mut PathScheduler<T>,
         commands: &[Command],
+        fog: Option<&FogHandle>,
     ) {
         for command in commands {
             if command.kind != PLACE_BUILDING_KIND {
@@ -229,7 +238,7 @@ impl PlacementSystem {
             }
             let rect = validate_placement(
                 world, comps, &self.bcomps, econ, &self.age, &self.defs, layers,
-                &parsed.def_id, parsed.tile_x, parsed.tile_y, parsed.player_id, false,
+                &parsed.def_id, parsed.tile_x, parsed.tile_y, parsed.player_id, false, fog,
             )
             .unwrap_or_else(|reason| {
                 panic!("placeBuilding rejected ({reason}): {} @ ({}, {})", parsed.def_id, parsed.tile_x, parsed.tile_y)
@@ -263,7 +272,7 @@ pub fn stamp_finished_building<T>(
     tile_y: i64,
     player_id: f64,
 ) -> Eid {
-    let rect = validate_placement(world, comps, bcomps, econ, age, defs, layers, def_id, tile_x, tile_y, player_id, true)
+    let rect = validate_placement(world, comps, bcomps, econ, age, defs, layers, def_id, tile_x, tile_y, player_id, true, None)
         .unwrap_or_else(|reason| panic!("stampFinishedBuilding rejected ({reason}): {def_id} @ ({tile_x}, {tile_y})"));
     if def_id != "farm" {
         block_footprint_tiles(layers, paths, &rect);

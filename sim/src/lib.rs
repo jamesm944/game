@@ -8,6 +8,7 @@ pub mod deep;
 pub mod defs;
 pub mod economy;
 pub mod equipment;
+pub mod fog;
 pub mod buildings;
 pub mod combat;
 pub mod combat_stats;

@@ -292,6 +292,9 @@ pub struct World {
     pub used_name_indexes: std::collections::HashSet<i64>,
     /// TS `world.rallyPoints` side state: building eid → (x, y, target).
     pub rally_points: std::collections::HashMap<Eid, (f64, f64, Option<Eid>)>,
+    /// Entities despawned since the last fog flush (TS markDirty
+    /// "removed" queue); drained by the runner each tick.
+    pub fog_removed: Vec<Eid>,
 }
 
 impl World {
@@ -308,6 +311,7 @@ impl World {
             rows_by_component: Vec::new(),
             used_name_indexes: std::collections::HashSet::new(),
             rally_points: std::collections::HashMap::new(),
+            fog_removed: Vec::new(),
         }
     }
     pub fn define_component(&mut self, name: &str) -> Result<usize, String> {
@@ -323,6 +327,8 @@ impl World {
     }
     pub fn despawn(&mut self, eid: Eid) -> bool {
         let Some(index) = self.entities.iter().position(|&e| e == eid) else { return false };
+        // Fog "removed" mark (SPEC §2.9): drained by the runner's flush.
+        self.fog_removed.push(eid);
         self.entities.remove(index);
         for rows in &mut self.rows_by_component {
             rows.remove(&eid);
