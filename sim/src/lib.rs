@@ -2,6 +2,7 @@
 //! Integer-only deterministic tick; parallel map with canonical reduction so
 //! digests are worker-count independent (ADR-0012 parity definition).
 pub mod activities;
+pub mod age;
 pub mod core;
 pub mod deep;
 pub mod defs;

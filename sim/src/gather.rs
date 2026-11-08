@@ -821,6 +821,7 @@ pub struct EconomySim {
     pub construction: crate::construction::ConstructionSystem,
     pub training: crate::training::TrainingSystem,
     pub production: crate::production::ProductionSystem,
+    pub age: crate::age::AgeSystem,
 }
 
 impl EconomySim {
@@ -848,8 +849,9 @@ impl EconomySim {
         let construction = crate::construction::ConstructionSystem::new(defs.clone(), traits.clone(), pop, bcomps);
         let pcomps = crate::production::ProductionComps::from_world(&movement.world);
         let training = crate::training::TrainingSystem::new(defs.clone(), traits, pop, bcomps, ccomps, age);
-        let production = crate::production::ProductionSystem::new(defs, pop, bcomps, age, pcomps);
-        Ok(EconomySim { movement, econ, gather, placement, construction, training, production })
+        let production = crate::production::ProductionSystem::new(defs.clone(), pop, bcomps, age, pcomps);
+        let age_system = crate::age::AgeSystem::new(defs, bcomps, ccomps, age);
+        Ok(EconomySim { movement, econ, gather, placement, construction, training, production, age: age_system })
     }
 
     pub fn spawn_unit(&mut self, x: f64, y: f64) -> Eid {
@@ -871,6 +873,7 @@ impl EconomySim {
         self.placement.run(world, comps, &econ, layers, paths, last_commands);
         self.construction.run(world, comps, &econ, layers, last_commands);
         self.training.run(world, comps, &econ, layers, last_commands);
+        self.age.run(world, comps, &econ, last_commands);
         self.production.run(world, comps, &econ, layers, last_commands);
         true
     }

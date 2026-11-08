@@ -34,6 +34,8 @@ pub struct BuildingComps {
 #[derive(Clone, Copy)]
 pub struct AgeComps {
     pub age_state: usize,
+    pub age_advanced: usize,
+    pub age_research: usize,
     pub gate_rejected: usize,
     pub researched_techs: usize,
 }
@@ -59,6 +61,8 @@ impl AgeComps {
     pub fn from_world(world: &CoreWorld) -> AgeComps {
         AgeComps {
             age_state: id_of(world, "AgeState"),
+            age_advanced: id_of(world, "AgeAdvanced"),
+            age_research: id_of(world, "AgeResearch"),
             gate_rejected: id_of(world, "GateRejected"),
             researched_techs: id_of(world, "ResearchedTechs"),
         }
@@ -373,6 +377,85 @@ pub fn is_def_age_unlocked(world: &CoreWorld, age: &AgeComps, player_id: f64, ga
         None => true,
         Some(rank) => age_rank(gate) as f64 <= rank,
     }
+}
+
+pub const AGE_DARK_RANK: f64 = 1.0;
+
+/// The player's ledger entity (stockpile row owner); TS requirePlayerEid.
+pub fn player_ledger_eid(world: &CoreWorld, econ: &EconomyComps, player_id: f64) -> Eid {
+    stockpile_row_eid(world, econ, player_id)
+        .unwrap_or_else(|| panic!("player {player_id} has no stockpile entity"))
+}
+
+/// Attach the dark-age AgeState row to the player's ledger entity.
+pub fn create_player_age_state(world: &mut CoreWorld, age: &AgeComps, econ: &EconomyComps, player_id: f64) {
+    let eid = player_ledger_eid(world, econ, player_id);
+    set_row(world, age.age_state, eid, &[player_id, AGE_DARK_RANK]);
+}
+
+/// Promote (or set) the player's AgeState rank.
+pub fn set_player_age_rank(world: &mut CoreWorld, age: &AgeComps, econ: &EconomyComps, player_id: f64, rank: f64) {
+    let eid = player_ledger_eid(world, econ, player_id);
+    set_row(world, age.age_state, eid, &[player_id, rank]);
+}
+
+/// Current rank for gameplay reads; absent state counts as dark age.
+pub fn current_age_rank(world: &CoreWorld, age: &AgeComps, player_id: f64) -> f64 {
+    age_rank_of(world, age, player_id).unwrap_or(AGE_DARK_RANK)
+}
+
+pub fn age_research_row<'a>(world: &'a CoreWorld, age: &AgeComps, eid: Eid) -> Option<&'a Vec<f64>> {
+    row(world, age.age_research, eid)
+}
+
+pub fn set_age_research_row(world: &mut CoreWorld, age: &AgeComps, eid: Eid, player_id: f64, tech_code: f64, remaining: f64) {
+    set_row(world, age.age_research, eid, &[player_id, tech_code, remaining]);
+}
+
+pub fn clear_age_research_row(world: &mut CoreWorld, age: &AgeComps, eid: Eid) -> bool {
+    rows_mut(world, age.age_research).remove(&eid).is_some()
+}
+
+/// Append one age-up event [tick, rank] to the player's log.
+pub fn append_age_advanced(world: &mut CoreWorld, age: &AgeComps, econ: &EconomyComps, player_id: f64, tick: u64, rank: f64) {
+    let eid = player_ledger_eid(world, econ, player_id);
+    let r = rows_mut(world, age.age_advanced).entry(eid).or_insert_with(|| vec![0.0]);
+    r.push(tick as f64);
+    r.push(rank);
+    r[0] += 1.0;
+}
+
+/// Decoded age-up events for one player.
+pub fn read_age_advanced(world: &CoreWorld, age: &AgeComps, econ: &EconomyComps, player_id: f64) -> Vec<(f64, f64)> {
+    let eid = player_ledger_eid(world, econ, player_id);
+    let Some(r) = row(world, age.age_advanced, eid) else { return Vec::new() };
+    (0..r[0] as usize).map(|i| (r[1 + i * 2], r[2 + i * 2])).collect()
+}
+
+/// Decoded gate rejections for one player.
+pub fn read_gate_rejections(world: &CoreWorld, age: &AgeComps, econ: &EconomyComps, player_id: f64) -> Vec<(f64, f64, f64)> {
+    let eid = player_ledger_eid(world, econ, player_id);
+    let Some(r) = row(world, age.gate_rejected, eid) else { return Vec::new() };
+    (0..r[0] as usize).map(|i| (r[1 + i * 3], r[2 + i * 3], r[3 + i * 3])).collect()
+}
+
+/// Mark a tech code researched (count-led row, deduped; TS combat.ts).
+pub fn mark_tech_researched(world: &mut CoreWorld, age: &AgeComps, econ: &EconomyComps, player_id: f64, tech_code: f64) {
+    let eid = player_ledger_eid(world, econ, player_id);
+    let rows = rows_mut(world, age.researched_techs);
+    let r = rows.entry(eid).or_insert_with(|| vec![1.0, tech_code]);
+    if r.len() == 2 && r[1] == tech_code && r[0] == 1.0 {
+        // Just inserted by or_insert, or already the sole entry.
+        return;
+    }
+    let count = r[0] as usize;
+    for i in 0..count {
+        if r[1 + i] == tech_code {
+            return;
+        }
+    }
+    r.push(tech_code);
+    r[0] = count as f64 + 1.0;
 }
 
 pub fn append_gate_rejection(
