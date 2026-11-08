@@ -823,6 +823,7 @@ pub struct EconomySim {
     pub production: crate::production::ProductionSystem,
     pub age: crate::age::AgeSystem,
     pub combat: crate::combat_system::CombatSystem,
+    pub equipment: crate::equipment::EquipmentSystem,
 }
 
 impl EconomySim {
@@ -853,8 +854,9 @@ impl EconomySim {
         let production = crate::production::ProductionSystem::new(defs.clone(), pop, bcomps, age, pcomps);
         let age_system = crate::age::AgeSystem::new(defs.clone(), bcomps, ccomps, age);
         let aux = crate::combat::CombatAuxComps::from_world(&movement.world);
-        let combat = crate::combat_system::CombatSystem::new(defs, traits, pop, bcomps, age, ccomps, aux, pcomps, false);
-        Ok(EconomySim { movement, econ, gather, placement, construction, training, production, age: age_system, combat })
+        let combat = crate::combat_system::CombatSystem::new(defs.clone(), traits, pop, bcomps, age, ccomps, aux, pcomps, false);
+        let equipment = crate::equipment::EquipmentSystem::new(defs, ccomps, aux);
+        Ok(EconomySim { movement, econ, gather, placement, construction, training, production, age: age_system, combat, equipment })
     }
 
     pub fn spawn_unit(&mut self, x: f64, y: f64) -> Eid {
@@ -879,6 +881,7 @@ impl EconomySim {
         self.training.run(world, comps, &econ, layers, last_commands);
         self.age.run(world, comps, &econ, last_commands);
         self.production.run(world, comps, &econ, layers, last_commands);
+        self.equipment.run(world, &econ, last_commands);
         true
     }
 

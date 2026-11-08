@@ -75,6 +75,8 @@ pub struct UnitDef {
     pub max_faith: Option<f64>,
     #[serde(rename = "faithRegenPerTick")]
     pub faith_regen_per_tick: Option<f64>,
+    #[serde(rename = "equipmentSlots", default)]
+    pub equipment_slots: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
