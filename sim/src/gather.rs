@@ -179,6 +179,7 @@ pub struct GatherSystem {
     defs: Arc<Defs>,
     traits: Arc<TraitsData>,
     pop: PopComps,
+    ccomps: crate::combat::CombatComps,
     gcomps: GatherComps,
     pub diagnostics: GatherDiagnostics,
     cost_cache_version: i64,
@@ -190,11 +191,18 @@ pub struct GatherSystem {
 }
 
 impl GatherSystem {
-    pub fn new(defs: Arc<Defs>, traits: Arc<TraitsData>, pop: PopComps, gcomps: GatherComps) -> GatherSystem {
+    pub fn new(
+        defs: Arc<Defs>,
+        traits: Arc<TraitsData>,
+        pop: PopComps,
+        ccomps: crate::combat::CombatComps,
+        gcomps: GatherComps,
+    ) -> GatherSystem {
         GatherSystem {
             defs,
             traits,
             pop,
+            ccomps,
             gcomps,
             diagnostics: GatherDiagnostics::default(),
             cost_cache_version: -1,
@@ -227,8 +235,9 @@ impl GatherSystem {
     }
 
     fn is_naval(&self, world: &CoreWorld, eid: Eid) -> bool {
-        if row(world, self.gcomps.combat, eid).is_some() {
-            panic!("gather: Combat-row naval check lands with the combat port (eid {eid})");
+        let naval = crate::combat::is_naval_unit(world, &self.ccomps, &self.defs, eid);
+        if naval {
+            panic!("gather: naval worker routing lands with the navigability port (eid {eid})");
         }
         false
     }
@@ -826,15 +835,17 @@ impl EconomySim {
         let pop = PopComps::from_world(&movement.world);
         let bcomps = crate::buildings::BuildingComps::from_world(&movement.world);
         let age = crate::buildings::AgeComps::from_world(&movement.world);
+        let ccomps = crate::combat::CombatComps::from_world(&movement.world);
         let gather = GatherSystem::new(
             defs.clone(),
             traits.clone(),
             pop,
+            ccomps,
             GatherComps::from_world(&movement.world),
         );
         let placement = crate::placement::PlacementSystem::new(defs.clone(), bcomps, age);
         let construction = crate::construction::ConstructionSystem::new(defs.clone(), traits.clone(), pop, bcomps);
-        let training = crate::training::TrainingSystem::new(defs, traits, pop, bcomps, age);
+        let training = crate::training::TrainingSystem::new(defs, traits, pop, bcomps, ccomps, age);
         Ok(EconomySim { movement, econ, gather, placement, construction, training })
     }
 

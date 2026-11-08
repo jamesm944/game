@@ -4,15 +4,16 @@
 //! population < cap; a finished head spawns on the first free
 //! perimeter tile (clockwise rings, depth 3) and rally-dispatches.
 //!
-//! Later-epic guards: non-villager spawns ride TS spawnCombatUnit
-//! (combat port pending — panics loudly), naval spawn tiles need the
-//! navigability port. Civ restrictions read `world.civilizations` in
-//! TS; civ-less worlds allow everything, as here.
+//! Non-villager spawns ride the combat spawner (crate::combat);
+//! naval spawn tiles need the navigability port (panic loudly until
+//! then). Civ restrictions read `world.civilizations` in TS;
+//! civ-less worlds allow everything, as here.
 use crate::buildings::{
     append_gate_rejection, building_row, is_def_age_unlocked, is_unit_tier_unlocked, pay_costs,
     population, population_cap, read_train_queue, resolve_upgraded_unit_id, write_train_queue,
     AgeComps, BuildingComps, TrainQueueEntry, GATE_HANDLER_TRAIN,
 };
+use crate::combat::{spawn_combat_unit, CombatComps, SpawnCombatOptions};
 use crate::core::{Command, Eid, World as CoreWorld};
 use crate::defs::Defs;
 use crate::economy::{ensure_carry_capacity, EconomyComps, PLAYER_ONE};
@@ -178,13 +179,21 @@ pub struct TrainingSystem {
     traits: Arc<TraitsData>,
     pop: PopComps,
     bcomps: BuildingComps,
+    ccomps: CombatComps,
     age: AgeComps,
     pub diagnostics: TrainingDiagnostics,
 }
 
 impl TrainingSystem {
-    pub fn new(defs: Arc<Defs>, traits: Arc<TraitsData>, pop: PopComps, bcomps: BuildingComps, age: AgeComps) -> TrainingSystem {
-        TrainingSystem { defs, traits, pop, bcomps, age, diagnostics: TrainingDiagnostics::default() }
+    pub fn new(
+        defs: Arc<Defs>,
+        traits: Arc<TraitsData>,
+        pop: PopComps,
+        bcomps: BuildingComps,
+        ccomps: CombatComps,
+        age: AgeComps,
+    ) -> TrainingSystem {
+        TrainingSystem { defs, traits, pop, bcomps, ccomps, age, diagnostics: TrainingDiagnostics::default() }
     }
 
     fn apply_train_command(&mut self, world: &mut CoreWorld, comps: &MovementComps, econ: &EconomyComps, kind: &str, data: &serde_json::Value) {
@@ -297,9 +306,9 @@ impl TrainingSystem {
     }
 
     /// TS spawnTrainedUnit: villagers are named Pops (identity, body);
-    /// other definitions spawn as combatants (combat port pending).
+    /// other definitions spawn as full combatants with the wound model.
     fn spawn_trained_unit(&self, world: &mut CoreWorld, comps: &MovementComps, econ: &EconomyComps, unit_id: &str, x: f64, y: f64, player_id: f64) -> Eid {
-        let unit_def = self.defs.unit(unit_id);
+        let unit_def = self.defs.unit(unit_id).clone();
         if unit_id == "villager" {
             let eid = spawn_unit_with_speed(world, comps, x, y, unit_def.speed);
             pop::attach_owner(world, &self.pop, eid, player_id);
@@ -310,8 +319,23 @@ impl TrainingSystem {
             pop::attach_body(world, &self.pop, eid);
             return eid;
         }
-        let _ = econ;
-        panic!("training: combat unit spawn for {unit_id} lands with the combat port");
+        let eid = spawn_combat_unit(
+            world,
+            comps,
+            &self.ccomps,
+            &self.pop,
+            &self.traits,
+            &self.defs,
+            unit_id,
+            x,
+            y,
+            player_id,
+            &SpawnCombatOptions { body: true, identity: false, morale: false },
+        );
+        if unit_def.carry_capacity > 0 {
+            ensure_carry_capacity(world, econ, eid, unit_def.carry_capacity as f64).expect("carry capacity");
+        }
+        eid
     }
 
     /// TS dispatchSpawnedUnitToRally: smart gather/build/groupMove
@@ -417,9 +441,6 @@ impl TrainingSystem {
                 let spawned = self.spawn_trained_unit(world, comps, econ, &unit_id, tile.0 as f64 + 0.5, tile.1 as f64 + 0.5, owner);
                 *pop_by_owner.get_mut(&(owner as i64)).unwrap() += 1;
                 self.diagnostics.units_trained += 1;
-                if unit_id != "villager" && unit_def.carry_capacity > 0 {
-                    ensure_carry_capacity(world, econ, spawned, unit_def.carry_capacity as f64).expect("carry capacity");
-                }
                 entries.remove(0);
                 write_train_queue(world, &self.bcomps, eid, &entries);
                 self.dispatch_to_rally(world, econ, spawned, eid, &unit_id);
@@ -598,6 +619,79 @@ mod tests {
         assert_eq!(sim.placement.diagnostics.commands_applied, 4);
         assert_eq!(sim.construction.diagnostics.completions, 4);
         assert_eq!(sim.training.diagnostics.units_trained, 3);
+    }
+
+    #[test]
+    fn m2t1_full_definition_boot_matches_ts_snapshot() {
+        #[derive(Deserialize)]
+        struct M2Fixture {
+            seed: u32,
+            size: usize,
+            ticks: u64,
+            #[serde(rename = "milestoneEvery")]
+            milestone_every: u64,
+            stockpile: std::collections::BTreeMap<String, f64>,
+            spawns: Vec<FixtureSpawn>,
+            commands: Vec<FixtureCommand>,
+        }
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/golden/m2t1/case.json");
+        let fixture: M2Fixture = serde_json::from_str(&std::fs::read_to_string(path).expect("case")).expect("parse case");
+        let mut sim = EconomySim::new(fixture.seed, fixture.size, Transport::synchronous(), defs(), traits()).unwrap();
+        let econ = sim.econ;
+        for spawn in &fixture.spawns {
+            assert_eq!(sim.spawn_unit(spawn.x, spawn.y) as i64, spawn.eid, "spawn order");
+        }
+        let amounts: Vec<f64> = ["food", "wood", "gold", "stone", "iron", "coal", "clay"]
+            .iter()
+            .map(|slug| fixture.stockpile[*slug])
+            .collect();
+        create_player_stockpile(&mut sim.movement.world, &econ, PLAYER_ONE, Some(&amounts)).unwrap();
+        for command in &fixture.commands {
+            sim.submit(Command { kind: command.kind.clone(), target_tick: command.target_tick, data: Some(command.data.clone()) })
+                .unwrap();
+        }
+        // Expected digests from the TS snapshot file.
+        let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/../tests/golden/m2t1/__snapshots__");
+        let mut text = String::new();
+        for entry in std::fs::read_dir(dir).expect("snapshot dir") {
+            let p = entry.expect("entry").path();
+            if p.extension().map(|e| e == "snap").unwrap_or(false) {
+                text.push_str(&std::fs::read_to_string(p).expect("read snap"));
+            }
+        }
+        let mut expected = Vec::new();
+        let mut rest = text.as_str();
+        while let Some(i) = rest.find("fnv1a64:") {
+            let digest = rest[i..i + 24].to_string();
+            let after = &rest[i..];
+            let tick_at = after.find("\"tick\":").expect("tick after digest");
+            let num: String = after[tick_at + 7..].trim_start().chars().take_while(|c| c.is_ascii_digit()).collect();
+            expected.push((num.parse::<u64>().expect("tick"), digest));
+            rest = &rest[i + 24..];
+        }
+        let mut digests = Vec::new();
+        while sim.movement.world.tick < fixture.ticks {
+            let before = sim.movement.world.tick;
+            sim.step();
+            if sim.movement.world.tick == before {
+                continue;
+            }
+            let t = sim.movement.world.tick;
+            if t % fixture.milestone_every == 0 || t == fixture.ticks {
+                digests.push((t, sim.digest()));
+            }
+        }
+        assert_eq!(digests, expected);
+        let world = &sim.movement.world;
+        let comps = sim.movement.comps;
+        let bcomps = BuildingComps::from_world(world);
+        assert_eq!(population(world, &comps, &bcomps, None), 8);
+        assert_eq!(population_cap(world, &bcomps, &defs(), None), 10);
+        assert_eq!(
+            stockpile_amounts(world, &econ, PLAYER_ONE),
+            vec![1120.0, 965.0, 355.0, 200.0, 100.0, 50.0, 25.0]
+        );
+        assert_eq!(sim.training.diagnostics.units_trained, 2);
     }
 
     #[test]

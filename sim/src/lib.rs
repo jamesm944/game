@@ -7,6 +7,7 @@ pub mod deep;
 pub mod defs;
 pub mod economy;
 pub mod buildings;
+pub mod combat;
 pub mod construction;
 pub mod gather;
 pub mod placement;
