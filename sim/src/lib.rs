@@ -3,6 +3,7 @@
 //! digests are worker-count independent (ADR-0012 parity definition).
 pub mod activities;
 pub mod age;
+pub mod ai;
 pub mod core;
 pub mod deep;
 pub mod defs;
@@ -19,6 +20,7 @@ pub mod placement;
 pub mod pop;
 pub mod production;
 pub mod training;
+pub mod victory;
 pub mod mapgen;
 pub mod movement;
 pub mod parity;

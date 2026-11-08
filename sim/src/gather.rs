@@ -218,7 +218,7 @@ impl GatherSystem {
         &self.farm_events
     }
 
-    fn is_auto_reseed_enabled(&self, player_id: f64) -> bool {
+    pub(crate) fn is_auto_reseed_enabled(&self, player_id: f64) -> bool {
         self.auto_reseed.get(&(player_id as i64)).copied().unwrap_or(true)
     }
 
@@ -827,6 +827,11 @@ pub struct EconomySim {
     /// Fog-of-war handle when the scenario runs real fog (SPEC §2.9);
     /// None = the all-visible observational stub.
     pub fog: Option<crate::fog::FogHandle>,
+    /// Scripted AI planner when the scenario seats one (SPEC §2.8).
+    pub ai: Option<crate::ai::AiPlannerSystem>,
+    /// Victory evaluator when the scenario runs one (SPEC §2.11);
+    /// rides after equipment, before the planner.
+    pub victory: Option<crate::victory::VictorySystem>,
     fog_defs: Arc<Defs>,
     fog_pop: PopComps,
     fog_bcomps: crate::buildings::BuildingComps,
@@ -875,6 +880,8 @@ impl EconomySim {
             combat,
             equipment,
             fog: None,
+            ai: None,
+            victory: None,
             fog_defs: defs,
             fog_pop: pop,
             fog_bcomps: bcomps,
@@ -902,8 +909,9 @@ impl EconomySim {
     pub fn step(&mut self) -> bool {
         // Fog "moved" marks: tile snapshots bracketing the movement
         // system (TS compares steering start vs committed tiles).
+        let fog_tracking = self.fog.is_some() || self.ai.is_some();
         let tiles_before: Option<std::collections::HashMap<crate::core::Eid, (i64, i64)>> =
-            self.fog.as_ref().map(|_| {
+            fog_tracking.then(|| {
                 self.movement.world.rows_by_component[self.movement.comps.position]
                     .iter()
                     .map(|(eid, p)| (*eid, (p[0].floor() as i64, p[1].floor() as i64)))
@@ -912,7 +920,8 @@ impl EconomySim {
         if !self.movement.step() {
             return false;
         }
-        if let (Some(before), Some(fog)) = (&tiles_before, &mut self.fog) {
+        let mut fog_moved: Vec<crate::core::Eid> = Vec::new();
+        if let Some(before) = &tiles_before {
             let entities: Vec<crate::core::Eid> = self.movement.world.entities.clone();
             for eid in entities {
                 let Some(&(bx, by)) = before.get(&eid) else { continue };
@@ -921,8 +930,13 @@ impl EconomySim {
                     continue;
                 };
                 if (pos[0].floor() as i64, pos[1].floor() as i64) != (bx, by) {
-                    fog.mark_dirty(eid);
+                    fog_moved.push(eid);
                 }
+            }
+        }
+        if let Some(fog) = &mut self.fog {
+            for &eid in &fog_moved {
+                fog.mark_dirty(eid);
             }
         }
         let econ = self.econ;
@@ -930,17 +944,64 @@ impl EconomySim {
         let MovementSim { world, comps, layers, paths, last_commands, .. } = &mut self.movement;
         let version = paths.passability_version();
         self.gather.run(world, comps, &econ, layers, version, last_commands);
-        self.combat.run(world, comps, &econ, layers, paths, last_commands);
         self.placement.run(world, comps, &econ, layers, paths, last_commands, fog_ref);
         self.construction.run(world, comps, &econ, layers, last_commands);
         self.training.run(world, comps, &econ, layers, last_commands);
         self.age.run(world, comps, &econ, last_commands);
+        self.combat.run(world, comps, &econ, layers, paths, last_commands);
         self.production.run(world, comps, &econ, layers, last_commands);
         self.equipment.run(world, &econ, last_commands);
+        // Victory evaluator rides after combat/equipment, before the
+        // planner (production roster order, SPEC §2.11).
+        if let Some(victory) = &mut self.victory {
+            let relic_component = crate::combat::CombatAuxComps::from_world(world).relic;
+            victory.run(world, &econ, self.fog_bcomps.building, relic_component, last_commands);
+        }
+        // AI planner runs LAST; it reads freshly flushed fog planes
+        // (TS calls visibility.flushDirty() before deciding).
+        if let Some(ai) = &mut self.ai {
+            let removed: Vec<crate::core::Eid> = std::mem::take(&mut world.fog_removed);
+            for eid in removed {
+                ai.fog.mark_dirty(eid);
+            }
+            for &eid in &fog_moved {
+                ai.fog.mark_dirty(eid);
+            }
+            // Spawned marks: shared with the viewer fog when both exist
+            // (TS has one visibility object; drain only if it is absent).
+            let spawned: Vec<crate::core::Eid> = if self.fog.is_some() {
+                world.fog_spawned.clone()
+            } else {
+                std::mem::take(&mut world.fog_spawned)
+            };
+            for eid in spawned {
+                ai.fog.mark_dirty(eid);
+            }
+            let defs = self.fog_defs.clone();
+            let fcomps = crate::fog::FogComps::new(comps, &self.fog_bcomps, &self.fog_ccomps);
+            ai.fog.flush_dirty(world, &fcomps, &self.fog_pop, &defs);
+            let auto_reseed = self.gather.is_auto_reseed_enabled(ai.knowledge_player);
+            let relic_component = crate::combat::CombatAuxComps::from_world(world).relic;
+            ai.run(
+                world,
+                &defs,
+                layers,
+                comps,
+                &econ,
+                &self.fog_bcomps,
+                &crate::buildings::AgeComps::from_world(world),
+                relic_component,
+                auto_reseed,
+            );
+        }
         // Fog flush: after all systems, before the tick commit.
         if let Some(fog) = &mut self.fog {
             let removed: Vec<crate::core::Eid> = std::mem::take(&mut self.movement.world.fog_removed);
             for eid in removed {
+                fog.mark_dirty(eid);
+            }
+            let spawned: Vec<crate::core::Eid> = std::mem::take(&mut self.movement.world.fog_spawned);
+            for eid in spawned {
                 fog.mark_dirty(eid);
             }
             let defs = self.fog_defs.clone();

@@ -33,7 +33,7 @@ fn age_building_prereq(target_rank: i64) -> Option<(i64, &'static [&'static str]
     }
 }
 
-fn next_age_tech_id(rank: i64) -> Option<&'static str> {
+pub fn next_age_tech_id(rank: i64) -> Option<&'static str> {
     match rank {
         1 => Some("feudal-age"),
         2 => Some("castle-age"),

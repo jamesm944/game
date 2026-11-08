@@ -161,6 +161,8 @@ pub fn spawn_building_site(
         eid,
         &[player_id, defs.building_code(def_id) as f64, 0.0, def.hp as f64],
     );
+    // Fog "spawned" mark (TS attachBuildingSite).
+    world.fog_spawned.push(eid);
     eid
 }
 
@@ -518,4 +520,122 @@ pub fn is_unit_tier_unlocked(world: &CoreWorld, age: &AgeComps, econ: &EconomyCo
         None => true,
         Some(tech) => researched_tech_codes(world, age, econ, player_id).contains(&(defs.tech_code(&tech.id) as i64)),
     }
+}
+
+pub fn age_label_of(rank: i64) -> String {
+    match rank {
+        1 => "Dark Age".to_string(),
+        2 => "Feudal Age".to_string(),
+        3 => "Castle Age".to_string(),
+        4 => "Imperial Age".to_string(),
+        r => format!("Age {r}"),
+    }
+}
+
+/// Trainable unit ids after settled upgrade replacements (upgrades.ts).
+pub fn active_trainable_units_for(
+    world: &CoreWorld,
+    age: &AgeComps,
+    econ: &EconomyComps,
+    defs: &Defs,
+    player_id: f64,
+    building_def_id: &str,
+) -> Vec<String> {
+    let Some(queue) = &defs.building(building_def_id).train_queue else { return Vec::new() };
+    let mut result: Vec<String> = Vec::new();
+    for entry in &queue.trainable {
+        let uid = &entry.unit_id;
+        let has_upgrade_tech = defs.techs.values().any(|t| t.unit_upgrade.as_ref().map(|u| &u.to_unit_id == uid).unwrap_or(false));
+        if has_upgrade_tech && !is_unit_tier_unlocked(world, age, econ, defs, player_id, uid) {
+            continue;
+        }
+        let active = resolve_upgraded_unit_id(world, age, econ, defs, player_id, uid);
+        if !result.contains(&active) {
+            result.push(active);
+        }
+    }
+    result
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PanelTechOption {
+    pub tech_id: String,
+    pub name: String,
+    pub cost_string: String,
+    pub age_requirement: String,
+    pub is_researched: bool,
+    pub is_researching: bool,
+    pub can_research: bool,
+    pub reason_disabled: Option<String>,
+}
+
+/// Research-panel options for one building (upgrades.ts), sorted by
+/// age rank then name.
+pub fn building_tech_options(
+    world: &CoreWorld,
+    age: &AgeComps,
+    econ: &EconomyComps,
+    defs: &Defs,
+    player_id: f64,
+    building_eid: Eid,
+    building_def_id: &str,
+) -> Vec<PanelTechOption> {
+    let researched = researched_tech_codes(world, age, econ, player_id);
+    let active = age_research_row(world, age, building_eid).cloned();
+    let active_code = active.as_ref().map(|r| r[1]);
+    let mut options = Vec::new();
+    for tech in defs.techs.values() {
+        if tech.building_id.as_deref() != Some(building_def_id) {
+            continue;
+        }
+        let code = defs.tech_code(&tech.id) as f64;
+        let is_researched = researched.contains(&(code as i64));
+        let is_researching = active_code == Some(code);
+        let unlocked = is_def_age_unlocked(world, age, player_id, &tech.age_gate);
+        let prereqs_met = tech.tech_prereqs.iter().all(|p| researched.contains(&(defs.tech_code(p) as i64)));
+        let mut parts: Vec<String> = Vec::new();
+        for slug in ["food", "wood", "gold", "stone"] {
+            if let Some(v) = tech.costs.get(slug) {
+                if *v != 0 {
+                    parts.push(format!("{v} {slug}"));
+                }
+            }
+        }
+        let cost_string = if parts.is_empty() { "free".to_string() } else { parts.join(" · ") };
+        let can_afford = can_afford_costs(world, econ, player_id, &tech.costs);
+        let (mut can_research, reason_disabled) = if is_researched {
+            (false, Some("Researched".to_string()))
+        } else if is_researching {
+            (false, Some("Research in progress".to_string()))
+        } else if !unlocked {
+            (false, Some(format!("Requires {}", age_label_of(age_rank(&tech.age_gate)))))
+        } else if !prereqs_met {
+            (false, Some("Prerequisites not met".to_string()))
+        } else if active.is_some() {
+            (false, Some("Building is researching".to_string()))
+        } else if !can_afford {
+            (false, Some("Insufficient resources".to_string()))
+        } else {
+            (true, None)
+        };
+        if is_researched || is_researching {
+            can_research = false;
+        }
+        options.push(PanelTechOption {
+            tech_id: tech.id.clone(),
+            name: tech.name.clone(),
+            cost_string,
+            age_requirement: age_label_of(age_rank(&tech.age_gate)),
+            is_researched,
+            is_researching,
+            can_research,
+            reason_disabled,
+        });
+    }
+    options.sort_by(|a, b| {
+        let ra = age_rank(&defs.tech(&a.tech_id).age_gate);
+        let rb = age_rank(&defs.tech(&b.tech_id).age_gate);
+        ra.cmp(&rb).then_with(|| a.name.cmp(&b.name))
+    });
+    options
 }

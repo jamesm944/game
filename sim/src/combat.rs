@@ -105,6 +105,8 @@ pub fn spawn_combat_unit(
     if def.armor_classes.iter().any(|c| c == "monk") || def_id == "monk" || def.max_faith.is_some() {
         attach_faith(world, ccomps, eid, def.max_faith.unwrap_or(100.0));
     }
+    // Fog "spawned" mark (TS spawnCombatUnit).
+    world.fog_spawned.push(eid);
     eid
 }
 

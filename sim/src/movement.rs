@@ -145,6 +145,8 @@ pub fn spawn_unit_with_speed(world: &mut CoreWorld, comps: &MovementComps, x: f6
     world
         .set_values(comps.activity_queue, eid, &encode_activities(&[]).unwrap())
         .unwrap();
+    // Fog "spawned" mark (TS spawnUnit): stamped at the next flush.
+    world.fog_spawned.push(eid);
     eid
 }
 

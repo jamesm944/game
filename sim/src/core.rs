@@ -295,6 +295,9 @@ pub struct World {
     /// Entities despawned since the last fog flush (TS markDirty
     /// "removed" queue); drained by the runner each tick.
     pub fog_removed: Vec<Eid>,
+    /// Entities spawned via the unit/building-site attach helpers
+    /// since the last fog flush (TS markDirty "spawned" queue).
+    pub fog_spawned: Vec<Eid>,
 }
 
 impl World {
@@ -312,6 +315,7 @@ impl World {
             used_name_indexes: std::collections::HashSet::new(),
             rally_points: std::collections::HashMap::new(),
             fog_removed: Vec::new(),
+            fog_spawned: Vec::new(),
         }
     }
     pub fn define_component(&mut self, name: &str) -> Result<usize, String> {

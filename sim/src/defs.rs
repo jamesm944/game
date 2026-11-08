@@ -144,6 +144,37 @@ pub struct BuildingDef {
     pub garrison_heal_rate: Option<f64>,
     #[serde(rename = "garrisonAttackBonus")]
     pub garrison_attack_bonus: Option<GarrisonAttackBonus>,
+    #[serde(default)]
+    pub victory: Option<VictoryRole>,
+}
+
+/// TS VictoryRole (data/schema victoryRoleSchema).
+#[derive(Clone, Debug, Deserialize)]
+pub struct VictoryRole {
+    pub path: String,
+    #[serde(rename = "holdTicks")]
+    pub hold_ticks: Option<i64>,
+    #[serde(rename = "sustainPerMin")]
+    pub sustain_per_min: Option<f64>,
+    #[serde(rename = "prestigePerMin")]
+    pub prestige_per_min: Option<f64>,
+    #[serde(rename = "knowledgePerLesson")]
+    pub knowledge_per_lesson: Option<f64>,
+    #[serde(rename = "festivalCosts")]
+    pub festival_costs: Option<Costs>,
+    #[serde(rename = "festivalPrestige")]
+    pub festival_prestige: Option<f64>,
+}
+
+/// TS victory-path definition (`definitions/victory/*.json`): the
+/// non-building gates (Economic) live here rather than on a building.
+#[derive(Clone, Debug, Deserialize)]
+pub struct VictoryPathDef {
+    pub id: String,
+    #[serde(rename = "holdTicks")]
+    pub hold_ticks: Option<i64>,
+    #[serde(rename = "sustainPerMin")]
+    pub sustain_per_min: Option<f64>,
 }
 
 /// TS `number | Record<string, number>` garrison attack bonus.
@@ -195,6 +226,8 @@ pub struct UnitUpgrade {
 #[derive(Clone, Debug, Deserialize)]
 pub struct TechDef {
     pub id: String,
+    #[serde(default)]
+    pub name: String,
     #[serde(default)]
     pub costs: Costs,
     #[serde(rename = "ageGate", default = "def_dark")]
@@ -275,6 +308,7 @@ pub struct Defs {
     pub buildings: BTreeMap<String, BuildingDef>,
     pub techs: BTreeMap<String, TechDef>,
     pub recipes: BTreeMap<String, RecipeDef>,
+    pub victory_paths: BTreeMap<String, VictoryPathDef>,
     unit_codes: BTreeMap<String, u32>,
     building_codes: BTreeMap<String, u32>,
     tech_codes: BTreeMap<String, u32>,
@@ -319,12 +353,13 @@ impl Defs {
         let buildings = load_family::<BuildingDef>(dir, "buildings", "building", |d| &d.id)?;
         let techs = load_family::<TechDef>(dir, "techs", "tech", |d| &d.id)?;
         let recipes = load_family::<RecipeDef>(dir, "recipes", "recipe", |d| &d.id)?;
+        let victory_paths = load_family::<VictoryPathDef>(dir, "victory", "victoryPath", |d| &d.id)?;
         let unit_codes = assign_canonical_codes(&units.keys().cloned().collect::<Vec<_>>(), &CANONICAL_UNIT_IDS);
         let building_codes =
             assign_canonical_codes(&buildings.keys().cloned().collect::<Vec<_>>(), &CANONICAL_BUILDING_IDS);
         let tech_codes = assign_canonical_codes(&techs.keys().cloned().collect::<Vec<_>>(), &CANONICAL_TECH_IDS);
         let recipe_codes = assign_slug_codes(&recipes.keys().cloned().collect::<Vec<_>>());
-        Ok(Defs { units, buildings, techs, recipes, unit_codes, building_codes, tech_codes, recipe_codes })
+        Ok(Defs { units, buildings, techs, recipes, victory_paths, unit_codes, building_codes, tech_codes, recipe_codes })
     }
 
     /// Repo-checkout default: `<repo>/src/data/definitions`.

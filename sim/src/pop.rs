@@ -304,6 +304,11 @@ pub fn attach_body(world: &mut CoreWorld, comps: &PopComps, eid: Eid) {
     set_row(world, comps.body, eid, &[0.0]);
 }
 
+/// Morale row at attach: [0, 0, 0] (components/morale.ts).
+pub fn attach_morale(world: &mut CoreWorld, morale_component: usize, eid: Eid) {
+    world.set_values(morale_component, eid, &[0.0, 0.0, 0.0]).expect("registered component");
+}
+
 /// TS attachOwner: player zero stays rowless; others stamp [playerId].
 pub fn attach_owner(world: &mut CoreWorld, comps: &PopComps, eid: Eid, player_id: f64) {
     assert!(player_id >= 0.0 && player_id.fract() == 0.0, "unit owner must be a non-negative integer");
