@@ -1,0 +1,17 @@
+{
+  "browser": "webkit",
+  "available": false,
+  "capturedAt": "2026-10-25T19:17:41.999Z",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "automation": "playwright",
+  "error": "Error: browserType.launch: Executable doesn't exist at /Users/jamesmoss/Library/Caches/ms-playwright/webkit-2158/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝",
+  "stack": "browserType.launch: Executable doesn't exist at /Users/jamesmoss/Library/Caches/ms-playwright/webkit-2158/pw_run.sh\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝\n    at launchPlaywright (/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:89:40)\n    at runPlaywright (/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:94:25)\n    at /Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:197:74"
+}

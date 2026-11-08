@@ -190,6 +190,51 @@ function clampTile(value: number, size: number): number {
 }
 
 /**
+ * Unit-step band LUTs: for a sight circle of `radius` moving by
+ * (sx, sy) ∈ {-1,0,1}² ∖ {0,0}, `remove` holds offsets (relative to
+ * the old center) covered only before the move and `add` holds
+ * offsets (relative to the new center) covered only after it.
+ * Memoized per (radius, step) like CIRCLE_OFFSET_LUTS.
+ */
+const CIRCLE_BAND_LUTS: ({ remove: Int32Array; add: Int32Array } | undefined)[] =
+  [];
+
+function circleBandOffsets(
+  radius: number,
+  sx: number,
+  sy: number,
+): { remove: Int32Array; add: Int32Array } {
+  const key = radius * 9 + (sx + 1) * 3 + (sy + 1);
+  const cached = CIRCLE_BAND_LUTS[key];
+  if (cached) return cached;
+  const offsets = circleOffsets(radius);
+  const r2 = radius * radius;
+  const remove: number[] = [];
+  const add: number[] = [];
+  for (let i = 0; i < offsets.length; i += 2) {
+    const dx = offsets[i]!;
+    const dy = offsets[i + 1]!;
+    // Cell at old-center offset (dx,dy): still covered after the step
+    // iff its position relative to the new center, (dx-sx, dy-sy), is
+    // inside the circle.
+    const rx = dx - sx;
+    const ry = dy - sy;
+    if (rx * rx + ry * ry > r2) remove.push(dx, dy);
+    // Cell at new-center offset (dx,dy): already covered before the
+    // step iff (dx+sx, dy+sy) is inside the circle.
+    const ax = dx + sx;
+    const ay = dy + sy;
+    if (ax * ax + ay * ay > r2) add.push(dx, dy);
+  }
+  const band = {
+    remove: Int32Array.from(remove),
+    add: Int32Array.from(add),
+  };
+  CIRCLE_BAND_LUTS[key] = band;
+  return band;
+}
+
+/**
  * Stamp one sight circle: visible/contributor increments plus explored
  * OR-in. Edge-clamped at the grid border, never wrapping.
  */
@@ -527,6 +572,94 @@ export function createFogVisibility(
     );
   };
 
+  /**
+   * Move one stamp between two centers with identical owner+radius by
+   * writing only the circles' symmetric-difference band. Cells covered
+   * by both circles keep their contributor count (un-stamp + re-stamp
+   * would net to zero on them, modulo the 0xffff saturation which also
+   * nets out), so final planes are identical to the full-circle path —
+   * pinned by the recomputeAll-oracle test in tests/fog.test.ts.
+   * Exists because the honest 300-mover gate (E0/#192) measures
+   * full-circle churn at >1 ms: ~110k cell writes per flush where a
+   * 1-tile move only changes a ~2(2r+1)-cell band.
+   */
+  const moveStampRecord = (
+    previous: FogEntityRecord,
+    current: FogEntityRecord,
+  ): void => {
+    const plane = state.planes[current.owner]!;
+    const size = state.size;
+    const ocx = clampTile(previous.tileX, size);
+    const ocy = clampTile(previous.tileY, size);
+    const ncx = clampTile(current.tileX, size);
+    const ncy = clampTile(current.tileY, size);
+    const sx = ncx - ocx;
+    const sy = ncy - ocy;
+    if (sx >= -1 && sx <= 1 && sy >= -1 && sy <= 1 && (sx !== 0 || sy !== 0)) {
+      // Unit step: precomputed band LUTs (~2(2r+1) cells) instead of
+      // scanning both full circles — iteration, not writes, dominates
+      // the honest gate measurement (E0/#192 probe).
+      const band = circleBandOffsets(current.sightRadius, sx, sy);
+      for (let i = 0; i < band.remove.length; i += 2) {
+        const x = ocx + band.remove[i]!;
+        const y = ocy + band.remove[i + 1]!;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        const index = y * size + x;
+        const count = plane.contributorCount[index]!;
+        if (count === 0) continue;
+        plane.contributorCount[index] = count - 1;
+        if (count === 1) plane.visible[index] = 0;
+      }
+      for (let i = 0; i < band.add.length; i += 2) {
+        const x = ncx + band.add[i]!;
+        const y = ncy + band.add[i + 1]!;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        const index = y * size + x;
+        plane.visible[index] = 1;
+        const count = plane.contributorCount[index]!;
+        if (count < 0xffff) plane.contributorCount[index] = count + 1;
+        plane.explored[index] = 1;
+      }
+      stamped.set(current.eid, current);
+      return;
+    }
+    if (ocx !== ncx || ocy !== ncy) {
+      const radius = current.sightRadius;
+      const r2 = radius * radius;
+      const offsets = circleOffsets(radius);
+      // Remove band: cells stamped at the old center that the new
+      // circle no longer covers take the un-stamp decrement.
+      for (let i = 0; i < offsets.length; i += 2) {
+        const x = ocx + offsets[i]!;
+        const y = ocy + offsets[i + 1]!;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        const dxn = x - ncx;
+        const dyn = y - ncy;
+        if (dxn * dxn + dyn * dyn <= r2) continue;
+        const index = y * size + x;
+        const count = plane.contributorCount[index]!;
+        if (count === 0) continue; // defensive, mirrors unstampSightCircle
+        plane.contributorCount[index] = count - 1;
+        if (count === 1) plane.visible[index] = 0;
+      }
+      // Add band: cells newly covered take the stamp increment.
+      for (let i = 0; i < offsets.length; i += 2) {
+        const x = ncx + offsets[i]!;
+        const y = ncy + offsets[i + 1]!;
+        if (x < 0 || y < 0 || x >= size || y >= size) continue;
+        const dxo = x - ocx;
+        const dyo = y - ocy;
+        if (dxo * dxo + dyo * dyo <= r2) continue;
+        const index = y * size + x;
+        plane.visible[index] = 1;
+        const count = plane.contributorCount[index]!;
+        if (count < 0xffff) plane.contributorCount[index] = count + 1;
+        plane.explored[index] = 1;
+      }
+    }
+    stamped.set(current.eid, current);
+  };
+
   /** True when any footprint tile of `record` is visible to `viewer`. */
   const footprintVisibleTo = (
     viewer: number,
@@ -585,6 +718,15 @@ export function createFogVisibility(
         sameStamp(previous, current)
       ) {
         continue; // same tile/radius/owner: nothing observable changed
+      }
+      if (
+        previous &&
+        current &&
+        previous.owner === current.owner &&
+        previous.sightRadius === current.sightRadius
+      ) {
+        moveStampRecord(previous, current);
+        continue;
       }
       if (previous) {
         unstampRecord(previous);

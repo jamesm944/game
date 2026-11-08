@@ -1,0 +1,2268 @@
+{
+  "schema": "wayfinder-navigation-summary-v1",
+  "sourceRun": "results/run-02.json",
+  "comparisonRun": "results/run-01.json",
+  "logicalDigestRun01": "f8699c528fb2fea92a2514835b9b6a9e3e96c0b533be914554514dc23558b527",
+  "logicalDigestRun02": "f8699c528fb2fea92a2514835b9b6a9e3e96c0b533be914554514dc23558b527",
+  "crossProcessLogicalOutputsEqual": true,
+  "config": {
+    "pathWarmupsPerRequest": 10,
+    "pathIterationsPerRequest": 50,
+    "groupOrderCount": 32,
+    "groupWarmupBatches": 5,
+    "groupMeasuredBatches": 20,
+    "mutationWarmupCycles": 5,
+    "mutationMeasuredCycles": 20,
+    "recastRebuildWarmups": 1,
+    "recastRebuildIterations": 3,
+    "exactGoalToleranceWorldUnits": 0.05
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "v8": "15.0.245.31-electron.0",
+    "platform": "darwin arm64",
+    "osRelease": "23.6.0",
+    "cpu": "Apple M1",
+    "logicalCpuCount": 8,
+    "totalMemoryBytes": 17179869184,
+    "projectCommit": "c462f54952490e61441612606b86410d85a4c6c6",
+    "donorCommit": "4df0235116b78bf9232105486738e64b2e6905cb",
+    "pathfindingVersion": "0.4.18",
+    "recastNavigationVersion": "0.43.0"
+  },
+  "maps": [
+    {
+      "id": "open",
+      "algorithms": [
+        {
+          "name": "project-integer-a-star",
+          "setupMs": 0.040209,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.07193,
+            "p50Ms": 0.052625,
+            "p95Ms": 0.190916,
+            "p99Ms": 0.5625,
+            "maxMs": 1.332209
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "diagonal",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 73.593478,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.088166,
+                "p95Ms": 0.238625,
+                "p99Ms": 0.760042
+              }
+            },
+            {
+              "id": "horizontal",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 54,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.022833,
+                "p95Ms": 0.036958,
+                "p99Ms": 0.052167
+              }
+            },
+            {
+              "id": "reverse",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 73.593478,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.071417,
+                "p95Ms": 0.295667,
+                "p99Ms": 1.332209
+              }
+            },
+            {
+              "id": "short",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 8.062258,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.010667,
+                "p95Ms": 0.037,
+                "p99Ms": 0.057625
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "diagonal",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": 31,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.076083,
+              "meanMs": 0.099869,
+              "p50Ms": 0.089125,
+              "p95Ms": 0.13425,
+              "p99Ms": 0.215709,
+              "maxMs": 0.215709
+            },
+            "perOrderMeanMs": 0.003121,
+            "batchSamplesMs": [
+              0.1005,
+              0.090292,
+              0.089125,
+              0.089167,
+              0.13425,
+              0.089125,
+              0.119709,
+              0.085084,
+              0.084708,
+              0.089792,
+              0.112458,
+              0.085292,
+              0.1055,
+              0.083583,
+              0.215709,
+              0.0925,
+              0.087334,
+              0.076083,
+              0.087542,
+              0.079625
+            ],
+            "outputDigest": "ddeb8ff14d9f0dfd663e714adb64560e5a65006dbd4f006440096ade1af5b1c6"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "pathfinding-js-0.4.18",
+          "setupMs": 0.78975,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.078662,
+            "p50Ms": 0.065208,
+            "p95Ms": 0.20175,
+            "p99Ms": 0.328959,
+            "maxMs": 0.492542
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "diagonal",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 74.710678,
+              "waypointCount": 55,
+              "latency": {
+                "p50Ms": 0.114792,
+                "p95Ms": 0.294417,
+                "p99Ms": 0.492542
+              }
+            },
+            {
+              "id": "horizontal",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 54,
+              "waypointCount": 55,
+              "latency": {
+                "p50Ms": 0.050208,
+                "p95Ms": 0.102625,
+                "p99Ms": 0.328959
+              }
+            },
+            {
+              "id": "reverse",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 74.710678,
+              "waypointCount": 55,
+              "latency": {
+                "p50Ms": 0.0675,
+                "p95Ms": 0.102042,
+                "p99Ms": 0.272041
+              }
+            },
+            {
+              "id": "short",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 8.656854,
+              "waypointCount": 8,
+              "latency": {
+                "p50Ms": 0.03025,
+                "p95Ms": 0.085375,
+                "p99Ms": 0.187166
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "diagonal",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 1.894375,
+              "meanMs": 2.584392,
+              "p50Ms": 2.452,
+              "p95Ms": 3.255291,
+              "p99Ms": 3.493959,
+              "maxMs": 3.493959
+            },
+            "perOrderMeanMs": 0.080762,
+            "batchSamplesMs": [
+              2.1685,
+              2.355875,
+              2.509583,
+              2.625791,
+              2.415666,
+              2.077,
+              2.179083,
+              3.493959,
+              2.913042,
+              2.495333,
+              2.31325,
+              2.375834,
+              2.452,
+              3.255291,
+              2.976417,
+              3.197958,
+              1.894375,
+              2.267375,
+              2.782625,
+              2.938875
+            ],
+            "outputDigest": "40704b50da4fabf87a93ac39e028b50b32bbf164d84b8e2668e6a4f0c0b75a1d"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "voidstrike-recast-detour-0.43.0",
+          "setupMs": 91.184792,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.025842,
+            "p50Ms": 0.014083,
+            "p95Ms": 0.079667,
+            "p99Ms": 0.278333,
+            "maxMs": 0.439416
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "diagonal",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 73.593478,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.017542,
+                "p95Ms": 0.046625,
+                "p99Ms": 0.439416
+              }
+            },
+            {
+              "id": "horizontal",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 54,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.014292,
+                "p95Ms": 0.125625,
+                "p99Ms": 0.310875
+              }
+            },
+            {
+              "id": "reverse",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 73.593478,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.013458,
+                "p95Ms": 0.047833,
+                "p99Ms": 0.278333
+              }
+            },
+            {
+              "id": "short",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 8.062258,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.010083,
+                "p95Ms": 0.07275,
+                "p99Ms": 0.115833
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "diagonal",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.299709,
+              "meanMs": 0.587879,
+              "p50Ms": 0.381833,
+              "p95Ms": 1.325042,
+              "p99Ms": 1.930583,
+              "maxMs": 1.930583
+            },
+            "perOrderMeanMs": 0.018371,
+            "batchSamplesMs": [
+              0.303458,
+              0.411416,
+              1.930583,
+              0.466709,
+              0.299959,
+              0.30025,
+              0.372167,
+              0.31275,
+              1.02575,
+              0.304459,
+              0.381833,
+              0.31325,
+              0.371459,
+              0.299709,
+              0.664875,
+              0.882333,
+              0.757667,
+              0.525208,
+              1.325042,
+              0.508709
+            ],
+            "outputDigest": "7de19be29f5c9e583dc9973e6bf6f55e32e208832a73527e46dbf17d75524997"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        }
+      ]
+    },
+    {
+      "id": "maze",
+      "algorithms": [
+        {
+          "name": "project-integer-a-star",
+          "setupMs": 0.011667,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.383961,
+            "p50Ms": 0.318625,
+            "p95Ms": 0.642209,
+            "p99Ms": 2.186834,
+            "maxMs": 3.101667
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "opposite",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 136.367086,
+              "waypointCount": 27,
+              "latency": {
+                "p50Ms": 0.191125,
+                "p95Ms": 0.415208,
+                "p99Ms": 1.604792
+              }
+            },
+            {
+              "id": "cross",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 209.349434,
+              "waypointCount": 37,
+              "latency": {
+                "p50Ms": 0.405209,
+                "p95Ms": 0.767042,
+                "p99Ms": 3.101667
+              }
+            },
+            {
+              "id": "middle",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 135.155983,
+              "waypointCount": 22,
+              "latency": {
+                "p50Ms": 0.315166,
+                "p95Ms": 0.684042,
+                "p99Ms": 2.730292
+              }
+            },
+            {
+              "id": "reverse",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 136.367086,
+              "waypointCount": 27,
+              "latency": {
+                "p50Ms": 0.305958,
+                "p95Ms": 0.4985,
+                "p99Ms": 1.735042
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "opposite",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": 31,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.149208,
+              "meanMs": 0.560567,
+              "p50Ms": 0.222083,
+              "p95Ms": 2.283042,
+              "p99Ms": 4.134209,
+              "maxMs": 4.134209
+            },
+            "perOrderMeanMs": 0.017518,
+            "batchSamplesMs": [
+              0.1605,
+              0.150834,
+              0.154125,
+              0.149208,
+              0.151583,
+              0.188916,
+              0.201333,
+              0.177209,
+              0.1715,
+              2.283042,
+              0.553125,
+              0.222083,
+              0.300959,
+              0.430667,
+              0.227333,
+              0.332167,
+              0.418583,
+              0.465958,
+              0.338,
+              4.134209
+            ],
+            "outputDigest": "e70f8c29461b82493f634956d8f5296d9817d34b6aa2276c02f9cc0bf875aeeb"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "pathfinding-js-0.4.18",
+          "setupMs": 0.288,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.576381,
+            "p50Ms": 0.347083,
+            "p95Ms": 1.878458,
+            "p99Ms": 3.808875,
+            "maxMs": 7.002958
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "opposite",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 140.769553,
+              "waypointCount": 131,
+              "latency": {
+                "p50Ms": 0.140208,
+                "p95Ms": 0.339458,
+                "p99Ms": 0.523209
+              }
+            },
+            {
+              "id": "cross",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 215.740115,
+              "waypointCount": 201,
+              "latency": {
+                "p50Ms": 0.400542,
+                "p95Ms": 1.49525,
+                "p99Ms": 3.144167
+              }
+            },
+            {
+              "id": "middle",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 139.112698,
+              "waypointCount": 131,
+              "latency": {
+                "p50Ms": 0.667625,
+                "p95Ms": 3.808875,
+                "p99Ms": 7.002958
+              }
+            },
+            {
+              "id": "reverse",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 140.769553,
+              "waypointCount": 131,
+              "latency": {
+                "p50Ms": 0.328083,
+                "p95Ms": 0.957541,
+                "p99Ms": 2.408333
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "opposite",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 3.920833,
+              "meanMs": 5.07551,
+              "p50Ms": 4.345541,
+              "p95Ms": 7.634334,
+              "p99Ms": 8.616333,
+              "maxMs": 8.616333
+            },
+            "perOrderMeanMs": 0.15861,
+            "batchSamplesMs": [
+              4.509084,
+              6.548667,
+              5.709958,
+              8.616333,
+              7.634334,
+              5.610875,
+              4.11775,
+              4.308416,
+              4.829459,
+              4.345541,
+              5.713833,
+              4.107,
+              6.202625,
+              4.154625,
+              4.243959,
+              4.455667,
+              3.920833,
+              4.186791,
+              4.125208,
+              4.16925
+            ],
+            "outputDigest": "0feddbbe1da53b034a086f9677df292b15d08401a5f855295a70ab061b87f1f0"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "voidstrike-recast-detour-0.43.0",
+          "setupMs": 15.281542,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 12.71636,
+            "p50Ms": 9.714042,
+            "p95Ms": 23.904333,
+            "p99Ms": 40.459625,
+            "maxMs": 98.515334
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "opposite",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 124.308032,
+              "waypointCount": 16,
+              "latency": {
+                "p50Ms": 9.419209,
+                "p95Ms": 11.3175,
+                "p99Ms": 15.800875
+              }
+            },
+            {
+              "id": "cross",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 193.9356,
+              "waypointCount": 22,
+              "latency": {
+                "p50Ms": 18.90875,
+                "p95Ms": 40.459625,
+                "p99Ms": 98.515334
+              }
+            },
+            {
+              "id": "middle",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 127.06838,
+              "waypointCount": 14,
+              "latency": {
+                "p50Ms": 7.80975,
+                "p95Ms": 13.187625,
+                "p99Ms": 14.776583
+              }
+            },
+            {
+              "id": "reverse",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 124.450857,
+              "waypointCount": 16,
+              "latency": {
+                "p50Ms": 9.077958,
+                "p95Ms": 11.310666,
+                "p99Ms": 11.411875
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "opposite",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 296.830833,
+              "meanMs": 340.618813,
+              "p50Ms": 332.2875,
+              "p95Ms": 388.687208,
+              "p99Ms": 470.5445,
+              "maxMs": 470.5445
+            },
+            "perOrderMeanMs": 10.644338,
+            "batchSamplesMs": [
+              303.481875,
+              337.005209,
+              388.687208,
+              328.619875,
+              331.936542,
+              470.5445,
+              296.830833,
+              317.868416,
+              309.156208,
+              351.450208,
+              343.517042,
+              334.718084,
+              309.176417,
+              327.012459,
+              314.057167,
+              332.2875,
+              347.843,
+              348.25925,
+              349.089709,
+              370.83475
+            ],
+            "outputDigest": "dbf8b441bdb08ccb208b23c13874c9088e44702211887fabe89ce86cd5505c1a"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        }
+      ]
+    },
+    {
+      "id": "dense-chokepoints",
+      "algorithms": [
+        {
+          "name": "project-integer-a-star",
+          "setupMs": 0.0455,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.411925,
+            "p50Ms": 0.351083,
+            "p95Ms": 0.811834,
+            "p99Ms": 2.841375,
+            "maxMs": 3.191375
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "all-gates",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 103.653994,
+              "waypointCount": 8,
+              "latency": {
+                "p50Ms": 0.526709,
+                "p95Ms": 1.0045,
+                "p99Ms": 3.035083
+              }
+            },
+            {
+              "id": "reverse-gates",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 104.532208,
+              "waypointCount": 9,
+              "latency": {
+                "p50Ms": 0.36025,
+                "p95Ms": 1.578459,
+                "p99Ms": 2.364458
+              }
+            },
+            {
+              "id": "middle-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 107.69037,
+              "waypointCount": 9,
+              "latency": {
+                "p50Ms": 0.339875,
+                "p95Ms": 0.798917,
+                "p99Ms": 3.191375
+              }
+            },
+            {
+              "id": "local-obstacles",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 27.458947,
+              "waypointCount": 3,
+              "latency": {
+                "p50Ms": 0.0255,
+                "p95Ms": 0.064875,
+                "p99Ms": 0.223125
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "all-gates",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": 31,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.517709,
+              "meanMs": 0.800665,
+              "p50Ms": 0.603666,
+              "p95Ms": 1.27425,
+              "p99Ms": 2.711042,
+              "maxMs": 2.711042
+            },
+            "perOrderMeanMs": 0.025021,
+            "batchSamplesMs": [
+              0.612042,
+              0.664166,
+              0.573541,
+              0.59275,
+              0.603666,
+              0.517709,
+              2.711042,
+              1.27425,
+              0.864541,
+              0.96725,
+              1.199334,
+              0.821208,
+              0.594959,
+              0.552708,
+              0.527917,
+              0.528917,
+              0.665708,
+              0.562333,
+              0.5345,
+              0.64475
+            ],
+            "outputDigest": "2cd66c045e4a00887586f948e436da9e573de990d8e7eaa9d9b4d5bd7c6dc6a9"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "pathfinding-js-0.4.18",
+          "setupMs": 0.049125,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.525694,
+            "p50Ms": 0.406459,
+            "p95Ms": 1.181666,
+            "p99Ms": 3.176,
+            "maxMs": 8.815291
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "all-gates",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 110.568542,
+              "waypointCount": 95,
+              "latency": {
+                "p50Ms": 0.52975,
+                "p95Ms": 1.378917,
+                "p99Ms": 3.610833
+              }
+            },
+            {
+              "id": "reverse-gates",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 110.568542,
+              "waypointCount": 95,
+              "latency": {
+                "p50Ms": 0.394166,
+                "p95Ms": 1.861459,
+                "p99Ms": 8.815291
+              }
+            },
+            {
+              "id": "middle-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 113.911688,
+              "waypointCount": 100,
+              "latency": {
+                "p50Ms": 0.445583,
+                "p95Ms": 1.365875,
+                "p99Ms": 3.176
+              }
+            },
+            {
+              "id": "local-obstacles",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 28.970563,
+              "waypointCount": 25,
+              "latency": {
+                "p50Ms": 0.069209,
+                "p95Ms": 0.261041,
+                "p99Ms": 0.381625
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "all-gates",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 15.568875,
+              "meanMs": 20.4003,
+              "p50Ms": 19.723708,
+              "p95Ms": 23.806,
+              "p99Ms": 28.699375,
+              "maxMs": 28.699375
+            },
+            "perOrderMeanMs": 0.637509,
+            "batchSamplesMs": [
+              23.079208,
+              23.806,
+              22.654042,
+              22.759416,
+              21.380833,
+              28.699375,
+              19.808125,
+              21.722875,
+              23.073625,
+              18.705209,
+              18.510084,
+              15.568875,
+              15.8855,
+              19.359125,
+              17.059125,
+              17.899125,
+              19.723708,
+              19.239417,
+              20.370583,
+              18.70175
+            ],
+            "outputDigest": "0b5f930966bb0f7eb752933f262c99cc23a1feb59657dc26e2c4368543d4665a"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "voidstrike-recast-detour-0.43.0",
+          "setupMs": 17.56775,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 1.909394,
+            "p50Ms": 2.141458,
+            "p95Ms": 4.428375,
+            "p99Ms": 5.839834,
+            "maxMs": 6.183958
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "all-gates",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 102.734337,
+              "waypointCount": 7,
+              "latency": {
+                "p50Ms": 2.234041,
+                "p95Ms": 5.394042,
+                "p99Ms": 6.058584
+              }
+            },
+            {
+              "id": "reverse-gates",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 103.338365,
+              "waypointCount": 7,
+              "latency": {
+                "p50Ms": 1.763459,
+                "p95Ms": 3.237917,
+                "p99Ms": 4.835167
+              }
+            },
+            {
+              "id": "middle-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 104.791594,
+              "waypointCount": 8,
+              "latency": {
+                "p50Ms": 2.416916,
+                "p95Ms": 5.347375,
+                "p99Ms": 6.183958
+              }
+            },
+            {
+              "id": "local-obstacles",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 26.866673,
+              "waypointCount": 3,
+              "latency": {
+                "p50Ms": 0.090833,
+                "p95Ms": 0.096083,
+                "p99Ms": 0.101084
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "all-gates",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 77.197458,
+              "meanMs": 87.533404,
+              "p50Ms": 86.768625,
+              "p95Ms": 98.014541,
+              "p99Ms": 103.8245,
+              "maxMs": 103.8245
+            },
+            "perOrderMeanMs": 2.735419,
+            "batchSamplesMs": [
+              77.197458,
+              82.442916,
+              90.370708,
+              92.225083,
+              85.832875,
+              83.809292,
+              88.139125,
+              103.8245,
+              85.049,
+              89.078791,
+              87.699834,
+              98.014541,
+              78.906208,
+              86.768625,
+              85.566333,
+              91.194834,
+              85.657416,
+              78.91,
+              88.981084,
+              90.999458
+            ],
+            "outputDigest": "a7e57317b460f3d515ce671a6e712bb9c79fc086bfa37d53661eba6739a5301e"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        }
+      ]
+    },
+    {
+      "id": "ramps-elevation",
+      "algorithms": [
+        {
+          "name": "project-integer-a-star",
+          "setupMs": 0.017375,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.040372,
+            "p50Ms": 0.031333,
+            "p95Ms": 0.084,
+            "p99Ms": 0.157875,
+            "maxMs": 0.208375
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "up-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.015125,
+                "p95Ms": 0.049667,
+                "p99Ms": 0.208375
+              }
+            },
+            {
+              "id": "down-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.0155,
+                "p95Ms": 0.088625,
+                "p99Ms": 0.161917
+              }
+            },
+            {
+              "id": "diagonal-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 72.862885,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.034708,
+                "p95Ms": 0.071208,
+                "p99Ms": 0.090333
+              }
+            },
+            {
+              "id": "plateau-local",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 42.720019,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.075959,
+                "p95Ms": 0.088542,
+                "p99Ms": 0.100292
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "up-ramp",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": 31,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.024208,
+              "meanMs": 0.030454,
+              "p50Ms": 0.02775,
+              "p95Ms": 0.043542,
+              "p99Ms": 0.054375,
+              "maxMs": 0.054375
+            },
+            "perOrderMeanMs": 0.000952,
+            "batchSamplesMs": [
+              0.054375,
+              0.043542,
+              0.027792,
+              0.028667,
+              0.02625,
+              0.031958,
+              0.0375,
+              0.041542,
+              0.028416,
+              0.028375,
+              0.025459,
+              0.025708,
+              0.027333,
+              0.02825,
+              0.02475,
+              0.026167,
+              0.02775,
+              0.02625,
+              0.024208,
+              0.024792
+            ],
+            "outputDigest": "7e91cd3b08c4e923524650894a535983c2d27b6be3e4851e6d92414aaecfe334"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "pathfinding-js-0.4.18",
+          "setupMs": 0.022958,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.049517,
+            "p50Ms": 0.051458,
+            "p95Ms": 0.06875,
+            "p99Ms": 0.10875,
+            "maxMs": 0.132541
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "up-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53,
+              "waypointCount": 54,
+              "latency": {
+                "p50Ms": 0.036375,
+                "p95Ms": 0.0475,
+                "p99Ms": 0.051
+              }
+            },
+            {
+              "id": "down-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53,
+              "waypointCount": 54,
+              "latency": {
+                "p50Ms": 0.037791,
+                "p95Ms": 0.053792,
+                "p99Ms": 0.060916
+              }
+            },
+            {
+              "id": "diagonal-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 73.710678,
+              "waypointCount": 54,
+              "latency": {
+                "p50Ms": 0.056458,
+                "p95Ms": 0.080209,
+                "p99Ms": 0.132541
+              }
+            },
+            {
+              "id": "plateau-local",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 46.213203,
+              "waypointCount": 41,
+              "latency": {
+                "p50Ms": 0.055125,
+                "p95Ms": 0.08625,
+                "p99Ms": 0.10875
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "up-ramp",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 1.180292,
+              "meanMs": 1.527138,
+              "p50Ms": 1.372875,
+              "p95Ms": 2.335959,
+              "p99Ms": 2.909792,
+              "maxMs": 2.909792
+            },
+            "perOrderMeanMs": 0.047723,
+            "batchSamplesMs": [
+              1.608167,
+              1.6025,
+              1.298875,
+              1.180292,
+              1.451625,
+              1.452459,
+              1.204959,
+              2.335959,
+              1.791834,
+              1.372875,
+              1.335917,
+              1.201,
+              1.432458,
+              2.909792,
+              1.754375,
+              1.295459,
+              1.592959,
+              1.294,
+              1.244167,
+              1.183083
+            ],
+            "outputDigest": "1fbd103fa8b1a207e91028bcece12d060b4f118061db73d04080d365709382cb"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "voidstrike-recast-detour-0.43.0",
+          "setupMs": 18.882584,
+          "aggregateLatency": {
+            "count": 200,
+            "meanMs": 0.042017,
+            "p50Ms": 0.006333,
+            "p95Ms": 0.143417,
+            "p99Ms": 0.204875,
+            "maxMs": 0.385583
+          },
+          "exactSuccesses": 200,
+          "measuredRequests": 200,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "up-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.005875,
+                "p95Ms": 0.007042,
+                "p99Ms": 0.007208
+              }
+            },
+            {
+              "id": "down-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.005833,
+                "p95Ms": 0.006417,
+                "p99Ms": 0.017042
+              }
+            },
+            {
+              "id": "diagonal-ramp",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 72.862885,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.006417,
+                "p95Ms": 0.024416,
+                "p99Ms": 0.385583
+              }
+            },
+            {
+              "id": "plateau-local",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 42.720019,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.13125,
+                "p95Ms": 0.181458,
+                "p99Ms": 0.264416
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "up-ramp",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.164125,
+              "meanMs": 0.307104,
+              "p50Ms": 0.170584,
+              "p95Ms": 0.305584,
+              "p99Ms": 2.719083,
+              "maxMs": 2.719083
+            },
+            "perOrderMeanMs": 0.009597,
+            "batchSamplesMs": [
+              0.170333,
+              0.172417,
+              0.169917,
+              0.170584,
+              0.177375,
+              0.1695,
+              0.164416,
+              0.17025,
+              0.166041,
+              0.1705,
+              0.175708,
+              0.170792,
+              0.167083,
+              0.17825,
+              0.164125,
+              2.719083,
+              0.205625,
+              0.17575,
+              0.17875,
+              0.305584
+            ],
+            "outputDigest": "9c7c4b1ce59c9cc680dd0372e21363bc9023206d9a427f4d7cd260a90620e873"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        }
+      ]
+    },
+    {
+      "id": "unreachable",
+      "algorithms": [
+        {
+          "name": "project-integer-a-star",
+          "setupMs": 0.046167,
+          "aggregateLatency": {
+            "count": 150,
+            "meanMs": 0.648812,
+            "p50Ms": 0.617709,
+            "p95Ms": 1.531375,
+            "p99Ms": 4.04625,
+            "maxMs": 4.748917
+          },
+          "exactSuccesses": 50,
+          "measuredRequests": 150,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "sealed-center",
+              "reportedSuccess": false,
+              "exactSuccess": false,
+              "expectedExactSuccess": false,
+              "endpointErrorWorldUnits": null,
+              "pathLengthWorldUnits": 0,
+              "waypointCount": 0,
+              "latency": {
+                "p50Ms": 0.726125,
+                "p95Ms": 2.039041,
+                "p99Ms": 4.04625
+              }
+            },
+            {
+              "id": "sealed-small",
+              "reportedSuccess": false,
+              "exactSuccess": false,
+              "expectedExactSuccess": false,
+              "endpointErrorWorldUnits": null,
+              "pathLengthWorldUnits": 0,
+              "waypointCount": 0,
+              "latency": {
+                "p50Ms": 0.617709,
+                "p95Ms": 1.65775,
+                "p99Ms": 4.748917
+              }
+            },
+            {
+              "id": "outside-control",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 77.525031,
+              "waypointCount": 3,
+              "latency": {
+                "p50Ms": 0.175666,
+                "p95Ms": 0.272542,
+                "p99Ms": 0.3145
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "sealed-center",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": 31,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.671417,
+              "meanMs": 0.862186,
+              "p50Ms": 0.722167,
+              "p95Ms": 0.89175,
+              "p99Ms": 3.311125,
+              "maxMs": 3.311125
+            },
+            "perOrderMeanMs": 0.026943,
+            "batchSamplesMs": [
+              0.732083,
+              0.756667,
+              0.771125,
+              0.722333,
+              0.714042,
+              0.722167,
+              0.697292,
+              0.681625,
+              0.700625,
+              0.705209,
+              0.755333,
+              0.681291,
+              0.671417,
+              3.311125,
+              0.743959,
+              0.742708,
+              0.89175,
+              0.87875,
+              0.687292,
+              0.676917
+            ],
+            "outputDigest": "6605dc3123ac70a348ec98bcf44775854f50272ff7f822534b7e6bcd8acf8a59"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "pathfinding-js-0.4.18",
+          "setupMs": 0.025125,
+          "aggregateLatency": {
+            "count": 150,
+            "meanMs": 0.590032,
+            "p50Ms": 0.659917,
+            "p95Ms": 0.884209,
+            "p99Ms": 2.990208,
+            "maxMs": 3.0775
+          },
+          "exactSuccesses": 50,
+          "measuredRequests": 150,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "sealed-center",
+              "reportedSuccess": false,
+              "exactSuccess": false,
+              "expectedExactSuccess": false,
+              "endpointErrorWorldUnits": null,
+              "pathLengthWorldUnits": 0,
+              "waypointCount": 0,
+              "latency": {
+                "p50Ms": 0.706,
+                "p95Ms": 2.70775,
+                "p99Ms": 3.0775
+              }
+            },
+            {
+              "id": "sealed-small",
+              "reportedSuccess": false,
+              "exactSuccess": false,
+              "expectedExactSuccess": false,
+              "endpointErrorWorldUnits": null,
+              "pathLengthWorldUnits": 0,
+              "waypointCount": 0,
+              "latency": {
+                "p50Ms": 0.673334,
+                "p95Ms": 1.248625,
+                "p99Ms": 2.327791
+              }
+            },
+            {
+              "id": "outside-control",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 83.154329,
+              "waypointCount": 68,
+              "latency": {
+                "p50Ms": 0.167875,
+                "p95Ms": 0.20125,
+                "p99Ms": 0.252625
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "sealed-center",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 25.012375,
+              "meanMs": 37.87829,
+              "p50Ms": 32.857167,
+              "p95Ms": 71.865541,
+              "p99Ms": 94.909875,
+              "maxMs": 94.909875
+            },
+            "perOrderMeanMs": 1.183697,
+            "batchSamplesMs": [
+              25.012375,
+              29.149084,
+              27.869583,
+              26.075875,
+              32.857167,
+              27.547292,
+              26.042625,
+              94.909875,
+              42.981542,
+              71.865541,
+              34.340875,
+              31.727334,
+              30.257542,
+              36.337833,
+              38.465,
+              43.13825,
+              36.610666,
+              32.133542,
+              33.554542,
+              36.68925
+            ],
+            "outputDigest": "dadc1287b626cf2f8509f48b30f50add4427b21da9c12b9c5ef0bd6a28bd5bf4"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "voidstrike-recast-detour-0.43.0",
+          "setupMs": 23.31875,
+          "aggregateLatency": {
+            "count": 150,
+            "meanMs": 0.413927,
+            "p50Ms": 0.263667,
+            "p95Ms": 0.918708,
+            "p99Ms": 3.82275,
+            "maxMs": 6.027625
+          },
+          "exactSuccesses": 50,
+          "measuredRequests": 150,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "sealed-center",
+              "reportedSuccess": true,
+              "exactSuccess": false,
+              "expectedExactSuccess": false,
+              "endpointErrorWorldUnits": 10.012492,
+              "pathLengthWorldUnits": 31.752953,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.010875,
+                "p95Ms": 0.108209,
+                "p99Ms": 0.155208
+              }
+            },
+            {
+              "id": "sealed-small",
+              "reportedSuccess": true,
+              "exactSuccess": false,
+              "expectedExactSuccess": false,
+              "endpointErrorWorldUnits": 6,
+              "pathLengthWorldUnits": 53.043068,
+              "waypointCount": 4,
+              "latency": {
+                "p50Ms": 0.652208,
+                "p95Ms": 2.384,
+                "p99Ms": 6.027625
+              }
+            },
+            {
+              "id": "outside-control",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 78.776715,
+              "waypointCount": 3,
+              "latency": {
+                "p50Ms": 0.263667,
+                "p95Ms": 0.567458,
+                "p99Ms": 2.618875
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "sealed-center",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.294542,
+              "meanMs": 0.460194,
+              "p50Ms": 0.310708,
+              "p95Ms": 0.837125,
+              "p99Ms": 2.037042,
+              "maxMs": 2.037042
+            },
+            "perOrderMeanMs": 0.014381,
+            "batchSamplesMs": [
+              2.037042,
+              0.758708,
+              0.486583,
+              0.31475,
+              0.303167,
+              0.299375,
+              0.3055,
+              0.837125,
+              0.307584,
+              0.297917,
+              0.303958,
+              0.308625,
+              0.294542,
+              0.296833,
+              0.386167,
+              0.352333,
+              0.31225,
+              0.325333,
+              0.310708,
+              0.365375
+            ],
+            "outputDigest": "ef1a1ac44fedec4640dad465578cce5ef236dbb6ee108e56df729e341be6ab84"
+          },
+          "mutations": [],
+          "recastTerrainRebuild": null
+        }
+      ]
+    },
+    {
+      "id": "dynamic-mutation",
+      "algorithms": [
+        {
+          "name": "project-integer-a-star",
+          "setupMs": 0.0215,
+          "aggregateLatency": {
+            "count": 100,
+            "meanMs": 0.044117,
+            "p50Ms": 0.024666,
+            "p95Ms": 0.091792,
+            "p99Ms": 0.138417,
+            "maxMs": 0.164
+          },
+          "exactSuccesses": 100,
+          "measuredRequests": 100,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "through-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 48,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.015083,
+                "p95Ms": 0.021916,
+                "p99Ms": 0.024666
+              }
+            },
+            {
+              "id": "diagonal-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 54.513087,
+              "waypointCount": 3,
+              "latency": {
+                "p50Ms": 0.065292,
+                "p95Ms": 0.113292,
+                "p99Ms": 0.164
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "through-gate",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": 31,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.023375,
+              "meanMs": 0.051769,
+              "p50Ms": 0.028666,
+              "p95Ms": 0.141666,
+              "p99Ms": 0.202333,
+              "maxMs": 0.202333
+            },
+            "perOrderMeanMs": 0.001618,
+            "batchSamplesMs": [
+              0.025625,
+              0.028375,
+              0.023375,
+              0.026,
+              0.024417,
+              0.0825,
+              0.038959,
+              0.027042,
+              0.026416,
+              0.033291,
+              0.03125,
+              0.0385,
+              0.074,
+              0.202333,
+              0.141666,
+              0.099375,
+              0.030292,
+              0.028666,
+              0.026291,
+              0.027
+            ],
+            "outputDigest": "d0d5396007931f4174c69fd29a5cdf6ce8bb6a28ccfefb6557f608d38f7b0fa5"
+          },
+          "mutations": [
+            {
+              "id": "seal-gate",
+              "rect": {
+                "x": 28,
+                "y": 27,
+                "width": 6,
+                "height": 12
+              },
+              "addUpdateLatency": {
+                "count": 20,
+                "minMs": 0.00025,
+                "meanMs": 0.002563,
+                "p50Ms": 0.000375,
+                "p95Ms": 0.008334,
+                "p99Ms": 0.020791,
+                "maxMs": 0.020791
+              },
+              "removeUpdateLatency": {
+                "count": 20,
+                "minMs": 0.000292,
+                "meanMs": 0.002842,
+                "p50Ms": 0.00075,
+                "p95Ms": 0.015209,
+                "p99Ms": 0.023916,
+                "maxMs": 0.023916
+              },
+              "addSamplesMs": [
+                0.020791,
+                0.002541,
+                0.003833,
+                0.003833,
+                0.008334,
+                0.0005,
+                0.00125,
+                0.000375,
+                0.003667,
+                0.002875,
+                0.000375,
+                0.000291,
+                0.000542,
+                0.000333,
+                0.00025,
+                0.000292,
+                0.000292,
+                0.000292,
+                0.000292,
+                0.000292
+              ],
+              "removeSamplesMs": [
+                0.015209,
+                0.0025,
+                0.023916,
+                0.0035,
+                0.000792,
+                0.00075,
+                0.000708,
+                0.000834,
+                0.001041,
+                0.001,
+                0.000541,
+                0.002958,
+                0.0005,
+                0.000292,
+                0.000292,
+                0.000333,
+                0.000792,
+                0.000292,
+                0.000292,
+                0.000292
+              ],
+              "allPostAddExpectedExactOutcomes": true,
+              "allPostAddOutputsStable": true,
+              "allPostRemoveOutputsMatchBaseline": true,
+              "postAddOutputDigest": "ea7db7a39d8b0505d1ca4c6b5f76016fef5b29d06e0f007cbceab04d0917a34b",
+              "baselineOutputDigest": "b0694bf4b752304a6036d9bcddabcec72664edf73920cd4e137e8af37621e459"
+            }
+          ],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "pathfinding-js-0.4.18",
+          "setupMs": 0.026042,
+          "aggregateLatency": {
+            "count": 100,
+            "meanMs": 0.083811,
+            "p50Ms": 0.054833,
+            "p95Ms": 0.15425,
+            "p99Ms": 0.719625,
+            "maxMs": 0.941416
+          },
+          "exactSuccesses": 100,
+          "measuredRequests": 100,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "through-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 48,
+              "waypointCount": 49,
+              "latency": {
+                "p50Ms": 0.045042,
+                "p95Ms": 0.229416,
+                "p99Ms": 0.941416
+              }
+            },
+            {
+              "id": "diagonal-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 57.941125,
+              "waypointCount": 49,
+              "latency": {
+                "p50Ms": 0.056166,
+                "p95Ms": 0.133125,
+                "p99Ms": 0.382708
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "through-gate",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 1.136208,
+              "meanMs": 1.94686,
+              "p50Ms": 1.399042,
+              "p95Ms": 3.969584,
+              "p99Ms": 7.387125,
+              "maxMs": 7.387125
+            },
+            "perOrderMeanMs": 0.060839,
+            "batchSamplesMs": [
+              7.387125,
+              1.616375,
+              1.51475,
+              1.39175,
+              1.136208,
+              1.521292,
+              2.99475,
+              1.956584,
+              1.41925,
+              1.277166,
+              1.399042,
+              1.138042,
+              1.179667,
+              1.7235,
+              2.393166,
+              1.167041,
+              1.212791,
+              1.144666,
+              1.394458,
+              3.969584
+            ],
+            "outputDigest": "9c7b600dc899fddf8defcfaa39a8c42411468018d57a6ddf412ca5c72fc4c7c0"
+          },
+          "mutations": [
+            {
+              "id": "seal-gate",
+              "rect": {
+                "x": 28,
+                "y": 27,
+                "width": 6,
+                "height": 12
+              },
+              "addUpdateLatency": {
+                "count": 20,
+                "minMs": 0.000291,
+                "meanMs": 0.002254,
+                "p50Ms": 0.000834,
+                "p95Ms": 0.01025,
+                "p99Ms": 0.01625,
+                "maxMs": 0.01625
+              },
+              "removeUpdateLatency": {
+                "count": 20,
+                "minMs": 0.000291,
+                "meanMs": 0.002954,
+                "p50Ms": 0.003,
+                "p95Ms": 0.007292,
+                "p99Ms": 0.008584,
+                "maxMs": 0.008584
+              },
+              "addSamplesMs": [
+                0.01025,
+                0.001542,
+                0.0015,
+                0.0015,
+                0.001834,
+                0.00175,
+                0.001459,
+                0.0015,
+                0.002958,
+                0.01625,
+                0.0005,
+                0.000542,
+                0.000291,
+                0.000292,
+                0.000292,
+                0.000292,
+                0.000417,
+                0.000542,
+                0.000541,
+                0.000834
+              ],
+              "removeSamplesMs": [
+                0.0035,
+                0.004792,
+                0.003208,
+                0.005583,
+                0.004083,
+                0.003083,
+                0.003,
+                0.005084,
+                0.005083,
+                0.007292,
+                0.001,
+                0.000542,
+                0.000291,
+                0.000333,
+                0.000292,
+                0.000334,
+                0.001208,
+                0.001334,
+                0.008584,
+                0.000458
+              ],
+              "allPostAddExpectedExactOutcomes": true,
+              "allPostAddOutputsStable": true,
+              "allPostRemoveOutputsMatchBaseline": true,
+              "postAddOutputDigest": "ea7db7a39d8b0505d1ca4c6b5f76016fef5b29d06e0f007cbceab04d0917a34b",
+              "baselineOutputDigest": "4e6e731abcf5d27f5299333171cbcd3fa678fbb3d98b74cc9fa58554fc75eab0"
+            }
+          ],
+          "recastTerrainRebuild": null
+        },
+        {
+          "name": "voidstrike-recast-detour-0.43.0",
+          "setupMs": 19.186542,
+          "aggregateLatency": {
+            "count": 100,
+            "meanMs": 0.09957,
+            "p50Ms": 0.027583,
+            "p95Ms": 0.2165,
+            "p99Ms": 0.288917,
+            "maxMs": 0.515
+          },
+          "exactSuccesses": 100,
+          "measuredRequests": 100,
+          "allExactOutcomesExpected": true,
+          "allOutputsStable": true,
+          "requests": [
+            {
+              "id": "through-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 48,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.006917,
+                "p95Ms": 0.007458,
+                "p99Ms": 0.027583
+              }
+            },
+            {
+              "id": "diagonal-gate",
+              "reportedSuccess": true,
+              "exactSuccess": true,
+              "expectedExactSuccess": true,
+              "endpointErrorWorldUnits": 0,
+              "pathLengthWorldUnits": 53.665631,
+              "waypointCount": 2,
+              "latency": {
+                "p50Ms": 0.177667,
+                "p95Ms": 0.235583,
+                "p99Ms": 0.515
+              }
+            }
+          ],
+          "repeatedGroup": {
+            "requestId": "through-gate",
+            "ordersPerBatch": 32,
+            "cacheHitsPerBatch": null,
+            "outputStableAcrossBatches": true,
+            "batchLatency": {
+              "count": 20,
+              "minMs": 0.19975,
+              "meanMs": 0.274685,
+              "p50Ms": 0.23375,
+              "p95Ms": 0.466583,
+              "p99Ms": 0.803958,
+              "maxMs": 0.803958
+            },
+            "perOrderMeanMs": 0.008584,
+            "batchSamplesMs": [
+              0.803958,
+              0.248208,
+              0.466583,
+              0.23375,
+              0.268083,
+              0.206333,
+              0.2055,
+              0.19975,
+              0.262042,
+              0.21425,
+              0.213208,
+              0.2085,
+              0.206875,
+              0.211792,
+              0.246292,
+              0.298708,
+              0.309,
+              0.210125,
+              0.235541,
+              0.245209
+            ],
+            "outputDigest": "0ce3c4d33084ed3f0c83c7800a1b5962da3e5df06859c89d90cf6eb38ea5c3d7"
+          },
+          "mutations": [
+            {
+              "id": "seal-gate",
+              "rect": {
+                "x": 28,
+                "y": 27,
+                "width": 6,
+                "height": 12
+              },
+              "addUpdateLatency": {
+                "count": 20,
+                "minMs": 0.075542,
+                "meanMs": 0.139973,
+                "p50Ms": 0.093167,
+                "p95Ms": 0.390666,
+                "p99Ms": 0.467292,
+                "maxMs": 0.467292
+              },
+              "removeUpdateLatency": {
+                "count": 20,
+                "minMs": 0.081542,
+                "meanMs": 0.183344,
+                "p50Ms": 0.091584,
+                "p95Ms": 0.604333,
+                "p99Ms": 0.875916,
+                "maxMs": 0.875916
+              },
+              "addSamplesMs": [
+                0.117708,
+                0.091,
+                0.087125,
+                0.093167,
+                0.099917,
+                0.082708,
+                0.084625,
+                0.09475,
+                0.083167,
+                0.079458,
+                0.075542,
+                0.096125,
+                0.132708,
+                0.080083,
+                0.301833,
+                0.150125,
+                0.078917,
+                0.467292,
+                0.390666,
+                0.112542
+              ],
+              "removeSamplesMs": [
+                0.097542,
+                0.131792,
+                0.087167,
+                0.091584,
+                0.087625,
+                0.085334,
+                0.119583,
+                0.092125,
+                0.084792,
+                0.081542,
+                0.133,
+                0.124583,
+                0.089,
+                0.084416,
+                0.087583,
+                0.085416,
+                0.604333,
+                0.875916,
+                0.524958,
+                0.098584
+              ],
+              "allPostAddExpectedExactOutcomes": true,
+              "allPostAddOutputsStable": true,
+              "allPostRemoveOutputsMatchBaseline": true,
+              "postAddOutputDigest": "9ccb27cb314267387e8832d788fbebe8e7f71812780997fa19a4087aa11a1a25",
+              "baselineOutputDigest": "654495eb57808d01c6ce649ad3a42c9f047ff48b7401394146d3c974aeea5fa1"
+            }
+          ],
+          "recastTerrainRebuild": {
+            "scope": "full generateFromGeometry on mutated walkable-cell mesh, including tile-cache and crowd construction",
+            "latency": {
+              "count": 3,
+              "minMs": 22.604083,
+              "meanMs": 29.995319,
+              "p50Ms": 28.405834,
+              "p95Ms": 38.976041,
+              "p99Ms": 38.976041,
+              "maxMs": 38.976041
+            },
+            "samplesMs": [
+              22.604083,
+              28.405834,
+              38.976041
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "crowdMetrics": {
+    "completionTime": {
+      "status": "unmeasured"
+    },
+    "stuckCount": {
+      "status": "unmeasured"
+    },
+    "crowdDensity": {
+      "status": "unmeasured"
+    },
+    "reason": "Only path requests were executed. No fair shared movement/collision simulation was run; path latency is not substituted for crowd performance."
+  }
+}

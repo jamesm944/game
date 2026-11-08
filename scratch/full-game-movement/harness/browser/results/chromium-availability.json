@@ -1,0 +1,18 @@
+{
+  "browser": "chromium",
+  "available": true,
+  "version": "153.0.8010.12",
+  "capturedAt": "2026-10-25T19:17:14.684Z",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "pageUrlPath": "/scratch/full-game-movement/harness/browser/index.html",
+  "automation": "playwright",
+  "headless": true
+}

@@ -1,0 +1,451 @@
+{
+  "schema": "wayfinder-173-verification-v1",
+  "generatedAt": "2026-10-30T23:57:33.820Z",
+  "scenarios": {
+    "dense-open-120": {
+      "astar": [
+        {
+          "iteration": 1,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 2,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 3,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 4,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        }
+      ],
+      "recast": [
+        {
+          "iteration": 1,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46289,
+          "routesNodeOracle": 46289,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 2,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46289,
+          "routesNodeOracle": 46289,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 3,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46289,
+          "routesNodeOracle": 46289,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 4,
+          "requests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completed": 528,
+          "activeAtCutoff": 472,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46289,
+          "routesNodeOracle": 46289,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        }
+      ],
+      "astarReference": {
+        "candidate": "current-integer-astar",
+        "finalTick": 3600,
+        "population": 1000,
+        "requests": 46289,
+        "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+        "completed": 528
+      },
+      "recastOracle": {
+        "candidate": "recast-corridor-supercover-cs0.25-full-rebuild",
+        "finalTick": 3600,
+        "population": 1000,
+        "requests": 46289,
+        "routes": 46289,
+        "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+        "completed": 528,
+        "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9"
+      },
+      "repeatHashesStable": {
+        "astar": true,
+        "recast": true
+      }
+    },
+    "mixed-destinations-120": {
+      "astar": [
+        {
+          "iteration": 1,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 2,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 3,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 4,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        }
+      ],
+      "recast": [
+        {
+          "iteration": 1,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46807,
+          "routesNodeOracle": 46807,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 2,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46807,
+          "routesNodeOracle": 46807,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 3,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46807,
+          "routesNodeOracle": 46807,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 4,
+          "requests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completed": 571,
+          "activeAtCutoff": 429,
+          "noPathResponses": 0,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 46807,
+          "routesNodeOracle": 46807,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        }
+      ],
+      "astarReference": {
+        "candidate": "current-integer-astar",
+        "finalTick": 3600,
+        "population": 1000,
+        "requests": 46807,
+        "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+        "completed": 571
+      },
+      "recastOracle": {
+        "candidate": "recast-corridor-supercover-cs0.25-full-rebuild",
+        "finalTick": 3600,
+        "population": 1000,
+        "requests": 46807,
+        "routes": 46807,
+        "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+        "completed": 571,
+        "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9"
+      },
+      "repeatHashesStable": {
+        "astar": true,
+        "recast": true
+      }
+    },
+    "narrow-mutation-120": {
+      "astar": [
+        {
+          "iteration": 1,
+          "requests": 53709,
+          "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+          "completed": 487,
+          "activeAtCutoff": 513,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 2,
+          "requests": 53709,
+          "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+          "completed": 487,
+          "activeAtCutoff": 513,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 3,
+          "requests": 53709,
+          "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+          "completed": 487,
+          "activeAtCutoff": 513,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        },
+        {
+          "iteration": 4,
+          "requests": 53709,
+          "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+          "completed": 487,
+          "activeAtCutoff": 513,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "logicalEqualToNodeReference": true,
+          "finalHashEqualToNodeReference": true,
+          "passed": true
+        }
+      ],
+      "recast": [
+        {
+          "iteration": 1,
+          "requests": 53098,
+          "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+          "completed": 500,
+          "activeAtCutoff": 500,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 53098,
+          "routesNodeOracle": 53098,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 2,
+          "requests": 53098,
+          "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+          "completed": 500,
+          "activeAtCutoff": 500,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 53098,
+          "routesNodeOracle": 53098,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 3,
+          "requests": 53098,
+          "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+          "completed": 500,
+          "activeAtCutoff": 500,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 53098,
+          "routesNodeOracle": 53098,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        },
+        {
+          "iteration": 4,
+          "requests": 53098,
+          "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+          "completed": 500,
+          "activeAtCutoff": 500,
+          "noPathResponses": 16,
+          "protocolViolations": [],
+          "falseNoPath": 0,
+          "routesBrowser": 53098,
+          "routesNodeOracle": 53098,
+          "routeMismatches": 0,
+          "firstRouteMismatch": null,
+          "logicalEqualToNodeOracle": true,
+          "finalHashEqualToNodeOracle": true,
+          "wasmMatchesNode": true,
+          "passed": true
+        }
+      ],
+      "astarReference": {
+        "candidate": "current-integer-astar",
+        "finalTick": 3600,
+        "population": 1000,
+        "requests": 53709,
+        "finalFullStateHash": "f464e6b5623762912687c852432c00180945b16c6dd821e9be54882b3d422966",
+        "completed": 487
+      },
+      "recastOracle": {
+        "candidate": "recast-corridor-supercover-cs0.25-full-rebuild",
+        "finalTick": 3600,
+        "population": 1000,
+        "requests": 53098,
+        "routes": 53098,
+        "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc",
+        "completed": 500,
+        "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9"
+      },
+      "repeatHashesStable": {
+        "astar": true,
+        "recast": true
+      }
+    }
+  },
+  "allPassed": true
+}

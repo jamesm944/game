@@ -1,0 +1,1606 @@
+{
+  "schema": "wayfinder-browser-direct-worker-summary-v1",
+  "evidenceScope": "direct-real-worker-load-not-full-game-world-step",
+  "runs": [
+    {
+      "file": "chrome-astar-dense-open-120-concurrent-burst-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 21,
+        "mean": 116.8449000000159,
+        "p50": 116.90000009536743,
+        "p95": 197.20000004768372,
+        "max": 216.40000009536743
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0005666666825612386,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.19999992847442627
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        238.5,
+        212,
+        197.39999997615814
+      ],
+      "sampleResponseP95Ms": [
+        209,
+        193.89999997615814,
+        177.39999997615814
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        13,
+        11,
+        10
+      ],
+      "framesPerSample": [
+        16,
+        14,
+        13
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 571.5620421245421,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chrome-astar-dense-open-120-staggered-groups-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 18.600000023841858,
+        "mean": 106.51219999992847,
+        "p50": 106.09999990463257,
+        "p95": 186.60000002384186,
+        "max": 202.30000007152557
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0004000000158945719,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        213.5,
+        214.40000009536743,
+        197.30000007152557
+      ],
+      "sampleResponseP95Ms": [
+        193.39999997615814,
+        186.60000002384186,
+        168.59999990463257
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        11,
+        11,
+        10
+      ],
+      "framesPerSample": [
+        14,
+        14,
+        13
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 536.6648351648352,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chrome-astar-mixed-destinations-120-concurrent-burst-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "1cdacfd7856743b6213f7720725584d7f17e2764aa5f56688fe61b8d73d684b4",
+        "1cdacfd7856743b6213f7720725584d7f17e2764aa5f56688fe61b8d73d684b4",
+        "1cdacfd7856743b6213f7720725584d7f17e2764aa5f56688fe61b8d73d684b4"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 19.200000047683716,
+        "mean": 95.28636666580041,
+        "p50": 94.09999990463257,
+        "p95": 156.60000002384186,
+        "max": 161.5
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0004000000556310018,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        180.40000009536743,
+        181.10000002384186,
+        164.10000002384186
+      ],
+      "sampleResponseP95Ms": [
+        157.39999997615814,
+        159.10000002384186,
+        139.60000002384186
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        9,
+        9,
+        8
+      ],
+      "framesPerSample": [
+        12,
+        12,
+        11
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 570.1262626262627,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chrome-astar-mixed-destinations-120-staggered-groups-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "336bea274dc9b4b2b4a14ff77242e7e261b9ff746a1caeffc65e190a2a658379",
+        "336bea274dc9b4b2b4a14ff77242e7e261b9ff746a1caeffc65e190a2a658379",
+        "336bea274dc9b4b2b4a14ff77242e7e261b9ff746a1caeffc65e190a2a658379"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 2.899999976158142,
+        "mean": 28.0222666670084,
+        "p50": 26.899999976158142,
+        "p95": 46.799999952316284,
+        "max": 53.5
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.000599999984105428,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        177.20000004768372,
+        194.40000009536743,
+        181.19999992847443
+      ],
+      "sampleResponseP95Ms": [
+        49.89999997615814,
+        45.60000002384186,
+        41.10000002384186
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        2,
+        3,
+        2
+      ],
+      "framesPerSample": [
+        12,
+        13,
+        12
+      ],
+      "finalTickPerSample": [
+        10,
+        10,
+        10
+      ],
+      "maxQueueDepth": 368,
+      "meanQueueDepthAcrossSamples": 220.30982905982907,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chrome-flow-dense-open-120-concurrent-burst-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 23.5,
+        "mean": 34.10163333296776,
+        "p50": 32.60000002384186,
+        "p95": 43.60000002384186,
+        "max": 44.60000002384186
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0017999999523162843,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        58.60000002384186,
+        59.699999928474426,
+        61.10000002384186
+      ],
+      "sampleResponseP95Ms": [
+        33.199999928474426,
+        38.200000047683716,
+        44.200000047683716
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        2,
+        2,
+        2
+      ],
+      "framesPerSample": [
+        5,
+        5,
+        5
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 646.9333333333333,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        228900,
+        228900,
+        228900
+      ]
+    },
+    {
+      "file": "chrome-flow-dense-open-120-staggered-groups-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 23.800000071525574,
+        "mean": 32.60359999811649,
+        "p50": 32.39999997615814,
+        "p95": 37.5,
+        "max": 38.89999997615814
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.001033333420753479,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.20000004768371582
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        58.200000047683716,
+        58.39999997615814,
+        46.89999997615814
+      ],
+      "sampleResponseP95Ms": [
+        38,
+        37.800000071525574,
+        33.700000047683716
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        2,
+        2,
+        0
+      ],
+      "framesPerSample": [
+        5,
+        5,
+        3
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 677.9555555555556,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        228900,
+        228900,
+        228900
+      ]
+    },
+    {
+      "file": "chrome-flow-mixed-destinations-120-concurrent-burst-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "df23f4418e3b66f5cd46cddb8bf61ced9358710ab3cf12709e4b63bf2708893a",
+        "df23f4418e3b66f5cd46cddb8bf61ced9358710ab3cf12709e4b63bf2708893a",
+        "df23f4418e3b66f5cd46cddb8bf61ced9358710ab3cf12709e4b63bf2708893a"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 28.600000023841858,
+        "mean": 57.64833333698908,
+        "p50": 57.299999952316284,
+        "p95": 81.10000002384186,
+        "max": 85.80000007152557
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0008333333333333334,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        108.69999992847443,
+        93,
+        93.69999992847443
+      ],
+      "sampleResponseP95Ms": [
+        85.40000009536743,
+        80.60000002384186,
+        69.70000004768372
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        5,
+        4,
+        4
+      ],
+      "framesPerSample": [
+        8,
+        7,
+        7
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 650.1607142857143,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        263380,
+        263380,
+        263380
+      ]
+    },
+    {
+      "file": "chrome-flow-mixed-destinations-120-staggered-groups-p1000.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "6ceff38eee6eae41c9337141a2b8dc07d88f1a366a93a6306239cdc00117d66c",
+        "6ceff38eee6eae41c9337141a2b8dc07d88f1a366a93a6306239cdc00117d66c",
+        "6ceff38eee6eae41c9337141a2b8dc07d88f1a366a93a6306239cdc00117d66c"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 2.899999976158142,
+        "mean": 13.790366662859917,
+        "p50": 7.800000071525574,
+        "p95": 33.40000009536743,
+        "max": 35.39999997615814
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0008666666348775228,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        154.89999997615814,
+        144.20000004768372,
+        157.30000007152557
+      ],
+      "sampleResponseP95Ms": [
+        33.299999952316284,
+        23,
+        34.799999952316284
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        1,
+        0,
+        1
+      ],
+      "framesPerSample": [
+        11,
+        10,
+        11
+      ],
+      "finalTickPerSample": [
+        10,
+        10,
+        10
+      ],
+      "maxQueueDepth": 375,
+      "meanQueueDepthAcrossSamples": 210.6060606060606,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        263380,
+        263380,
+        263380
+      ]
+    },
+    {
+      "file": "chromium-astar-dense-open-120-concurrent-burst-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 18.899999976158142,
+        "mean": 140.5987000010411,
+        "p50": 133.89999997615814,
+        "p95": 246.70000004768372,
+        "max": 259
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0004666667381922404,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        277.5,
+        281.2000000476837,
+        215.10000002384186
+      ],
+      "sampleResponseP95Ms": [
+        251.30000007152557,
+        249.39999997615814,
+        191.80000007152557
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        15,
+        15,
+        11
+      ],
+      "framesPerSample": [
+        18,
+        18,
+        14
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 564.1428571428572,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chromium-astar-dense-open-120-staggered-groups-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166",
+        "ed1e0161dd364c0e72558536407626e6c9de6f802d3c12bd82c951b07f0af166"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 20.5,
+        "mean": 118.84276666661104,
+        "p50": 118.40000009536743,
+        "p95": 198.29999995231628,
+        "max": 218.10000002384186
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0005000000397364299,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        225.60000002384186,
+        228.19999992847443,
+        214.5
+      ],
+      "sampleResponseP95Ms": [
+        193.69999992847443,
+        212.20000004768372,
+        182.79999995231628
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        12,
+        12,
+        11
+      ],
+      "framesPerSample": [
+        15,
+        15,
+        14
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 554.7444444444444,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chromium-astar-mixed-destinations-120-concurrent-burst-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "1cdacfd7856743b6213f7720725584d7f17e2764aa5f56688fe61b8d73d684b4",
+        "1cdacfd7856743b6213f7720725584d7f17e2764aa5f56688fe61b8d73d684b4",
+        "1cdacfd7856743b6213f7720725584d7f17e2764aa5f56688fe61b8d73d684b4"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 17.600000023841858,
+        "mean": 90.80093333379428,
+        "p50": 90.60000002384186,
+        "p95": 143.10000002384186,
+        "max": 154
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0003000000317891439,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        163.60000002384186,
+        164.40000009536743,
+        180.10000002384186
+      ],
+      "sampleResponseP95Ms": [
+        141.89999997615814,
+        140.89999997615814,
+        151.79999995231628
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        8,
+        8,
+        9
+      ],
+      "framesPerSample": [
+        11,
+        11,
+        12
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 567.179292929293,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chromium-astar-mixed-destinations-120-staggered-groups-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "336bea274dc9b4b2b4a14ff77242e7e261b9ff746a1caeffc65e190a2a658379",
+        "336bea274dc9b4b2b4a14ff77242e7e261b9ff746a1caeffc65e190a2a658379",
+        "336bea274dc9b4b2b4a14ff77242e7e261b9ff746a1caeffc65e190a2a658379"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 0.8999999761581421,
+        "mean": 26.083666666388513,
+        "p50": 15.800000071525574,
+        "p95": 94.20000004768372,
+        "max": 103.70000004768372
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0004333333969116211,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        180.30000007152557,
+        164.60000002384186,
+        230.5
+      ],
+      "sampleResponseP95Ms": [
+        43.5,
+        33,
+        101
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        2,
+        1,
+        5
+      ],
+      "framesPerSample": [
+        12,
+        11,
+        15
+      ],
+      "finalTickPerSample": [
+        10,
+        10,
+        10
+      ],
+      "maxQueueDepth": 375,
+      "meanQueueDepthAcrossSamples": 227.68585858585857,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        8000,
+        8000,
+        8000
+      ]
+    },
+    {
+      "file": "chromium-flow-dense-open-120-concurrent-burst-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 23.40000009536743,
+        "mean": 33.09633333345254,
+        "p50": 33.59999990463257,
+        "p95": 37.200000047683716,
+        "max": 41.199999928474426
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0014666666189829508,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.19999992847442627
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        58.300000071525574,
+        58,
+        59.199999928474426
+      ],
+      "sampleResponseP95Ms": [
+        35.60000002384186,
+        38.40000009536743,
+        37.199999928474426
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        2,
+        2,
+        2
+      ],
+      "framesPerSample": [
+        5,
+        5,
+        5
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 612.1333333333333,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        228900,
+        228900,
+        228900
+      ]
+    },
+    {
+      "file": "chromium-flow-dense-open-120-staggered-groups-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68",
+        "9e514e5947f576535e063cadde1b6d3f81dc3dc20f7d60d1ad4ba9da95ad3c68"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 29.300000071525574,
+        "mean": 34.75373333418369,
+        "p50": 34.40000009536743,
+        "p95": 38.299999952316284,
+        "max": 41.89999997615814
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0007000000476837158,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        60.10000002384186,
+        56.5,
+        45.300000071525574
+      ],
+      "sampleResponseP95Ms": [
+        38.60000002384186,
+        36.39999997615814,
+        36.300000071525574
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        2,
+        2,
+        1
+      ],
+      "framesPerSample": [
+        5,
+        5,
+        4
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 692.6666666666666,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        228900,
+        228900,
+        228900
+      ]
+    },
+    {
+      "file": "chromium-flow-mixed-destinations-120-concurrent-burst-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "concurrent-burst",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "df23f4418e3b66f5cd46cddb8bf61ced9358710ab3cf12709e4b63bf2708893a",
+        "df23f4418e3b66f5cd46cddb8bf61ced9358710ab3cf12709e4b63bf2708893a",
+        "df23f4418e3b66f5cd46cddb8bf61ced9358710ab3cf12709e4b63bf2708893a"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 27,
+        "mean": 46.189499999841054,
+        "p50": 45,
+        "p95": 65.70000004768372,
+        "max": 67.79999995231628
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0008000000317891438,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": true,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        92.60000002384186,
+        92.90000009536743,
+        77.89999997615814
+      ],
+      "sampleResponseP95Ms": [
+        65.60000002384186,
+        67.60000002384186,
+        58.39999997615814
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        4,
+        4,
+        3
+      ],
+      "framesPerSample": [
+        7,
+        7,
+        6
+      ],
+      "finalTickPerSample": [
+        3,
+        3,
+        3
+      ],
+      "maxQueueDepth": 1000,
+      "meanQueueDepthAcrossSamples": 616.8730158730159,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        263380,
+        263380,
+        263380
+      ]
+    },
+    {
+      "file": "chromium-flow-mixed-destinations-120-staggered-groups-p1000.json",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "pattern": "staggered-groups",
+      "warmupRuns": 1,
+      "measuredRuns": 3,
+      "repeatLogicalHashesEqual": true,
+      "logicalRouteHashes": [
+        "6ceff38eee6eae41c9337141a2b8dc07d88f1a366a93a6306239cdc00117d66c",
+        "6ceff38eee6eae41c9337141a2b8dc07d88f1a366a93a6306239cdc00117d66c",
+        "6ceff38eee6eae41c9337141a2b8dc07d88f1a366a93a6306239cdc00117d66c"
+      ],
+      "issueToResponseWallMsPooled": {
+        "count": 3000,
+        "min": 3.899999976158142,
+        "mean": 10.426900000055632,
+        "p50": 6.400000095367432,
+        "p95": 25.5,
+        "max": 28
+      },
+      "pathApplyMainThreadMsPooled": {
+        "count": 3000,
+        "min": 0,
+        "mean": 0.0014333333969116212,
+        "p50": 0,
+        "p95": 0,
+        "max": 0.10000002384185791
+      },
+      "issueToApplyTicksPooled": {
+        "count": 3000,
+        "min": 2,
+        "mean": 2.0,
+        "p50": 2,
+        "p95": 2,
+        "max": 2
+      },
+      "responseP95Exceeds33_3ms": false,
+      "applyP95Exceeds2ms": false,
+      "sampleWallClockMs": [
+        157.20000004768372,
+        158.5,
+        141.60000002384186
+      ],
+      "sampleResponseP95Ms": [
+        25.5,
+        27.699999928474426,
+        20.399999976158142
+      ],
+      "sampleApplyP95Ms": [
+        0,
+        0,
+        0
+      ],
+      "blockedTicksPerSample": [
+        1,
+        1,
+        0
+      ],
+      "framesPerSample": [
+        11,
+        11,
+        10
+      ],
+      "finalTickPerSample": [
+        10,
+        10,
+        10
+      ],
+      "maxQueueDepth": 352,
+      "meanQueueDepthAcrossSamples": 208.15151515151516,
+      "snapshotPayloadBytesPerSample": [
+        14400000,
+        14400000,
+        14400000
+      ],
+      "responseWaypointBytesPerSample": [
+        263380,
+        263380,
+        263380
+      ]
+    }
+  ],
+  "availability": [
+    {
+      "file": "chrome-availability.json",
+      "browser": "chrome",
+      "available": true,
+      "version": "156.0.8078.47",
+      "capturedAt": "2026-10-25T19:15:55.144Z",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "pageUrlPath": "/scratch/full-game-movement/harness/browser/index.html",
+      "automation": "playwright",
+      "headless": true
+    },
+    {
+      "file": "chromium-availability.json",
+      "browser": "chromium",
+      "available": true,
+      "version": "153.0.8010.12",
+      "capturedAt": "2026-10-25T19:17:14.684Z",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "pageUrlPath": "/scratch/full-game-movement/harness/browser/index.html",
+      "automation": "playwright",
+      "headless": true
+    },
+    {
+      "file": "firefox-availability.json",
+      "browser": "firefox",
+      "available": false,
+      "capturedAt": "2026-10-25T19:17:41.992Z",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "automation": "playwright",
+      "error": "Error: browserType.launch: Executable doesn't exist at /Users/jamesmoss/Library/Caches/ms-playwright/firefox-1482/firefox/Nightly.app/Contents/MacOS/firefox\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright Test or Playwright was just installed or updated. \u2551\n\u2551 Please run the following command to download new browsers:              \u2551\n\u2551                                                                         \u2551\n\u2551     npx playwright install                                              \u2551\n\u2551                                                                         \u2551\n\u2551 <3 Playwright Team                                                      \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d",
+      "stack": "browserType.launch: Executable doesn't exist at /Users/jamesmoss/Library/Caches/ms-playwright/firefox-1482/firefox/Nightly.app/Contents/MacOS/firefox\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright Test or Playwright was just installed or updated. \u2551\n\u2551 Please run the following command to download new browsers:              \u2551\n\u2551                                                                         \u2551\n\u2551     npx playwright install                                              \u2551\n\u2551                                                                         \u2551\n\u2551 <3 Playwright Team                                                      \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\n    at launchPlaywright (/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:88:42)\n    at runPlaywright (/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:94:25)\n    at /Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:197:74"
+    },
+    {
+      "file": "safari-availability.json",
+      "browser": "safari",
+      "available": false,
+      "capturedAt": "2026-10-25T19:17:54.929Z",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "automation": "safaridriver-webdriver",
+      "error": "Error: WebDriver POST /session: 500 {\"value\":{\"error\":\"session not created\",\"message\":\"Could not create a session: You must enable 'Allow remote automation' in the Developer section of Safari Settings to control Safari via WebDriver.\",\"stacktrace\":\"\"}}; safaridriver output: ",
+      "stack": "Error: WebDriver POST /session: 500 {\"value\":{\"error\":\"session not created\",\"message\":\"Could not create a session: You must enable 'Allow remote automation' in the Developer section of Safari Settings to control Safari via WebDriver.\",\"stacktrace\":\"\"}}; safaridriver output: \n    at runSafari (file:///Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:188:11)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async file:///Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:197:45"
+    },
+    {
+      "file": "webkit-availability.json",
+      "browser": "webkit",
+      "available": false,
+      "capturedAt": "2026-10-25T19:17:41.999Z",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "automation": "playwright",
+      "error": "Error: browserType.launch: Executable doesn't exist at /Users/jamesmoss/Library/Caches/ms-playwright/webkit-2158/pw_run.sh\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright Test or Playwright was just installed or updated. \u2551\n\u2551 Please run the following command to download new browsers:              \u2551\n\u2551                                                                         \u2551\n\u2551     npx playwright install                                              \u2551\n\u2551                                                                         \u2551\n\u2551 <3 Playwright Team                                                      \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d",
+      "stack": "browserType.launch: Executable doesn't exist at /Users/jamesmoss/Library/Caches/ms-playwright/webkit-2158/pw_run.sh\n\u2554\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2557\n\u2551 Looks like Playwright Test or Playwright was just installed or updated. \u2551\n\u2551 Please run the following command to download new browsers:              \u2551\n\u2551                                                                         \u2551\n\u2551     npx playwright install                                              \u2551\n\u2551                                                                         \u2551\n\u2551 <3 Playwright Team                                                      \u2551\n\u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d\n    at launchPlaywright (/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:89:40)\n    at runPlaywright (/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:94:25)\n    at /Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/browser/run-browser.mjs:197:74"
+    }
+  ],
+  "crossBrowserDeterminismClaimed": false,
+  "crossArchitectureDeterminismClaimed": false
+}

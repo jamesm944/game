@@ -441,3 +441,54 @@ _Avoid_: Group shape, troop stance (when meaning formation geometry)
 **Formation Speed Harmonization**:
 The rule governing units marching in formation where all members throttle their movement speed to match the slowest unit in the formation, preserving relative slot geometry during transit.
 _Avoid_: Slowdown, unit pacing
+
+### Historical Epochs, Wonders & Political Transformation
+
+**Historical Epoch (Master Era)**:
+One of the 8 overarching historical ages (Ancient/Bronze, Classical, Medieval, Discovery/Colonial, Industrial, World Wars, Cold War, Information).
+_Avoid_: Age (when meaning top-level historical epoch)
+
+**Sub-Age**:
+One of the 3 discrete technological tiers within an Epoch, forming a continuous 24-tier ladder (ranks 1–24).
+_Avoid_: Mini-age, tech tier (bare)
+
+**Era Advancement**:
+Moving the civilization up the 24-rank ladder by satisfying three conditions simultaneously: full prerequisite research, social class readiness, and completing or capturing the required Era Wonder quota.
+_Avoid_: Age-up (when meaning the multi-era progression)
+
+**Great Wonder**:
+A monumental, globally unique landmark structure. Built in labor-intensive stages from vast raw and crafted commodities. Grants civilizational passive bonuses, counts toward the Era advancement quota, and remains fully functional and buildable across all future historical eras.
+_Avoid_: Monument (when meaning a globally unique great wonder), win building
+
+**Wonder Capture**:
+Seizing control of an enemy Great Wonder through military occupation; the occupying conqueror adds the wonder to their active era quota as long as their garrison holds the site.
+_Avoid_: Wonder stealing
+
+**Technological Diffusion**:
+The organic transmission of knowledge points and tech discounts from advanced civilizations to lagging ones via physical trade caravans, maritime freighters, road/border proximity, and diplomatic treaties.
+_Avoid_: Tech spread (bare), free tech
+
+**Household Demographics**:
+The physiological and economic simulation of Pop marriage, housing security, and fertility; couples have children only when food surplus and real wages exceed the local inflation-adjusted cost of living.
+_Avoid_: Auto-spawn, villager button
+
+**Market Inflation**:
+The dynamic devaluation of currency and escalation of market prices driven by excessive treasury gold minting and commodity scarcity relative to demand.
+_Avoid_: Price gouging, flat price rise
+
+**Influential Figure**:
+An exceptional Pop possessing visionary, charismatic, or scholastic traits who emerges during pivotal events and founds a religious cult, philosophical school, or political movement.
+_Avoid_: Hero unit, great person (bare)
+
+**Ideological Movement / Cult**:
+A dynamic creed or doctrine that spreads through proximity in taverns, town squares, pamphlets, and radio broadcasts, converting Pops and organizing them into political factions.
+_Avoid_: Faction (bare), rebel group
+
+**Rebel Negotiation**:
+A diplomatic engagement with an insurgent movement conceding to specific policy demands (tax cuts, slavery abolition, land reform) to avert civil war and preserve the status quo.
+_Avoid_: Bribery, surrender
+
+**Peace Treaty & Sovereignty**:
+A binding diplomatic settlement ending a civil war, which can grant formal sovereign independence to a breakaway rebel nation, establish territorial border concessions, or institute constitutional reforms.
+_Avoid_: Truce (bare), ceasefire
+

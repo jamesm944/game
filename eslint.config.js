@@ -3,7 +3,7 @@ import parser from "@typescript-eslint/parser";
 import prettier from "eslint-config-prettier";
 
 export default [
-  { ignores: ["dist/", "node_modules/", "prototype/", "docs/"] },
+  { ignores: ["dist/", "node_modules/", "prototype/", "docs/", "scratch/"] },
   {
     files: ["**/*.ts"],
     languageOptions: { parser },

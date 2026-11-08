@@ -1,0 +1,824 @@
+{
+  "schema": "wayfinder-recast-browser-comparison-v1",
+  "scope": "same-candidate-Chrome-arm64-module-worker-versus-corrected-Node-Recast",
+  "determinismClaim": "Only pairs with identical route streams and logical/full-state equality support observed same-candidate replay on this host; no cross-browser or x64 claim.",
+  "comparisons": [
+    {
+      "name": "short-repeated-mutation",
+      "browser": "chrome-recast-mutation-p40-t400-replay.json",
+      "node": "node-recast-mutation-p40-t400.json",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "provenance": {
+        "packages": {
+          "recast-navigation": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/core": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/generators": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/wasm": {
+            "version": "0.43.0",
+            "license": "MIT"
+          }
+        },
+        "wasmFile": "@recast-navigation/wasm/dist/recast-navigation.wasm.wasm",
+        "wasmBytes": 339385,
+        "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9",
+        "packaging": "Vite browser bundle of @recast-navigation/wasm-compat; provenance only, no donor files modified"
+      },
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "samples": [
+        {
+          "routesEqual": true,
+          "routeCountBrowser": 199,
+          "routeCountNode": 199,
+          "routeMismatches": [],
+          "logicalEqual": true,
+          "fullStateEqual": true,
+          "classification": "identical-route-stream-logical-and-full-state-replay",
+          "browser": {
+            "finalTick": 400,
+            "frames": 472,
+            "wallClockMs": 3092.399999976158,
+            "requests": 199,
+            "protocolViolations": [],
+            "leaderRequests": 4,
+            "leaderResponse": {
+              "n": 4,
+              "p50Ms": 163.69999992847443,
+              "p95Ms": 864.5,
+              "maxMs": 864.5,
+              "meanMs": 513.9499999880791
+            },
+            "repathResponse": {
+              "n": 195,
+              "p50Ms": 1.2999999523162842,
+              "p95Ms": 5.899999976158142,
+              "maxMs": 6.5,
+              "meanMs": 1.7856410271082168
+            },
+            "leaderWorkerCompute": {
+              "n": 4,
+              "p50Ms": 0.8999999761581421,
+              "p95Ms": 243.39999997615814,
+              "maxMs": 243.39999997615814,
+              "meanMs": 101.94999998807907
+            },
+            "repathWorkerCompute": {
+              "n": 195,
+              "p50Ms": 0.10000002384185791,
+              "p95Ms": 0.5,
+              "maxMs": 2.600000023841858,
+              "meanMs": 0.1276923118493496
+            },
+            "productionApply": {
+              "n": 197,
+              "p50Ms": 0,
+              "p95Ms": 0.09999990463256836,
+              "maxMs": 0.5,
+              "meanMs": 0.008629441261291504
+            },
+            "blockedFrames": 72,
+            "queue": {
+              "blockedTicks": 72,
+              "finalQueueDepth": 0,
+              "maxQueueDepth": 36,
+              "meanQueueDepth": 1.1483050847457628
+            },
+            "snapshotBytes": 2865600,
+            "revisionBuilds": 2,
+            "totalRevisionBuildMs": 401.5,
+            "maxRevisionBuildMs": 239.5,
+            "pathQueries": 199,
+            "totalPathQueryMs": 16.00000035762787,
+            "maxPathQueryMs": 1.7000000476837158,
+            "routeConversions": 199,
+            "totalRouteConversionMs": 3.0000001192092896,
+            "maxRouteConversionMs": 0.20000004768371582,
+            "responseWaypointBytes": 2588,
+            "wasmInitializationMs": 149.90000009536743,
+            "completions": {
+              "completed": 0,
+              "active-at-cutoff": 40,
+              "no-path": 0,
+              "stale-cancelled": 40,
+              "replaced": 0
+            },
+            "failedResponses": 0,
+            "repaths": 195,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "e78b4e70c87e9470ee276c83a7aaf3c514a62c4573bc9ae7a2840afc4ef32a4f"
+          },
+          "node": {
+            "finalTick": 400,
+            "frames": 400,
+            "wallClockMs": 417.843375,
+            "requests": 199,
+            "protocolViolations": [],
+            "leaderRequests": 4,
+            "leaderResponse": {
+              "n": 4,
+              "p50Ms": 0.4321669999999358,
+              "p95Ms": 179.96558299999998,
+              "maxMs": 179.96558299999998,
+              "meanMs": 78.4853125
+            },
+            "repathResponse": {
+              "n": 195,
+              "p50Ms": 0.051041999999938525,
+              "p95Ms": 0.20516600000007656,
+              "maxMs": 5.394457999999986,
+              "meanMs": 0.12311623076922831
+            },
+            "leaderWorkerCompute": {
+              "n": 4,
+              "p50Ms": 0.4251250000000937,
+              "p95Ms": 179.87191699999994,
+              "maxMs": 179.87191699999994,
+              "meanMs": 78.45421875
+            },
+            "repathWorkerCompute": {
+              "n": 195,
+              "p50Ms": 0.049624999999991815,
+              "p95Ms": 0.1984579999999596,
+              "maxMs": 5.371167000000014,
+              "meanMs": 0.1204853025641044
+            },
+            "productionApply": {
+              "n": 197,
+              "p50Ms": 0.0015000000000782165,
+              "p95Ms": 0.012124999999969077,
+              "maxMs": 0.2952910000000202,
+              "meanMs": 0.005112675126904805
+            },
+            "blockedFrames": 0,
+            "queue": {
+              "blockedTicks": 0,
+              "finalQueueDepth": 0,
+              "maxQueueDepth": 36,
+              "meanQueueDepth": 0.995
+            },
+            "snapshotBytes": 2865600,
+            "revisionBuilds": 2,
+            "totalRevisionBuildMs": 309.02633299999997,
+            "maxRevisionBuildMs": 176.27354099999997,
+            "pathQueries": 199,
+            "totalPathQueryMs": 12.874588999999787,
+            "maxPathQueryMs": 4.638708000000065,
+            "routeConversions": 199,
+            "totalRouteConversionMs": 8.484463000000574,
+            "maxRouteConversionMs": 5.312916000000087,
+            "responseWaypointBytes": 2588,
+            "wasmInitializationMs": 0,
+            "completions": {
+              "completed": 0,
+              "active-at-cutoff": 40,
+              "no-path": 0,
+              "stale-cancelled": 40,
+              "replaced": 0
+            },
+            "failedResponses": 0,
+            "repaths": 195,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "e78b4e70c87e9470ee276c83a7aaf3c514a62c4573bc9ae7a2840afc4ef32a4f"
+          }
+        },
+        {
+          "routesEqual": true,
+          "routeCountBrowser": 199,
+          "routeCountNode": 199,
+          "routeMismatches": [],
+          "logicalEqual": true,
+          "fullStateEqual": true,
+          "classification": "identical-route-stream-logical-and-full-state-replay",
+          "browser": {
+            "finalTick": 400,
+            "frames": 466,
+            "wallClockMs": 2353,
+            "requests": 199,
+            "protocolViolations": [],
+            "leaderRequests": 4,
+            "leaderResponse": {
+              "n": 4,
+              "p50Ms": 141.60000002384186,
+              "p95Ms": 173.5,
+              "maxMs": 173.5,
+              "meanMs": 157.375
+            },
+            "repathResponse": {
+              "n": 195,
+              "p50Ms": 0.9000000953674316,
+              "p95Ms": 3.0999999046325684,
+              "maxMs": 6.599999904632568,
+              "meanMs": 1.2287179525081928
+            },
+            "leaderWorkerCompute": {
+              "n": 4,
+              "p50Ms": 0.5,
+              "p95Ms": 172.60000002384186,
+              "maxMs": 172.60000002384186,
+              "meanMs": 78.55000004172325
+            },
+            "repathWorkerCompute": {
+              "n": 195,
+              "p50Ms": 0.09999990463256836,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 2.0999999046325684,
+              "meanMs": 0.09128204981486003
+            },
+            "productionApply": {
+              "n": 197,
+              "p50Ms": 0,
+              "p95Ms": 0.10000002384185791,
+              "maxMs": 0.20000004768371582,
+              "meanMs": 0.008121826927068875
+            },
+            "blockedFrames": 66,
+            "queue": {
+              "blockedTicks": 66,
+              "finalQueueDepth": 0,
+              "maxQueueDepth": 36,
+              "meanQueueDepth": 1.1373390557939915
+            },
+            "snapshotBytes": 2865600,
+            "revisionBuilds": 2,
+            "totalRevisionBuildMs": 309.7000000476837,
+            "maxRevisionBuildMs": 170,
+            "pathQueries": 199,
+            "totalPathQueryMs": 12.300000190734863,
+            "maxPathQueryMs": 1.8000000715255737,
+            "routeConversions": 199,
+            "totalRouteConversionMs": 2.799999475479126,
+            "maxRouteConversionMs": 0.3999999761581421,
+            "responseWaypointBytes": 2588,
+            "wasmInitializationMs": 32.300000071525574,
+            "completions": {
+              "completed": 0,
+              "active-at-cutoff": 40,
+              "no-path": 0,
+              "stale-cancelled": 40,
+              "replaced": 0
+            },
+            "failedResponses": 0,
+            "repaths": 195,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "e78b4e70c87e9470ee276c83a7aaf3c514a62c4573bc9ae7a2840afc4ef32a4f"
+          },
+          "node": {
+            "finalTick": 400,
+            "frames": 400,
+            "wallClockMs": 417.843375,
+            "requests": 199,
+            "protocolViolations": [],
+            "leaderRequests": 4,
+            "leaderResponse": {
+              "n": 4,
+              "p50Ms": 0.4321669999999358,
+              "p95Ms": 179.96558299999998,
+              "maxMs": 179.96558299999998,
+              "meanMs": 78.4853125
+            },
+            "repathResponse": {
+              "n": 195,
+              "p50Ms": 0.051041999999938525,
+              "p95Ms": 0.20516600000007656,
+              "maxMs": 5.394457999999986,
+              "meanMs": 0.12311623076922831
+            },
+            "leaderWorkerCompute": {
+              "n": 4,
+              "p50Ms": 0.4251250000000937,
+              "p95Ms": 179.87191699999994,
+              "maxMs": 179.87191699999994,
+              "meanMs": 78.45421875
+            },
+            "repathWorkerCompute": {
+              "n": 195,
+              "p50Ms": 0.049624999999991815,
+              "p95Ms": 0.1984579999999596,
+              "maxMs": 5.371167000000014,
+              "meanMs": 0.1204853025641044
+            },
+            "productionApply": {
+              "n": 197,
+              "p50Ms": 0.0015000000000782165,
+              "p95Ms": 0.012124999999969077,
+              "maxMs": 0.2952910000000202,
+              "meanMs": 0.005112675126904805
+            },
+            "blockedFrames": 0,
+            "queue": {
+              "blockedTicks": 0,
+              "finalQueueDepth": 0,
+              "maxQueueDepth": 36,
+              "meanQueueDepth": 0.995
+            },
+            "snapshotBytes": 2865600,
+            "revisionBuilds": 2,
+            "totalRevisionBuildMs": 309.02633299999997,
+            "maxRevisionBuildMs": 176.27354099999997,
+            "pathQueries": 199,
+            "totalPathQueryMs": 12.874588999999787,
+            "maxPathQueryMs": 4.638708000000065,
+            "routeConversions": 199,
+            "totalRouteConversionMs": 8.484463000000574,
+            "maxRouteConversionMs": 5.312916000000087,
+            "responseWaypointBytes": 2588,
+            "wasmInitializationMs": 0,
+            "completions": {
+              "completed": 0,
+              "active-at-cutoff": 40,
+              "no-path": 0,
+              "stale-cancelled": 40,
+              "replaced": 0
+            },
+            "failedResponses": 0,
+            "repaths": 195,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "e78b4e70c87e9470ee276c83a7aaf3c514a62c4573bc9ae7a2840afc4ef32a4f"
+          }
+        }
+      ]
+    },
+    {
+      "name": "dense-1000-3600",
+      "browser": "chrome-recast-dense-p1000-t3600.json",
+      "node": "node-recast-dense-p1000-t3600.json",
+      "preserved": "../../phase2-navigation/recast-corridor/results/dense-open-120-p1000-corridor.json",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "provenance": {
+        "packages": {
+          "recast-navigation": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/core": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/generators": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/wasm": {
+            "version": "0.43.0",
+            "license": "MIT"
+          }
+        },
+        "wasmFile": "@recast-navigation/wasm/dist/recast-navigation.wasm.wasm",
+        "wasmBytes": 339385,
+        "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9",
+        "packaging": "Vite browser bundle of @recast-navigation/wasm-compat; provenance only, no donor files modified"
+      },
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "preservedNodeLogicalEqual": true,
+      "samples": [
+        {
+          "routesEqual": true,
+          "routeCountBrowser": 46289,
+          "routeCountNode": 46289,
+          "routeMismatches": [],
+          "logicalEqual": true,
+          "fullStateEqual": true,
+          "classification": "identical-route-stream-logical-and-full-state-replay",
+          "browser": {
+            "finalTick": 3600,
+            "frames": 4096,
+            "wallClockMs": 37583.39999997616,
+            "requests": 46289,
+            "protocolViolations": [],
+            "leaderRequests": 1,
+            "leaderResponse": {
+              "n": 1,
+              "p50Ms": 174.80000007152557,
+              "p95Ms": 174.80000007152557,
+              "maxMs": 174.80000007152557,
+              "meanMs": 174.80000007152557
+            },
+            "repathResponse": {
+              "n": 46288,
+              "p50Ms": 28,
+              "p95Ms": 70.39999997615814,
+              "maxMs": 95.79999995231628,
+              "meanMs": 30.7218307122959
+            },
+            "leaderWorkerCompute": {
+              "n": 1,
+              "p50Ms": 173.20000004768372,
+              "p95Ms": 173.20000004768372,
+              "maxMs": 173.20000004768372,
+              "meanMs": 173.20000004768372
+            },
+            "repathWorkerCompute": {
+              "n": 46288,
+              "p50Ms": 0,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 12.200000047683716,
+              "meanMs": 0.06133555148068572
+            },
+            "productionApply": {
+              "n": 46287,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 2.399999976158142,
+              "meanMs": 0.001877416997692756
+            },
+            "blockedFrames": 496,
+            "queue": {
+              "blockedTicks": 496,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 58.789306640625
+            },
+            "snapshotBytes": 666561600,
+            "revisionBuilds": 1,
+            "totalRevisionBuildMs": 169.09999990463257,
+            "maxRevisionBuildMs": 169.09999990463257,
+            "pathQueries": 46205,
+            "totalPathQueryMs": 1032.600001335144,
+            "maxPathQueryMs": 12.200000047683716,
+            "routeConversions": 46205,
+            "totalRouteConversionMs": 227.50000023841858,
+            "maxRouteConversionMs": 3,
+            "responseWaypointBytes": 369976,
+            "wasmInitializationMs": 53.299999952316284,
+            "completions": {
+              "completed": 528,
+              "active-at-cutoff": 472,
+              "no-path": 0,
+              "stale-cancelled": 0,
+              "replaced": 0
+            },
+            "failedResponses": 0,
+            "repaths": 46288,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038"
+          },
+          "node": {
+            "finalTick": 3600,
+            "frames": 3600,
+            "wallClockMs": 33680.377416,
+            "requests": 46289,
+            "protocolViolations": [],
+            "leaderRequests": 1,
+            "leaderResponse": {
+              "n": 1,
+              "p50Ms": 180.64225,
+              "p95Ms": 180.64225,
+              "maxMs": 180.64225,
+              "meanMs": 180.64225
+            },
+            "repathResponse": {
+              "n": 46288,
+              "p50Ms": 0.044499999999970896,
+              "p95Ms": 0.17062500000065484,
+              "maxMs": 14.91754100000253,
+              "meanMs": 0.07773752175509337
+            },
+            "leaderWorkerCompute": {
+              "n": 1,
+              "p50Ms": 180.511208,
+              "p95Ms": 180.511208,
+              "maxMs": 180.511208,
+              "meanMs": 180.511208
+            },
+            "repathWorkerCompute": {
+              "n": 46288,
+              "p50Ms": 0.04362499999842839,
+              "p95Ms": 0.1625419999982114,
+              "maxMs": 14.908208999997441,
+              "meanMs": 0.07515124747234701
+            },
+            "productionApply": {
+              "n": 46287,
+              "p50Ms": 0.0008330000000569271,
+              "p95Ms": 0.007165999999415362,
+              "maxMs": 10.357041999999979,
+              "meanMs": 0.002506274850389589
+            },
+            "blockedFrames": 0,
+            "queue": {
+              "blockedTicks": 0,
+              "finalQueueDepth": 2,
+              "maxQueueDepth": 1000,
+              "meanQueueDepth": 25.715833333333332
+            },
+            "snapshotBytes": 666561600,
+            "revisionBuilds": 1,
+            "totalRevisionBuildMs": 178.43341700000002,
+            "maxRevisionBuildMs": 178.43341700000002,
+            "pathQueries": 46205,
+            "totalPathQueryMs": 1130.7357100000095,
+            "maxPathQueryMs": 11.183458000000428,
+            "routeConversions": 46205,
+            "totalRouteConversionMs": 297.9810639998914,
+            "maxRouteConversionMs": 8.33966700000019,
+            "responseWaypointBytes": 369976,
+            "wasmInitializationMs": 0,
+            "completions": {
+              "completed": 528,
+              "active-at-cutoff": 472,
+              "no-path": 0,
+              "stale-cancelled": 0,
+              "replaced": 0
+            },
+            "failedResponses": 0,
+            "repaths": 46288,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038"
+          }
+        }
+      ]
+    },
+    {
+      "name": "narrow-mutation-1000-3600",
+      "browser": "chrome-recast-narrow-mutation-p1000-t3600.json",
+      "node": "node-recast-narrow-mutation-p1000-t3600.json",
+      "preserved": "../../phase2-navigation/recast-corridor/results/narrow-mutation-120-p1000-corridor.json",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "provenance": {
+        "packages": {
+          "recast-navigation": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/core": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/generators": {
+            "version": "0.43.0",
+            "license": "MIT"
+          },
+          "@recast-navigation/wasm": {
+            "version": "0.43.0",
+            "license": "MIT"
+          }
+        },
+        "wasmFile": "@recast-navigation/wasm/dist/recast-navigation.wasm.wasm",
+        "wasmBytes": 339385,
+        "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9",
+        "packaging": "Vite browser bundle of @recast-navigation/wasm-compat; provenance only, no donor files modified"
+      },
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "preservedNodeLogicalEqual": true,
+      "samples": [
+        {
+          "routesEqual": true,
+          "routeCountBrowser": 53098,
+          "routeCountNode": 53098,
+          "routeMismatches": [],
+          "logicalEqual": true,
+          "fullStateEqual": true,
+          "classification": "identical-route-stream-logical-and-full-state-replay",
+          "browser": {
+            "finalTick": 3600,
+            "frames": 3755,
+            "wallClockMs": 35865.89999997616,
+            "requests": 53098,
+            "protocolViolations": [],
+            "leaderRequests": 4,
+            "leaderResponse": {
+              "n": 4,
+              "p50Ms": 126,
+              "p95Ms": 158.69999992847443,
+              "maxMs": 158.69999992847443,
+              "meanMs": 142.29999995231628
+            },
+            "repathResponse": {
+              "n": 53094,
+              "p50Ms": 2.399999976158142,
+              "p95Ms": 33.5,
+              "maxMs": 77,
+              "meanMs": 7.621699251201133
+            },
+            "leaderWorkerCompute": {
+              "n": 4,
+              "p50Ms": 0.5,
+              "p95Ms": 157.20000004768372,
+              "maxMs": 157.20000004768372,
+              "meanMs": 70.875
+            },
+            "repathWorkerCompute": {
+              "n": 53094,
+              "p50Ms": 0,
+              "p95Ms": 0.20000004768371582,
+              "maxMs": 6.699999928474426,
+              "meanMs": 0.06288657865313418
+            },
+            "productionApply": {
+              "n": 53084,
+              "p50Ms": 0,
+              "p95Ms": 0,
+              "maxMs": 1.100000023841858,
+              "meanMs": 0.002447065012841781
+            },
+            "blockedFrames": 155,
+            "queue": {
+              "blockedTicks": 155,
+              "finalQueueDepth": 12,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 34.315579227696404
+            },
+            "snapshotBytes": 764611200,
+            "revisionBuilds": 2,
+            "totalRevisionBuildMs": 280.5,
+            "maxRevisionBuildMs": 155.39999997615814,
+            "pathQueries": 53051,
+            "totalPathQueryMs": 1355.8000075817108,
+            "maxPathQueryMs": 6.5,
+            "routeConversions": 53051,
+            "totalRouteConversionMs": 246.10000216960907,
+            "maxRouteConversionMs": 2.5,
+            "responseWaypointBytes": 600116,
+            "wasmInitializationMs": 48,
+            "completions": {
+              "completed": 500,
+              "active-at-cutoff": 500,
+              "no-path": 0,
+              "stale-cancelled": 1000,
+              "replaced": 0
+            },
+            "failedResponses": 16,
+            "repaths": 53094,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc"
+          },
+          "node": {
+            "finalTick": 3600,
+            "frames": 3600,
+            "wallClockMs": 37143.420958,
+            "requests": 53098,
+            "protocolViolations": [],
+            "leaderRequests": 4,
+            "leaderResponse": {
+              "n": 4,
+              "p50Ms": 0.4561670000000504,
+              "p95Ms": 154.28366700000004,
+              "maxMs": 154.28366700000004,
+              "meanMs": 74.73314599999999
+            },
+            "repathResponse": {
+              "n": 53094,
+              "p50Ms": 0.04620900000008987,
+              "p95Ms": 0.18237500000032014,
+              "maxMs": 18.34333300000071,
+              "meanMs": 0.08012034084829
+            },
+            "leaderWorkerCompute": {
+              "n": 4,
+              "p50Ms": 0.4476249999999595,
+              "p95Ms": 154.26175,
+              "maxMs": 154.26175,
+              "meanMs": 74.67007274999997
+            },
+            "repathWorkerCompute": {
+              "n": 53094,
+              "p50Ms": 0.04520800000318559,
+              "p95Ms": 0.17224999999984902,
+              "maxMs": 18.326249999998254,
+              "meanMs": 0.07638322492183618
+            },
+            "productionApply": {
+              "n": 53084,
+              "p50Ms": 0.0010839999995368998,
+              "p95Ms": 0.008709000001545064,
+              "maxMs": 27.542209000000184,
+              "meanMs": 0.004016288109414194
+            },
+            "blockedFrames": 0,
+            "queue": {
+              "blockedTicks": 0,
+              "finalQueueDepth": 12,
+              "maxQueueDepth": 915,
+              "meanQueueDepth": 29.4975
+            },
+            "snapshotBytes": 764611200,
+            "revisionBuilds": 2,
+            "totalRevisionBuildMs": 295.3569580000001,
+            "maxRevisionBuildMs": 153.45458300000007,
+            "pathQueries": 53051,
+            "totalPathQueryMs": 1433.856221000435,
+            "maxPathQueryMs": 18.246125000001484,
+            "routeConversions": 53051,
+            "totalRouteConversionMs": 369.6730349996909,
+            "maxRouteConversionMs": 12.325624999997672,
+            "responseWaypointBytes": 600116,
+            "wasmInitializationMs": 0,
+            "completions": {
+              "completed": 500,
+              "active-at-cutoff": 500,
+              "no-path": 0,
+              "stale-cancelled": 1000,
+              "replaced": 0
+            },
+            "failedResponses": 16,
+            "repaths": 53094,
+            "correctnessCounters": {
+              "geometryRejections": 0,
+              "partialPathsRejected": 0,
+              "endpointProjectionsRejected": 0,
+              "nativeQueryFailures": 0,
+              "navmeshGenerationFailures": 0,
+              "pathCapacityFailures": 0,
+              "snapshotMismatches": 0
+            },
+            "finalFullStateHash": "9b81f04fbfb6a91a836f486bcce365e5f2aad6ec6f07b44795a565697df230dc"
+          }
+        }
+      ]
+    }
+  ]
+}

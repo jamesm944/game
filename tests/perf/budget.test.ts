@@ -21,7 +21,7 @@
 import { describe, expect, it } from "vitest";
 import {
   approximateDrawCalls,
-  CI_TOLERANCE_MULTIPLIER,
+  effectiveBudget,
   MIRROR_COPY_BUDGET_MS,
   runBudgetScenario,
   TICK_P95_BUDGET_MS,
@@ -29,15 +29,6 @@ import {
 import { installSimPurityShims } from "../helpers/sim-purity-shims";
 
 installSimPurityShims();
-
-const IN_CI =
-  process.env.CI === "true" ||
-  process.env.CI === "1" ||
-  process.env.CI === "yes";
-
-function effectiveBudget(ms: number): number {
-  return IN_CI ? ms * CI_TOLERANCE_MULTIPLIER : ms;
-}
 
 describe("M1 perf budget gate (SPEC §7)", () => {
   it("keeps p95 tick under 8 ms and mirror copy under 2 ms with 300 gathering villagers", () => {

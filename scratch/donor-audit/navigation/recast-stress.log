@@ -1,0 +1,95 @@
+{
+  "crowdCapacity": {
+    "requested": 2001,
+    "accepted": 2000,
+    "rejected": 1,
+    "reportedCount": 2001,
+    "firstRejectedRequest": 2001,
+    "elapsedMs": 28.325417000000016
+  },
+  "obstacleCapacity": {
+    "requested": 513,
+    "reportedCount": 512,
+    "elapsedMs": 69.33683399999995
+  },
+  "dynamicObstacleCycles": {
+    "cycles": 25,
+    "reroutes": 25,
+    "restored": 25,
+    "failures": 0,
+    "directPathHash": "99d45366510f0e1cf40a16c3ed7cb123cc4ac8fc52fcb0faa312198a00a5f920",
+    "pathQueries": {
+      "count": 500,
+      "found": 500,
+      "uniqueResultHashes": 1,
+      "meanMs": 0.013784323999987464,
+      "p95Ms": 0.02295800000001691,
+      "maxMs": 1.0956249999999272
+    },
+    "addMs": {
+      "mean": 0.09682835999998134,
+      "p95": 0.14604199999985212,
+      "max": 0.15300000000024738
+    },
+    "removeMs": {
+      "mean": 0.04819164000005913,
+      "p95": 0.08674999999993815,
+      "max": 0.10633400000006077
+    }
+  },
+  "dense1000": {
+    "options": {
+      "count": 1000,
+      "steps": 200,
+      "dt": 0.05
+    },
+    "accepted": 1000,
+    "addMs": 5.763332999999875,
+    "updateTotalMs": 273.24320599999555,
+    "updateMeanMs": 1.3662160299999777,
+    "updateP95Ms": 3.286124999999629,
+    "updateMaxMs": 5.046250000000327,
+    "arrived": 980,
+    "arrivalThreshold": 1.5,
+    "stuckAtEnd": 0,
+    "meanDistanceRemaining": 0.3981228355110421,
+    "finalHash": "0996dd694f8958076618dd3e09dccb9e7f8ce87adb57d32de28e5437dbccbec4",
+    "traceHash": "74b22e4e6abe69afe9c048f8d9c75ef878454d05e90dfec463bca2b91c101371"
+  },
+  "opposing400": {
+    "options": {
+      "count": 400,
+      "steps": 240,
+      "dt": 0.05,
+      "opposing": true
+    },
+    "accepted": 400,
+    "addMs": 0.9379159999998592,
+    "updateTotalMs": 122.51749299999938,
+    "updateMeanMs": 0.5104895541666641,
+    "updateP95Ms": 0.8780000000001564,
+    "updateMaxMs": 3.41800000000012,
+    "arrived": 395,
+    "arrivalThreshold": 1.5,
+    "stuckAtEnd": 0,
+    "meanDistanceRemaining": 0.24059665137722003,
+    "finalHash": "4ecc832cfb9a044dd6fa0a5963a8e4dd937c7c29b32478cbc55d82b839dac482",
+    "traceHash": "5020cc2cbc31c21d546419c3004c7483329a04ef48eff40f00c4f2af6317d8f0"
+  },
+  "determinism": {
+    "sameHostSameRunExact": true,
+    "sameHostReverseInsertionExact": false,
+    "sameHostEquivalentSixSecondsDifferentStepExact": false,
+    "hashes": {
+      "traceA": "9d3ba35d41af5c8e33d37063c8f0ee05f9ca5231cb19a20a8cc670ef8e70e652",
+      "traceB": "9d3ba35d41af5c8e33d37063c8f0ee05f9ca5231cb19a20a8cc670ef8e70e652",
+      "reverseFinal": "710e2b3f0bcfdb1a9a471a0e0f42bd7ffdbf8cb9f41f6f0d7d985533aa630fa1",
+      "fineStepFinal": "c6259e7ab3fd98a3355a1b75c219cdeddb8d08d470589b0521ca5063934f859d",
+      "coarseFinal": "c2b52f315d504c59ddde85e9344abfb10310f757f59f555c864295bb5c751498"
+    },
+    "scope": "One Node.js process on one macOS arm64 host; not cross-browser or cross-platform evidence."
+  }
+}
+real 11.58
+user 3.06
+sys 0.36

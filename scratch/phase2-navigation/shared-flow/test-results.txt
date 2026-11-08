@@ -1,0 +1,16 @@
+
+ RUN  v3.2.7 /Users/jamesmoss/Documents/game
+
+ ✓ scratch/full-game-movement/harness/harness.test.ts (4 tests) 980ms
+   ✓ full-game movement harness > runs actual Activity/movement loops and measures command completion  501ms
+ ✓ scratch/full-game-movement/harness/flow-integration/flow-integration.test.ts (5 tests) 739ms
+   ✓ flow-field full-game integration > matches its own repeated and delayed/out-of-order full-state replay  473ms
+ ✓ scratch/phase2-navigation/shared-flow/shared-corridor.test.ts (7 tests) 283ms
+ ✓ scratch/full-game-movement/flow-field/flow-field.test.ts (11 tests) 271ms
+ ✓ tests/path/astar.test.ts (13 tests) 5ms
+
+ Test Files  5 passed (5)
+      Tests  40 passed (40)
+   Start at  20:17:39
+   Duration  4.69s (transform 403ms, setup 0ms, collect 938ms, tests 2.28s, environment 1ms, prepare 186ms)
+

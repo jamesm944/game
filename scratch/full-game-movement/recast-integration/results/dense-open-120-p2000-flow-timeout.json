@@ -1,0 +1,22 @@
+{
+  "evidenceSchemaVersion": 1,
+  "kind": "run-failure",
+  "scenario": "dense-open-120",
+  "size": 120,
+  "population": 2000,
+  "requestedTicks": 3600,
+  "candidate": "flow-field-shared-destination",
+  "evidenceClass": "node-inline",
+  "command": "npx tsx scratch/full-game-movement/harness/run.ts --scenario dense-open-120 --population 2000 --mode flow --output scratch/full-game-movement/harness/results/dense-open-120-p2000-flow.json",
+  "observedAtUtc": "2026-10-25T19:41:01Z",
+  "outcome": "killed-by-execution-timeout-before-result-write",
+  "executionTimeoutSeconds": 300,
+  "runnerRawResultWritten": false,
+  "expectedRawResultPath": "scratch/full-game-movement/harness/results/dense-open-120-p2000-flow.json",
+  "processRemainingAfterKill": false,
+  "finalTick": null,
+  "wallClockMs": null,
+  "completions": null,
+  "candidateMetrics": null,
+  "interpretation": "Flow dense 2000 is unmeasured. The runner writes JSON only after runBenchmark returns, so no honest final tick, partial completion, timing, queue, apply, repath, candidate-metric, or hash data is available. Do not extrapolate from population 1000."
+}

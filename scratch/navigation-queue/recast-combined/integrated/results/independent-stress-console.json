@@ -1,0 +1,37 @@
+{
+  "output": "/Users/jamesmoss/Documents/game/scratch/navigation-queue/recast-combined/integrated/results/mutation-stress.json",
+  "passed": true,
+  "comparedResponses": 30,
+  "cases": [
+    {
+      "name": "repeated-one-tile-gate-close-reopen",
+      "exact": true,
+      "revisions": 20,
+      "geometryRejections": 0
+    },
+    {
+      "name": "building-add-remove",
+      "exact": true,
+      "revisions": 3,
+      "geometryRejections": 0
+    },
+    {
+      "name": "five-rectangle-mutation-burst",
+      "exact": true,
+      "revisions": 3,
+      "geometryRejections": 0
+    },
+    {
+      "name": "large-104x104-obstacle-multi-tile-halo",
+      "exact": true,
+      "revisions": 3,
+      "geometryRejections": 0
+    },
+    {
+      "name": "576-isolated-blocked-cells",
+      "exact": true,
+      "revisions": 1,
+      "geometryRejections": 0
+    }
+  ]
+}

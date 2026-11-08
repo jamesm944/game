@@ -1,0 +1,95 @@
+-- The C compiler identification is AppleClang 16.0.0.16000026
+-- The CXX compiler identification is AppleClang 16.0.0.16000026
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Error at CMakeLists.txt:65 (message):
+  C compiler is not GCC
+
+
+CMake Error at CMakeLists.txt:70 (message):
+  C++ compiler is not GCC
+
+
+-- Found Perl: /usr/bin/perl (found version "5.34.1")
+-- Performing Test HAVE_CUCHAR2
+-- Performing Test HAVE_CUCHAR2 - Failed
+CMake Error at CMakeLists.txt:228 (message):
+  One or more required submodules could not be found! Run 'git submodule
+  update --init' from the root DFHack directory.  (See the section 'Getting
+  the Code' in docs/dev/compile/Compile.rst)
+
+
+-- Found ZLIB: /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd (found version "1.2.12")
+* Downloading SDL2-devel-2.26.2-VC.zip
+-- [download 0% complete]
+-- [download 1% complete]
+-- [download 2% complete]
+-- [download 3% complete]
+-- [download 4% complete]
+-- [download 8% complete]
+-- [download 10% complete]
+-- [download 11% complete]
+-- [download 13% complete]
+-- [download 14% complete]
+-- [download 16% complete]
+-- [download 18% complete]
+-- [download 20% complete]
+-- [download 22% complete]
+-- [download 24% complete]
+-- [download 25% complete]
+-- [download 27% complete]
+-- [download 29% complete]
+-- [download 36% complete]
+-- [download 37% complete]
+-- [download 39% complete]
+-- [download 40% complete]
+-- [download 41% complete]
+-- [download 44% complete]
+-- [download 45% complete]
+-- [download 48% complete]
+-- [download 50% complete]
+-- [download 53% complete]
+-- [download 57% complete]
+-- [download 59% complete]
+-- [download 62% complete]
+-- [download 63% complete]
+-- [download 65% complete]
+-- [download 66% complete]
+-- [download 70% complete]
+-- [download 72% complete]
+-- [download 73% complete]
+-- [download 77% complete]
+-- [download 79% complete]
+-- [download 83% complete]
+-- [download 84% complete]
+-- [download 85% complete]
+-- [download 86% complete]
+-- [download 88% complete]
+-- [download 89% complete]
+-- [download 91% complete]
+-- [download 92% complete]
+-- [download 94% complete]
+-- [download 96% complete]
+-- [download 97% complete]
+-- [download 100% complete]
+-- {fmt} version: 12.2.0
+-- Build type: Release
+-- Performing Test HAS_NULLPTR_WARNING
+-- Performing Test HAS_NULLPTR_WARNING - Failed
+CMake Error at CMakeLists.txt:370 (if):
+  if given arguments:
+
+    "VERSION_LESS" "4.9"
+
+  Unknown arguments specified
+
+
+-- Configuring incomplete, errors occurred!

@@ -1,0 +1,106 @@
+{
+  "ready": true,
+  "route": [
+    0,
+    4,
+    11,
+    4
+  ],
+  "metrics": {
+    "transport": "real-browser-module-worker",
+    "wasmInitializationMs": 55.89999997615814,
+    "workerComputeTimeMeasured": true,
+    "fullRevisionRebuilds": true,
+    "integration": "detour-corridor-supercover-grid-cs0.25-full-rebuild",
+    "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+    "generationCellSize": 0.25,
+    "generationMaxSimplificationError": 0.25,
+    "recastNavigationVersion": "0.43.0",
+    "generationWalkableRadius": 0,
+    "revisionCacheEntries": 1,
+    "revisionCacheCapacity": 8,
+    "maxObstacles": 512,
+    "isolatedCrowdAgentCapacity": 2000,
+    "crowdModel": "none-production-activity-steering-collision",
+    "mutationStrategy": "full-generateTileCache-rebuild-from-exact-snapshot",
+    "exactEndpointTolerance": 0.05,
+    "mockInFlight": 0,
+    "revisionBuilds": 1,
+    "mutationRebuilds": 0,
+    "revisionCacheHits": 0,
+    "revisionCacheMisses": 1,
+    "revisionCacheEvictions": 0,
+    "peakRevisionCacheEntries": 1,
+    "revisionCacheCapacityFailures": 0,
+    "snapshotMismatches": 0,
+    "ephemeralSnapshotBuilds": 0,
+    "navmeshGenerationFailures": 0,
+    "totalRevisionBuildMs": 9.5,
+    "totalMutationRebuildMs": 0,
+    "maxRevisionBuildMs": 9.5,
+    "maxMutationRebuildMs": 0,
+    "lastRevisionBuildMs": 9.5,
+    "changedTilesObserved": 144,
+    "mutationChangedTiles": 0,
+    "maxChangedTilesPerBuild": 144,
+    "pathQueries": 1,
+    "pathCapacityFailures": 0,
+    "totalPathQueryMs": 3.299999952316284,
+    "maxPathQueryMs": 3.299999952316284,
+    "routeConversions": 1,
+    "totalRouteConversionMs": 1.5,
+    "maxRouteConversionMs": 1.5,
+    "responseWaypointBytes": 8,
+    "unreachableRoutes": 0,
+    "partialPathsRejected": 0,
+    "endpointProjectionsRejected": 0,
+    "geometryRejections": 0,
+    "nativeQueryFailures": 0,
+    "dynamicObstacleAdds": 0,
+    "obstacleCapacityFailures": 0,
+    "tileCacheUpdateFailures": 0,
+    "crowdAgentsCreated": 0,
+    "agentCapacityFailures": 0
+  },
+  "smoke": true,
+  "artifactMode": "vite-production-build",
+  "browser": "chrome",
+  "browserVersion": "156.0.8078.47",
+  "capturedAt": "2026-10-25T20:38:38.259Z",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "automation": "playwright",
+  "headless": true,
+  "urlPath": "/scratch/navigation-protocol/recast-browser/index.html",
+  "provenance": {
+    "packages": {
+      "recast-navigation": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/core": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/generators": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/wasm": {
+        "version": "0.43.0",
+        "license": "MIT"
+      }
+    },
+    "wasmFile": "@recast-navigation/wasm/dist/recast-navigation.wasm.wasm",
+    "wasmBytes": 339385,
+    "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9",
+    "packaging": "Vite browser bundle of @recast-navigation/wasm-compat; provenance only, no donor files modified"
+  }
+}

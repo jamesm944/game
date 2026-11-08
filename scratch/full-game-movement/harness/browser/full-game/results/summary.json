@@ -1,0 +1,2617 @@
+{
+  "schema": "wayfinder-browser-full-game-summary-v1",
+  "evidenceScope": "asynchronous-full-game-world-step-real-worker",
+  "runs": [
+    {
+      "file": "chrome-astar-dense-p1000-t3600.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "requestedTicks": 3600,
+      "warmupRuns": 1,
+      "measuredRuns": 1,
+      "warmups": [
+        {
+          "finalTick": 3600,
+          "frames": 4412,
+          "wallClockMs": 35466,
+          "pathRequests": 46289,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038"
+        }
+      ],
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "samples": [
+        {
+          "finalTick": 3600,
+          "frames": 4316,
+          "wallClockMs": 34764.10000002384,
+          "finalFullStateHash": "3bebb849de0d8e623875dfa594d13629e7468e5524fedcdc56f87cb32d1f1038",
+          "completionOutcomes": {
+            "active-at-cutoff": 472,
+            "completed": 528
+          },
+          "crowdStates": {
+            "completed": 528,
+            "moving": 26,
+            "stalled": 435,
+            "propagatedParked": 11,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 46288,
+            "repaths": 46288,
+            "groupMoves": 1
+          },
+          "scheduler": {
+            "blockedTicks": 716,
+            "finalQueueDepth": 2,
+            "maxQueueDepth": 1000,
+            "meanQueueDepth": 85.55792400370714
+          },
+          "timing": {
+            "meanTickMs": 2.7888322515936226,
+            "p95TickMs": 4.700000047683716,
+            "maxTickMs": 25.5,
+            "totalApplyCostMs": 90.50000178813934,
+            "maxApplyCostMs": 3
+          },
+          "mutations": [],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 46289,
+              "outcomes": {
+                "applied": 46287,
+                "pending": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 46289,
+                "min": 0,
+                "mean": 41.89076886502275,
+                "p50": 33,
+                "p95": 110.89999997615814,
+                "max": 282.7000000476837
+              },
+              "productionPathApplyMs": {
+                "count": 46287,
+                "min": 0,
+                "mean": 0.001955192641306184,
+                "p50": 0,
+                "p95": 0,
+                "max": 3
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1980,
+                "min": 0,
+                "mean": 0.04570707161017139,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 3
+              },
+              "issueToApplyTicks": {
+                "count": 46287,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 666561600,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 1,
+              "outcomes": {
+                "applied": 1
+              },
+              "issueToResponseWallMs": {
+                "count": 1,
+                "min": 30.600000023841858,
+                "mean": 30.600000023841858,
+                "p50": 30.600000023841858,
+                "p95": 30.600000023841858,
+                "max": 30.600000023841858
+              },
+              "productionPathApplyMs": {
+                "count": 1,
+                "min": 1,
+                "mean": 1.0,
+                "p50": 1,
+                "p95": 1,
+                "max": 1
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 1,
+                "mean": 1.0,
+                "p50": 1,
+                "p95": 1,
+                "max": 1
+              },
+              "issueToApplyTicks": {
+                "count": 1,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 14400,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "laterLeader": {
+              "requests": 0,
+              "outcomes": {},
+              "issueToResponseWallMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "snapshotPayloadBytes": 0,
+              "responseP95Exceeds33_3ms": null,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "individualRepath": {
+              "requests": 46288,
+              "outcomes": {
+                "applied": 46286,
+                "pending": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 46288,
+                "min": 0,
+                "mean": 41.89101278934096,
+                "p50": 33,
+                "p95": 110.89999997615814,
+                "max": 282.7000000476837
+              },
+              "productionPathApplyMs": {
+                "count": 46286,
+                "min": 0,
+                "mean": 0.0019336300779531465,
+                "p50": 0,
+                "p95": 0,
+                "max": 3
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1979,
+                "min": 0,
+                "mean": 0.045224861944486786,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 3
+              },
+              "issueToApplyTicks": {
+                "count": 46286,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 666547200,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        }
+      ],
+      "pooledRequests": {
+        "all": {
+          "requests": 46289,
+          "outcomes": {
+            "applied": 46287,
+            "pending": 2
+          },
+          "issueToResponseWallMs": {
+            "count": 46289,
+            "min": 0,
+            "mean": 41.89076886502275,
+            "p50": 33,
+            "p95": 110.89999997615814,
+            "max": 282.7000000476837
+          },
+          "productionPathApplyMs": {
+            "count": 46287,
+            "min": 0,
+            "mean": 0.001955192641306184,
+            "p50": 0,
+            "p95": 0,
+            "max": 3
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1980,
+            "min": 0,
+            "mean": 0.04570707161017139,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 3
+          },
+          "issueToApplyTicks": {
+            "count": 46287,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 666561600,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "initialLeader": {
+          "requests": 1,
+          "outcomes": {
+            "applied": 1
+          },
+          "issueToResponseWallMs": {
+            "count": 1,
+            "min": 30.600000023841858,
+            "mean": 30.600000023841858,
+            "p50": 30.600000023841858,
+            "p95": 30.600000023841858,
+            "max": 30.600000023841858
+          },
+          "productionPathApplyMs": {
+            "count": 1,
+            "min": 1,
+            "mean": 1.0,
+            "p50": 1,
+            "p95": 1,
+            "max": 1
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1,
+            "min": 1,
+            "mean": 1.0,
+            "p50": 1,
+            "p95": 1,
+            "max": 1
+          },
+          "issueToApplyTicks": {
+            "count": 1,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 14400,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "laterLeader": {
+          "requests": 0,
+          "outcomes": {},
+          "issueToResponseWallMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "issueToApplyTicks": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "snapshotPayloadBytes": 0,
+          "responseP95Exceeds33_3ms": null,
+          "applyP95Exceeds2ms": null,
+          "applyPerTickP95Exceeds2ms": null
+        },
+        "individualRepath": {
+          "requests": 46288,
+          "outcomes": {
+            "applied": 46286,
+            "pending": 2
+          },
+          "issueToResponseWallMs": {
+            "count": 46288,
+            "min": 0,
+            "mean": 41.89101278934096,
+            "p50": 33,
+            "p95": 110.89999997615814,
+            "max": 282.7000000476837
+          },
+          "productionPathApplyMs": {
+            "count": 46286,
+            "min": 0,
+            "mean": 0.0019336300779531465,
+            "p50": 0,
+            "p95": 0,
+            "max": 3
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1979,
+            "min": 0,
+            "mean": 0.045224861944486786,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 3
+          },
+          "issueToApplyTicks": {
+            "count": 46286,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 666547200,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        }
+      }
+    },
+    {
+      "file": "chrome-astar-mixed-p1000-t3600.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "mixed-destinations-120",
+      "population": 1000,
+      "requestedTicks": 3600,
+      "warmupRuns": 1,
+      "measuredRuns": 1,
+      "warmups": [
+        {
+          "finalTick": 3600,
+          "frames": 4411,
+          "wallClockMs": 33663.299999952316,
+          "pathRequests": 46807,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb"
+        }
+      ],
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "samples": [
+        {
+          "finalTick": 3600,
+          "frames": 4344,
+          "wallClockMs": 31887.300000071526,
+          "finalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+          "completionOutcomes": {
+            "active-at-cutoff": 429,
+            "completed": 571
+          },
+          "crowdStates": {
+            "completed": 571,
+            "moving": 15,
+            "stalled": 398,
+            "propagatedParked": 16,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 46799,
+            "repaths": 46799,
+            "groupMoves": 8
+          },
+          "scheduler": {
+            "blockedTicks": 744,
+            "finalQueueDepth": 5,
+            "maxQueueDepth": 1000,
+            "meanQueueDepth": 88.78591160220995
+          },
+          "timing": {
+            "meanTickMs": 2.1169889493541825,
+            "p95TickMs": 3.600000023841858,
+            "maxTickMs": 36.89999997615814,
+            "totalApplyCostMs": 75.90000033378601,
+            "maxApplyCostMs": 0.2999999523162842
+          },
+          "mutations": [],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 46807,
+              "outcomes": {
+                "applied": 46802,
+                "pending": 5
+              },
+              "issueToResponseWallMs": {
+                "count": 46807,
+                "min": 0,
+                "mean": 43.420020509966236,
+                "p50": 30.899999976158142,
+                "p95": 121,
+                "max": 231.09999990463257
+              },
+              "productionPathApplyMs": {
+                "count": 46802,
+                "min": 0,
+                "mean": 0.0016217255744153244,
+                "p50": 0,
+                "p95": 0,
+                "max": 0.2999999523162842
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1829,
+                "min": 0,
+                "mean": 0.04149808656849973,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 2.399999976158142
+              },
+              "issueToApplyTicks": {
+                "count": 46802,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 674020800,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 8,
+              "outcomes": {
+                "applied": 8
+              },
+              "issueToResponseWallMs": {
+                "count": 8,
+                "min": 23.5,
+                "mean": 33.4750000089407,
+                "p50": 35.5,
+                "p95": 39.39999997615814,
+                "max": 39.39999997615814
+              },
+              "productionPathApplyMs": {
+                "count": 8,
+                "min": 0,
+                "mean": 0.1249999850988388,
+                "p50": 0.10000002384185791,
+                "p95": 0.2999999523162842,
+                "max": 0.2999999523162842
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 0.9999998807907104,
+                "mean": 0.9999998807907104,
+                "p50": 0.9999998807907104,
+                "p95": 0.9999998807907104,
+                "max": 0.9999998807907104
+              },
+              "issueToApplyTicks": {
+                "count": 8,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 115200,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "laterLeader": {
+              "requests": 0,
+              "outcomes": {},
+              "issueToResponseWallMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "snapshotPayloadBytes": 0,
+              "responseP95Exceeds33_3ms": null,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "individualRepath": {
+              "requests": 46799,
+              "outcomes": {
+                "applied": 46794,
+                "pending": 5
+              },
+              "issueToResponseWallMs": {
+                "count": 46799,
+                "min": 0,
+                "mean": 43.421720549796326,
+                "p50": 30.899999976158142,
+                "p95": 121,
+                "max": 231.09999990463257
+              },
+              "productionPathApplyMs": {
+                "count": 46794,
+                "min": 0,
+                "mean": 0.0016006325694105077,
+                "p50": 0,
+                "p95": 0,
+                "max": 0.2999999523162842
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1828,
+                "min": 0,
+                "mean": 0.04097374204211997,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 2.399999976158142
+              },
+              "issueToApplyTicks": {
+                "count": 46794,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 673905600,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        }
+      ],
+      "pooledRequests": {
+        "all": {
+          "requests": 46807,
+          "outcomes": {
+            "applied": 46802,
+            "pending": 5
+          },
+          "issueToResponseWallMs": {
+            "count": 46807,
+            "min": 0,
+            "mean": 43.420020509966236,
+            "p50": 30.899999976158142,
+            "p95": 121,
+            "max": 231.09999990463257
+          },
+          "productionPathApplyMs": {
+            "count": 46802,
+            "min": 0,
+            "mean": 0.0016217255744153244,
+            "p50": 0,
+            "p95": 0,
+            "max": 0.2999999523162842
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1829,
+            "min": 0,
+            "mean": 0.04149808656849973,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 2.399999976158142
+          },
+          "issueToApplyTicks": {
+            "count": 46802,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 674020800,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "initialLeader": {
+          "requests": 8,
+          "outcomes": {
+            "applied": 8
+          },
+          "issueToResponseWallMs": {
+            "count": 8,
+            "min": 23.5,
+            "mean": 33.4750000089407,
+            "p50": 35.5,
+            "p95": 39.39999997615814,
+            "max": 39.39999997615814
+          },
+          "productionPathApplyMs": {
+            "count": 8,
+            "min": 0,
+            "mean": 0.1249999850988388,
+            "p50": 0.10000002384185791,
+            "p95": 0.2999999523162842,
+            "max": 0.2999999523162842
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1,
+            "min": 0.9999998807907104,
+            "mean": 0.9999998807907104,
+            "p50": 0.9999998807907104,
+            "p95": 0.9999998807907104,
+            "max": 0.9999998807907104
+          },
+          "issueToApplyTicks": {
+            "count": 8,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 115200,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "laterLeader": {
+          "requests": 0,
+          "outcomes": {},
+          "issueToResponseWallMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "issueToApplyTicks": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "snapshotPayloadBytes": 0,
+          "responseP95Exceeds33_3ms": null,
+          "applyP95Exceeds2ms": null,
+          "applyPerTickP95Exceeds2ms": null
+        },
+        "individualRepath": {
+          "requests": 46799,
+          "outcomes": {
+            "applied": 46794,
+            "pending": 5
+          },
+          "issueToResponseWallMs": {
+            "count": 46799,
+            "min": 0,
+            "mean": 43.421720549796326,
+            "p50": 30.899999976158142,
+            "p95": 121,
+            "max": 231.09999990463257
+          },
+          "productionPathApplyMs": {
+            "count": 46794,
+            "min": 0,
+            "mean": 0.0016006325694105077,
+            "p50": 0,
+            "p95": 0,
+            "max": 0.2999999523162842
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1828,
+            "min": 0,
+            "mean": 0.04097374204211997,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 2.399999976158142
+          },
+          "issueToApplyTicks": {
+            "count": 46794,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 673905600,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        }
+      }
+    },
+    {
+      "file": "chrome-astar-mutation-p100-t600-replay.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "astar",
+      "scenario": "narrow-mutation-120",
+      "population": 100,
+      "requestedTicks": 600,
+      "warmupRuns": 1,
+      "measuredRuns": 2,
+      "warmups": [
+        {
+          "finalTick": 600,
+          "frames": 611,
+          "wallClockMs": 3188.0999999046326,
+          "pathRequests": 1069,
+          "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7"
+        }
+      ],
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "samples": [
+        {
+          "finalTick": 600,
+          "frames": 614,
+          "wallClockMs": 3214.600000023842,
+          "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+          "completionOutcomes": {
+            "stale-cancelled": 100,
+            "active-at-cutoff": 100
+          },
+          "crowdStates": {
+            "completed": 0,
+            "moving": 3,
+            "stalled": 97,
+            "propagatedParked": 0,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 893,
+            "repaths": 1065,
+            "groupMoves": 2
+          },
+          "scheduler": {
+            "blockedTicks": 14,
+            "finalQueueDepth": 16,
+            "maxQueueDepth": 95,
+            "meanQueueDepth": 4.169381107491857
+          },
+          "timing": {
+            "meanTickMs": 0.2208469088768726,
+            "p95TickMs": 0.5,
+            "maxTickMs": 2.399999976158142,
+            "totalApplyCostMs": 4.1000001430511475,
+            "maxApplyCostMs": 0.19999992847442627
+          },
+          "mutations": [
+            {
+              "tick": 2,
+              "kind": "terrain",
+              "revisionBefore": 0,
+              "revisionAfter": 1,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 2,
+              "kind": "building",
+              "revisionBefore": 1,
+              "revisionAfter": 5,
+              "changedTiles": 16,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 120,
+              "kind": "terrain",
+              "revisionBefore": 5,
+              "revisionAfter": 6,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            }
+          ],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 1069,
+              "outcomes": {
+                "stale-discarded": 2,
+                "applied": 1051,
+                "pending": 16
+              },
+              "issueToResponseWallMs": {
+                "count": 1069,
+                "min": 0,
+                "mean": 4.444340504252877,
+                "p50": 1.600000023841858,
+                "p95": 17.899999976158142,
+                "max": 50.10000002384186
+              },
+              "productionPathApplyMs": {
+                "count": 1051,
+                "min": 0,
+                "mean": 0.0039010467583740697,
+                "p50": 0,
+                "p95": 0,
+                "max": 0.19999992847442627
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 162,
+                "min": 0,
+                "mean": 0.025308642858340415,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.20000004768371582
+              },
+              "issueToApplyTicks": {
+                "count": 1053,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 15393600,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 2,
+              "outcomes": {
+                "stale-discarded": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 14.700000047683716,
+                "mean": 16.30000001192093,
+                "p50": 14.700000047683716,
+                "p95": 17.899999976158142,
+                "max": 17.899999976158142
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "laterLeader": {
+              "requests": 2,
+              "outcomes": {
+                "applied": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 2.399999976158142,
+                "mean": 2.449999988079071,
+                "p50": 2.399999976158142,
+                "p95": 2.5,
+                "max": 2.5
+              },
+              "productionPathApplyMs": {
+                "count": 2,
+                "min": 0,
+                "mean": 0.09999996423721313,
+                "p50": 0,
+                "p95": 0.19999992847442627,
+                "max": 0.19999992847442627
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 0.19999992847442627,
+                "mean": 0.19999992847442627,
+                "p50": 0.19999992847442627,
+                "p95": 0.19999992847442627,
+                "max": 0.19999992847442627
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "individualRepath": {
+              "requests": 1065,
+              "outcomes": {
+                "applied": 1049,
+                "pending": 16
+              },
+              "issueToResponseWallMs": {
+                "count": 1065,
+                "min": 0,
+                "mean": 4.425821595348663,
+                "p50": 1.600000023841858,
+                "p95": 17.399999976158142,
+                "max": 50.10000002384186
+              },
+              "productionPathApplyMs": {
+                "count": 1049,
+                "min": 0,
+                "mean": 0.003717826705983528,
+                "p50": 0,
+                "p95": 0,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 161,
+                "min": 0,
+                "mean": 0.024223603817246715,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.20000004768371582
+              },
+              "issueToApplyTicks": {
+                "count": 1049,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 15336000,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        },
+        {
+          "finalTick": 600,
+          "frames": 603,
+          "wallClockMs": 3156.5,
+          "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+          "completionOutcomes": {
+            "stale-cancelled": 100,
+            "active-at-cutoff": 100
+          },
+          "crowdStates": {
+            "completed": 0,
+            "moving": 3,
+            "stalled": 97,
+            "propagatedParked": 0,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 893,
+            "repaths": 1065,
+            "groupMoves": 2
+          },
+          "scheduler": {
+            "blockedTicks": 3,
+            "finalQueueDepth": 16,
+            "maxQueueDepth": 95,
+            "meanQueueDepth": 3.6185737976782755
+          },
+          "timing": {
+            "meanTickMs": 0.21691542221341362,
+            "p95TickMs": 0.5,
+            "maxTickMs": 2,
+            "totalApplyCostMs": 2.8000001907348633,
+            "maxApplyCostMs": 0.10000002384185791
+          },
+          "mutations": [
+            {
+              "tick": 2,
+              "kind": "terrain",
+              "revisionBefore": 0,
+              "revisionAfter": 1,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 2,
+              "kind": "building",
+              "revisionBefore": 1,
+              "revisionAfter": 5,
+              "changedTiles": 16,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 120,
+              "kind": "terrain",
+              "revisionBefore": 5,
+              "revisionAfter": 6,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            }
+          ],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 1069,
+              "outcomes": {
+                "stale-discarded": 2,
+                "applied": 1051,
+                "pending": 16
+              },
+              "issueToResponseWallMs": {
+                "count": 1069,
+                "min": 0,
+                "mean": 2.5142188940904653,
+                "p50": 1.6999999284744263,
+                "p95": 7.799999952316284,
+                "max": 15.200000047683716
+              },
+              "productionPathApplyMs": {
+                "count": 1051,
+                "min": 0,
+                "mean": 0.002664129582050298,
+                "p50": 0,
+                "p95": 0,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 162,
+                "min": 0,
+                "mean": 0.01728395179465965,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.40000009536743164
+              },
+              "issueToApplyTicks": {
+                "count": 1053,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 15393600,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 2,
+              "outcomes": {
+                "stale-discarded": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 9.099999904632568,
+                "mean": 9.25,
+                "p50": 9.099999904632568,
+                "p95": 9.400000095367432,
+                "max": 9.400000095367432
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "laterLeader": {
+              "requests": 2,
+              "outcomes": {
+                "applied": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "productionPathApplyMs": {
+                "count": 2,
+                "min": 0,
+                "mean": 0.050000011920928955,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 0.10000002384185791,
+                "mean": 0.10000002384185791,
+                "p50": 0.10000002384185791,
+                "p95": 0.10000002384185791,
+                "max": 0.10000002384185791
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "individualRepath": {
+              "requests": 1065,
+              "outcomes": {
+                "applied": 1049,
+                "pending": 16
+              },
+              "issueToResponseWallMs": {
+                "count": 1065,
+                "min": 0,
+                "mean": 2.5025352091856408,
+                "p50": 1.600000023841858,
+                "p95": 7.600000023841858,
+                "max": 15.200000047683716
+              },
+              "productionPathApplyMs": {
+                "count": 1049,
+                "min": 0,
+                "mean": 0.002573880044702579,
+                "p50": 0,
+                "p95": 0,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 161,
+                "min": 0,
+                "mean": 0.016770187372006244,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.40000009536743164
+              },
+              "issueToApplyTicks": {
+                "count": 1049,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 15336000,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        }
+      ],
+      "pooledRequests": {
+        "all": {
+          "requests": 2138,
+          "outcomes": {
+            "stale-discarded": 4,
+            "applied": 2102,
+            "pending": 32
+          },
+          "issueToResponseWallMs": {
+            "count": 2138,
+            "min": 0,
+            "mean": 3.4792796991716712,
+            "p50": 1.600000023841858,
+            "p95": 10.900000095367432,
+            "max": 50.10000002384186
+          },
+          "productionPathApplyMs": {
+            "count": 2102,
+            "min": 0,
+            "mean": 0.003282588170212184,
+            "p50": 0,
+            "p95": 0,
+            "max": 0.19999992847442627
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 162,
+            "min": 0,
+            "mean": 0.04259259465300007,
+            "p50": 0,
+            "p95": 0.19999992847442627,
+            "max": 0.40000009536743164
+          },
+          "issueToApplyTicks": {
+            "count": 2106,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 30787200,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "initialLeader": {
+          "requests": 4,
+          "outcomes": {
+            "stale-discarded": 4
+          },
+          "issueToResponseWallMs": {
+            "count": 4,
+            "min": 9.099999904632568,
+            "mean": 12.775000005960464,
+            "p50": 9.400000095367432,
+            "p95": 17.899999976158142,
+            "max": 17.899999976158142
+          },
+          "productionPathApplyMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "issueToApplyTicks": {
+            "count": 4,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 57600,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": null,
+          "applyPerTickP95Exceeds2ms": null
+        },
+        "laterLeader": {
+          "requests": 4,
+          "outcomes": {
+            "applied": 4
+          },
+          "issueToResponseWallMs": {
+            "count": 4,
+            "min": 2,
+            "mean": 2.2249999940395355,
+            "p50": 2,
+            "p95": 2.5,
+            "max": 2.5
+          },
+          "productionPathApplyMs": {
+            "count": 4,
+            "min": 0,
+            "mean": 0.07499998807907104,
+            "p50": 0,
+            "p95": 0.19999992847442627,
+            "max": 0.19999992847442627
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1,
+            "min": 0.2999999523162842,
+            "mean": 0.2999999523162842,
+            "p50": 0.2999999523162842,
+            "p95": 0.2999999523162842,
+            "max": 0.2999999523162842
+          },
+          "issueToApplyTicks": {
+            "count": 4,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 57600,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "individualRepath": {
+          "requests": 2130,
+          "outcomes": {
+            "applied": 2098,
+            "pending": 32
+          },
+          "issueToResponseWallMs": {
+            "count": 2130,
+            "min": 0,
+            "mean": 3.4641784022671516,
+            "p50": 1.600000023841858,
+            "p95": 10.199999928474426,
+            "max": 50.10000002384186
+          },
+          "productionPathApplyMs": {
+            "count": 2098,
+            "min": 0,
+            "mean": 0.0031458533753430536,
+            "p50": 0,
+            "p95": 0,
+            "max": 0.10000002384185791
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 161,
+            "min": 0,
+            "mean": 0.04099379118925296,
+            "p50": 0,
+            "p95": 0.19999992847442627,
+            "max": 0.40000009536743164
+          },
+          "issueToApplyTicks": {
+            "count": 2098,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 30672000,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        }
+      }
+    },
+    {
+      "file": "chrome-flow-dense-p1000-t3600.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "dense-open-120",
+      "population": 1000,
+      "requestedTicks": 3600,
+      "warmupRuns": 0,
+      "measuredRuns": 1,
+      "warmups": [],
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "samples": [
+        {
+          "finalTick": 3600,
+          "frames": 26252,
+          "wallClockMs": 151531.89999997616,
+          "finalFullStateHash": "bc865f77b348b98869e53f68709601043e05fc3eda22631ec405afc1c89d3848",
+          "completionOutcomes": {
+            "active-at-cutoff": 576,
+            "completed": 424
+          },
+          "crowdStates": {
+            "completed": 424,
+            "moving": 23,
+            "stalled": 529,
+            "propagatedParked": 24,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 51292,
+            "repaths": 51292,
+            "groupMoves": 1
+          },
+          "scheduler": {
+            "blockedTicks": 22652,
+            "finalQueueDepth": 1,
+            "maxQueueDepth": 1000,
+            "meanQueueDepth": 365.8306033825994
+          },
+          "timing": {
+            "meanTickMs": 0.8182690844845703,
+            "p95TickMs": 3.399999976158142,
+            "maxTickMs": 29.699999928474426,
+            "totalApplyCostMs": 376.20000195503235,
+            "maxApplyCostMs": 2.0999999046325684
+          },
+          "mutations": [],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 51293,
+              "outcomes": {
+                "applied": 51292,
+                "pending": 1
+              },
+              "issueToResponseWallMs": {
+                "count": 51293,
+                "min": 0.10000002384185791,
+                "mean": 977.6437467104757,
+                "p50": 885.1999999284744,
+                "p95": 2223.399999976158,
+                "max": 3039
+              },
+              "productionPathApplyMs": {
+                "count": 51292,
+                "min": 0,
+                "mean": 0.007334477149556117,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 2.0999999046325684
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1574,
+                "min": 0,
+                "mean": 0.23900889577829246,
+                "p50": 0,
+                "p95": 0.3999999761581421,
+                "max": 10.699999570846558
+              },
+              "issueToApplyTicks": {
+                "count": 51292,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 738619200,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 1,
+              "outcomes": {
+                "applied": 1
+              },
+              "issueToResponseWallMs": {
+                "count": 1,
+                "min": 46.10000002384186,
+                "mean": 46.10000002384186,
+                "p50": 46.10000002384186,
+                "p95": 46.10000002384186,
+                "max": 46.10000002384186
+              },
+              "productionPathApplyMs": {
+                "count": 1,
+                "min": 2.0999999046325684,
+                "mean": 2.0999999046325684,
+                "p50": 2.0999999046325684,
+                "p95": 2.0999999046325684,
+                "max": 2.0999999046325684
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 2.0999999046325684,
+                "mean": 2.0999999046325684,
+                "p50": 2.0999999046325684,
+                "p95": 2.0999999046325684,
+                "max": 2.0999999046325684
+              },
+              "issueToApplyTicks": {
+                "count": 1,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 14400,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": true,
+              "applyPerTickP95Exceeds2ms": true
+            },
+            "laterLeader": {
+              "requests": 0,
+              "outcomes": {},
+              "issueToResponseWallMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "snapshotPayloadBytes": 0,
+              "responseP95Exceeds33_3ms": null,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "individualRepath": {
+              "requests": 51292,
+              "outcomes": {
+                "applied": 51291,
+                "pending": 1
+              },
+              "issueToResponseWallMs": {
+                "count": 51292,
+                "min": 0.10000002384185791,
+                "mean": 977.6619082901897,
+                "p50": 885.1999999284744,
+                "p95": 2223.399999976158,
+                "max": 3039
+              },
+              "productionPathApplyMs": {
+                "count": 51291,
+                "min": 0,
+                "mean": 0.007293677293295116,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.7999999523162842
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1573,
+                "min": 0,
+                "mean": 0.23782581185657964,
+                "p50": 0,
+                "p95": 0.39999985694885254,
+                "max": 10.699999570846558
+              },
+              "issueToApplyTicks": {
+                "count": 51291,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 738604800,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        }
+      ],
+      "pooledRequests": {
+        "all": {
+          "requests": 51293,
+          "outcomes": {
+            "applied": 51292,
+            "pending": 1
+          },
+          "issueToResponseWallMs": {
+            "count": 51293,
+            "min": 0.10000002384185791,
+            "mean": 977.6437467104757,
+            "p50": 885.1999999284744,
+            "p95": 2223.399999976158,
+            "max": 3039
+          },
+          "productionPathApplyMs": {
+            "count": 51292,
+            "min": 0,
+            "mean": 0.007334477149556117,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 2.0999999046325684
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1574,
+            "min": 0,
+            "mean": 0.23900889577829246,
+            "p50": 0,
+            "p95": 0.3999999761581421,
+            "max": 10.699999570846558
+          },
+          "issueToApplyTicks": {
+            "count": 51292,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 738619200,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "initialLeader": {
+          "requests": 1,
+          "outcomes": {
+            "applied": 1
+          },
+          "issueToResponseWallMs": {
+            "count": 1,
+            "min": 46.10000002384186,
+            "mean": 46.10000002384186,
+            "p50": 46.10000002384186,
+            "p95": 46.10000002384186,
+            "max": 46.10000002384186
+          },
+          "productionPathApplyMs": {
+            "count": 1,
+            "min": 2.0999999046325684,
+            "mean": 2.0999999046325684,
+            "p50": 2.0999999046325684,
+            "p95": 2.0999999046325684,
+            "max": 2.0999999046325684
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1,
+            "min": 2.0999999046325684,
+            "mean": 2.0999999046325684,
+            "p50": 2.0999999046325684,
+            "p95": 2.0999999046325684,
+            "max": 2.0999999046325684
+          },
+          "issueToApplyTicks": {
+            "count": 1,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 14400,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": true,
+          "applyPerTickP95Exceeds2ms": true
+        },
+        "laterLeader": {
+          "requests": 0,
+          "outcomes": {},
+          "issueToResponseWallMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "issueToApplyTicks": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "snapshotPayloadBytes": 0,
+          "responseP95Exceeds33_3ms": null,
+          "applyP95Exceeds2ms": null,
+          "applyPerTickP95Exceeds2ms": null
+        },
+        "individualRepath": {
+          "requests": 51292,
+          "outcomes": {
+            "applied": 51291,
+            "pending": 1
+          },
+          "issueToResponseWallMs": {
+            "count": 51292,
+            "min": 0.10000002384185791,
+            "mean": 977.6619082901897,
+            "p50": 885.1999999284744,
+            "p95": 2223.399999976158,
+            "max": 3039
+          },
+          "productionPathApplyMs": {
+            "count": 51291,
+            "min": 0,
+            "mean": 0.007293677293295116,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 0.7999999523162842
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1573,
+            "min": 0,
+            "mean": 0.23782581185657964,
+            "p50": 0,
+            "p95": 0.39999985694885254,
+            "max": 10.699999570846558
+          },
+          "issueToApplyTicks": {
+            "count": 51291,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 738604800,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        }
+      }
+    },
+    {
+      "file": "chrome-flow-mutation-p100-t600-replay.json",
+      "browser": "chrome",
+      "browserVersion": "156.0.8078.47",
+      "host": {
+        "platform": "darwin",
+        "release": "23.6.0",
+        "architecture": "arm64",
+        "cpuModel": "Apple M1",
+        "logicalCpus": 8,
+        "totalMemoryBytes": 17179869184,
+        "node": "v24.21.0"
+      },
+      "candidate": "flow",
+      "scenario": "narrow-mutation-120",
+      "population": 100,
+      "requestedTicks": 600,
+      "warmupRuns": 1,
+      "measuredRuns": 2,
+      "warmups": [
+        {
+          "finalTick": 600,
+          "frames": 1001,
+          "wallClockMs": 5135,
+          "pathRequests": 913,
+          "finalFullStateHash": "1845a6adaf54bb6f23715875ae7ef1509d221a7e0daa312492c8e4807156f264"
+        }
+      ],
+      "repeatLogicalResultsEqual": true,
+      "repeatFullStateHashesEqual": true,
+      "samples": [
+        {
+          "finalTick": 600,
+          "frames": 982,
+          "wallClockMs": 5022.600000023842,
+          "finalFullStateHash": "1845a6adaf54bb6f23715875ae7ef1509d221a7e0daa312492c8e4807156f264",
+          "completionOutcomes": {
+            "stale-cancelled": 100,
+            "active-at-cutoff": 100
+          },
+          "crowdStates": {
+            "completed": 0,
+            "moving": 0,
+            "stalled": 100,
+            "propagatedParked": 0,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 900,
+            "repaths": 909,
+            "groupMoves": 2
+          },
+          "scheduler": {
+            "blockedTicks": 382,
+            "finalQueueDepth": 0,
+            "maxQueueDepth": 97,
+            "meanQueueDepth": 20.39816700610998
+          },
+          "timing": {
+            "meanTickMs": 0.1511201633940889,
+            "p95TickMs": 0.3999999761581421,
+            "maxTickMs": 1.7999999523162842,
+            "totalApplyCostMs": 6.5,
+            "maxApplyCostMs": 0.20000004768371582
+          },
+          "mutations": [
+            {
+              "tick": 2,
+              "kind": "terrain",
+              "revisionBefore": 0,
+              "revisionAfter": 1,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 2,
+              "kind": "building",
+              "revisionBefore": 1,
+              "revisionAfter": 5,
+              "changedTiles": 16,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 120,
+              "kind": "terrain",
+              "revisionBefore": 5,
+              "revisionAfter": 6,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            }
+          ],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 913,
+              "outcomes": {
+                "stale-discarded": 2,
+                "applied": 911
+              },
+              "issueToResponseWallMs": {
+                "count": 913,
+                "min": 0.10000002384185791,
+                "mean": 105.05717415394423,
+                "p50": 100.79999995231628,
+                "p95": 208.60000002384186,
+                "max": 247.10000002384186
+              },
+              "productionPathApplyMs": {
+                "count": 911,
+                "min": 0,
+                "mean": 0.007135016465422613,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.20000004768371582
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 28,
+                "min": 0,
+                "mean": 0.23214285714285715,
+                "p50": 0,
+                "p95": 0.8999999761581421,
+                "max": 1.0000001192092896
+              },
+              "issueToApplyTicks": {
+                "count": 913,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 13147200,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 2,
+              "outcomes": {
+                "stale-discarded": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 19.199999928474426,
+                "mean": 21.049999952316284,
+                "p50": 19.199999928474426,
+                "p95": 22.899999976158142,
+                "max": 22.899999976158142
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "laterLeader": {
+              "requests": 2,
+              "outcomes": {
+                "applied": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 7.100000023841858,
+                "mean": 8.900000035762787,
+                "p50": 7.100000023841858,
+                "p95": 10.700000047683716,
+                "max": 10.700000047683716
+              },
+              "productionPathApplyMs": {
+                "count": 2,
+                "min": 0.10000002384185791,
+                "mean": 0.15000003576278687,
+                "p50": 0.10000002384185791,
+                "p95": 0.20000004768371582,
+                "max": 0.20000004768371582
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 0.30000007152557373,
+                "mean": 0.30000007152557373,
+                "p50": 0.30000007152557373,
+                "p95": 0.30000007152557373,
+                "max": 0.30000007152557373
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "individualRepath": {
+              "requests": 909,
+              "outcomes": {
+                "applied": 909
+              },
+              "issueToResponseWallMs": {
+                "count": 909,
+                "min": 0.10000002384185791,
+                "mean": 105.45357536036845,
+                "p50": 101.39999997615814,
+                "p95": 208.60000002384186,
+                "max": 247.10000002384186
+              },
+              "productionPathApplyMs": {
+                "count": 909,
+                "min": 0,
+                "mean": 0.006820681989520821,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 27,
+                "min": 0,
+                "mean": 0.2296296269805343,
+                "p50": 0,
+                "p95": 0.8999999761581421,
+                "max": 1.0000001192092896
+              },
+              "issueToApplyTicks": {
+                "count": 909,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 13089600,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        },
+        {
+          "finalTick": 600,
+          "frames": 1006,
+          "wallClockMs": 5122.800000071526,
+          "finalFullStateHash": "1845a6adaf54bb6f23715875ae7ef1509d221a7e0daa312492c8e4807156f264",
+          "completionOutcomes": {
+            "stale-cancelled": 100,
+            "active-at-cutoff": 100
+          },
+          "crowdStates": {
+            "completed": 0,
+            "moving": 0,
+            "stalled": 100,
+            "propagatedParked": 0,
+            "parkedNoActivity": 0,
+            "awaitingGroupPath": 0,
+            "otherActivity": 0
+          },
+          "movementDiagnostics": {
+            "sidesteps": 900,
+            "repaths": 909,
+            "groupMoves": 2
+          },
+          "scheduler": {
+            "blockedTicks": 406,
+            "finalQueueDepth": 0,
+            "maxQueueDepth": 97,
+            "meanQueueDepth": 21.119284294234593
+          },
+          "timing": {
+            "meanTickMs": 0.14691848901820703,
+            "p95TickMs": 0.30000007152557373,
+            "maxTickMs": 1.899999976158142,
+            "totalApplyCostMs": 5.999999523162842,
+            "maxApplyCostMs": 0.10000002384185791
+          },
+          "mutations": [
+            {
+              "tick": 2,
+              "kind": "terrain",
+              "revisionBefore": 0,
+              "revisionAfter": 1,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 2,
+              "kind": "building",
+              "revisionBefore": 1,
+              "revisionAfter": 5,
+              "changedTiles": 16,
+              "firstRecoveryApplyTick": 182
+            },
+            {
+              "tick": 120,
+              "kind": "terrain",
+              "revisionBefore": 5,
+              "revisionAfter": 6,
+              "changedTiles": 4,
+              "firstRecoveryApplyTick": 182
+            }
+          ],
+          "candidateMetrics": {
+            "transport": "real-browser-module-worker",
+            "workerComputeTimeMeasured": false,
+            "flowMetricsTransferred": false
+          },
+          "requests": {
+            "all": {
+              "requests": 913,
+              "outcomes": {
+                "stale-discarded": 2,
+                "applied": 911
+              },
+              "issueToResponseWallMs": {
+                "count": 913,
+                "min": 2.4000000953674316,
+                "mean": 112.12409638770961,
+                "p50": 104.60000002384186,
+                "p95": 236.5,
+                "max": 305.7999999523163
+              },
+              "productionPathApplyMs": {
+                "count": 911,
+                "min": 0,
+                "mean": 0.0065861685215838,
+                "p50": 0,
+                "p95": 0.09999990463256836,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 28,
+                "min": 0,
+                "mean": 0.21428569725581578,
+                "p50": 0.09999990463256836,
+                "p95": 0.7000001668930054,
+                "max": 0.9999997615814209
+              },
+              "issueToApplyTicks": {
+                "count": 913,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 13147200,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "initialLeader": {
+              "requests": 2,
+              "outcomes": {
+                "stale-discarded": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 20.799999952316284,
+                "mean": 23.19999998807907,
+                "p50": 20.799999952316284,
+                "p95": 25.600000023841858,
+                "max": 25.600000023841858
+              },
+              "productionPathApplyMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 0,
+                "min": null,
+                "mean": null,
+                "p50": null,
+                "p95": null,
+                "max": null
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": null,
+              "applyPerTickP95Exceeds2ms": null
+            },
+            "laterLeader": {
+              "requests": 2,
+              "outcomes": {
+                "applied": 2
+              },
+              "issueToResponseWallMs": {
+                "count": 2,
+                "min": 4.099999904632568,
+                "mean": 6.849999964237213,
+                "p50": 4.099999904632568,
+                "p95": 9.600000023841858,
+                "max": 9.600000023841858
+              },
+              "productionPathApplyMs": {
+                "count": 2,
+                "min": 0,
+                "mean": 0.050000011920928955,
+                "p50": 0,
+                "p95": 0.10000002384185791,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 1,
+                "min": 0.10000002384185791,
+                "mean": 0.10000002384185791,
+                "p50": 0.10000002384185791,
+                "p95": 0.10000002384185791,
+                "max": 0.10000002384185791
+              },
+              "issueToApplyTicks": {
+                "count": 2,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 28800,
+              "responseP95Exceeds33_3ms": false,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            },
+            "individualRepath": {
+              "requests": 909,
+              "outcomes": {
+                "applied": 909
+              },
+              "issueToResponseWallMs": {
+                "count": 909,
+                "min": 2.4000000953674316,
+                "mean": 112.55137513979564,
+                "p50": 105.29999995231628,
+                "p95": 236.5,
+                "max": 305.7999999523163
+              },
+              "productionPathApplyMs": {
+                "count": 909,
+                "min": 0,
+                "mean": 0.006490648514104492,
+                "p50": 0,
+                "p95": 0.09999990463256836,
+                "max": 0.10000002384185791
+              },
+              "productionPathApplyPerActiveTickMs": {
+                "count": 27,
+                "min": 0,
+                "mean": 0.21851849997485126,
+                "p50": 0.09999990463256836,
+                "p95": 0.7000001668930054,
+                "max": 0.9999997615814209
+              },
+              "issueToApplyTicks": {
+                "count": 909,
+                "min": 2,
+                "mean": 2.0,
+                "p50": 2,
+                "p95": 2,
+                "max": 2
+              },
+              "snapshotPayloadBytes": 13089600,
+              "responseP95Exceeds33_3ms": true,
+              "applyP95Exceeds2ms": false,
+              "applyPerTickP95Exceeds2ms": false
+            }
+          }
+        }
+      ],
+      "pooledRequests": {
+        "all": {
+          "requests": 1826,
+          "outcomes": {
+            "stale-discarded": 4,
+            "applied": 1822
+          },
+          "issueToResponseWallMs": {
+            "count": 1826,
+            "min": 0.10000002384185791,
+            "mean": 108.59063527082692,
+            "p50": 102.5,
+            "p95": 219.20000004768372,
+            "max": 305.7999999523163
+          },
+          "productionPathApplyMs": {
+            "count": 1822,
+            "min": 0,
+            "mean": 0.006860592493503207,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 0.20000004768371582
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 28,
+            "min": 0,
+            "mean": 0.4464285543986729,
+            "p50": 0.10000002384185791,
+            "p95": 1.4000000953674316,
+            "max": 1.6999998092651367
+          },
+          "issueToApplyTicks": {
+            "count": 1826,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 26294400,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "initialLeader": {
+          "requests": 4,
+          "outcomes": {
+            "stale-discarded": 4
+          },
+          "issueToResponseWallMs": {
+            "count": 4,
+            "min": 19.199999928474426,
+            "mean": 22.124999970197678,
+            "p50": 20.799999952316284,
+            "p95": 25.600000023841858,
+            "max": 25.600000023841858
+          },
+          "productionPathApplyMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 0,
+            "min": null,
+            "mean": null,
+            "p50": null,
+            "p95": null,
+            "max": null
+          },
+          "issueToApplyTicks": {
+            "count": 4,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 57600,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": null,
+          "applyPerTickP95Exceeds2ms": null
+        },
+        "laterLeader": {
+          "requests": 4,
+          "outcomes": {
+            "applied": 4
+          },
+          "issueToResponseWallMs": {
+            "count": 4,
+            "min": 4.099999904632568,
+            "mean": 7.875,
+            "p50": 7.100000023841858,
+            "p95": 10.700000047683716,
+            "max": 10.700000047683716
+          },
+          "productionPathApplyMs": {
+            "count": 4,
+            "min": 0,
+            "mean": 0.10000002384185791,
+            "p50": 0.10000002384185791,
+            "p95": 0.20000004768371582,
+            "max": 0.20000004768371582
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 1,
+            "min": 0.40000009536743164,
+            "mean": 0.40000009536743164,
+            "p50": 0.40000009536743164,
+            "p95": 0.40000009536743164,
+            "max": 0.40000009536743164
+          },
+          "issueToApplyTicks": {
+            "count": 4,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 57600,
+          "responseP95Exceeds33_3ms": false,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        },
+        "individualRepath": {
+          "requests": 1818,
+          "outcomes": {
+            "applied": 1818
+          },
+          "issueToResponseWallMs": {
+            "count": 1818,
+            "min": 0.10000002384185791,
+            "mean": 109.00247525008204,
+            "p50": 102.89999997615814,
+            "p95": 219.89999997615814,
+            "max": 305.7999999523163
+          },
+          "productionPathApplyMs": {
+            "count": 1818,
+            "min": 0,
+            "mean": 0.0066556652518126565,
+            "p50": 0,
+            "p95": 0.10000002384185791,
+            "max": 0.10000002384185791
+          },
+          "productionPathApplyPerActiveTickMs": {
+            "count": 27,
+            "min": 0,
+            "mean": 0.4481481269553856,
+            "p50": 0.10000002384185791,
+            "p95": 1.4000000953674316,
+            "max": 1.6999998092651367
+          },
+          "issueToApplyTicks": {
+            "count": 1818,
+            "min": 2,
+            "mean": 2.0,
+            "p50": 2,
+            "p95": 2,
+            "max": 2
+          },
+          "snapshotPayloadBytes": 26179200,
+          "responseP95Exceeds33_3ms": true,
+          "applyP95Exceeds2ms": false,
+          "applyPerTickP95Exceeds2ms": false
+        }
+      }
+    }
+  ],
+  "firefoxWebkitSafariX64Measured": false
+}

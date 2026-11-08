@@ -1,0 +1,32 @@
+compiled story bytes: 2909
+PASS A: first choice point has 2 choices
+A choice0: Raise the grain levy
+PASS A: second choice point has 2 choices
+PASS A: allowlisted external fired exactly once with -8 (saw: sim_adjust_favour(-8))
+mid-flow state blob bytes: 1254
+blob: {"flows":{"DEFAULT_FLOW":{"callstack":{"threads":[{"callstack":[{"exp":false,"type":0,"temp":{"favourDelta":-8,"watchRoll":5}}],"threadIndex":1,"previousContentObject":"second_motion.0.27"}],"threadCounter":4},"outputStream":["^The watch captain rattles a die for luck: ","^5","^.","\n"],"choiceThreads":{"3":{"callstack":[{"cPath":"second_motion.0","idx":21,"exp":false,"type":0,"temp":{"favourDelta":-8,"watchRoll":5}}],"threadIndex":3,"previousContentObject":"second_motion.0.20"},"4":{"callstack":[{"cPath":"second_motion.0","idx":27,"exp":false,"type":0,"temp":{"favourDelta":-8,"watchRoll":5}}],"threadIndex":4,"previousContentObject":"second_motion.0.26"}},"currentChoices":[{"text":"Raise the chain","index":0,"originalChoicePath":"second_motion.0.21","originalThreadIndex":3,"targetPath":"second_motion.0.c-0"},{"text":"Leave the harbour open","index":1,"originalChoicePath":"second_motion.0.27","originalThreadIndex":4,"targetPath":"second_motion.0.c-1"}]}},"currentFlowName":"DEFAULT_FLOW","variablesState":{"simSeed":4242,"favour":42,"grain":150},"evalStack":[],"visitCounts":{"council_begins.0.6":1,"council_begins.0.c-0":1},"turnIndices":{},"turnIdx":0,"storySeed":4242,"previousRandom":1834865992,"inkSaveVersion":10,"inkFormatVersion":21}
+PASS B: restored story presents 2 choices
+PASS B: favour restored to 42 (50-8)
+PASS B: grain restored to 150 (120+30)
+PASS B: reached ending
+PASS B: no duplicate external fired after restore
+B ending line: The council adjourns under a cloud. Imperial favour stands at 42.
+PASS B: ending reflects restored favour (42 < 50)
+PASS Determinism: same seed -> identical transcripts
+seed 4242 transcript:
+The council takes its seats. The granary holds 120 measures, and the Emperor's tithe falls due at month's end. Word from the docks: sails on the water this morning.
+The levy rises. The granary swells to 150 measures, but the merchants' benches murmur.
+A second motion: shall the harbour chain be raised against smugglers?
+The watch captain rattles a die for luck: 5.
+The chain rises, groaning from the harbour mouth.
+The council adjourns under a cloud. Imperial favour stands at 42.
+seed 777 transcript differs from 4242: True
+unseeded storySeed values seen: 48,30,12
+PASS Hazard confirmed: unseeded stories get varying wall-clock seeds
+garbage blob error: Exception: Expected " at offset 1
+PASS Negative: garbage blob throws
+old-version blob error: Ink save format isn't compatible with the current version (saw '7', but minimum is 8), so can't load.
+PASS Negative: inkSaveVersion 7 (< min 8) throws
+unbound external error: StoryException: ERROR: Missing function binding for external: 'sim_adjust_favour'  (ink fallbacks disabled)
+PASS Negative: unbound external throws instead of silently no-op
+failures: 0

@@ -1,0 +1,31 @@
+
+ RUN  v4.0.18 /Users/jamesmoss/Documents/game/scratch/donor-audit/browser/voidstrike
+
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > worker obstacle replay > replays existing building and decoration obstacles when the worker becomes ready late 2ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > worker path request heights > uses game terrain heights for elevated worker path requests without a custom height provider 1ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > priority queue > starts empty 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > priority queue > pushes and pops single item 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > priority queue > returns highest priority first 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > priority queue > handles equal priorities in LIFO order 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > priority queue > maintains heap property after many operations 5ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > failed path cache > records and detects failed paths 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > failed path cache > expires failed paths after TTL 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > failed path cache > different destinations are independent 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > failed path cache > floors destination coordinates 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > stuck detection > detects no movement as stuck 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > stuck detection > small movement is stuck 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > stuck detection > sufficient movement is not stuck 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > stuck detection > diagonal movement counts 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > map bounds clamping > clamps negative coordinates 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > map bounds clamping > clamps coordinates beyond map 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > map bounds clamping > preserves valid coordinates 0ms
+ ✓ tests/engine/systems/pathfindingSystem.test.ts > PathfindingSystem > map bounds clamping > clamps to edge buffer (1 unit) 0ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  17:50:21
+   Duration  418ms (transform 162ms, setup 83ms, import 143ms, tests 12ms, environment 0ms)
+
+real 1.21
+user 0.96
+sys 0.23

@@ -1,0 +1,15 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "./**/*.ts",
+    "../combined-engine.ts",
+    "../exact-tile-cache.ts",
+    "../corridor-grid.ts",
+    "../../../full-game-movement/harness/**/*.ts",
+    "../../../phase2-navigation/recast-corridor/**/*.ts",
+    "../../../../src/**/*.ts"
+  ]
+}

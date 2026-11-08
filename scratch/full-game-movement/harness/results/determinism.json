@@ -1,0 +1,9 @@
+{
+  "evidenceClass": "node-inline-and-node-mock-transport",
+  "repeatEqual": true,
+  "delayedOutOfOrderMockEqual": true,
+  "finalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+  "syncFrames": 600,
+  "mockFrames": 816,
+  "mockBlockedTicks": 216
+}

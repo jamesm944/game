@@ -1,0 +1,141 @@
+- generic [active] [ref=f106e1]:
+  - generic [ref=f106e2]:
+    - main:
+      - generic [ref=f106e3]:
+        - generic [ref=f106e4]:
+          - generic [ref=f106e8]:
+            - generic [ref=f106e9]:
+              - generic [ref=f106e14]: Food
+              - generic [ref=f106e15]: 1,240
+              - generic [ref=f106e16]: "+18"
+            - generic [ref=f106e17]:
+              - generic [ref=f106e20]: Wood
+              - generic [ref=f106e21]: "860"
+              - generic [ref=f106e22]: "+12"
+            - generic [ref=f106e23]:
+              - generic [ref=f106e28]: Gold
+              - generic [ref=f106e29]: "415"
+              - generic [ref=f106e30]: "+6"
+            - generic [ref=f106e31]:
+              - generic [ref=f106e35]: Stone
+              - generic [ref=f106e36]: "210"
+              - generic [ref=f106e37]: "+2"
+            - generic [ref=f106e38]:
+              - generic [ref=f106e41]: Iron
+              - generic [ref=f106e42]: "96"
+              - generic [ref=f106e43]: "+1"
+            - generic [ref=f106e44]:
+              - generic [ref=f106e48]: Coal
+              - generic [ref=f106e49]: "40"
+            - generic [ref=f106e50]:
+              - generic [ref=f106e54]: Clay
+              - generic [ref=f106e55]: "180"
+              - generic [ref=f106e56]: "+3"
+            - generic [ref=f106e57]:
+              - generic [ref=f106e62]: Pop
+              - generic [ref=f106e63]: 58 / 60
+          - generic [ref=f106e64]:
+            - generic [ref=f106e65]: Epoch III
+            - generic [ref=f106e66]: Rank 7/24
+        - generic [ref=f106e67]:
+          - generic [ref=f106e68]:
+            - heading "Royal Commission" [level=2] [ref=f106e69]
+            - generic [ref=f106e70]: III
+          - generic [ref=f106e71]:
+            - generic [ref=f106e72]: ○
+            - generic [ref=f106e73]:
+              - generic [ref=f106e74]: Hold the river crossing
+              - generic [ref=f106e75]: Keep 2 keeps standing for 5 minutes
+          - generic [ref=f106e76]:
+            - generic [ref=f106e77]: ✓
+            - generic [ref=f106e78]:
+              - generic [ref=f106e79]: Raise a market
+              - generic [ref=f106e80]: Build a Market in the lower ward
+          - generic [ref=f106e81]:
+            - generic [ref=f106e82]: ○
+            - generic [ref=f106e83]:
+              - generic [ref=f106e84]: Collect 3 relics
+              - generic [ref=f106e85]: 1 of 3 recovered
+        - generic [ref=f106e86]:
+          - button "4" [ref=f106e87] [cursor=pointer]
+          - button "Pause" [ref=f106e92] [cursor=pointer]
+          - button "Settings" [ref=f106e96] [cursor=pointer]
+        - generic [ref=f106e100]:
+          - generic [ref=f106e101]:
+            - generic [ref=f106e106]: Houses needed
+            - generic [ref=f106e107]: Population at cap — build 2 houses.
+          - generic [ref=f106e108]:
+            - generic [ref=f106e112]: Research complete
+            - generic [ref=f106e113]: Chain Mail is now available.
+          - generic [ref=f106e114]:
+            - generic [ref=f106e119]: Idle villagers
+            - generic [ref=f106e120]: 3 villagers are idle near the mill.
+        - generic [ref=f106e121]:
+          - generic [ref=f106e122]:
+            - generic [ref=f106e127]: Conquest
+            - generic [ref=f106e128]: 2 / 3
+          - generic [ref=f106e129]:
+            - generic [ref=f106e134]: Knowledge
+            - generic [ref=f106e135]: 18 / 40
+          - generic [ref=f106e136]:
+            - generic [ref=f106e140]: Culture
+            - generic [ref=f106e141]: 12 / 40
+          - generic [ref=f106e142]:
+            - generic [ref=f106e147]: Wonder
+            - generic [ref=f106e148]: 0 / 3
+          - generic [ref=f106e149]:
+            - generic [ref=f106e154]: Relic
+            - generic [ref=f106e155]: 1 / 3
+          - generic [ref=f106e156]:
+            - generic [ref=f106e160]: Economic
+            - generic [ref=f106e161]: 22 / 40
+        - generic [ref=f106e162]: River Ward · 192²
+        - generic [ref=f106e174]:
+          - generic [ref=f106e175]:
+            - generic [ref=f106e181]: Town Center
+            - generic [ref=f106e182]: 12 / 15 pop
+          - button "Build" [ref=f106e183] [cursor=pointer]
+          - button "Train" [ref=f106e188] [cursor=pointer]
+          - button "Research" [ref=f106e193] [cursor=pointer]
+          - button "Advance" [ref=f106e198] [cursor=pointer]
+          - button "House" [ref=f106e203] [cursor=pointer]
+          - button "Farm" [ref=f106e207] [cursor=pointer]
+          - button "Market" [ref=f106e211] [cursor=pointer]
+          - button "Wall" [ref=f106e215] [cursor=pointer]
+        - complementary [ref=f106e220]:
+          - generic [ref=f106e221]:
+            - heading "Council of the Ward" [level=2] [ref=f106e222]
+            - generic [ref=f106e223]: Tax 12%
+          - generic [ref=f106e224]:
+            - generic [ref=f106e225]:
+              - generic [ref=f106e226]: Mood
+              - generic [ref=f106e229]: "72"
+            - generic [ref=f106e230]:
+              - generic [ref=f106e231]: Health
+              - generic [ref=f106e234]: "94"
+            - generic [ref=f106e235]:
+              - generic [ref=f106e236]: Unrest
+              - generic [ref=f106e239]: "18"
+          - generic [ref=f106e240]:
+            - generic [ref=f106e241]:
+              - generic [ref=f106e242]: M
+              - generic [ref=f106e243]: Merchants
+              - generic [ref=f106e244]: 62%
+            - generic [ref=f106e245]:
+              - generic [ref=f106e246]: C
+              - generic [ref=f106e247]: Clergy
+              - generic [ref=f106e248]: 48%
+            - generic [ref=f106e249]:
+              - generic [ref=f106e250]: "N"
+              - generic [ref=f106e251]: Nobility
+              - generic [ref=f106e252]: 71%
+            - generic [ref=f106e253]:
+              - generic [ref=f106e254]: C
+              - generic [ref=f106e255]: Commons
+              - generic [ref=f106e256]: 39%
+  - generic "Prototype variant switcher" [ref=f106e257]:
+    - generic [ref=f106e258]: Prototype
+    - button "Previous variant" [ref=f106e259] [cursor=pointer]: ‹
+    - generic [ref=f106e260]: C · War Table
+    - button "Next variant" [ref=f106e261] [cursor=pointer]: ›
+    - generic [ref=f106e262]: ← → · 1–4 · Esc

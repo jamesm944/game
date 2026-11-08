@@ -1,0 +1,119 @@
+{
+  "schema": "wayfinder-170-replay-equivalence-v1",
+  "generatedAt": "2026-10-25T21:48:12.310Z",
+  "referencePath": "/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/results/mixed-destinations-120-p1000-sync.json",
+  "referenceFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+  "allLogicalEqual": true,
+  "allFinalFullStateHashesEqual": true,
+  "allApplicationTicksValid": true,
+  "comparisons": [
+    {
+      "policy": "fifo",
+      "iteration": 1,
+      "file": "chrome-fifo-mixed-iteration-1.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4370,
+      "blockedFrames": 770
+    },
+    {
+      "policy": "fifo",
+      "iteration": 2,
+      "file": "chrome-fifo-mixed-iteration-2.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4390,
+      "blockedFrames": 790
+    },
+    {
+      "policy": "fifo",
+      "iteration": 3,
+      "file": "chrome-fifo-mixed-iteration-3.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4320,
+      "blockedFrames": 720
+    },
+    {
+      "policy": "priority",
+      "iteration": 1,
+      "file": "chrome-priority-mixed-iteration-1.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4511,
+      "blockedFrames": 911
+    },
+    {
+      "policy": "priority",
+      "iteration": 2,
+      "file": "chrome-priority-mixed-iteration-2.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4407,
+      "blockedFrames": 807
+    },
+    {
+      "policy": "priority",
+      "iteration": 3,
+      "file": "chrome-priority-mixed-iteration-3.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4459,
+      "blockedFrames": 859
+    },
+    {
+      "policy": "priority-batch",
+      "iteration": 1,
+      "file": "chrome-priority-batch-mixed-iteration-1.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4170,
+      "blockedFrames": 570
+    },
+    {
+      "policy": "priority-batch",
+      "iteration": 2,
+      "file": "chrome-priority-batch-mixed-iteration-2.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4183,
+      "blockedFrames": 583
+    },
+    {
+      "policy": "priority-batch",
+      "iteration": 3,
+      "file": "chrome-priority-batch-mixed-iteration-3.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "applicationTicksValid": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "frames": 4197,
+      "blockedFrames": 597
+    }
+  ]
+}

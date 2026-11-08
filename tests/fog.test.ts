@@ -609,3 +609,75 @@ describe("RG fog DataTexture handoff", () => {
     );
   });
 });
+
+describe("incremental flush equals recomputeAll oracle (E0/#192)", () => {
+  it("visible/contributor planes match a from-scratch stamp after every move batch", () => {
+    const size = 32;
+    const entities = Array.from({ length: 40 }, (_, i) => ({
+      eid: i + 1,
+      tileX: (i * 7) % size,
+      tileY: (i * 11) % size,
+      sightRadius: 3 + (i % 6),
+      owner: i % 2,
+      defId: "villager",
+      kind: "unit" as const,
+      originX: (i * 7) % size,
+      originY: (i * 11) % size,
+      footWidth: 1,
+      footHeight: 1,
+      alive: true,
+    }));
+    // Fresh record per resolve, like production createRowEntityResolver —
+    // an aliased resolver makes incremental re-stamps silently skip and
+    // this oracle comparison is what catches it.
+    const source: FogEntitySource = {
+      resolve: (eid) => {
+        const e = entities[eid - 1]!;
+        return e.alive ? { ...e } : undefined;
+      },
+      eidsAscending: () => entities.filter((e) => e.alive).map((e) => e.eid),
+    };
+    const live = createFogVisibility(size, 2);
+    const oracle = createFogVisibility(size, 2);
+    live.bindSource(source);
+    oracle.bindSource(source);
+    live.recomputeAll();
+    oracle.recomputeAll();
+
+    // Deterministic integer walk: moves, radius/owner changes, deaths.
+    let state = 0x2545f491;
+    const next = (): number => {
+      state = (Math.imul(state, 1103515245) + 12345) | 0;
+      return (state >>> 8) & 0xffff;
+    };
+    for (let tick = 0; tick < 60; tick++) {
+      for (const e of entities) {
+        const r = next();
+        if (r % 17 === 0) e.alive = !e.alive;
+        if (!e.alive) {
+          live.provider.markDirty("moved", e.eid);
+          continue;
+        }
+        if (r % 13 === 0) e.sightRadius = 3 + (r % 6);
+        if (r % 29 === 0) e.owner = 1 - e.owner;
+        e.tileX = (e.tileX + (r % 5) - 2 + size) % size;
+        e.tileY = (e.tileY + ((r >> 4) % 5) - 2 + size) % size;
+        e.originX = e.tileX;
+        e.originY = e.tileY;
+        live.provider.markDirty("moved", e.eid);
+      }
+      live.provider.flushDirty();
+      oracle.recomputeAll();
+      for (let p = 0; p < 2; p++) {
+        const a = live.state.planes[p]!;
+        const b = oracle.state.planes[p]!;
+        expect([...a.contributorCount]).toEqual([...b.contributorCount]);
+        expect([...a.visible]).toEqual([...b.visible]);
+        // Explored is monotonic on the live planes: superset of oracle's.
+        for (let i = 0; i < a.explored.length; i++) {
+          if (b.explored[i] === 1) expect(a.explored[i]).toBe(1);
+        }
+      }
+    }
+  });
+});

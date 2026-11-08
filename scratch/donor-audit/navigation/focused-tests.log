@@ -1,0 +1,17 @@
+
+ RUN  v4.0.18 /Users/jamesmoss/Documents/game/scratch/donor-audit/browser/voidstrike
+
+ ✓ tests/engine/pathfinding/recastDynamicObstacleElevation.test.ts > Recast dynamic obstacle elevation > reroutes around elevated building obstacles on crystal caverns 1367ms
+ ✓ tests/engine/pathfinding/recastRampConnectivity.test.ts > Recast ramp connectivity > keeps editor-style flat ramp terrain connected without explicit ramp metadata 32ms
+ ✓ tests/engine/pathfinding/recastRampConnectivity.test.ts > Recast ramp connectivity > keeps contested frontier base exits connected across degenerate bundled ramps 6430ms
+ ✓ tests/engine/pathfinding/recastRampConnectivity.test.ts > Recast ramp connectivity > keeps crystal caverns and titans colosseum spawn-to-spawn routes complete 6100ms
+ ✓ tests/engine/pathfinding/recastRampConnectivity.test.ts > Recast ramp connectivity > keeps local elevated moves complete on scorched basin and void assault 2650ms
+
+ Test Files  2 passed (2)
+      Tests  5 passed (5)
+   Start at  17:46:08
+   Duration  16.04s (transform 859ms, setup 142ms, import 1.21s, tests 16.65s, environment 0ms)
+
+real 17.33
+user 17.30
+sys 0.78

@@ -1,0 +1,18 @@
+/Users/jamesmoss/Documents/game/src/sim/components/pop.ts:234
+  throw new Error(
+        ^
+
+
+Error: given-name list exhausted for world seed 20260902
+    at allocateNameIndex (/Users/jamesmoss/Documents/game/src/sim/components/pop.ts:234:9)
+    at attachPopIdentity (/Users/jamesmoss/Documents/game/src/sim/components/pop.ts:272:19)
+    at spawnUnit (/Users/jamesmoss/Documents/game/src/sim/components/index.ts:738:5)
+    at <anonymous> (/Users/jamesmoss/Documents/game/scratch/deep-sim-workloads/scaling.ts:96:7)
+    at spawnRinged (/Users/jamesmoss/Documents/game/tests/helpers/budget-scenario-m3.ts:327:9)
+    at run (/Users/jamesmoss/Documents/game/scratch/deep-sim-workloads/scaling.ts:94:3)
+    at <anonymous> (/Users/jamesmoss/Documents/game/scratch/deep-sim-workloads/scaling.ts:175:42)
+    at ModuleJob.run (node:internal/modules/esm/module_job:274:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.16.0

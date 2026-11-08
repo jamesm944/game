@@ -1,0 +1,48 @@
+{
+  "browser": "chrome",
+  "browserVersion": "156.0.8078.47",
+  "capturedAt": "2026-10-25T20:37:24.781Z",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "smoke": true,
+  "artifactMode": "vite-development",
+  "config": {
+    "scenario": "dense-open-120",
+    "population": 1000,
+    "warmupRuns": 0,
+    "measuredRuns": 1
+  },
+  "provenance": {
+    "packages": {
+      "recast-navigation": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/core": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/generators": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/wasm": {
+        "version": "0.43.0",
+        "license": "MIT"
+      }
+    },
+    "wasmFile": "@recast-navigation/wasm/dist/recast-navigation.wasm.wasm",
+    "wasmBytes": 339385,
+    "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9",
+    "packaging": "Vite browser bundle of @recast-navigation/wasm-compat; provenance only, no donor files modified"
+  },
+  "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+  "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at /Users/jamesmoss/Documents/game/scratch/navigation-protocol/recast-browser/run-browser.mjs:59:37"
+}

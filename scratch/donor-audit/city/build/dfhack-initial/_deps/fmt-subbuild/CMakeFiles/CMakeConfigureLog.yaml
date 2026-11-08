@@ -1,0 +1,165 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt:16 (project)"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin/"
+      - "/Applications/Kimi.app/Contents/Resources/resources/runtime/"
+      - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv/"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/command-process-owner/bin/"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/bin-shim/"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/npm-global/bin/"
+      - "/Users/jamesmoss/.kimi-work/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/usr/local/bin/"
+      - "/Users/jamesmoss/.rbenv/shims/"
+      - "/opt/homebrew/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Library/Frameworks/Python.framework/Versions/3.11/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/Library/Apple/usr/bin/"
+    searched_directories:
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin/uname"
+      - "/Applications/Kimi.app/Contents/Resources/resources/runtime/uname"
+      - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv/uname"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/command-process-owner/bin/uname"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/bin-shim/uname"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/npm-global/bin/uname"
+      - "/Users/jamesmoss/.kimi-work/bin/uname"
+    found: "/usr/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin"
+        - "/Applications/Kimi.app/Contents/Resources/resources/runtime"
+        - "/Applications/Kimi.app/Contents/Resources/resources/runtime"
+        - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv"
+        - "/Applications/Kimi.app/Contents/Resources/resources/runtime"
+        - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/command-process-owner/bin"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/bin-shim"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/npm-global/bin"
+        - "/Users/jamesmoss/.kimi-work/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/usr/local/bin"
+        - "/Users/jamesmoss/.rbenv/shims"
+        - "/opt/homebrew/bin"
+        - "/opt/homebrew/sbin"
+        - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/Library/Apple/usr/bin"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:218 (message)"
+      - "CMakeLists.txt:16 (project)"
+    message: |
+      The system is: Darwin - 23.6.0 - arm64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/Platform/Darwin.cmake:66 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeSystemSpecificInformation.cmake:32 (include)"
+      - "CMakeLists.txt:16 (project)"
+    mode: "program"
+    variable: "CMAKE_INSTALL_NAME_TOOL"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "install_name_tool"
+    candidate_directories:
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin/"
+      - "/Applications/Kimi.app/Contents/Resources/resources/runtime/"
+      - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv/"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/command-process-owner/bin/"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/bin-shim/"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/npm-global/bin/"
+      - "/Users/jamesmoss/.kimi-work/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/usr/local/bin/"
+      - "/Users/jamesmoss/.rbenv/shims/"
+      - "/opt/homebrew/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Library/Frameworks/Python.framework/Versions/3.11/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/Library/Apple/usr/bin/"
+    searched_directories:
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin/install_name_tool"
+      - "/Applications/Kimi.app/Contents/Resources/resources/runtime/install_name_tool"
+      - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv/install_name_tool"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/command-process-owner/bin/install_name_tool"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/bin-shim/install_name_tool"
+      - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/npm-global/bin/install_name_tool"
+      - "/Users/jamesmoss/.kimi-work/bin/install_name_tool"
+    found: "/usr/bin/install_name_tool"
+    search_context:
+      ENV{PATH}:
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/runtime/python/.venv/bin"
+        - "/Applications/Kimi.app/Contents/Resources/resources/runtime"
+        - "/Applications/Kimi.app/Contents/Resources/resources/runtime"
+        - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv"
+        - "/Applications/Kimi.app/Contents/Resources/resources/runtime"
+        - "/Applications/Kimi.app/Contents/Resources/resources/daimon-bundle/runtime/uv"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/command-process-owner/bin"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/bin-shim"
+        - "/Users/jamesmoss/Library/Application Support/kimi-desktop/daimon-share/daimon/npm-global/bin"
+        - "/Users/jamesmoss/.kimi-work/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/usr/local/bin"
+        - "/Users/jamesmoss/.rbenv/shims"
+        - "/opt/homebrew/bin"
+        - "/opt/homebrew/sbin"
+        - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/Library/Apple/usr/bin"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+...

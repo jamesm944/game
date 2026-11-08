@@ -1,0 +1,205 @@
+{
+  "ready": true,
+  "route": [
+    0,
+    4,
+    11,
+    4
+  ],
+  "metrics": {
+    "transport": "acknowledged-versioned-full-delta-real-module-worker",
+    "snapshotPreparationCount": 1,
+    "sameRevisionRequests": 0,
+    "registrationCount": 1,
+    "updateCount": 0,
+    "registrationUpdateProtocolBytes": 226,
+    "requestProtocolBytes": 180,
+    "snapshotFullPayloadBytes": 144,
+    "snapshotDeltaPayloadBytes": 0,
+    "mainRetainedSnapshotCount": 1,
+    "mainRetainedSnapshotBytes": 144,
+    "workerComputeTimeMeasured": true,
+    "wasmInitializationMs": 38.800000071525574,
+    "workerErrorCount": 0,
+    "integration": "detour-corridor-supercover-cs0.25-exact-compressed-layer-incremental-revisions",
+    "gridConversion": "continuous-segment-supercover-production-los-string-pull-no-astar",
+    "generationCellSize": 0.25,
+    "generationMaxSimplificationError": 0.25,
+    "recastNavigationVersion": "0.43.0",
+    "generationWalkableRadius": 0,
+    "revisionCacheEntries": 1,
+    "revisionCacheCapacity": 2,
+    "snapshotCacheBytes": 144,
+    "visibleRevision": 0,
+    "maxObstacles": 512,
+    "obstacleStrategy": "none-exact-compressed-layer-regeneration",
+    "isolatedCrowdAgentCapacity": 2000,
+    "crowdModel": "none-production-activity-steering-collision",
+    "mutationStrategy": "exact-touched-tile-rasterization-unchanged-compressed-layer-reuse-atomic-ack",
+    "exactEndpointTolerance": 0.05,
+    "mockInFlight": 0,
+    "revisionBuilds": 1,
+    "incrementalRevisionBuilds": 0,
+    "fullRasterRevisionBuilds": 1,
+    "mutationRebuilds": 0,
+    "revisionCacheHits": 0,
+    "revisionCacheMisses": 1,
+    "revisionCacheEvictions": 0,
+    "peakRevisionCacheEntries": 1,
+    "revisionCacheCapacityFailures": 0,
+    "snapshotMismatches": 0,
+    "ephemeralSnapshotBuilds": 0,
+    "outOfOrderRebuilds": 0,
+    "navmeshGenerationFailures": 0,
+    "revisionBarriersCompleted": 1,
+    "revisionVisibilityChanges": 1,
+    "revisionVisibilityFailures": 0,
+    "lastAcknowledgedRevision": 0,
+    "changedTilesObserved": 144,
+    "mutationChangedTiles": 0,
+    "maxChangedTilesPerBuild": 144,
+    "changedNavTiles": 4,
+    "rasterizedNavTiles": 4,
+    "maxRasterizedNavTilesPerRevision": 4,
+    "reusedCompressedLayers": 0,
+    "compressedLayerBytes": 940,
+    "totalRevisionBuildMs": 18.899999976158142,
+    "totalIncrementalUpdateMs": 0,
+    "totalGeometryMs": 0.10000002384185791,
+    "totalRasterizeMs": 10.799999952316284,
+    "totalNavMeshBuildMs": 5.900000095367432,
+    "maxRevisionBuildMs": 18.899999976158142,
+    "lastRevisionBuildMs": 18.899999976158142,
+    "tileCacheUpdateCalls": 1,
+    "pathQueries": 1,
+    "pathCapacityFailures": 0,
+    "totalPathQueryMs": 9,
+    "maxPathQueryMs": 9,
+    "routeConversions": 1,
+    "totalRouteConversionMs": 0.8000000715255737,
+    "maxRouteConversionMs": 0.8000000715255737,
+    "responseWaypointBytes": 8,
+    "unreachableRoutes": 0,
+    "partialPathsRejected": 0,
+    "endpointProjectionsRejected": 0,
+    "geometryRejections": 0,
+    "nativeQueryFailures": 0,
+    "dynamicObstacleAdds": 0,
+    "dynamicObstacleRemoves": 0,
+    "obstacleCapacityFailures": 0,
+    "tileCacheUpdateFailures": 0,
+    "crowdAgentsCreated": 0,
+    "agentCapacityFailures": 0
+  },
+  "protocol": {
+    "snapshotPreparations": [
+      {
+        "snapshotId": 1,
+        "revision": 0,
+        "plane": "land",
+        "operation": "register",
+        "snapshotBytes": 144,
+        "deltaEntries": 0,
+        "deltaPayloadBytes": 0,
+        "copyMs": 0.20000004768371582,
+        "diffMs": 0
+      }
+    ],
+    "snapshotSends": [
+      {
+        "snapshotId": 1,
+        "revision": 0,
+        "operation": "register",
+        "protocolPayloadBytes": 226,
+        "snapshotPayloadBytes": 144,
+        "deltaEntries": 0,
+        "mainPostMs": 0.3999999761581421,
+        "mainCopyMs": 0.20000004768371582,
+        "mainDiffMs": 0
+      }
+    ],
+    "snapshotAcks": [
+      {
+        "kind": "snapshot-ack",
+        "snapshotId": 1,
+        "revision": 0,
+        "plane": "land",
+        "operation": "register",
+        "snapshotPayloadBytes": 144,
+        "deltaEntries": 0,
+        "workerHandlingMs": 0.19999992847442627,
+        "snapshotCount": 1,
+        "snapshotBytes": 144
+      }
+    ],
+    "requests": [
+      {
+        "id": 1,
+        "snapshotId": 1,
+        "revision": 0,
+        "dueTick": 2,
+        "requestPayloadBytes": 180,
+        "requestPostMs": 0
+      }
+    ],
+    "responses": [
+      {
+        "id": 1,
+        "snapshotId": 1,
+        "revision": 0,
+        "workerQueueMs": 1.39990234375,
+        "computeMs": 30.100000023841858,
+        "responsePayloadBytes": 53,
+        "pathCacheSize": 1,
+        "snapshotCount": 1,
+        "snapshotBytes": 144
+      }
+    ],
+    "errors": [],
+    "mainRetainedSnapshotCount": 1,
+    "mainRetainedSnapshotBytes": 144,
+    "sameRevisionRequests": 0,
+    "transferMode": "full registration structured-cloned once; delta buffers and response waypoints transferred; scalar requests cloned"
+  },
+  "smoke": true,
+  "artifactMode": "vite-production-build",
+  "browser": "chrome",
+  "browserVersion": "156.0.8078.47",
+  "capturedAt": "2026-10-25T22:25:53.939Z",
+  "host": {
+    "platform": "darwin",
+    "release": "23.6.0",
+    "architecture": "arm64",
+    "cpuModel": "Apple M1",
+    "logicalCpus": 8,
+    "totalMemoryBytes": 17179869184,
+    "node": "v24.21.0"
+  },
+  "automation": "playwright",
+  "headless": true,
+  "urlPath": "/scratch/navigation-queue/recast-combined/integrated/index.html",
+  "provenance": {
+    "packages": {
+      "recast-navigation": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/core": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/generators": {
+        "version": "0.43.0",
+        "license": "MIT"
+      },
+      "@recast-navigation/wasm": {
+        "version": "0.43.0",
+        "license": "MIT"
+      }
+    },
+    "wasmFile": "@recast-navigation/wasm/dist/recast-navigation.wasm.wasm",
+    "wasmBytes": 339385,
+    "wasmSha256": "6fe3c90073fb734bd98eb0a38daec269552aa8564f639ec458219d72d09c6bc9",
+    "packaging": "Vite browser bundle of @recast-navigation/wasm-compat; provenance only, no donor files modified"
+  }
+}

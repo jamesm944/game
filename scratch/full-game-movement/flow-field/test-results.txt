@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/jamesmoss/Documents/game
+
+ ✓ scratch/full-game-movement/flow-field/flow-field.test.ts (11 tests) 258ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  18:15:18
+   Duration  923ms (transform 53ms, setup 0ms, collect 50ms, tests 258ms, environment 0ms, prepare 60ms)
+

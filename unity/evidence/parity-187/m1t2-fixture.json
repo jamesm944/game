@@ -1,0 +1,154 @@
+{
+  "case_name": "m1t2",
+  "entities": 10,
+  "ticks": 90,
+  "snapshot_expected": [
+    "fnv1a64:f831dd442da1ca60",
+    "fnv1a64:06535a22228d7441",
+    "fnv1a64:f5e7ce65a95fe1e3"
+  ],
+  "snapshot_match": true,
+  "all_runs_digest_equal": true,
+  "runs": [
+    {
+      "mode": "sequential",
+      "workers": 0,
+      "digests": [
+        [
+          30,
+          "fnv1a64:f831dd442da1ca60"
+        ],
+        [
+          60,
+          "fnv1a64:06535a22228d7441"
+        ],
+        [
+          90,
+          "fnv1a64:f5e7ce65a95fe1e3"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.00529217777777777,
+      "tick_ms_p50": 0.000834,
+      "tick_ms_p99": 0.343167,
+      "tick_ms_max": 0.343167,
+      "total_ms": 0.4762959999999993
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 1,
+      "digests": [
+        [
+          30,
+          "fnv1a64:f831dd442da1ca60"
+        ],
+        [
+          60,
+          "fnv1a64:06535a22228d7441"
+        ],
+        [
+          90,
+          "fnv1a64:f5e7ce65a95fe1e3"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.0006240444444444448,
+      "tick_ms_p50": 0.000625,
+      "tick_ms_p99": 0.001333,
+      "tick_ms_max": 0.001333,
+      "total_ms": 0.05616400000000003
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 2,
+      "digests": [
+        [
+          30,
+          "fnv1a64:f831dd442da1ca60"
+        ],
+        [
+          60,
+          "fnv1a64:06535a22228d7441"
+        ],
+        [
+          90,
+          "fnv1a64:f5e7ce65a95fe1e3"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.0007842000000000005,
+      "tick_ms_p50": 0.00075,
+      "tick_ms_p99": 0.002291,
+      "tick_ms_max": 0.002291,
+      "total_ms": 0.07057800000000004
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 4,
+      "digests": [
+        [
+          30,
+          "fnv1a64:f831dd442da1ca60"
+        ],
+        [
+          60,
+          "fnv1a64:06535a22228d7441"
+        ],
+        [
+          90,
+          "fnv1a64:f5e7ce65a95fe1e3"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.003012555555555554,
+      "tick_ms_p50": 0.000917,
+      "tick_ms_p99": 0.083959,
+      "tick_ms_max": 0.083959,
+      "total_ms": 0.27112999999999987
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 8,
+      "digests": [
+        [
+          30,
+          "fnv1a64:f831dd442da1ca60"
+        ],
+        [
+          60,
+          "fnv1a64:06535a22228d7441"
+        ],
+        [
+          90,
+          "fnv1a64:f5e7ce65a95fe1e3"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.004177811111111106,
+      "tick_ms_p50": 0.0015,
+      "tick_ms_p99": 0.044792,
+      "tick_ms_max": 0.044792,
+      "total_ms": 0.37600299999999953
+    }
+  ]
+}

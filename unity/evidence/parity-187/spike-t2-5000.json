@@ -1,0 +1,290 @@
+{
+  "case_name": "m1t2",
+  "entities": 5000,
+  "ticks": 300,
+  "snapshot_expected": null,
+  "snapshot_match": null,
+  "all_runs_digest_equal": true,
+  "runs": [
+    {
+      "mode": "sequential",
+      "workers": 0,
+      "digests": [
+        [
+          30,
+          "fnv1a64:7c8d1cba74835119"
+        ],
+        [
+          60,
+          "fnv1a64:25c743504ab96a7a"
+        ],
+        [
+          90,
+          "fnv1a64:0e3ec34f5a575ff0"
+        ],
+        [
+          120,
+          "fnv1a64:f0e54592601faac9"
+        ],
+        [
+          150,
+          "fnv1a64:2dab88ead5a29146"
+        ],
+        [
+          180,
+          "fnv1a64:ea40cadb23445b26"
+        ],
+        [
+          210,
+          "fnv1a64:482ebbf1326041c4"
+        ],
+        [
+          240,
+          "fnv1a64:5d62f54cd6b92128"
+        ],
+        [
+          270,
+          "fnv1a64:ad4d6e425711747e"
+        ],
+        [
+          300,
+          "fnv1a64:78552521c0080409"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.042198886666666664,
+      "tick_ms_p50": 0.030792,
+      "tick_ms_p99": 0.194584,
+      "tick_ms_max": 0.281916,
+      "total_ms": 12.659666
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 1,
+      "digests": [
+        [
+          30,
+          "fnv1a64:7c8d1cba74835119"
+        ],
+        [
+          60,
+          "fnv1a64:25c743504ab96a7a"
+        ],
+        [
+          90,
+          "fnv1a64:0e3ec34f5a575ff0"
+        ],
+        [
+          120,
+          "fnv1a64:f0e54592601faac9"
+        ],
+        [
+          150,
+          "fnv1a64:2dab88ead5a29146"
+        ],
+        [
+          180,
+          "fnv1a64:ea40cadb23445b26"
+        ],
+        [
+          210,
+          "fnv1a64:482ebbf1326041c4"
+        ],
+        [
+          240,
+          "fnv1a64:5d62f54cd6b92128"
+        ],
+        [
+          270,
+          "fnv1a64:ad4d6e425711747e"
+        ],
+        [
+          300,
+          "fnv1a64:78552521c0080409"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.03868611333333328,
+      "tick_ms_p50": 0.029459,
+      "tick_ms_p99": 0.178166,
+      "tick_ms_max": 0.565625,
+      "total_ms": 11.605833999999984
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 2,
+      "digests": [
+        [
+          30,
+          "fnv1a64:7c8d1cba74835119"
+        ],
+        [
+          60,
+          "fnv1a64:25c743504ab96a7a"
+        ],
+        [
+          90,
+          "fnv1a64:0e3ec34f5a575ff0"
+        ],
+        [
+          120,
+          "fnv1a64:f0e54592601faac9"
+        ],
+        [
+          150,
+          "fnv1a64:2dab88ead5a29146"
+        ],
+        [
+          180,
+          "fnv1a64:ea40cadb23445b26"
+        ],
+        [
+          210,
+          "fnv1a64:482ebbf1326041c4"
+        ],
+        [
+          240,
+          "fnv1a64:5d62f54cd6b92128"
+        ],
+        [
+          270,
+          "fnv1a64:ad4d6e425711747e"
+        ],
+        [
+          300,
+          "fnv1a64:78552521c0080409"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.042500433333333344,
+      "tick_ms_p50": 0.030625,
+      "tick_ms_p99": 0.184875,
+      "tick_ms_max": 0.31429199999999996,
+      "total_ms": 12.750130000000004
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 4,
+      "digests": [
+        [
+          30,
+          "fnv1a64:7c8d1cba74835119"
+        ],
+        [
+          60,
+          "fnv1a64:25c743504ab96a7a"
+        ],
+        [
+          90,
+          "fnv1a64:0e3ec34f5a575ff0"
+        ],
+        [
+          120,
+          "fnv1a64:f0e54592601faac9"
+        ],
+        [
+          150,
+          "fnv1a64:2dab88ead5a29146"
+        ],
+        [
+          180,
+          "fnv1a64:ea40cadb23445b26"
+        ],
+        [
+          210,
+          "fnv1a64:482ebbf1326041c4"
+        ],
+        [
+          240,
+          "fnv1a64:5d62f54cd6b92128"
+        ],
+        [
+          270,
+          "fnv1a64:ad4d6e425711747e"
+        ],
+        [
+          300,
+          "fnv1a64:78552521c0080409"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.06626711333333335,
+      "tick_ms_p50": 0.046792,
+      "tick_ms_p99": 0.27608299999999997,
+      "tick_ms_max": 0.47558300000000003,
+      "total_ms": 19.880134000000005
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 8,
+      "digests": [
+        [
+          30,
+          "fnv1a64:7c8d1cba74835119"
+        ],
+        [
+          60,
+          "fnv1a64:25c743504ab96a7a"
+        ],
+        [
+          90,
+          "fnv1a64:0e3ec34f5a575ff0"
+        ],
+        [
+          120,
+          "fnv1a64:f0e54592601faac9"
+        ],
+        [
+          150,
+          "fnv1a64:2dab88ead5a29146"
+        ],
+        [
+          180,
+          "fnv1a64:ea40cadb23445b26"
+        ],
+        [
+          210,
+          "fnv1a64:482ebbf1326041c4"
+        ],
+        [
+          240,
+          "fnv1a64:5d62f54cd6b92128"
+        ],
+        [
+          270,
+          "fnv1a64:ad4d6e425711747e"
+        ],
+        [
+          300,
+          "fnv1a64:78552521c0080409"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.08535369333333331,
+      "tick_ms_p50": 0.07150000000000001,
+      "tick_ms_p99": 0.25833300000000003,
+      "tick_ms_max": 0.637625,
+      "total_ms": 25.606107999999995
+    }
+  ]
+}

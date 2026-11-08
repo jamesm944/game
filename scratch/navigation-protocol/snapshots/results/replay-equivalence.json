@@ -1,0 +1,57 @@
+{
+  "schema": "wayfinder-169-replay-equivalence-v1",
+  "generatedAt": "2026-10-25T20:57:22.513Z",
+  "comparison": "logicalBenchmarkString plus final hash; versioned Chrome A* against preserved same-scenario Node A*",
+  "allLogicalEqual": true,
+  "allFinalFullStateHashesEqual": true,
+  "comparisons": [
+    {
+      "file": "chrome-versioned-mixed-p1000-t3600-sample-01.json",
+      "referencePath": "/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/results/mixed-destinations-120-p1000-sync.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4365,
+      "browserBlockedFrames": 765,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "file": "chrome-versioned-mixed-p1000-t3600-sample-02.json",
+      "referencePath": "/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/results/mixed-destinations-120-p1000-sync.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4366,
+      "browserBlockedFrames": 766,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "file": "chrome-versioned-mixed-p1000-t3600-sample-03.json",
+      "referencePath": "/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/results/mixed-destinations-120-p1000-sync.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "nodeFinalFullStateHash": "3f162961d59884df56ffb38836f6f2bd3e0bae2a785ca87c3dfad3b082f6c2bb",
+      "browserFrames": 4347,
+      "browserBlockedFrames": 747,
+      "nodeFrames": 3600,
+      "nodeBlockedTicks": 0
+    },
+    {
+      "file": "chrome-versioned-mutation-p100-t600-sample-01.json",
+      "referencePath": "/Users/jamesmoss/Documents/game/scratch/full-game-movement/harness/results/narrow-mutation-120-p100-t600-sync-a.json",
+      "logicalEqual": true,
+      "finalFullStateHashEqual": true,
+      "browserFinalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+      "nodeFinalFullStateHash": "6947072dea89e2d9bf4d792930c7de81c61e718e3d37eaca755d8333cd891ba7",
+      "browserFrames": 605,
+      "browserBlockedFrames": 5,
+      "nodeFrames": 600,
+      "nodeBlockedTicks": 0
+    }
+  ]
+}

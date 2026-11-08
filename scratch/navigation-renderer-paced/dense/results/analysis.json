@@ -1,0 +1,298 @@
+{
+  "sampleCounts": {
+    "fifo": 5,
+    "batch-32": 5
+  },
+  "comparisons": [
+    {
+      "iteration": 1,
+      "leaderP95DeltaMs": -1.399999976158142,
+      "repathP95DeltaMs": -10.200000047683716,
+      "repathP50DeltaMs": 1.899999976158142,
+      "blockedFrameDelta": -14,
+      "wallDeltaMs": -431.2999999523163
+    },
+    {
+      "iteration": 2,
+      "leaderP95DeltaMs": 9.400000095367432,
+      "repathP95DeltaMs": 12.399999976158142,
+      "repathP50DeltaMs": 1.600000023841858,
+      "blockedFrameDelta": 5,
+      "wallDeltaMs": 130.10000002384186
+    },
+    {
+      "iteration": 3,
+      "leaderP95DeltaMs": -0.30000007152557373,
+      "repathP95DeltaMs": -0.10000002384185791,
+      "repathP50DeltaMs": 1.100000023841858,
+      "blockedFrameDelta": -6,
+      "wallDeltaMs": -202.19999992847443
+    },
+    {
+      "iteration": 4,
+      "leaderP95DeltaMs": 1.2999999523162842,
+      "repathP95DeltaMs": 10.50000011920929,
+      "repathP50DeltaMs": 1.5,
+      "blockedFrameDelta": 0,
+      "wallDeltaMs": 32.10000002384186
+    },
+    {
+      "iteration": 5,
+      "leaderP95DeltaMs": 0.2999999523162842,
+      "repathP95DeltaMs": -2.200000047683716,
+      "repathP50DeltaMs": 1.5,
+      "blockedFrameDelta": -13,
+      "wallDeltaMs": -473.59999990463257
+    }
+  ],
+  "pooled": {
+    "fifo": {
+      "samples": 5,
+      "leaderResponse": {
+        "n": 115,
+        "p50": 6.099999904632568,
+        "p95": 10.899999976158142,
+        "max": 13.700000047683716,
+        "mean": 6.214782610146895
+      },
+      "repathResponse": {
+        "n": 629175,
+        "p50": 4.399999976158142,
+        "p95": 41.89999997615814,
+        "max": 362.1999999284744,
+        "mean": 10.26443024589975
+      },
+      "leaderQueue": {
+        "n": 115,
+        "p50": 0.300048828125,
+        "p95": 1.800048828125,
+        "max": 2.099853515625,
+        "mean": 0.47389818274456524
+      },
+      "repathQueue": {
+        "n": 629175,
+        "p50": 0.60009765625,
+        "p95": 36.699951171875,
+        "max": 259.300048828125,
+        "mean": 7.155115570178706
+      },
+      "leaderCompute": {
+        "n": 115,
+        "p50": 0.10000002384185791,
+        "p95": 0.2999999523162842,
+        "max": 0.2999999523162842,
+        "mean": 0.10869565735692563
+      },
+      "repathCompute": {
+        "n": 629175,
+        "p50": 0,
+        "p95": 0.20000004768371582,
+        "max": 57,
+        "mean": 0.06515436881763335
+      },
+      "frameInterval": {
+        "n": 36240,
+        "p50": 16.69999999999709,
+        "p95": 16.70000000001164,
+        "max": 366.6999999999998,
+        "mean": 16.736818432671082
+      },
+      "renderCpu": {
+        "n": 36245,
+        "p50": 0.7000000476837158,
+        "p95": 1.5,
+        "max": 359.7000000476837,
+        "mean": 0.9093750860530239
+      },
+      "wallClockMs": {
+        "n": 5,
+        "p50": 121165.60000002384,
+        "p95": 122192.09999990463,
+        "max": 122192.09999990463,
+        "mean": 121345.43999996185
+      },
+      "blockedFrames": 163,
+      "blockedTicks": 168
+    },
+    "batch-32": {
+      "samples": 5,
+      "leaderResponse": {
+        "n": 115,
+        "p50": 7.799999952316284,
+        "p95": 13.699999928474426,
+        "max": 20.5,
+        "mean": 8.55826086272364
+      },
+      "repathResponse": {
+        "n": 629175,
+        "p50": 5.899999976158142,
+        "p95": 42.10000002384186,
+        "max": 462.7000000476837,
+        "mean": 11.955671315822025
+      },
+      "leaderQueue": {
+        "n": 115,
+        "p50": 0.400146484375,
+        "p95": 1.500244140625,
+        "max": 1.500244140625,
+        "mean": 0.7218919836956522
+      },
+      "repathQueue": {
+        "n": 629175,
+        "p50": 0.400146484375,
+        "p95": 22,
+        "max": 255.300048828125,
+        "mean": 5.07404890022152
+      },
+      "leaderCompute": {
+        "n": 115,
+        "p50": 0.10000002384185791,
+        "p95": 0.3999999761581421,
+        "max": 0.3999999761581421,
+        "mean": 0.13478259418321692
+      },
+      "repathCompute": {
+        "n": 629175,
+        "p50": 0,
+        "p95": 0.20000004768371582,
+        "max": 22.100000023841858,
+        "mean": 0.05848531808283605
+      },
+      "frameInterval": {
+        "n": 36202,
+        "p50": 16.69999999999709,
+        "p95": 16.70000000001164,
+        "max": 400.09999999999945,
+        "mean": 16.72815037843213
+      },
+      "renderCpu": {
+        "n": 36207,
+        "p50": 0.7999999523162842,
+        "p95": 1.5,
+        "max": 370.3000000715256,
+        "mean": 0.9334935231575843
+      },
+      "wallClockMs": {
+        "n": 5,
+        "p50": 121001.60000002384,
+        "p95": 121760.79999995232,
+        "max": 121760.79999995232,
+        "mean": 121156.46000001431
+      },
+      "blockedFrames": 135,
+      "blockedTicks": 141
+    }
+  },
+  "replay": [
+    {
+      "policy": "fifo",
+      "iteration": 1,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "fifo",
+      "iteration": 2,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "fifo",
+      "iteration": 3,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "fifo",
+      "iteration": 4,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "fifo",
+      "iteration": 5,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 1,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 2,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 3,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 4,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    },
+    {
+      "policy": "batch-32",
+      "iteration": 5,
+      "finalHashMatchesNode": true,
+      "milestonesMatchNode": true,
+      "outcomesMatchNode": true,
+      "outcomeCountsMatchNode": true,
+      "issueApplyTwoForRecorded": true,
+      "requestCountMatchesNode": true,
+      "finalQueueDepth": 16
+    }
+  ]
+}

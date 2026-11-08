@@ -1,0 +1,18 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@recast-navigation/core": ["../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/core/dist/index.d.ts"],
+      "@recast-navigation/generators": ["../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/generators/dist/index.d.ts"],
+      "@recast-navigation/wasm": ["../../donor-audit/browser/voidstrike/node_modules/@recast-navigation/wasm/dist/recast-navigation.d.ts"]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "../../phase2-navigation/recast-corridor/corridor-grid.ts",
+    "../../full-game-movement/harness/**/*.ts",
+    "../../../src/**/*.ts"
+  ]
+}

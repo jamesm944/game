@@ -1,0 +1,880 @@
+{
+  "policies": {
+    "fifo": {
+      "samples": [
+        {
+          "iteration": 1,
+          "leaderP95": 22,
+          "repathP95": 113.29999995231628,
+          "leaderQueueP95": 22,
+          "repathQueueP95": 113.199951171875,
+          "diagnosticRttP95": 0.20000004768371582,
+          "blocked": 786,
+          "wall": 31678.300000071526,
+          "messages": 46807,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 2,
+          "leaderP95": 24.600000023841858,
+          "repathP95": 111.90000009536743,
+          "leaderQueueP95": 23.699951171875,
+          "repathQueueP95": 111.900146484375,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 786,
+          "wall": 31872.899999976158,
+          "messages": 46807,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 3,
+          "leaderP95": 23.300000071525574,
+          "repathP95": 112.29999995231628,
+          "leaderQueueP95": 23.199951171875,
+          "repathQueueP95": 112.300048828125,
+          "diagnosticRttP95": 0.20000004768371582,
+          "blocked": 775,
+          "wall": 31277.600000023842,
+          "messages": 46807,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 4,
+          "leaderP95": 32.39999997615814,
+          "repathP95": 113.60000002384186,
+          "leaderQueueP95": 32.2001953125,
+          "repathQueueP95": 113.7001953125,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 799,
+          "wall": 31974.599999904633,
+          "messages": 46807,
+          "eligible": 0,
+          "coalesced": 0
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 17.699999928474426,
+          "p50Ms": 21.899999976158142,
+          "p95Ms": 32.10000002384186,
+          "maxMs": 32.39999997615814,
+          "meanMs": 23.27812499552965
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 31.399999976158142,
+          "p95Ms": 112.79999995231628,
+          "maxMs": 263.39999997615814,
+          "meanMs": 41.87742793649437
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 15.2998046875,
+          "p50Ms": 21.2998046875,
+          "p95Ms": 31.500244140625,
+          "maxMs": 32.2001953125,
+          "meanMs": 22.528167724609375
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0.099853515625,
+          "p50Ms": 31.300048828125,
+          "p95Ms": 112.800048828125,
+          "maxMs": 263.5,
+          "meanMs": 41.108214996852396
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.7000000476837158,
+          "p95Ms": 2,
+          "maxMs": 2.0999999046325684,
+          "meanMs": 0.7687500081956387
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 13.600000023841858,
+          "meanMs": 0.08214545184729072
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 31277.600000023842,
+          "p50Ms": 31678.300000071526,
+          "p95Ms": 31974.599999904633,
+          "maxMs": 31974.599999904633,
+          "meanMs": 31700.84999999404
+        },
+        "tickWall": {
+          "count": 17546,
+          "minMs": 0,
+          "p50Ms": 2,
+          "p95Ms": 3.600000023841858,
+          "maxMs": 28,
+          "meanMs": 2.0229909950496805
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.400000214576721,
+          "meanMs": 0.04488791684233601
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.19999992847442627,
+          "maxMs": 33.199999928474426,
+          "meanMs": 0.46718749962747097
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 5.800000071525574,
+          "meanMs": 0.023437500465661287
+        }
+      }
+    },
+    "batch-8": {
+      "samples": [
+        {
+          "iteration": 1,
+          "leaderP95": 67.19999992847443,
+          "repathP95": 144.89999997615814,
+          "leaderQueueP95": 53.099853515625,
+          "repathQueueP95": 139.599853515625,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 815,
+          "wall": 34028.10000002384,
+          "messages": 7171,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 2,
+          "leaderP95": 39.89999997615814,
+          "repathP95": 108.10000002384186,
+          "leaderQueueP95": 21.19970703125,
+          "repathQueueP95": 104.599853515625,
+          "diagnosticRttP95": 0.19999992847442627,
+          "blocked": 637,
+          "wall": 33384.799999952316,
+          "messages": 7171,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 3,
+          "leaderP95": 27.699999928474426,
+          "repathP95": 105.20000004768372,
+          "leaderQueueP95": 11.800048828125,
+          "repathQueueP95": 100.89990234375,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 657,
+          "wall": 31952.200000047684,
+          "messages": 7171,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 4,
+          "leaderP95": 21.300000071525574,
+          "repathP95": 109.10000002384186,
+          "leaderQueueP95": 9.699951171875,
+          "repathQueueP95": 104.800048828125,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 665,
+          "wall": 32228.799999952316,
+          "messages": 7171,
+          "eligible": 0,
+          "coalesced": 0
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 20.90000009536743,
+          "p50Ms": 27.699999928474426,
+          "p95Ms": 66.89999997615814,
+          "maxMs": 67.19999992847443,
+          "meanMs": 38.58749997615814
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 35.59999990463257,
+          "p95Ms": 115.29999995231628,
+          "maxMs": 322.6999999284744,
+          "meanMs": 45.31601957339207
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 9.699951171875,
+          "p50Ms": 11.800048828125,
+          "p95Ms": 53.099853515625,
+          "maxMs": 53.099853515625,
+          "meanMs": 23.94989013671875
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0.19970703125,
+          "p50Ms": 29.800048828125,
+          "p95Ms": 111.300048828125,
+          "maxMs": 293.599853515625,
+          "meanMs": 40.32290224441186
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 0.7000000476837158,
+          "p95Ms": 2.899999976158142,
+          "maxMs": 3.1999999284744263,
+          "meanMs": 1.0406250059604645
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 28.100000023841858,
+          "meanMs": 0.08265187292568306
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 31952.200000047684,
+          "p50Ms": 32228.799999952316,
+          "p95Ms": 34028.10000002384,
+          "maxMs": 34028.10000002384,
+          "meanMs": 32898.47499999404
+        },
+        "tickWall": {
+          "count": 17174,
+          "minMs": 0,
+          "p50Ms": 2.299999952316284,
+          "p95Ms": 4.100000023841858,
+          "maxMs": 18.5,
+          "meanMs": 2.3294747883912303
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 4.9999998807907104,
+          "meanMs": 0.04390377264129718
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 27.59999990463257,
+          "meanMs": 0.3636718741618097
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000002384185791,
+          "meanMs": 0.00039062509313225746
+        }
+      }
+    },
+    "batch-16": {
+      "samples": [
+        {
+          "iteration": 1,
+          "leaderP95": 22.800000071525574,
+          "repathP95": 114.89999997615814,
+          "leaderQueueP95": 11.900146484375,
+          "repathQueueP95": 110.699951171875,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 689,
+          "wall": 32959.89999997616,
+          "messages": 4489,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 2,
+          "leaderP95": 27.299999952316284,
+          "repathP95": 103.20000004768372,
+          "leaderQueueP95": 13.89990234375,
+          "repathQueueP95": 98.5,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 627,
+          "wall": 32123.100000023842,
+          "messages": 4489,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 3,
+          "leaderP95": 21.09999990463257,
+          "repathP95": 111.20000004768372,
+          "leaderQueueP95": 10.699951171875,
+          "repathQueueP95": 106.300048828125,
+          "diagnosticRttP95": 0.20000004768371582,
+          "blocked": 665,
+          "wall": 32208.700000047684,
+          "messages": 4489,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 4,
+          "leaderP95": 30.600000023841858,
+          "repathP95": 112.79999995231628,
+          "leaderQueueP95": 17.39990234375,
+          "repathQueueP95": 108.5,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 653,
+          "wall": 32641.599999904633,
+          "messages": 4489,
+          "eligible": 0,
+          "coalesced": 0
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 20.799999952316284,
+          "p50Ms": 22.800000071525574,
+          "p95Ms": 30.299999952316284,
+          "maxMs": 30.600000023841858,
+          "meanMs": 24.93749998509884
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 35.60000002384186,
+          "p95Ms": 110.39999997615814,
+          "maxMs": 246.29999995231628,
+          "meanMs": 43.92479967506638
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 10.699951171875,
+          "p50Ms": 11.900146484375,
+          "p95Ms": 17.39990234375,
+          "maxMs": 17.39990234375,
+          "meanMs": 13.4749755859375
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 29.2001953125,
+          "p95Ms": 105.800048828125,
+          "maxMs": 245,
+          "meanMs": 38.37471575007362
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.6000000238418579,
+          "p95Ms": 2.600000023841858,
+          "maxMs": 4.599999904632568,
+          "meanMs": 0.8343750014901161
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 25.5,
+          "meanMs": 0.0821310284530055
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 32123.100000023842,
+          "p50Ms": 32208.700000047684,
+          "p95Ms": 32959.89999997616,
+          "maxMs": 32959.89999997616,
+          "meanMs": 32483.32499998808
+        },
+        "tickWall": {
+          "count": 17034,
+          "minMs": 0,
+          "p50Ms": 2.200000047683716,
+          "p95Ms": 4,
+          "maxMs": 27.399999976158142,
+          "meanMs": 2.248679112741417
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.399999976158142,
+          "meanMs": 0.04238655025871677
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 18.5,
+          "meanMs": 0.27187499962747097
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.10000002384185791,
+          "meanMs": 0.0007812501862645149
+        }
+      }
+    },
+    "batch-32": {
+      "samples": [
+        {
+          "iteration": 1,
+          "leaderP95": 21.199999928474426,
+          "repathP95": 112.39999997615814,
+          "leaderQueueP95": 11.400146484375,
+          "repathQueueP95": 106,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 622,
+          "wall": 32219.800000071526,
+          "messages": 3145,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 2,
+          "leaderP95": 21.100000023841858,
+          "repathP95": 106.89999997615814,
+          "leaderQueueP95": 10.800048828125,
+          "repathQueueP95": 100.7001953125,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 599,
+          "wall": 32006.799999952316,
+          "messages": 3145,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 3,
+          "leaderP95": 22.5,
+          "repathP95": 110.19999992847443,
+          "leaderQueueP95": 12.599853515625,
+          "repathQueueP95": 103.2998046875,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 599,
+          "wall": 32001,
+          "messages": 3145,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 4,
+          "leaderP95": 23.600000023841858,
+          "repathP95": 109.10000002384186,
+          "leaderQueueP95": 13.7998046875,
+          "repathQueueP95": 103.39990234375,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 621,
+          "wall": 31853.5,
+          "messages": 3145,
+          "eligible": 0,
+          "coalesced": 0
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 20.600000023841858,
+          "p50Ms": 21.199999928474426,
+          "p95Ms": 23.40000009536743,
+          "maxMs": 23.600000023841858,
+          "meanMs": 21.837500017136335
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 35,
+          "p95Ms": 109.89999997615814,
+          "maxMs": 233.90000009536743,
+          "meanMs": 43.049534177738884
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 10.800048828125,
+          "p50Ms": 11.400146484375,
+          "p95Ms": 13.7998046875,
+          "maxMs": 13.7998046875,
+          "meanMs": 12.14996337890625
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": -0.000244140625,
+          "p50Ms": 27,
+          "p95Ms": 103.2001953125,
+          "maxMs": 231.800048828125,
+          "meanMs": 36.3519337373161
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.10000002384185791,
+          "p50Ms": 0.5,
+          "p95Ms": 2,
+          "maxMs": 2.100000023841858,
+          "meanMs": 0.6812500022351742
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 13,
+          "meanMs": 0.07981954741081612
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 31853.5,
+          "p50Ms": 32001,
+          "p95Ms": 32219.800000071526,
+          "maxMs": 32219.800000071526,
+          "meanMs": 32020.27500000596
+        },
+        "tickWall": {
+          "count": 16841,
+          "minMs": 0,
+          "p50Ms": 2.200000047683716,
+          "p95Ms": 3.799999952316284,
+          "maxMs": 17.5,
+          "meanMs": 2.2045068576269227
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.100000023841858,
+          "meanMs": 0.04129305618783045
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 22.699999928474426,
+          "meanMs": 0.2839843751862645
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.09999990463256836,
+          "meanMs": 0.00039062462747097015
+        }
+      }
+    },
+    "batch-64": {
+      "samples": [
+        {
+          "iteration": 1,
+          "leaderP95": 22.200000047683716,
+          "repathP95": 102.60000002384186,
+          "leaderQueueP95": 12.199951171875,
+          "repathQueueP95": 95.199951171875,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 529,
+          "wall": 32969.39999997616,
+          "messages": 2466,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 2,
+          "leaderP95": 21.600000023841858,
+          "repathP95": 109.5,
+          "leaderQueueP95": 12.60009765625,
+          "repathQueueP95": 100.000244140625,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 566,
+          "wall": 33503.299999952316,
+          "messages": 2466,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 3,
+          "leaderP95": 24,
+          "repathP95": 117.30000007152557,
+          "leaderQueueP95": 13,
+          "repathQueueP95": 107.39990234375,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 629,
+          "wall": 32021.899999976158,
+          "messages": 2466,
+          "eligible": 0,
+          "coalesced": 0
+        },
+        {
+          "iteration": 4,
+          "leaderP95": 27.899999976158142,
+          "repathP95": 109.89999997615814,
+          "leaderQueueP95": 14.300048828125,
+          "repathQueueP95": 99.800048828125,
+          "diagnosticRttP95": 0.10000002384185791,
+          "blocked": 567,
+          "wall": 33651,
+          "messages": 2466,
+          "eligible": 0,
+          "coalesced": 0
+        }
+      ],
+      "pooled": {
+        "leaderResponse": {
+          "count": 32,
+          "minMs": 21.200000047683716,
+          "p50Ms": 22.200000047683716,
+          "p95Ms": 26.899999976158142,
+          "maxMs": 27.899999976158142,
+          "meanMs": 23.378124997019768
+        },
+        "repathResponse": {
+          "count": 187196,
+          "minMs": 0.19999992847442627,
+          "p50Ms": 36.699999928474426,
+          "p95Ms": 109.5,
+          "maxMs": 231.30000007152557,
+          "meanMs": 44.29215047305159
+        },
+        "leaderQueue": {
+          "count": 32,
+          "minMs": 12.199951171875,
+          "p50Ms": 12.60009765625,
+          "p95Ms": 14.300048828125,
+          "maxMs": 14.300048828125,
+          "meanMs": 13.0250244140625
+        },
+        "repathQueue": {
+          "count": 187196,
+          "minMs": 0.099853515625,
+          "p50Ms": 25.89990234375,
+          "p95Ms": 99.800048828125,
+          "maxMs": 223.199951171875,
+          "meanMs": 35.04937727838151
+        },
+        "leaderCompute": {
+          "count": 32,
+          "minMs": 0.09999990463256836,
+          "p50Ms": 0.5999999046325684,
+          "p95Ms": 1.899999976158142,
+          "maxMs": 2.299999952316284,
+          "meanMs": 0.7187499962747097
+        },
+        "repathCompute": {
+          "count": 187196,
+          "minMs": 0,
+          "p50Ms": 0.09999990463256836,
+          "p95Ms": 0.20000004768371582,
+          "maxMs": 15.899999976158142,
+          "meanMs": 0.08019936323425714
+        },
+        "wallClock": {
+          "count": 4,
+          "minMs": 32021.899999976158,
+          "p50Ms": 32969.39999997616,
+          "p95Ms": 33651,
+          "maxMs": 33651,
+          "meanMs": 33036.39999997616
+        },
+        "tickWall": {
+          "count": 16691,
+          "minMs": 0,
+          "p50Ms": 2.399999976158142,
+          "p95Ms": 4.5,
+          "maxMs": 22.100000023841858,
+          "meanMs": 2.4967587320495057
+        },
+        "perActiveTickApply": {
+          "count": 7316,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 2.100000023841858,
+          "meanMs": 0.040978677061622164
+        },
+        "deliveryDiagnosticRtt": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0.10000002384185791,
+          "maxMs": 20.600000023841858,
+          "meanMs": 0.3117187488824129
+        },
+        "deliveryDiagnosticWorkerHandling": {
+          "count": 256,
+          "minMs": 0,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 0.09999990463256836,
+          "meanMs": 0.00039062462747097015
+        }
+      }
+    }
+  },
+  "perIteration": [
+    {
+      "iteration": 1,
+      "policyOrder": [
+        "fifo",
+        "batch-8",
+        "batch-16",
+        "batch-32",
+        "batch-64"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": 45.199999928474426,
+          "repathP95Ms": 31.600000023841858,
+          "blockedFrames": 29,
+          "wallClockMs": 2349.7999999523163
+        },
+        "batch-16": {
+          "leaderP95Ms": 0.8000000715255737,
+          "repathP95Ms": 1.600000023841858,
+          "blockedFrames": -97,
+          "wallClockMs": 1281.5999999046326
+        },
+        "batch-32": {
+          "leaderP95Ms": -0.8000000715255737,
+          "repathP95Ms": -0.8999999761581421,
+          "blockedFrames": -164,
+          "wallClockMs": 541.5
+        },
+        "batch-64": {
+          "leaderP95Ms": 0.20000004768371582,
+          "repathP95Ms": -10.699999928474426,
+          "blockedFrames": -257,
+          "wallClockMs": 1291.0999999046326
+        }
+      }
+    },
+    {
+      "iteration": 2,
+      "policyOrder": [
+        "batch-8",
+        "batch-16",
+        "batch-32",
+        "batch-64",
+        "fifo"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": 15.299999952316284,
+          "repathP95Ms": -3.8000000715255737,
+          "blockedFrames": -149,
+          "wallClockMs": 1511.8999999761581
+        },
+        "batch-16": {
+          "leaderP95Ms": 2.6999999284744263,
+          "repathP95Ms": -8.700000047683716,
+          "blockedFrames": -159,
+          "wallClockMs": 250.20000004768372
+        },
+        "batch-32": {
+          "leaderP95Ms": -3.5,
+          "repathP95Ms": -5.0000001192092896,
+          "blockedFrames": -187,
+          "wallClockMs": 133.89999997615814
+        },
+        "batch-64": {
+          "leaderP95Ms": -3,
+          "repathP95Ms": -2.4000000953674316,
+          "blockedFrames": -220,
+          "wallClockMs": 1630.3999999761581
+        }
+      }
+    },
+    {
+      "iteration": 3,
+      "policyOrder": [
+        "batch-16",
+        "batch-32",
+        "batch-64",
+        "fifo",
+        "batch-8"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": 4.3999998569488525,
+          "repathP95Ms": -7.099999904632568,
+          "blockedFrames": -118,
+          "wallClockMs": 674.6000000238419
+        },
+        "batch-16": {
+          "leaderP95Ms": -2.2000001668930054,
+          "repathP95Ms": -1.0999999046325684,
+          "blockedFrames": -110,
+          "wallClockMs": 931.1000000238419
+        },
+        "batch-32": {
+          "leaderP95Ms": -0.8000000715255737,
+          "repathP95Ms": -2.100000023841858,
+          "blockedFrames": -176,
+          "wallClockMs": 723.3999999761581
+        },
+        "batch-64": {
+          "leaderP95Ms": 0.6999999284744263,
+          "repathP95Ms": 5.0000001192092896,
+          "blockedFrames": -146,
+          "wallClockMs": 744.2999999523163
+        }
+      }
+    },
+    {
+      "iteration": 4,
+      "policyOrder": [
+        "batch-32",
+        "batch-64",
+        "fifo",
+        "batch-8",
+        "batch-16"
+      ],
+      "challengersMinusFifo": {
+        "batch-8": {
+          "leaderP95Ms": -11.099999904632568,
+          "repathP95Ms": -4.5,
+          "blockedFrames": -134,
+          "wallClockMs": 254.20000004768372
+        },
+        "batch-16": {
+          "leaderP95Ms": -1.7999999523162842,
+          "repathP95Ms": -0.8000000715255737,
+          "blockedFrames": -146,
+          "wallClockMs": 667
+        },
+        "batch-32": {
+          "leaderP95Ms": -8.799999952316284,
+          "repathP95Ms": -4.5,
+          "blockedFrames": -178,
+          "wallClockMs": -121.09999990463257
+        },
+        "batch-64": {
+          "leaderP95Ms": -4.5,
+          "repathP95Ms": -3.700000047683716,
+          "blockedFrames": -232,
+          "wallClockMs": 1676.4000000953674
+        }
+      }
+    }
+  ]
+}

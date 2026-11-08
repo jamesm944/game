@@ -1,0 +1,290 @@
+{
+  "case_name": "m1t2",
+  "entities": 20000,
+  "ticks": 300,
+  "snapshot_expected": null,
+  "snapshot_match": null,
+  "all_runs_digest_equal": true,
+  "runs": [
+    {
+      "mode": "sequential",
+      "workers": 0,
+      "digests": [
+        [
+          30,
+          "fnv1a64:8dcdc1a6aa7ae432"
+        ],
+        [
+          60,
+          "fnv1a64:6b919fd82fefd47b"
+        ],
+        [
+          90,
+          "fnv1a64:3be5a688a972a116"
+        ],
+        [
+          120,
+          "fnv1a64:1c899535abb9d545"
+        ],
+        [
+          150,
+          "fnv1a64:e9ab581b658ce2f1"
+        ],
+        [
+          180,
+          "fnv1a64:e2c757e0d4b4ead9"
+        ],
+        [
+          210,
+          "fnv1a64:b079b58ebe896207"
+        ],
+        [
+          240,
+          "fnv1a64:0b3af3cfb2c5f270"
+        ],
+        [
+          270,
+          "fnv1a64:f50bb3d85eb3eeea"
+        ],
+        [
+          300,
+          "fnv1a64:65eed042e5c1bfcb"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.17744026333333343,
+      "tick_ms_p50": 0.130833,
+      "tick_ms_p99": 0.59325,
+      "tick_ms_max": 0.739,
+      "total_ms": 53.23207900000003
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 1,
+      "digests": [
+        [
+          30,
+          "fnv1a64:8dcdc1a6aa7ae432"
+        ],
+        [
+          60,
+          "fnv1a64:6b919fd82fefd47b"
+        ],
+        [
+          90,
+          "fnv1a64:3be5a688a972a116"
+        ],
+        [
+          120,
+          "fnv1a64:1c899535abb9d545"
+        ],
+        [
+          150,
+          "fnv1a64:e9ab581b658ce2f1"
+        ],
+        [
+          180,
+          "fnv1a64:e2c757e0d4b4ead9"
+        ],
+        [
+          210,
+          "fnv1a64:b079b58ebe896207"
+        ],
+        [
+          240,
+          "fnv1a64:0b3af3cfb2c5f270"
+        ],
+        [
+          270,
+          "fnv1a64:f50bb3d85eb3eeea"
+        ],
+        [
+          300,
+          "fnv1a64:65eed042e5c1bfcb"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.15530709999999995,
+      "tick_ms_p50": 0.119084,
+      "tick_ms_p99": 0.526833,
+      "tick_ms_max": 0.8390420000000001,
+      "total_ms": 46.59212999999998
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 2,
+      "digests": [
+        [
+          30,
+          "fnv1a64:8dcdc1a6aa7ae432"
+        ],
+        [
+          60,
+          "fnv1a64:6b919fd82fefd47b"
+        ],
+        [
+          90,
+          "fnv1a64:3be5a688a972a116"
+        ],
+        [
+          120,
+          "fnv1a64:1c899535abb9d545"
+        ],
+        [
+          150,
+          "fnv1a64:e9ab581b658ce2f1"
+        ],
+        [
+          180,
+          "fnv1a64:e2c757e0d4b4ead9"
+        ],
+        [
+          210,
+          "fnv1a64:b079b58ebe896207"
+        ],
+        [
+          240,
+          "fnv1a64:0b3af3cfb2c5f270"
+        ],
+        [
+          270,
+          "fnv1a64:f50bb3d85eb3eeea"
+        ],
+        [
+          300,
+          "fnv1a64:65eed042e5c1bfcb"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.1764380933333334,
+      "tick_ms_p50": 0.12825,
+      "tick_ms_p99": 0.58525,
+      "tick_ms_max": 1.497,
+      "total_ms": 52.93142800000002
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 4,
+      "digests": [
+        [
+          30,
+          "fnv1a64:8dcdc1a6aa7ae432"
+        ],
+        [
+          60,
+          "fnv1a64:6b919fd82fefd47b"
+        ],
+        [
+          90,
+          "fnv1a64:3be5a688a972a116"
+        ],
+        [
+          120,
+          "fnv1a64:1c899535abb9d545"
+        ],
+        [
+          150,
+          "fnv1a64:e9ab581b658ce2f1"
+        ],
+        [
+          180,
+          "fnv1a64:e2c757e0d4b4ead9"
+        ],
+        [
+          210,
+          "fnv1a64:b079b58ebe896207"
+        ],
+        [
+          240,
+          "fnv1a64:0b3af3cfb2c5f270"
+        ],
+        [
+          270,
+          "fnv1a64:f50bb3d85eb3eeea"
+        ],
+        [
+          300,
+          "fnv1a64:65eed042e5c1bfcb"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.1938369033333333,
+      "tick_ms_p50": 0.154,
+      "tick_ms_p99": 0.637833,
+      "tick_ms_max": 0.872583,
+      "total_ms": 58.151070999999995
+    },
+    {
+      "mode": "parallel-apply",
+      "workers": 8,
+      "digests": [
+        [
+          30,
+          "fnv1a64:8dcdc1a6aa7ae432"
+        ],
+        [
+          60,
+          "fnv1a64:6b919fd82fefd47b"
+        ],
+        [
+          90,
+          "fnv1a64:3be5a688a972a116"
+        ],
+        [
+          120,
+          "fnv1a64:1c899535abb9d545"
+        ],
+        [
+          150,
+          "fnv1a64:e9ab581b658ce2f1"
+        ],
+        [
+          180,
+          "fnv1a64:e2c757e0d4b4ead9"
+        ],
+        [
+          210,
+          "fnv1a64:b079b58ebe896207"
+        ],
+        [
+          240,
+          "fnv1a64:0b3af3cfb2c5f270"
+        ],
+        [
+          270,
+          "fnv1a64:f50bb3d85eb3eeea"
+        ],
+        [
+          300,
+          "fnv1a64:65eed042e5c1bfcb"
+        ]
+      ],
+      "arrivals": [
+        5,
+        30,
+        31
+      ],
+      "tick_ms_mean": 0.21327415000000008,
+      "tick_ms_p50": 0.170833,
+      "tick_ms_p99": 0.681625,
+      "tick_ms_max": 1.0622500000000001,
+      "total_ms": 63.98224500000003
+    }
+  ]
+}
