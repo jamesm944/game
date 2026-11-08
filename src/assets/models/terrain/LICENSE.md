@@ -28,6 +28,10 @@ Batch 2 (downloaded 2026-11-08, same `/get?file=<id>_1K-JPG.zip` flow; non-map e
 | `ambientcg-planks002/` | Planks 002 — alt weathered planks 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Planks002 | same |
 | `ambientcg-ice001/` | Ice 001 — frozen-water plane 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Ice001 | same |
 | `ambientcg-bark016/` | Bark 016 — tree bark 1K-JPG (full PBR set) | https://ambientcg.com/view?id=Bark016 | same |
+| `ambientcg-marble001-imperial/` | Marble 001 — white monumental marble 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Imperial** | https://ambientcg.com/view?id=Marble001 | same |
+| `ambientcg-marble002-imperial/` | Marble 002 — alt marble 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Imperial** | https://ambientcg.com/view?id=Marble002 | same |
+| `ambientcg-tiles141-roof/` | Tiles 141 — roof tiles 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Castle/Imperial roofs** | https://ambientcg.com/view?id=Tiles141 | same |
+| `ambientcg-clay001/` | Clay 001 — clay ground 1K-JPG (full PBR set) — **Dark-age farm/earth** | https://ambientcg.com/view?id=Clay001 | same |
 
 Downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
 (`https://api.polyhaven.com/files/leafy_grass` → dl.polyhaven.org URL, md5-verified by host).
