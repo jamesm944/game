@@ -302,6 +302,13 @@ pub fn commodity_amount(world: &World, econ: &EconomyComps, player_id: f64, code
     Ok(rows(world, econ.commodity_stockpile)[&eid][code as usize + 1])
 }
 
+/// One player's commodity amounts indexed by commodity code.
+pub fn commodity_amounts(world: &World, econ: &EconomyComps, player_id: f64) -> Vec<f64> {
+    let eid = owner_row_index(world, econ.commodity_stockpile, player_id)
+        .unwrap_or_else(|| panic!("player {player_id} has no commodity stockpile"));
+    rows(world, econ.commodity_stockpile)[&eid][1..].to_vec()
+}
+
 pub fn commodity_amount_or_zero(world: &World, econ: &EconomyComps, player_id: f64, code: i64) -> f64 {
     match owner_row_index(world, econ.commodity_stockpile, player_id) {
         Some(eid) => rows(world, econ.commodity_stockpile)[&eid][code as usize + 1],

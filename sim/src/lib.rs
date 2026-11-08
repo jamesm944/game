@@ -12,6 +12,7 @@ pub mod construction;
 pub mod gather;
 pub mod placement;
 pub mod pop;
+pub mod production;
 pub mod training;
 pub mod mapgen;
 pub mod movement;
