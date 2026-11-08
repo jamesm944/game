@@ -8,6 +8,10 @@ All four textures are CC0 1.0 Universal (Public Domain Dedication).
 | `ambientcg-ground110-dirt/` | Ground 110 — dirt (1K-JPG) | https://ambientcg.com/view?id=Ground110 | same |
 | `ambientcg-rock064/` | Rock 064 (1K-JPG) | https://ambientcg.com/view?id=Rock064 | same |
 | `polyhaven-leafy-grass/` | leafy_grass diffuse 1k | https://polyhaven.com/a/leafy_grass | https://polyhaven.com/license |
+| `ambientcg-ground054-sand/` | Ground 054 — sand/shore 1K-JPG (Color/AO/NormalGL/Roughness) | https://ambientcg.com/view?id=Ground054 | CC0, same as above |
+| `ambientcg-ground037-farm/` | Ground 037 — farm/dirt alt 1K-JPG (Color/AO/NormalGL/Roughness) | https://ambientcg.com/view?id=Ground037 | same |
+| `ambientcg-pavingstones070-cobble/` | Paving Stones 070 — cobble 1K-JPG (Color/AO/NormalGL/Roughness) | https://ambientcg.com/view?id=PavingStones070 | same |
+| `polyhaven-leafy-grass/` (+nor_gl/rough/ao 1k jpg, md5 = API) | leafy_grass PBR companions to the diffuse above | https://polyhaven.com/a/leafy_grass | https://polyhaven.com/license |
 
 Downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
 (`https://api.polyhaven.com/files/leafy_grass` → dl.polyhaven.org URL, md5-verified by host).

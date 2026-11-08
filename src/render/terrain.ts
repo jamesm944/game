@@ -48,6 +48,7 @@ import grassUrl from "../assets/models/terrain/ambientcg-grass001/Grass001_1K-JP
 import dirtUrl from "../assets/models/terrain/ambientcg-ground110-dirt/Ground110_1K-JPG_Color.jpg";
 import rockUrl from "../assets/models/terrain/ambientcg-rock064/Rock064_1K-JPG_Color.jpg";
 import forestUrl from "../assets/models/terrain/polyhaven-leafy-grass/leafy_grass_diff_1k.jpg";
+import sandUrl from "../assets/models/terrain/ambientcg-ground054-sand/Ground054_1K-JPG_Color.jpg";
 
 /** Vertical world units per integer elevation level (ticket constant). */
 export const ELEVATION_STEP = 0.25;
@@ -403,6 +404,7 @@ export function buildTerrainMesh(
   const texDirt = loadTerrainTexture(dirtUrl);
   const texRock = loadTerrainTexture(rockUrl);
   const texForest = loadTerrainTexture(forestUrl);
+  const texSand = loadTerrainTexture(sandUrl);
   const splatTexture = createSplatTexture(layers);
 
   const farmData = new Uint8Array(size * size);
@@ -429,6 +431,7 @@ export function buildTerrainMesh(
     shader.uniforms.uTexDirt = { value: texDirt };
     shader.uniforms.uTexRock = { value: texRock };
     shader.uniforms.uTexForest = { value: texForest };
+    shader.uniforms.uTexSand = { value: texSand };
     shader.uniforms.uSplatMap = { value: splatTexture };
     shader.uniforms.uFarmMask = { value: farmTexture };
     shader.uniforms.uTime = uTime;
@@ -482,6 +485,7 @@ export function buildTerrainMesh(
       uniform sampler2D uTexDirt;
       uniform sampler2D uTexRock;
       uniform sampler2D uTexForest;
+      uniform sampler2D uTexSand;
       uniform sampler2D uSplatMap;
       uniform sampler2D uFarmMask;
       uniform sampler2D uFogCurr;
@@ -518,6 +522,7 @@ export function buildTerrainMesh(
       vec4 colDirt = texture2D(uTexDirt, uvDirt);
       vec4 colRock = texture2D(uTexRock, uvRock);
       vec4 colForest = texture2D(uTexForest, uvForest);
+      vec4 colSandTex = texture2D(uTexSand, uvDirt);
 
       // Domain-warped splatmap sampling for natural, organic transitions
       float halfTexel = 0.5 / uFogMapSize;
@@ -534,7 +539,7 @@ export function buildTerrainMesh(
       vec4 w = landWeight > 0.001 ? splat / landWeight : vec4(0.0, 1.0, 0.0, 0.0);
 
       // Calibrated biome colors
-      vec3 colSand = mix(colDirt.rgb, vec3(0.92, 0.84, 0.64), 0.58);
+      vec3 colSand = mix(colSandTex.rgb, colDirt.rgb, 0.18);
       vec3 colLushGrass = mix(colGrass.rgb, colForest.rgb, 0.22);
       vec3 colEarthyDirt = colDirt.rgb;
       vec3 colDenseForest = colForest.rgb * 0.95;
