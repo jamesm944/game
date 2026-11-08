@@ -125,6 +125,12 @@ fn default_turn_rate(seed: u32, eid: Eid) -> f64 {
 /// Spawn one movable Pop with every movement component attached
 /// (defaults only; identity/body/morale opt-ins land with later epics).
 pub fn spawn_unit(world: &mut CoreWorld, comps: &MovementComps, x: f64, y: f64) -> Eid {
+    spawn_unit_with_speed(world, comps, x, y, DEFAULT_UNIT_SPEED)
+}
+
+/// TS spawnUnit with an explicit `baseSpeed` (training passes the unit
+/// definition's speed; everything else keeps the spawn defaults).
+pub fn spawn_unit_with_speed(world: &mut CoreWorld, comps: &MovementComps, x: f64, y: f64, base_speed: f64) -> Eid {
     let eid = world.spawn();
     world.set_values(comps.position, eid, &[x, y]).unwrap();
     world.set_values(comps.velocity, eid, &[0.0; 8]).unwrap();
@@ -132,7 +138,7 @@ pub fn spawn_unit(world: &mut CoreWorld, comps: &MovementComps, x: f64, y: f64) 
         .set_values(
             comps.unit_tag,
             eid,
-            &[DEFAULT_UNIT_SPEED, default_turn_rate(world.seed, eid), DEFAULT_UNIT_RADIUS],
+            &[base_speed, default_turn_rate(world.seed, eid), DEFAULT_UNIT_RADIUS],
         )
         .unwrap();
     world.set_values(comps.move_target, eid, &[x, y]).unwrap();

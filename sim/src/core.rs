@@ -287,6 +287,11 @@ pub struct World {
     pub last_allocated_eid: Eid,
     systems: Vec<(Phase, System)>,
     pub rows_by_component: Vec<Rows>,
+    /// TS `usedNameIndexesByWorld` WeakMap side state (pop identity):
+    /// name indexes ever allocated in this world; never reassigned.
+    pub used_name_indexes: std::collections::HashSet<i64>,
+    /// TS `world.rallyPoints` side state: building eid → (x, y, target).
+    pub rally_points: std::collections::HashMap<Eid, (f64, f64, Option<Eid>)>,
 }
 
 impl World {
@@ -301,6 +306,8 @@ impl World {
             last_allocated_eid: 0,
             systems: Vec::new(),
             rows_by_component: Vec::new(),
+            used_name_indexes: std::collections::HashSet::new(),
+            rally_points: std::collections::HashMap::new(),
         }
     }
     pub fn define_component(&mut self, name: &str) -> Result<usize, String> {

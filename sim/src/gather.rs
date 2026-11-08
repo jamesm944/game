@@ -5,11 +5,10 @@
 //! derived every tick from the AssignedNode set with ascending-eid
 //! priority; overflow workers mill on formation ring 2+.
 //!
-//! Parity scope: rowless legacy workers take the exact TS paths.
-//! Inputs that only later epics produce — Skills/Traits/Needs/Body
-//! rows (interval multipliers, practice awards), Identity rows
-//! (child check), Combat rows (naval check), water terrain nodes —
-//! panic loudly instead of silently diverging, until their ports land.
+//! Pop rows (skills/traits/needs/body/identity) fold in through
+//! `crate::pop` exactly as TS. Inputs that only later epics produce —
+//! Combat rows (naval check) and water terrain nodes — still panic
+//! loudly instead of silently diverging, until their ports land.
 use crate::activities::{cancel_activities, dequeue_current, move_activity, peek, Activity, ActivityQueue};
 use crate::core::{Command, Eid, Sfc32, World as CoreWorld};
 use crate::defs::Defs;
@@ -25,6 +24,7 @@ use crate::movement::{
     SLOT_LUT_SIZE,
 };
 use crate::path::find_path;
+use crate::pop::{self, PopComps, TraitsData, GATHER_XP_PER_UNIT};
 use crate::trig::{build_sin_cos_lut, SinCosLut};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
@@ -177,6 +177,8 @@ struct ClaimedWorker {
 
 pub struct GatherSystem {
     defs: Arc<Defs>,
+    traits: Arc<TraitsData>,
+    pop: PopComps,
     gcomps: GatherComps,
     pub diagnostics: GatherDiagnostics,
     cost_cache_version: i64,
@@ -188,9 +190,11 @@ pub struct GatherSystem {
 }
 
 impl GatherSystem {
-    pub fn new(defs: Arc<Defs>, gcomps: GatherComps) -> GatherSystem {
+    pub fn new(defs: Arc<Defs>, traits: Arc<TraitsData>, pop: PopComps, gcomps: GatherComps) -> GatherSystem {
         GatherSystem {
             defs,
+            traits,
+            pop,
             gcomps,
             diagnostics: GatherDiagnostics::default(),
             cost_cache_version: -1,
@@ -216,13 +220,10 @@ impl GatherSystem {
         }
     }
 
-    // ---- later-epic inputs: exact rowless behavior, loud otherwise ----
+    // ---- pop-row inputs (crate::pop) + later-epic naval guard ----
 
     fn is_child(&self, world: &CoreWorld, eid: Eid) -> bool {
-        if row(world, self.gcomps.identity, eid).is_some() {
-            panic!("gather: Identity-row child check lands with the lifecycle port (eid {eid})");
-        }
-        false
+        pop::is_child(world, &self.pop, eid)
     }
 
     fn is_naval(&self, world: &CoreWorld, eid: Eid) -> bool {
@@ -233,23 +234,11 @@ impl GatherSystem {
     }
 
     fn resolve_gather_interval(&self, world: &CoreWorld, eid: Eid, base: f64) -> f64 {
-        for (component, label) in [
-            (self.gcomps.skills, "Skills"),
-            (self.gcomps.traits, "Traits"),
-            (self.gcomps.needs, "Needs"),
-            (self.gcomps.body, "Body"),
-        ] {
-            if row(world, component, eid).is_some() {
-                panic!("gather: {label}-row interval multipliers land with the skills/needs ports (eid {eid})");
-            }
-        }
-        base
+        pop::resolve_gather_interval(world, &self.pop, &self.traits, eid, base)
     }
 
-    fn award_practice(&self, world: &CoreWorld, eid: Eid) {
-        if row(world, self.gcomps.skills, eid).is_some() {
-            panic!("gather: practice awards land with the skills port (eid {eid})");
-        }
+    fn award_practice(&self, world: &mut CoreWorld, eid: Eid) {
+        pop::award_practice(world, &self.pop, &self.traits, eid, "gathering", GATHER_XP_PER_UNIT);
     }
 
     // ---- stockpile wood helpers (farm reseed) ----
@@ -821,10 +810,21 @@ pub struct EconomySim {
 }
 
 impl EconomySim {
-    pub fn new(seed: u32, size: usize, transport: crate::path::Transport, defs: Arc<Defs>) -> Result<EconomySim, String> {
+    pub fn new(
+        seed: u32,
+        size: usize,
+        transport: crate::path::Transport,
+        defs: Arc<Defs>,
+        traits: Arc<TraitsData>,
+    ) -> Result<EconomySim, String> {
         let movement = MovementSim::new(seed, size, transport)?;
         let econ = EconomyComps::from_world(&movement.world);
-        let gather = GatherSystem::new(defs, GatherComps::from_world(&movement.world));
+        let gather = GatherSystem::new(
+            defs,
+            traits,
+            PopComps::from_world(&movement.world),
+            GatherComps::from_world(&movement.world),
+        );
         Ok(EconomySim { movement, econ, gather })
     }
 
@@ -871,6 +871,13 @@ mod tests {
     fn defs() -> Arc<Defs> {
         static DEFS: OnceLock<Arc<Defs>> = OnceLock::new();
         DEFS.get_or_init(|| Arc::new(Defs::load_repo_defaults().expect("load defs"))).clone()
+    }
+
+    fn traits() -> Arc<TraitsData> {
+        static TRAITS: OnceLock<Arc<TraitsData>> = OnceLock::new();
+        TRAITS
+            .get_or_init(|| Arc::new(TraitsData::load_repo_defaults().expect("load traits")))
+            .clone()
     }
 
     #[derive(Deserialize)]
@@ -967,7 +974,7 @@ mod tests {
         } else {
             Transport::synchronous()
         };
-        let mut sim = EconomySim::new(fixture.seed, fixture.size, transport, defs()).unwrap();
+        let mut sim = EconomySim::new(fixture.seed, fixture.size, transport, defs(), traits()).unwrap();
         let econ = sim.econ;
         for spawn in &fixture.spawns {
             let eid = sim.spawn_unit(spawn.x, spawn.y);
