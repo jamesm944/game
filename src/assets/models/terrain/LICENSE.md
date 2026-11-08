@@ -22,6 +22,13 @@ All four textures are CC0 1.0 Universal (Public Domain Dedication).
 
 Batch 2 (downloaded 2026-11-08, same `/get?file=<id>_1K-JPG.zip` flow; non-map extras and Displacement/NormalDX dropped). Unity copies (Color + NormalGL per set, plus `day_sky.exr` from `DayEnvironmentHDRI114_1K.zip`) live under `unity/Assets/StreamingAssets/Imported/Textures/`.
 
+| Local dir | Asset | Source | License link |
+| --- | --- | --- | --- |
+| `ambientcg-wood096-timber/` | Wood 096 — alt timber grain, treatment-variant wood 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Wood096 | CC0, same as above |
+| `ambientcg-planks002/` | Planks 002 — alt weathered planks 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Planks002 | same |
+| `ambientcg-ice001/` | Ice 001 — frozen-water plane 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Ice001 | same |
+| `ambientcg-bark016/` | Bark 016 — tree bark 1K-JPG (full PBR set) | https://ambientcg.com/view?id=Bark016 | same |
+
 Downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
 (`https://api.polyhaven.com/files/leafy_grass` → dl.polyhaven.org URL, md5-verified by host).
 Non-map extras inside the zips (.blend/.usdc/.mtlx/.tres, Displacement, NormalDX) were dropped;
