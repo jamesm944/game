@@ -51,6 +51,37 @@ pub struct UnitDef {
     pub sight_radius: f64,
     #[serde(rename = "armorClasses", default)]
     pub armor_classes: Vec<String>,
+    #[serde(default)]
+    pub attack: f64,
+    #[serde(rename = "attackBonuses", default)]
+    pub attack_bonuses: Vec<AttackBonus>,
+    #[serde(rename = "reloadTicks")]
+    pub reload_ticks: Option<i64>,
+    #[serde(rename = "minRange")]
+    pub min_range: Option<f64>,
+    #[serde(rename = "aoeRadius")]
+    pub aoe_radius: Option<f64>,
+    #[serde(rename = "siegeState")]
+    pub siege_state: Option<String>,
+    #[serde(rename = "morphTargetId")]
+    pub morph_target_id: Option<String>,
+    #[serde(rename = "packTimeTicks")]
+    pub pack_time_ticks: Option<i64>,
+    #[serde(rename = "convertRange")]
+    pub convert_range: Option<f64>,
+    #[serde(rename = "castTicks")]
+    pub cast_ticks: Option<i64>,
+    #[serde(rename = "maxFaith")]
+    pub max_faith: Option<f64>,
+    #[serde(rename = "faithRegenPerTick")]
+    pub faith_regen_per_tick: Option<f64>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AttackBonus {
+    #[serde(rename = "armorClass")]
+    pub armor_class: String,
+    pub mult: f64,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -99,6 +130,26 @@ pub struct BuildingDef {
     pub train_queue: Option<TrainQueue>,
     #[serde(rename = "isGate", default)]
     pub is_gate: bool,
+    #[serde(default)]
+    pub attack: Option<f64>,
+    #[serde(default)]
+    pub range: Option<f64>,
+    #[serde(rename = "reloadTicks")]
+    pub reload_ticks: Option<i64>,
+    #[serde(rename = "garrisonCapacity")]
+    pub garrison_capacity: Option<i64>,
+    #[serde(rename = "garrisonHealRate")]
+    pub garrison_heal_rate: Option<f64>,
+    #[serde(rename = "garrisonAttackBonus")]
+    pub garrison_attack_bonus: Option<GarrisonAttackBonus>,
+}
+
+/// TS `number | Record<string, number>` garrison attack bonus.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum GarrisonAttackBonus {
+    Flat(f64),
+    PerUnit(BTreeMap<String, f64>),
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -170,7 +221,7 @@ fn def_mult() -> String {
     "mult".to_string()
 }
 
-const CANONICAL_UNIT_IDS: [&str; 31] = [
+pub(crate) const CANONICAL_UNIT_IDS: [&str; 31] = [
     "archer", "knight", "man-at-arms", "militia", "monk", "scout-cavalry", "skirmisher",
     "villager", "arbalest", "battering-ram", "cannon-galleon", "cataphract", "cavalier",
     "fire-ship", "fishing-boat", "galleon", "galley", "huskarl", "light-cavalry", "longbowman",
@@ -311,6 +362,9 @@ impl Defs {
             .find(|(_, c)| **c == code)
             .map(|(id, _)| id.as_str())
             .unwrap_or_else(|| panic!("unknown unit def code: {code}"))
+    }
+    pub fn tech_id_of_code_or_null(&self, code: u32) -> Option<&str> {
+        self.tech_codes.iter().find(|(_, c)| **c == code).map(|(id, _)| id.as_str())
     }
     pub fn tech_id_of_code(&self, code: u32) -> &str {
         self.tech_codes

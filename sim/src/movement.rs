@@ -469,6 +469,9 @@ pub struct GroupRouteCont {
     passability: Vec<u8>,
     queue: bool,
     formation: Option<FormationKind>,
+    /// TS hooks.buildHead: plain Move heads for groupMove, AttackMove
+    /// heads for combat's formation attack-move (M2-T6).
+    head_attack_move: bool,
 }
 
 pub struct GroupRouteOrder {
@@ -511,7 +514,6 @@ fn parse_group_move_data(data: &serde_json::Value) -> GroupRouteOrder {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn issue_group_route(
     world: &mut CoreWorld,
     comps: &MovementComps,
@@ -519,6 +521,24 @@ fn issue_group_route(
     passability: &[u8],
     paths: &mut PathScheduler<Continuation>,
     order: &GroupRouteOrder,
+) {
+    issue_group_route_ex(world, comps, size, passability, paths, order, false, None);
+}
+
+/// Shared leader-path + formation-slot pipeline (TS issueGroupRoute).
+/// `on_issue` fires per member at issue time when the order is not
+/// queued and the route resolved; `head_attack_move` selects the
+/// applied head activity kind.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn issue_group_route_ex(
+    world: &mut CoreWorld,
+    comps: &MovementComps,
+    size: usize,
+    passability: &[u8],
+    paths: &mut PathScheduler<Continuation>,
+    order: &GroupRouteOrder,
+    head_attack_move: bool,
+    mut on_issue: Option<&mut dyn FnMut(&mut CoreWorld, Eid)>,
 ) {
     let (x, y) = (order.x, order.y);
     let mut members: Vec<MemberSnap> = Vec::new();
@@ -572,6 +592,14 @@ fn issue_group_route(
     let Some(goal) = nearest_passable_tile(passability, size, x.floor() as i64, y.floor() as i64) else {
         return;
     };
+    if !order.queue {
+        if let Some(hook) = on_issue.as_deref_mut() {
+            let member_eids: Vec<Eid> = members.iter().map(|m| m.eid).collect();
+            for eid in member_eids {
+                hook(world, eid);
+            }
+        }
+    }
     let mut ordered: Vec<usize> = vec![leader_index];
     for i in 0..members.len() {
         if i != leader_index {
@@ -607,6 +635,7 @@ fn issue_group_route(
         passability: passability.to_vec(),
         queue: order.queue,
         formation: active_formation,
+        head_attack_move,
     };
     paths.request_path(
         &PathRequestInput { start_x: start_tile_x, start_y: start_tile_y, goal_x: goal.0, goal_y: goal.1 },
@@ -669,15 +698,20 @@ fn apply_group_route(
             wp.push(final_y);
             wp
         };
+        let head = if cont.head_attack_move {
+            Activity::AttackMove { waypoints: waypoints.clone(), cursor: 0 }
+        } else {
+            move_activity(&waypoints).expect("move waypoints")
+        };
         let existing = read_queue(world, comps, member.eid);
         if cont.queue && !existing.is_empty() {
             let mut q = existing;
-            q.push(move_activity(&waypoints).expect("move waypoints"));
+            q.push(head);
             write_queue(world, comps, member.eid, &q);
         } else {
             let vel = row_mut(world, comps.velocity, member.eid).expect("vel row");
             reset_steering_bookkeeping(vel);
-            write_queue(world, comps, member.eid, &[move_activity(&waypoints).expect("move waypoints")]);
+            write_queue(world, comps, member.eid, &[head]);
             set_row(world, comps.move_target, member.eid, vec![final_x, final_y]);
         }
     }

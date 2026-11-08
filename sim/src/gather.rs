@@ -822,6 +822,7 @@ pub struct EconomySim {
     pub training: crate::training::TrainingSystem,
     pub production: crate::production::ProductionSystem,
     pub age: crate::age::AgeSystem,
+    pub combat: crate::combat_system::CombatSystem,
 }
 
 impl EconomySim {
@@ -848,10 +849,12 @@ impl EconomySim {
         let placement = crate::placement::PlacementSystem::new(defs.clone(), bcomps, age);
         let construction = crate::construction::ConstructionSystem::new(defs.clone(), traits.clone(), pop, bcomps);
         let pcomps = crate::production::ProductionComps::from_world(&movement.world);
-        let training = crate::training::TrainingSystem::new(defs.clone(), traits, pop, bcomps, ccomps, age);
+        let training = crate::training::TrainingSystem::new(defs.clone(), traits.clone(), pop, bcomps, ccomps, age);
         let production = crate::production::ProductionSystem::new(defs.clone(), pop, bcomps, age, pcomps);
-        let age_system = crate::age::AgeSystem::new(defs, bcomps, ccomps, age);
-        Ok(EconomySim { movement, econ, gather, placement, construction, training, production, age: age_system })
+        let age_system = crate::age::AgeSystem::new(defs.clone(), bcomps, ccomps, age);
+        let aux = crate::combat::CombatAuxComps::from_world(&movement.world);
+        let combat = crate::combat_system::CombatSystem::new(defs, traits, pop, bcomps, age, ccomps, aux, pcomps, false);
+        Ok(EconomySim { movement, econ, gather, placement, construction, training, production, age: age_system, combat })
     }
 
     pub fn spawn_unit(&mut self, x: f64, y: f64) -> Eid {
@@ -870,6 +873,7 @@ impl EconomySim {
         let MovementSim { world, comps, layers, paths, last_commands, .. } = &mut self.movement;
         let version = paths.passability_version();
         self.gather.run(world, comps, &econ, layers, version, last_commands);
+        self.combat.run(world, comps, &econ, layers, paths, last_commands);
         self.placement.run(world, comps, &econ, layers, paths, last_commands);
         self.construction.run(world, comps, &econ, layers, last_commands);
         self.training.run(world, comps, &econ, layers, last_commands);

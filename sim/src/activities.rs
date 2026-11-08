@@ -157,8 +157,17 @@ pub fn encode_activities(queue: &[Activity]) -> Result<Vec<f64>, String> {
             Activity::Garrison { target_building_id } => {
                 row.extend_from_slice(&[KIND_GARRISON, 1.0, *target_building_id])
             }
-            Activity::Pack { .. } => {
-                return Err("pack activity encoding needs the unit definition code table (E3c+)".into())
+            Activity::Pack { remaining_ticks, target_unit_id } => {
+                // Pack payloads carry the target's stable unit code.
+                // Morph targets in shipped content are canonical ids
+                // (trebuchet pair), whose codes are registry-order
+                // stable; a non-canonical target errors loudly.
+                let code = crate::defs::CANONICAL_UNIT_IDS
+                    .iter()
+                    .position(|id| *id == target_unit_id.as_str())
+                    .map(|i| i as f64 + 1.0)
+                    .ok_or_else(|| format!("pack target {target_unit_id:?} is not a canonical unit id"))?;
+                row.extend_from_slice(&[KIND_PACK, 2.0, *remaining_ticks, code]);
             }
             Activity::Convert { target_eid } => row.extend_from_slice(&[KIND_CONVERT, 1.0, *target_eid]),
         }
@@ -263,7 +272,12 @@ pub fn decode_activities(row: &[f64]) -> Result<ActivityQueue, String> {
         } else if kind == KIND_GARRISON {
             Activity::Garrison { target_building_id: one("garrison")? }
         } else if kind == KIND_PACK {
-            return Err(format!("pack activity {i} decoding needs the unit definition code table (E3c+)"));
+            let (remaining_ticks, code) = two("pack")?;
+            let target_unit_id = crate::defs::CANONICAL_UNIT_IDS
+                .get((code as i64 - 1) as usize)
+                .ok_or_else(|| format!("pack activity {i} has unknown unit code {code}"))?
+                .to_string();
+            Activity::Pack { remaining_ticks, target_unit_id }
         } else if kind == KIND_CONVERT {
             Activity::Convert { target_eid: one("convert")? }
         } else {
