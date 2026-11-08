@@ -32,6 +32,13 @@ Batch 2 (downloaded 2026-11-08, same `/get?file=<id>_1K-JPG.zip` flow; non-map e
 | `ambientcg-marble002-imperial/` | Marble 002 — alt marble 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Imperial** | https://ambientcg.com/view?id=Marble002 | same |
 | `ambientcg-tiles141-roof/` | Tiles 141 — roof tiles 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Castle/Imperial roofs** | https://ambientcg.com/view?id=Tiles141 | same |
 | `ambientcg-clay001/` | Clay 001 — clay ground 1K-JPG (full PBR set) — **Dark-age farm/earth** | https://ambientcg.com/view?id=Clay001 | same |
+| `ambientcg-concrete001-modern/` | Concrete 001 — modern concrete 1K-JPG (Color/NormalGL; no AO shipped) — **Epoch 5–8 floors** | https://ambientcg.com/view?id=Concrete001 | same |
+| `ambientcg-metal001-industrial/` | Metal 001 — industrial metal 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Epoch 5–8 machines** | https://ambientcg.com/view?id=Metal001 | same |
+| `ambientcg-rust001-industrial/` | Rust 001 — rusted metal 1K-JPG (full PBR set) — **Epoch 5–6 factories/trenches** | https://ambientcg.com/view?id=Rust001 | same |
+| `ambientcg-solarpanel001/` | Solar Panel 001 — PV panels 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Epoch 8 solar farms** | https://ambientcg.com/view?id=SolarPanel001 | same |
+| `ambientcg-asphalt001-modern/` | Asphalt 001 — modern road asphalt 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Epoch 5–8 roads** | https://ambientcg.com/view?id=Asphalt001 | same |
+| `ambientcg-gravel001-military/` | Gravel 001 — military gravel/mud roads 1K-JPG (Color/NormalGL; no AO shipped) — **trench/march roads** | https://ambientcg.com/view?id=Gravel001 | same |
+| `ambientcg-marble005-classical/` | Marble 005 — alt marble 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Epoch 2 civic marble** | https://ambientcg.com/view?id=Marble005 | same |
 
 Batches 1–2 downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
 (`https://api.polyhaven.com/files/leafy_grass` → dl.polyhaven.org URL, md5-verified by host).
