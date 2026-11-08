@@ -12,6 +12,15 @@ All four textures are CC0 1.0 Universal (Public Domain Dedication).
 | `ambientcg-ground037-farm/` | Ground 037 — farm/dirt alt 1K-JPG (Color/AO/NormalGL/Roughness) | https://ambientcg.com/view?id=Ground037 | same |
 | `ambientcg-pavingstones070-cobble/` | Paving Stones 070 — cobble 1K-JPG (Color/AO/NormalGL/Roughness) | https://ambientcg.com/view?id=PavingStones070 | same |
 | `polyhaven-leafy-grass/` (+nor_gl/rough/ao 1k jpg, md5 = API) | leafy_grass PBR companions to the diffuse above | https://polyhaven.com/a/leafy_grass | https://polyhaven.com/license |
+| `ambientcg-ground058-road/` | Ground 058 — rocky road dirt 1K-JPG (full PBR set) | https://ambientcg.com/view?id=Ground058 | CC0, same as above |
+| `ambientcg-ground059-mud/` | Ground 059 — wet sand / mudflat 1K-JPG (full PBR set) | https://ambientcg.com/view?id=Ground059 | same |
+| `ambientcg-wood095-timber/` | Wood 095 — light timber grain 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Wood095 | same |
+| `ambientcg-planks001/` | Planks 001 — weathered planks 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Planks001 | same |
+| `ambientcg-moss001/` | Moss 001 — forest-floor moss 1K-JPG (full PBR set) | https://ambientcg.com/view?id=Moss001 | same |
+| `ambientcg-snow001/` | Snow 001 — snow ground 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Snow001 | same |
+| `ambientcg-bricks001/` | Bricks 001 — brick wall 1K-JPG (Color/NormalGL/Roughness; no AO shipped) | https://ambientcg.com/view?id=Bricks001 | same |
+
+Batch 2 (downloaded 2026-11-08, same `/get?file=<id>_1K-JPG.zip` flow; non-map extras and Displacement/NormalDX dropped). Unity copies (Color + NormalGL per set, plus `day_sky.exr` from `DayEnvironmentHDRI114_1K.zip`) live under `unity/Assets/StreamingAssets/Imported/Textures/`.
 
 Downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
 (`https://api.polyhaven.com/files/leafy_grass` → dl.polyhaven.org URL, md5-verified by host).

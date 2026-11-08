@@ -86,7 +86,14 @@ public class SkeletonMain:MonoBehaviour {
   int cursor=0;for(int j=0;j<res;j++)for(int i=0;i<res;i++){int a=j*(res+1)+i,b=a+res+1;foreach(int v in new[]{a,a+1,b,a+1,b+1,b})triangles[cursor++]=v;}
   var mesh=new Mesh();mesh.indexFormat=UnityEngine.Rendering.IndexFormat.UInt32;mesh.vertices=vertices;mesh.triangles=triangles;mesh.colors=colors;mesh.RecalculateNormals();
   var go=new GameObject("Continuous terrain");go.AddComponent<MeshFilter>().sharedMesh=mesh;var material=new Material(Shader.Find("Prototype/Terrain"));
-  var tex=new Texture2D(2,2);tex.LoadImage(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath,"Imported/grass.jpg")));tex.wrapMode=TextureWrapMode.Repeat;tex.anisoLevel=8;material.SetTexture("_Grass",tex);go.AddComponent<MeshRenderer>().sharedMaterial=material;
+  string TexDir(){return Application.streamingAssetsPath+"/Imported/Textures/";}
+  Texture2D LoadTex(string f){var t=new Texture2D(2,2);t.LoadImage(File.ReadAllBytes(Path.Combine(TexDir(),f)));t.wrapMode=TextureWrapMode.Repeat;t.anisoLevel=8;return t;}
+  material.SetTexture("_Grass",LoadTex("grass.jpg"));
+  material.SetTexture("_Sand",LoadTex("sand.jpg"));
+  material.SetTexture("_Dirt",LoadTex("dirt.jpg"));
+  material.SetTexture("_Rock",LoadTex("rock.jpg"));
+  material.SetTexture("_Forest",LoadTex("forest.jpg"));
+  go.AddComponent<MeshRenderer>().sharedMaterial=material;
  }
  void Water(){var go=GameObject.CreatePrimitive(PrimitiveType.Plane);go.name="Water";go.transform.localScale=new Vector3(32,1,32);go.transform.position=new Vector3(0,-.02f,0);go.GetComponent<MeshRenderer>().material=new Material(Shader.Find("Prototype/Water"));Destroy(go.GetComponent<Collider>());}
  async Task<GameObject> ModelFile(string file,float width){
