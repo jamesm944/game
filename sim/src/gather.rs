@@ -801,12 +801,16 @@ impl GatherSystem {
     }
 }
 
-/// Movement + gather scenario runner mirroring TS `step()` plumbing
-/// with systems in registration order (movement, then gather).
+/// Full economy scenario runner mirroring TS `step()` plumbing with
+/// systems in registration order (movement, gather, placement,
+/// construction, training).
 pub struct EconomySim {
     pub movement: MovementSim,
     pub econ: EconomyComps,
     pub gather: GatherSystem,
+    pub placement: crate::placement::PlacementSystem,
+    pub construction: crate::construction::ConstructionSystem,
+    pub training: crate::training::TrainingSystem,
 }
 
 impl EconomySim {
@@ -819,13 +823,19 @@ impl EconomySim {
     ) -> Result<EconomySim, String> {
         let movement = MovementSim::new(seed, size, transport)?;
         let econ = EconomyComps::from_world(&movement.world);
+        let pop = PopComps::from_world(&movement.world);
+        let bcomps = crate::buildings::BuildingComps::from_world(&movement.world);
+        let age = crate::buildings::AgeComps::from_world(&movement.world);
         let gather = GatherSystem::new(
-            defs,
-            traits,
-            PopComps::from_world(&movement.world),
+            defs.clone(),
+            traits.clone(),
+            pop,
             GatherComps::from_world(&movement.world),
         );
-        Ok(EconomySim { movement, econ, gather })
+        let placement = crate::placement::PlacementSystem::new(defs.clone(), bcomps, age);
+        let construction = crate::construction::ConstructionSystem::new(defs.clone(), traits.clone(), pop, bcomps);
+        let training = crate::training::TrainingSystem::new(defs, traits, pop, bcomps, age);
+        Ok(EconomySim { movement, econ, gather, placement, construction, training })
     }
 
     pub fn spawn_unit(&mut self, x: f64, y: f64) -> Eid {
@@ -844,6 +854,9 @@ impl EconomySim {
         let MovementSim { world, comps, layers, paths, last_commands, .. } = &mut self.movement;
         let version = paths.passability_version();
         self.gather.run(world, comps, &econ, layers, version, last_commands);
+        self.placement.run(world, comps, &econ, layers, paths, last_commands);
+        self.construction.run(world, comps, &econ, layers, last_commands);
+        self.training.run(world, comps, &econ, layers, last_commands);
         true
     }
 

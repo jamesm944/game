@@ -49,6 +49,8 @@ pub struct UnitDef {
     pub range: f64,
     #[serde(rename = "sightRadius", default)]
     pub sight_radius: f64,
+    #[serde(rename = "armorClasses", default)]
+    pub armor_classes: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -309,6 +311,13 @@ impl Defs {
             .find(|(_, c)| **c == code)
             .map(|(id, _)| id.as_str())
             .unwrap_or_else(|| panic!("unknown unit def code: {code}"))
+    }
+    pub fn tech_id_of_code(&self, code: u32) -> &str {
+        self.tech_codes
+            .iter()
+            .find(|(_, c)| **c == code)
+            .map(|(id, _)| id.as_str())
+            .unwrap_or_else(|| panic!("unknown tech def code: {code}"))
     }
     pub fn tech_code(&self, id: &str) -> u32 {
         *self.tech_codes.get(id).unwrap_or_else(|| panic!("unknown tech definition: {id:?}"))
