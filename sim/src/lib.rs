@@ -1,8 +1,16 @@
 //! Ageofwind production simulation core (skeleton, ticket #186).
 //! Integer-only deterministic tick; parallel map with canonical reduction so
 //! digests are worker-count independent (ADR-0012 parity definition).
+pub mod activities;
+pub mod core;
 pub mod deep;
+pub mod defs;
+pub mod economy;
+pub mod mapgen;
+pub mod movement;
 pub mod parity;
+pub mod path;
+pub mod trig;
 use deep::*;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};

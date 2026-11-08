@@ -24,104 +24,12 @@ use shipyard::{
 };
 use std::time::Instant;
 
-// ---------------------------------------------------------------- PRNG
+// ---------------------------------------------------------------- PRNG + digest
+// Shared with the production core (crate::core, E3a/#193); these were
+// proven bit-exact here first (#187) and moved, not re-derived.
+pub use crate::core::{format_digest, splitmix32_stream, Sfc32, SFC32_WARMUP_ROUNDS};
 
-pub fn splitmix32_stream(seed: u32) -> impl FnMut() -> u32 {
-    let mut z = seed;
-    move || {
-        z = z.wrapping_add(0x9e37_79b9);
-        let mut t = z ^ (z >> 16);
-        t = t.wrapping_mul(0x21f0_aaad);
-        t ^= t >> 15;
-        t = t.wrapping_mul(0x735a_2d97);
-        t ^ (t >> 15)
-    }
-}
-
-pub const SFC32_WARMUP_ROUNDS: usize = 12;
-
-#[derive(Clone)]
-pub struct Sfc32 {
-    a: u32,
-    b: u32,
-    c: u32,
-    d: u32,
-}
-
-impl Sfc32 {
-    pub fn new_seeded(seed: u32) -> Self {
-        let mut next = splitmix32_stream(seed);
-        let mut prng = Sfc32 { a: next(), b: next(), c: next(), d: next() };
-        for _ in 0..SFC32_WARMUP_ROUNDS {
-            prng.next_u32();
-        }
-        prng
-    }
-    pub fn next_u32(&mut self) -> u32 {
-        let t = self.a.wrapping_add(self.b);
-        let next_a = self.b ^ (self.b >> 9);
-        let next_b = self.c.wrapping_add(self.c << 3);
-        let rotated_c = self.c.rotate_left(21);
-        let next_d = self.d.wrapping_add(1);
-        let out = t.wrapping_add(next_d);
-        self.a = next_a;
-        self.b = next_b;
-        self.c = rotated_c.wrapping_add(out);
-        self.d = next_d;
-        out
-    }
-    pub fn next_float(&mut self) -> f64 {
-        self.next_u32() as f64 / 4_294_967_296.0
-    }
-}
-
-// ---------------------------------------------------------------- Digest (SPEC §7)
-
-fn fnv1a64(bytes: &[u8]) -> u64 {
-    let mut h = 0xcbf2_9ce4_8422_2325u64;
-    for &b in bytes {
-        h ^= b as u64;
-        h = h.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    h
-}
-
-fn append_f64(out: &mut Vec<u8>, value: f64) {
-    assert!(value.is_finite() || value.is_nan(), "cannot digest non-finite float: {value}");
-    let bits = if value.is_nan() { 0x7ff8_0000_0000_0000u64 } else { value.to_bits() };
-    out.extend_from_slice(&bits.to_be_bytes());
-}
-
-/// Digest over components in alphabetical order (mass, then position),
-/// rows in ascending TS eid order, replicating digest.ts byte layout.
-fn digest_bytes(rows_mass: &[(i64, [f64; 1])], rows_pos: &[(i64, [f64; 2])]) -> Vec<u8> {
-    let mut out = Vec::new();
-    for (eid, values) in rows_mass {
-        out.extend_from_slice(format!("mass:{eid}:").as_bytes());
-        for (i, v) in values.iter().enumerate() {
-            if i > 0 {
-                out.push(0x2c);
-            }
-            append_f64(&mut out, *v);
-        }
-        out.push(0x0a);
-    }
-    for (eid, values) in rows_pos {
-        out.extend_from_slice(format!("position:{eid}:").as_bytes());
-        for (i, v) in values.iter().enumerate() {
-            if i > 0 {
-                out.push(0x2c);
-            }
-            append_f64(&mut out, *v);
-        }
-        out.push(0x0a);
-    }
-    out
-}
-
-pub fn format_digest(hash: u64) -> String {
-    format!("fnv1a64:{hash:016x}")
-}
+use crate::core::compute_digest;
 
 // ---------------------------------------------------------------- Fixture case
 
@@ -310,22 +218,22 @@ pub fn run_scenario(case: &Case, parallel: bool) -> ParityRun {
 
 fn world_digest(world: &World) -> String {
     world.run(|mass: View<Mass>, pos: View<Position>, order: UniqueView<Order>| {
-        let rows_mass: Vec<(i64, [f64; 1])> = order
+        let rows_mass: Vec<(i64, Vec<f64>)> = order
             .0
             .iter()
             .enumerate()
-            .map(|(i, &ent)| ((i + 1) as i64, [mass.get(ent).expect("digest mass row").0]))
+            .map(|(i, &ent)| ((i + 1) as i64, vec![mass.get(ent).expect("digest mass row").0]))
             .collect();
-        let rows_pos: Vec<(i64, [f64; 2])> = order
+        let rows_pos: Vec<(i64, Vec<f64>)> = order
             .0
             .iter()
             .enumerate()
             .map(|(i, &ent)| {
                 let p = pos.get(ent).expect("digest position row");
-                ((i + 1) as i64, [p.x, p.y])
+                ((i + 1) as i64, vec![p.x, p.y])
             })
             .collect();
-        format_digest(fnv1a64(&digest_bytes(&rows_mass, &rows_pos)))
+        compute_digest(&[("mass", &rows_mass), ("position", &rows_pos)])
     })
 }
 
