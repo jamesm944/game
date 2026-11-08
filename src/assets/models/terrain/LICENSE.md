@@ -1,6 +1,6 @@
 # Terrain textures — provenance
 
-All four textures are CC0 1.0 Universal (Public Domain Dedication).
+All textures in this directory are CC0 1.0 Universal (Public Domain Dedication).
 
 | Local dir | Asset | Source | License link |
 | --- | --- | --- | --- |
@@ -33,7 +33,14 @@ Batch 2 (downloaded 2026-11-08, same `/get?file=<id>_1K-JPG.zip` flow; non-map e
 | `ambientcg-tiles141-roof/` | Tiles 141 — roof tiles 1K-JPG (Color/NormalGL/Roughness; no AO shipped) — **Castle/Imperial roofs** | https://ambientcg.com/view?id=Tiles141 | same |
 | `ambientcg-clay001/` | Clay 001 — clay ground 1K-JPG (full PBR set) — **Dark-age farm/earth** | https://ambientcg.com/view?id=Clay001 | same |
 
-Downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
+Batches 1–2 downloaded 2026-08-25 via ambientCG `/get?file=<id>_1K-JPG.zip` and Poly Haven API
 (`https://api.polyhaven.com/files/leafy_grass` → dl.polyhaven.org URL, md5-verified by host).
 Non-map extras inside the zips (.blend/.usdc/.mtlx/.tres, Displacement, NormalDX) were dropped;
 map sets are otherwise unmodified.
+
+Batch 3 (downloaded 2026-11-08, same `/get?file=<id>_1K-JPG.zip` flow; non-map extras and Displacement/NormalDX dropped). Unity copies (Color + NormalGL per set) live under `unity/Assets/StreamingAssets/Imported/Textures/` as `rock2*.jpg` and `grass2*.jpg`.
+
+| Local dir | Asset | Source | License link |
+| --- | --- | --- | --- |
+| `ambientcg-rock028/` | Rock 028 — stratified cliff rock, alt to Rock064 for variation (full PBR set) | https://ambientcg.com/view?id=Rock028 | CC0, same as above |
+| `ambientcg-grass004/` | Grass 004 — alt grass ground for macro variation (full PBR set) | https://ambientcg.com/view?id=Grass004 | same |

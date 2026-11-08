@@ -24,7 +24,7 @@ Vendored under `src/assets/models/<pack>/`, each with a `LICENSE.md`
 | `quaternius-farm-animals`                  | quaternius.com → Google Drive                                    | obj+mtl                            | 8     | static meshes                              |
 | `kaykit-adventurers`                       | github.com/KayKit-Game-Assets (official mirror)                  | glb characters + gltf accessories  | ~50   | skinned, **76 clips** per character        |
 | `kaykit-enemy-skeletons`                   | github.com/KayKit-Game-Assets (official mirror)                  | glb + gltf accessories             | ~30   | skinned, **95 clips** per character        |
-| `terrain/`                                 | ambientCG ×3 + Poly Haven ×1                                     | jpg maps (1k)                      | 13    | n/a                                        |
+| `terrain/`                                 | ambientCG ×23 + Poly Haven ×1                                    | jpg maps (1k)                      | 86    | n/a                                        |
 
 GLTF-family model count vendored: **≈250** (128 UFRS buildings + props, 12
 animated animals, 9 rigged humanoids, 40 accessories/weapons, 2 UBC bodies,
