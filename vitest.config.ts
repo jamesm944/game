@@ -11,5 +11,19 @@ export default defineConfig({
   assetsInclude: ["**/*.gltf", "**/*.glb"],
   test: {
     fileParallelism: false,
+    // Donor-audit clones under scratch/ are quarantined reference trees
+    // (third_party/manifest.json, E0/#192) — their 580 test files are
+    // not part of this project's gate and must never be collected.
+    // unity/ and "My project/" are Unity workspaces, likewise excluded.
+    // (First entries preserve vitest's default excludes.)
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/cypress/**",
+      "**/.{idea,git,cache,output,temp}/**",
+      "scratch/**",
+      "unity/**",
+      "My project/**",
+    ],
   },
 });
