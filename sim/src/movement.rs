@@ -271,7 +271,7 @@ fn clear_harmonized_speed(world: &mut CoreWorld, comps: &MovementComps, eid: Eid
 
 // ---- formations (components/formation.ts) ------------------------------------
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, serde::Serialize, serde::Deserialize)]
 pub enum FormationKind {
     Line,
     Box,
@@ -446,13 +446,14 @@ pub fn calculate_formation_offset(formation: FormationKind, index: usize, total_
 
 // ---- group route pipeline ----------------------------------------------------
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 struct MemberSnap {
     eid: Eid,
     start_x: f64,
     start_y: f64,
 }
 
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub enum Continuation {
     GroupRoute(Box<GroupRouteCont>),
     Repath { eid: Eid, dest: (f64, f64) },
@@ -462,6 +463,7 @@ pub enum Continuation {
     DiscardRepath,
 }
 
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct GroupRouteCont {
     members: Vec<MemberSnap>,
     ordered: Vec<usize>, // indices into members, leader first

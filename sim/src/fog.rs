@@ -17,14 +17,14 @@ pub const FOG_LUT_MAX_RADIUS: i64 = 16;
 pub const DEFAULT_UNIT_SIGHT_RADIUS: i64 = 5;
 pub const DEFAULT_UNIT_DEF_ID: &str = "villager";
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct FogPlayerPlanes {
     pub explored: Vec<u8>,
     pub visible: Vec<u8>,
     pub contributor_count: Vec<u16>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct FogState {
     pub size: usize,
     pub player_count: usize,
@@ -134,7 +134,7 @@ pub fn explored_tile_count(state: &FogState, player: usize) -> usize {
     state.planes[player].explored.iter().map(|v| *v as usize).sum()
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct FogEntityRecord {
     pub eid: Eid,
     pub tile_x: i64,
@@ -239,7 +239,7 @@ pub struct KnownEntity {
     pub owner: f64,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct GhostRecord {
     pub eid: Eid,
     pub def_id: String,
@@ -247,6 +247,7 @@ pub struct GhostRecord {
     pub tile_y: i64,
 }
 
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct FogHandle {
     pub state: FogState,
     pub revision: u64,

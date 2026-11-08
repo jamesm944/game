@@ -100,7 +100,7 @@ pub fn setup_ai_opponent(
 
 // ---- difficulty (ai/difficulty.ts) ----
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum AiDifficulty {
     Easy,
     Normal,
@@ -785,7 +785,7 @@ pub struct Strategy {
     pub steps: Vec<BuildStep>,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct BuildOrderMemory {
     pub attacked_tick: Option<u64>,
 }
@@ -1399,7 +1399,7 @@ pub const DEFENSE_RALLY_COOLDOWN_TICKS: u64 = 30;
 pub const COUNTER_TRAIN_CAP: u64 = 8;
 pub const TRIBUTE_COOLDOWN_TICKS: u64 = 60;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct MilitaryMemory {
     pub threat_since: BTreeMap<Eid, u64>,
     pub last_rally_tick: Option<u64>,
@@ -1961,7 +1961,7 @@ pub fn plan_naval_fleet(k: &AiKnowledge, defs: &Defs, budget: &mut ResourceBudge
 
 // ---- planner orchestrator (ai/planner.ts) ----
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct PlannerTelemetry {
     pub think_calls: u64,
     pub incremental_calls: u64,

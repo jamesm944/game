@@ -532,6 +532,17 @@ impl VictorySystem {
         VictorySystem { defs, paths, decided: false }
     }
 
+    /// Whether the match decision has frozen further checks (E7 saves).
+    pub fn is_decided(&self) -> bool {
+        self.decided
+    }
+
+    /// Restore the frozen flag after a load. The WON/LOST rows are the
+    /// ground truth; this only re-arms the same freeze they imply.
+    pub fn set_decided(&mut self, decided: bool) {
+        self.decided = decided;
+    }
+
     pub fn run(&mut self, world: &mut CoreWorld, econ: &EconomyComps, building: usize, relic: usize, commands: &[Command]) {
         let comps = VictoryComps::new(world, econ, building, relic);
         // Surrender commands resolve first.

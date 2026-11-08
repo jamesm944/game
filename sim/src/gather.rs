@@ -54,6 +54,24 @@ pub struct FarmDepletedEvent {
     pub farm_y: Option<f64>,
 }
 
+/// Serializable gather state for E7 saves (see `GatherSystem::save_state`).
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct FarmEventState {
+    pub tick: u64,
+    pub player_id: f64,
+    pub farm_eid: Eid,
+    pub reason: String,
+    pub farm_x: Option<f64>,
+    pub farm_y: Option<f64>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct GatherSaveState {
+    pub auto_reseed: Vec<(i64, bool)>,
+    pub farm_events: Vec<FarmEventState>,
+    pub cost_rng: Sfc32,
+}
+
 /// Test/telemetry counters — deliberately NOT part of the digest.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct GatherDiagnostics {
@@ -220,6 +238,50 @@ impl GatherSystem {
 
     pub(crate) fn is_auto_reseed_enabled(&self, player_id: f64) -> bool {
         self.auto_reseed.get(&(player_id as i64)).copied().unwrap_or(true)
+    }
+
+    /// Capture the gather state a save must resume (E7): per-player
+    /// auto-reseed toggles, pending farm-depletion events, and the
+    /// carry-cost RNG. The cost cache is derived and rebuilds.
+    pub fn save_state(&self) -> GatherSaveState {
+        GatherSaveState {
+            auto_reseed: self.auto_reseed.iter().map(|(k, v)| (*k, *v)).collect(),
+            farm_events: self
+                .farm_events
+                .iter()
+                .map(|e| FarmEventState {
+                    tick: e.tick,
+                    player_id: e.player_id,
+                    farm_eid: e.farm_eid,
+                    reason: e.reason.to_string(),
+                    farm_x: e.farm_x,
+                    farm_y: e.farm_y,
+                })
+                .collect(),
+            cost_rng: self.cost_rng.clone(),
+        }
+    }
+
+    /// Restore a state captured by [`GatherSystem::save_state`]. Farm
+    /// event reasons are a closed set of string literals the gather
+    /// system itself minted, so they are leaked back to `&'static`.
+    pub fn restore_state(&mut self, state: GatherSaveState) {
+        self.auto_reseed = state.auto_reseed.into_iter().collect();
+        self.farm_events = state
+            .farm_events
+            .into_iter()
+            .map(|e| FarmDepletedEvent {
+                tick: e.tick,
+                player_id: e.player_id,
+                farm_eid: e.farm_eid,
+                reason: Box::leak(e.reason.into_boxed_str()),
+                farm_x: e.farm_x,
+                farm_y: e.farm_y,
+            })
+            .collect();
+        self.cost_rng = state.cost_rng;
+        self.cost_cache_version = -1;
+        self.cost_cache.clear();
     }
 
     fn record_farm_depleted(&mut self, event: FarmDepletedEvent) {

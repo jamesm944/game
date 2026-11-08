@@ -22,7 +22,7 @@ const NO_G_SCORE: i64 = 0x7fff_ffff;
 const NEIGHBOR_DX: [i64; 8] = [1, 1, 0, -1, -1, -1, 0, 1];
 const NEIGHBOR_DY: [i64; 8] = [0, 1, 1, 1, 0, -1, -1, -1];
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub struct PathRequest {
     pub id: u64,
     pub due_tick: u64,
@@ -35,7 +35,7 @@ pub struct PathRequest {
     pub seed: u32,
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub struct PathResponse {
     pub id: u64,
     pub ok: bool,
@@ -401,11 +401,25 @@ impl Transport {
 
 // ---------------------------------------------------------------- Scheduler
 
-struct Outstanding<T> {
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct Outstanding<T> {
     due_tick: u64,
     passable_version: u32,
     tag: T,
     discard_tag: Option<T>,
+}
+
+/// Serializable scheduler state (E7 saves). The transport itself is
+/// not captured: only the synchronous engine round-trips (its path
+/// cache is derived data and rebuilds empty).
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct SchedulerSnapshot<T> {
+    pub(crate) next_id: u64,
+    pub(crate) next_apply_id: u64,
+    pub(crate) outstanding: Vec<(u64, Outstanding<T>)>,
+    pub(crate) buffered: Vec<(u64, PathResponse)>,
+    pub(crate) blocked_ticks: u64,
+    pub(crate) passability_version: u32,
 }
 
 pub enum PumpEvent<T> {
@@ -453,6 +467,36 @@ impl<T> PathScheduler<T> {
     }
     pub fn transport_mut(&mut self) -> &mut Transport {
         &mut self.transport
+    }
+    /// True when paths resolve in-tick (the only saveable transport).
+    pub fn is_synchronous(&self) -> bool {
+        matches!(self.transport, Transport::Sync(_))
+    }
+    /// Capture scheduler state for a save file (E7).
+    pub fn snapshot(&self) -> SchedulerSnapshot<T>
+    where
+        T: Clone,
+    {
+        SchedulerSnapshot {
+            next_id: self.next_id,
+            next_apply_id: self.next_apply_id,
+            outstanding: self.outstanding.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            buffered: self.buffered.iter().map(|(k, v)| (*k, v.clone())).collect(),
+            blocked_ticks: self.blocked_ticks,
+            passability_version: self.passability_version,
+        }
+    }
+    /// Rebuild a scheduler from a save snapshot over `transport`.
+    pub fn restore(snapshot: SchedulerSnapshot<T>, transport: Transport) -> Self {
+        PathScheduler {
+            transport,
+            next_id: snapshot.next_id,
+            next_apply_id: snapshot.next_apply_id,
+            outstanding: snapshot.outstanding.into_iter().collect(),
+            buffered: snapshot.buffered.into_iter().collect(),
+            blocked_ticks: snapshot.blocked_ticks,
+            passability_version: snapshot.passability_version,
+        }
     }
     pub fn passability_version(&self) -> u32 {
         self.passability_version

@@ -35,7 +35,7 @@ pub fn splitmix32_stream(seed: u32) -> impl FnMut() -> u32 {
 
 pub const SFC32_WARMUP_ROUNDS: usize = 12;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Sfc32 {
     a: u32,
     b: u32,
@@ -159,6 +159,11 @@ impl Registry {
     pub fn id_of(&self, name: &str) -> Result<usize, String> {
         self.names_by_id.iter().position(|n| n == name).ok_or_else(|| format!("unknown component: {name:?}"))
     }
+    /// Registered component names in canonical id order (save files
+    /// verify the layout they were written against).
+    pub fn names(&self) -> &[String] {
+        &self.names_by_id
+    }
     pub fn name_of(&self, id: usize) -> Result<&str, String> {
         self.names_by_id.get(id).map(|s| s.as_str()).ok_or_else(|| format!("unknown component id: {id}"))
     }
@@ -172,7 +177,7 @@ impl Registry {
 
 // ---------------------------------------------------------------- Inbox
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
 pub struct Command {
     pub kind: String,
     pub target_tick: u64,
@@ -185,12 +190,13 @@ impl Command {
     }
 }
 
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 struct Queued {
     seq: u64,
     command: Command,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Inbox {
     queue: Vec<Queued>,
     next_seq: u64,

@@ -14,6 +14,12 @@ enum Control {
     Load(Box<World>),
 }
 
+/// Game-mode control messages: wire command lines or an AOF2 load.
+enum GameControl {
+    Cmd(String),
+    Load(Vec<u8>),
+}
+
 fn main() {
     let args = std::env::args().collect::<Vec<_>>();
     // `game [seed] [size]` serves the real EconomySim skirmish (E5a,
@@ -32,8 +38,9 @@ fn run_game(seed: u32, size: usize) {
     let mut server = GameServer::new_skirmish(seed, size).expect("skirmish setup");
     let shared = Arc::new(Mutex::new(server.snapshot_json()));
     let map_shared = Arc::new(Mutex::new(server.map_json()));
+    let save_shared = Arc::new(Mutex::new(server.save_aof2(0.0).expect("initial save")));
     let peers = Arc::new(Mutex::new(Vec::<TcpStream>::new()));
-    let (send, recv) = mpsc::channel::<String>();
+    let (send, recv) = mpsc::channel::<GameControl>();
 
     let peer_accept = peers.clone();
     let tcp_send = send.clone();
@@ -47,7 +54,7 @@ fn run_game(seed: u32, size: usize) {
             let tx = tcp_send.clone();
             thread::spawn(move || {
                 for line in BufReader::new(read).lines().map_while(Result::ok) {
-                    if tx.send(line).is_err() { break; }
+                    if tx.send(GameControl::Cmd(line)).is_err() { break; }
                 }
             });
         }
@@ -55,6 +62,7 @@ fn run_game(seed: u32, size: usize) {
 
     let http_state = shared.clone();
     let http_map = map_shared.clone();
+    let http_save = save_shared.clone();
     thread::spawn(move || {
         let server = tiny_http::Server::http("127.0.0.1:4189").expect("HTTP 4189 busy");
         for mut req in server.incoming_requests() {
@@ -64,16 +72,23 @@ fn run_game(seed: u32, size: usize) {
                     let mut body = String::new();
                     req.as_reader().take(16384).read_to_string(&mut body).ok();
                     match serde_json::from_str::<serde_json::Value>(&body) {
-                        Ok(_) => { send.send(body).ok(); tiny_http::Response::from_string("{\"queued\":true}") }
+                        Ok(_) => { send.send(GameControl::Cmd(body)).ok(); tiny_http::Response::from_string("{\"queued\":true}") }
                         Err(_) => tiny_http::Response::from_string("{\"error\":\"invalid_command\"}").with_status_code(400),
                     }
                 }
                 (false, "/map") => tiny_http::Response::from_string(http_map.lock().unwrap().clone()),
-                // Save/load for the real game is E7 (#204); fail loudly
-                // instead of pretending the skeleton format applies.
-                (_, "/save") | (_, "/load") => tiny_http::Response::from_string(
-                    "{\"error\":\"game_save_load_lands_in_E7\"}",
-                ).with_status_code(501),
+                (false, "/save") => tiny_http::Response::from_data(http_save.lock().unwrap().clone())
+                    .with_header(tiny_http::Header::from_bytes("Content-Type", "application/octet-stream").unwrap()),
+                (true, "/load") => {
+                    let mut body = Vec::new();
+                    req.as_reader().take(64 * 1024 * 1024).read_to_end(&mut body).ok();
+                    if body.len() < 4 || &body[0..4] != b"AOF2" {
+                        tiny_http::Response::from_string("{\"error\":\"not_an_AOF2_save\"}").with_status_code(400)
+                    } else {
+                        send.send(GameControl::Load(body)).ok();
+                        tiny_http::Response::from_string("{\"queued\":true}")
+                    }
+                }
                 _ => tiny_http::Response::from_string(http_state.lock().unwrap().clone()),
             };
             req.respond(
@@ -85,14 +100,33 @@ fn run_game(seed: u32, size: usize) {
     });
 
     println!("ageofwind-game-v1 TCP 127.0.0.1:4188 HTTP 127.0.0.1:4189 seed={seed} size={size}");
+    let started = Instant::now();
     loop {
         let start = Instant::now();
-        for line in recv.try_iter() {
-            if let Err(e) = server.submit_json(&line) {
-                eprintln!("command rejected: {e}");
+        for control in recv.try_iter() {
+            match control {
+                GameControl::Cmd(line) => {
+                    if let Err(e) = server.submit_json(&line) {
+                        eprintln!("command rejected: {e}");
+                    }
+                }
+                GameControl::Load(bytes) => match server.load_aof2(&bytes) {
+                    Ok(()) => {
+                        *map_shared.lock().unwrap() = server.map_json();
+                        eprintln!("loaded save at tick {}", server.tick());
+                    }
+                    Err(e) => eprintln!("load rejected: {e}"),
+                },
             }
         }
         server.step();
+        // Keep a fresh save downloadable (1 Hz; the sim thread owns
+        // serialization so bytes always sit on a tick boundary).
+        if server.tick() % 30 == 0 {
+            if let Ok(bytes) = server.save_aof2(started.elapsed().as_secs_f64()) {
+                *save_shared.lock().unwrap() = bytes;
+            }
+        }
         let frame = server.snapshot_json();
         *shared.lock().unwrap() = frame.clone();
         let mut line = frame;

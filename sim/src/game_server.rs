@@ -424,6 +424,28 @@ impl GameServer {
         serde_json::to_string(&snapshot).expect("snapshot serializes")
     }
 
+    /// `fnv1a64:` map hash for replay/save identity checks.
+    pub fn map_hash(&self) -> String {
+        crate::core::format_digest(crate::save::map_hash_of(&self.sim.movement.layers))
+    }
+
+    /// Serialize the served match at the current tick boundary (E7).
+    pub fn save_aof2(&self, playtime_seconds: f64) -> Result<Vec<u8>, String> {
+        self.sim.save_aof2(playtime_seconds)
+    }
+
+    /// Replace the served match with a loaded save. The container is
+    /// fully verified before anything is swapped, so a rejected load
+    /// leaves the running match untouched.
+    pub fn load_aof2(&mut self, bytes: &[u8]) -> Result<(), String> {
+        let traits = Arc::new(TraitsData::load_repo_defaults()?);
+        let sim = EconomySim::load_aof2(bytes, self.defs.clone(), traits)?;
+        self.size = sim.movement.layers.size;
+        self.seed = sim.movement.world.seed;
+        self.sim = sim;
+        Ok(())
+    }
+
     /// Static map planes for the renderer (fetched once, not streamed).
     pub fn map_json(&self) -> String {
         let layers = &self.sim.movement.layers;

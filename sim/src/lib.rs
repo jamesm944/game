@@ -20,6 +20,7 @@ pub mod gather;
 pub mod placement;
 pub mod pop;
 pub mod production;
+pub mod save;
 pub mod training;
 pub mod victory;
 pub mod mapgen;
