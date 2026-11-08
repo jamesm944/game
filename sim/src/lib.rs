@@ -15,6 +15,7 @@ pub mod combat;
 pub mod combat_stats;
 pub mod combat_system;
 pub mod construction;
+pub mod game_server;
 pub mod gather;
 pub mod placement;
 pub mod pop;
