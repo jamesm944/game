@@ -51,7 +51,13 @@ describe("fog stamping perf (M2-T8)", () => {
       footHeight: 1,
     }));
     fog.bindSource({
-      resolve: (eid) => entities[eid - 1],
+      // Must return a fresh record per call, like production
+      // createRowEntityResolver. Returning the mutated entity object
+      // aliases the provider's stored stamp, so sameStamp compares the
+      // record to itself and every re-stamp is skipped — the gate then
+      // measures queue dedupe, not stamping (deep-sim §3 flaw, fixed
+      // in E0/#192: honest ~0.9 ms vs aliased 0.04 ms at 300).
+      resolve: (eid) => ({ ...entities[eid - 1]! }),
       eidsAscending: () => entities.map((entity) => entity.eid),
     });
     fog.recomputeAll();

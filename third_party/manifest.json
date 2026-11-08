@@ -1,0 +1,99 @@
+{
+  "schema": "ageofwind-donor-manifest-v1",
+  "recorded": "2026-11-07",
+  "ticket": "E0 freeze (#192), build-sequence §5 E0; pins audited in docs/research/df-rimworld-donor-inventory.md and open-source-donor-integration-roadmap.md",
+  "quarantine_policy": "Donor trees live only under scratch/ (never committed). Copyleft donors (GPL/AGPL) are patterns/reference only — no code into this repo. Permissive donors (MIT/zlib) may contribute code with attribution recorded in copied_paths at copy time. Dwarf Fortress itself is closed-source: clean-room only (see docs/research/df-reverse-engineering-mood-thoughts.md).",
+  "donors": [
+    {
+      "name": "voidstrike",
+      "repo": "https://github.com/braedonsaunders/voidstrike.git",
+      "pin": "4df0235116b78bf9232105486738e64b2e6905cb",
+      "local_path": "scratch/donor-audit/browser/voidstrike",
+      "license": "MIT",
+      "use": "snapshot/interpolation shape reference (donor roadmap Phase 2/E1)",
+      "copied_paths": []
+    },
+    {
+      "name": "generals-rts-threejs-port",
+      "repo": "https://github.com/sentifold/generals-rts-threejs-port.git",
+      "pin": "816b259c962c13d7d3c6e0cb2def1c682e410bdb",
+      "local_path": "scratch/donor-audit/browser/generals-rts-threejs-port",
+      "license": "GPL-3.0 (EA C&C Generals source release, with additional terms)",
+      "use": "harness PATTERNS only: replay determinism, state-hash harness, sim-bridge lifecycle contracts (embodied in sim/src/parity.rs #187; no code copied)",
+      "copied_paths": []
+    },
+    {
+      "name": "OpenRA",
+      "repo": "https://github.com/OpenRA/OpenRA.git",
+      "pin": "dbe674733305cd1ebe7bd03feed347b5c0da3c08",
+      "local_path": "scratch/donor-audit/rts/openra/source",
+      "license": "GPL-3.0",
+      "use": "activity-queue semantics reference for E3 (patterns only)",
+      "copied_paths": []
+    },
+    {
+      "name": "widelands",
+      "repo": "https://github.com/widelands/widelands.git",
+      "pin": "bfc7713d5f5659bb6393a78205c408c081d4b027",
+      "local_path": "scratch/donor-audit/rts/widelands/source",
+      "license": "GPL-2.0",
+      "use": "logistics/economy design reference (patterns only)",
+      "copied_paths": []
+    },
+    {
+      "name": "augustus",
+      "repo": "https://github.com/Keriew/augustus.git",
+      "pin": "dae1899ef6abca7a19b73a99f65f6aa680a78173",
+      "local_path": "scratch/donor-audit/city/augustus",
+      "license": "AGPL-3.0",
+      "use": "city-builder systems reference (patterns only)",
+      "copied_paths": []
+    },
+    {
+      "name": "dfhack",
+      "repo": "https://github.com/DFHack/dfhack.git",
+      "pin": "438faf3b87ff3a308c0a8501e91228a10cdaeec4",
+      "local_path": "scratch/donor-audit/city/dfhack",
+      "license": "zlib (some MIT/BSD components)",
+      "use": "structural patterns; announcement/state enum naming for deep sim (#190)",
+      "copied_paths": []
+    },
+    {
+      "name": "df-structures",
+      "repo": "https://github.com/DFHack/df-structures",
+      "pin": "2e38688ea0e4e20f3a7dd48eabe77458b3a9c19f",
+      "local_path": "scratch/df-re/df-structures",
+      "license": "zlib (DFHack project)",
+      "use": "data shapes, enum vocabularies, definition constants for sim/src/deep.rs (#190)",
+      "copied_paths": []
+    },
+    {
+      "name": "RimWar",
+      "repo": "https://github.com/TorannD/RimWar.git",
+      "pin": "aab38d573275f5d2a1552e70e7dd4702507a2cc2",
+      "local_path": "scratch/donor-audit/mods/RimWar",
+      "license": "MIT",
+      "use": "world-politics/war design reference (E12)",
+      "copied_paths": []
+    },
+    {
+      "name": "PickUpAndHaul",
+      "repo": "https://github.com/Mehni/PickUpAndHaul.git",
+      "pin": "09f1fac96e70cc2a93d647615a5abd37734a3eba",
+      "local_path": "scratch/donor-audit/mods/PickUpAndHaul",
+      "license": "MIT",
+      "use": "hauling/logistics design reference (E9)",
+      "copied_paths": []
+    },
+    {
+      "name": "recastnavigation",
+      "repo": "https://github.com/recastnavigation/recastnavigation.git",
+      "pin": "9f4ce64458dfae86e1239c525ddc219c4e9e06f1",
+      "local_path": "scratch/donor-audit/navigation/recastnavigation",
+      "license": "zlib",
+      "use": "REJECTED at full scale by #173 (retain A*); retained as benchmark reference only",
+      "copied_paths": []
+    }
+  ],
+  "verification": "All pins re-read from local clones with git rev-parse HEAD on 2026-11-07 (#192); every pin matches the audited value in the build sequence. Local clones under scratch/ are untracked and must stay uncommitted."
+}
