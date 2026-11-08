@@ -6,6 +6,7 @@ pub mod core;
 pub mod deep;
 pub mod defs;
 pub mod economy;
+pub mod gather;
 pub mod mapgen;
 pub mod movement;
 pub mod parity;

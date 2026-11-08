@@ -169,11 +169,16 @@ pub struct MovementDiagnostics {
     pub group_moves: u64,
 }
 
-fn reset_steering_bookkeeping(vel: &mut [f64]) {
+pub(crate) fn reset_steering_bookkeeping(vel: &mut [f64]) {
     vel[V_STALLED_TICKS] = 0.0;
     vel[V_PARK_CONTACT_TICKS] = 0.0;
     vel[V_CLOSE_TICKS] = 0.0;
     vel[V_PROPAGATION_PARKED] = 0.0;
+}
+
+/// TS isSteeringJammed: deep stall, parked contact, or propagation-parked.
+pub(crate) fn is_steering_jammed(vel: &[f64]) -> bool {
+    vel[V_STALLED_TICKS] >= 30.0 || vel[V_PARK_CONTACT_TICKS] >= 15.0 || vel[V_PROPAGATION_PARKED] != 0.0
 }
 
 fn derive_path_seed(world_seed: u32, start_tile: i64, goal_tile: i64, issue_tick: u64) -> u32 {
@@ -189,14 +194,14 @@ fn derive_path_seed(world_seed: u32, start_tile: i64, goal_tile: i64, issue_tick
     z ^ (z >> 15)
 }
 
-fn tile_is_passable(passability: &[u8], size: usize, x: i64, y: i64) -> bool {
+pub(crate) fn tile_is_passable(passability: &[u8], size: usize, x: i64, y: i64) -> bool {
     if x < 0 || y < 0 || x >= size as i64 || y >= size as i64 {
         return false;
     }
     passability[y as usize * size + x as usize] == 1
 }
 
-fn nearest_passable_tile(passability: &[u8], size: usize, tx: i64, ty: i64) -> Option<(i64, i64)> {
+pub(crate) fn nearest_passable_tile(passability: &[u8], size: usize, tx: i64, ty: i64) -> Option<(i64, i64)> {
     let clamped_x = tx.clamp(0, size as i64 - 1);
     let clamped_y = ty.clamp(0, size as i64 - 1);
     for radius in 0..=(size as i64) {
@@ -232,13 +237,13 @@ fn vel_get(world: &CoreWorld, comps: &MovementComps, eid: Eid, slot: usize) -> f
 fn vel_set(world: &mut CoreWorld, comps: &MovementComps, eid: Eid, slot: usize, value: f64) {
     row_mut(world, comps.velocity, eid).expect("velocity row")[slot] = value;
 }
-fn read_queue(world: &CoreWorld, comps: &MovementComps, eid: Eid) -> ActivityQueue {
+pub(crate) fn read_queue(world: &CoreWorld, comps: &MovementComps, eid: Eid) -> ActivityQueue {
     match row(world, comps.activity_queue, eid) {
         Some(r) => decode_activities(r).expect("activity row decodes"),
         None => Vec::new(),
     }
 }
-fn write_queue(world: &mut CoreWorld, comps: &MovementComps, eid: Eid, queue: &[Activity]) {
+pub(crate) fn write_queue(world: &mut CoreWorld, comps: &MovementComps, eid: Eid, queue: &[Activity]) {
     assert!(row(world, comps.activity_queue, eid).is_some(), "entity {eid} has no ActivityQueue row");
     set_row(world, comps.activity_queue, eid, encode_activities(queue).expect("queue encodes"));
 }
@@ -1404,6 +1409,10 @@ pub struct MovementSim {
     pub comps: MovementComps,
     pub paths: PathScheduler<Continuation>,
     pub diagnostics: MovementDiagnostics,
+    /// Commands drained on the most recent advanced tick, retained so
+    /// sibling systems (gather, construction, …) dispatch from the
+    /// same boundary list exactly as TS registerSystem delivery does.
+    pub last_commands: Vec<Command>,
     lut: SinCosLut,
 }
 
@@ -1418,6 +1427,7 @@ impl MovementSim {
             comps,
             paths: PathScheduler::new(transport),
             diagnostics: MovementDiagnostics::default(),
+            last_commands: Vec::new(),
             lut: build_sin_cos_lut(SLOT_LUT_SIZE),
         })
     }
@@ -1480,6 +1490,7 @@ impl MovementSim {
             &mut self.diagnostics,
             &commands,
         );
+        self.last_commands = commands;
         true
     }
 
